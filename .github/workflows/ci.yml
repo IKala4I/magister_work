@@ -40,8 +40,10 @@ jobs:
       - name: Contract sync — regenerated types match committed (File 03 §6 step 1)
         run: |
           supabase gen types typescript --local > /tmp/database.gen.ts
-          diff -u <(grep -v 'PostgrestVersion' packages/shared/src/database.ts) \
-                  <(grep -v 'PostgrestVersion' /tmp/database.gen.ts)
+          ./scripts/normalize-db-types.sh /tmp/database.gen.ts
+          ./scripts/normalize-db-types.sh packages/shared/src/database.ts
+          git diff --exit-code packages/shared/src/database.ts
+          diff -u packages/shared/src/database.ts /tmp/database.gen.ts
 
   python:
     name: Python gates (${{ matrix.package }})
