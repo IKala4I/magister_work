@@ -12,6 +12,7 @@ import {
   JetBrainsMono_400Regular,
   JetBrainsMono_600SemiBold,
 } from '@expo-google-fonts/jetbrains-mono';
+import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -19,7 +20,10 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import migrations from '../drizzle/migrations';
+import { db } from '../src/db/client';
 import { t } from '../src/i18n';
+import { EmptyState, Screen } from '../src/ui/primitives';
 import { useTheme } from '../src/ui/theme';
 
 SplashScreen.preventAutoHideAsync().catch(() => {
@@ -36,17 +40,29 @@ export default function RootLayout() {
     JetBrainsMono_400Regular,
     JetBrainsMono_600SemiBold,
   });
+  const { success: dbReady, error: dbError } = useMigrations(db, migrations);
+
+  const ready = fontsLoaded && (dbReady || dbError !== undefined);
 
   useEffect(() => {
-    if (fontsLoaded) {
+    if (ready) {
       SplashScreen.hideAsync().catch(() => {
         // Hiding twice is harmless.
       });
     }
-  }, [fontsLoaded]);
+  }, [ready]);
 
-  if (!fontsLoaded) {
-    return null; // splash stays up; fonts are local assets so this is milliseconds
+  if (!ready) {
+    return null; // splash stays up; fonts and migrations are local, this is milliseconds
+  }
+
+  if (dbError !== undefined) {
+    // Fail visibly: an offline-first app without its database must not pretend to work.
+    return (
+      <Screen>
+        <EmptyState title={t('db.migrationFailed.title')} body={t('db.migrationFailed.body')} />
+      </Screen>
+    );
   }
 
   return (

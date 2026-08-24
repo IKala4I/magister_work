@@ -16,6 +16,7 @@ export default tseslint.config(
       'services/**',
       'training/**',
       'packages/shared/src/database.ts',
+      'apps/mobile/drizzle/**',
     ],
   },
   js.configs.recommended,
