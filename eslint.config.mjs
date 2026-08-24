@@ -28,5 +28,21 @@ export default tseslint.config(
       'react-hooks/exhaustive-deps': 'error',
     },
   },
+  {
+    // Decision 6: no hardcoded user-facing strings in components from P2 onward.
+    // Catches raw JSX text; string-valued props (placeholders, a11y labels) are covered by
+    // the review checklist in docs/traceability.md.
+    files: ['apps/mobile/app/**/*.tsx', 'apps/mobile/src/**/*.tsx'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'JSXText[value=/[A-Za-z]/]',
+          message:
+            'User-facing text must come from the i18n catalog: t(...) from src/i18n (decision 6).',
+        },
+      ],
+    },
+  },
   prettier,
 );
