@@ -59,3 +59,7 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 .pytest_cache/
+
+# thesis working files (never published from this repo)
+docs/thesis/draft.docx
+docs/thesis/*.docx
