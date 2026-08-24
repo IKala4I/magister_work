@@ -1,7 +1,7 @@
 {
   "name": "@hourwell/mobile",
   "version": "0.1.0",
-  "main": "index.ts",
+  "main": "expo-router/entry",
   "private": true,
   "scripts": {
     "start": "expo start",
@@ -32,8 +32,9 @@
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",
     "@expo-google-fonts/jetbrains-mono": "^0.4.1",
+    "@expo/vector-icons": "^15.1.1",
     "@hourwell/shared": "workspace:*",
-    "@sentry/react-native": "8.23.0",
+    "@sentry/react-native": "7.11.0",
     "drizzle-orm": "0.45.2",
     "expo": "~57.0.16",
     "expo-blur": "~57.0.2",

@@ -1,0 +1,94 @@
+/**
+ * Tab shell — Today · Inbox · Focus · Insights (File 02 §3.5 key screens; Settings is a
+ * modal route, reachable from every tab header). Touch targets ≥44 px (NFR-A1).
+ */
+import { Ionicons } from '@expo/vector-icons';
+import { Link, Tabs } from 'expo-router';
+import { Pressable, StyleSheet } from 'react-native';
+
+import { t } from '../../src/i18n';
+import { useTheme } from '../../src/ui/theme';
+
+function SettingsButton() {
+  const theme = useTheme();
+  return (
+    <Link href="/settings" asChild>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={t('settings.open.a11y')}
+        hitSlop={8}
+        style={styles.settingsButton}
+      >
+        <Ionicons name="settings-outline" size={22} color={theme.colors.textPrimary} />
+      </Pressable>
+    </Link>
+  );
+}
+
+export default function TabsLayout() {
+  const theme = useTheme();
+  return (
+    <Tabs
+      screenOptions={{
+        tabBarActiveTintColor: theme.colors.primary,
+        tabBarInactiveTintColor: theme.colors.textSecondary,
+        tabBarStyle: { backgroundColor: theme.colors.surface },
+        headerStyle: { backgroundColor: theme.colors.surface },
+        headerTitleStyle: {
+          fontFamily: theme.fontFamilies.semiBold,
+          color: theme.colors.textPrimary,
+        },
+        headerShadowVisible: false,
+        headerRight: () => <SettingsButton />,
+        sceneStyle: { backgroundColor: theme.colors.surface },
+      }}
+    >
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: t('tabs.today'),
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="today-outline" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="inbox"
+        options={{
+          title: t('tabs.inbox'),
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="file-tray-outline" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="focus"
+        options={{
+          title: t('tabs.focus'),
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="timer-outline" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="insights"
+        options={{
+          title: t('tabs.insights'),
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="sparkles-outline" color={color} size={size} />
+          ),
+        }}
+      />
+    </Tabs>
+  );
+}
+
+const styles = StyleSheet.create({
+  settingsButton: {
+    minWidth: 44,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+  },
+});

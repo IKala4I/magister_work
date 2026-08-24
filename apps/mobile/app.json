@@ -28,7 +28,23 @@
       "expo-sqlite",
       "expo-font",
       "expo-localization",
-      "expo-splash-screen"
-    ]
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#FAFAF8",
+          "dark": {
+            "backgroundColor": "#0F1115"
+          }
+        }
+      ],
+      "@sentry/react-native"
+    ],
+    "scheme": "hourwell",
+    "experiments": {
+      "typedRoutes": true
+    }
   }
 }
