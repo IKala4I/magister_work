@@ -1,6 +1,7 @@
 # CLAUDE.md — Hourwell project memory
 
 ## Identity
+
 - **Public name: Hourwell** ("The planner that learns your best hours"). Internal codename in
   `specs/`: **Kairos**. Mapping: `docs/naming.md`. Use Hourwell in app config, bundle ids
   (`com.hourwell.app`), UI strings, store metadata, service names. `specs/` is **read-only**.
@@ -9,6 +10,7 @@
   `docs/traceability.md`, and test names.
 
 ## Stack (pin exact versions in docs/versions.md with verification dates)
+
 - **Mobile** `apps/mobile/`: Expo SDK 54+ (New Arch, Hermes), TypeScript strict, Expo Router,
   Expo SQLite + Drizzle (single reactive source of truth, `useLiveQuery`), op outbox in SQLite,
   MMKV (sync cursor, flags), Zustand (ephemeral UI only), Reanimated 4 + Gesture Handler,
@@ -27,12 +29,14 @@
   separately as `chore(db):` / `chore(repo):`.
 
 ## Commands (canonical once P0 lands; update here as they materialize)
+
 - TS: `npm run typecheck` (`tsc --noEmit`) · `npm run lint` (ESLint 9 flat) · `npm run format:check`
   (Prettier) · `npm run test` (Jest 30) · `npx expo-doctor` in `apps/mobile`.
 - Python (per package, via uv): `uv run ruff check .` · `uv run mypy .` · `uv run pytest`.
 - All gates must be green **before every commit**, not just at phase end.
 
 ## Invariants (violating any of these is a bug, not a style choice)
+
 1. **The client never computes rewards or touches model state.** It is a fact logger and renderer.
 2. **Facts beat plans.** A logged completion outranks any displacement/plan-side state.
 3. **Ambiguous rewards are flagged and EXCLUDED from bandit updates — never guessed.**
@@ -56,6 +60,7 @@
 15. `.env` is read-only context: never print, log, or commit its contents.
 
 ## Conventions
+
 - **Commits:** Conventional Commits with `Refs:` (requirement IDs) + `Phase:` trailers;
   `Broke-in:` on fixes when known. Types: feat|fix|refactor|perf|test|docs|chore|build|ci|revert.
   Scopes: mobile, ui, db, edge, recsys, solver, bandit, priors, sync, calendar, notifications,

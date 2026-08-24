@@ -1,0 +1,13 @@
+# frozen specification set — read-only, never reformatted
+specs/
+
+node_modules/
+.expo/
+dist/
+coverage/
+pnpm-lock.yaml
+CHANGELOG.md
+.venv/
+services/
+training/
+supabase/.temp/
