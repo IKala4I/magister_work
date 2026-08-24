@@ -7,6 +7,19 @@ declare const process: {
   env: {
     /** Sentry ingest DSN (EU org). Absent → crash reporting disabled (env-gated). */
     EXPO_PUBLIC_SENTRY_DSN?: string;
+    /** PostHog project key. Absent → analytics disabled (env-gated, like Sentry). */
+    EXPO_PUBLIC_POSTHOG_API_KEY?: string;
+    /**
+     * PostHog ingest host — must be the EU instance (NFR-S2). Never hardcoded and
+     * never defaulted: key without host stays disabled rather than falling back to
+     * the SDK's US default.
+     */
+    EXPO_PUBLIC_POSTHOG_HOST?: string;
+    /**
+     * Measurement builds only (p2-manual-verification §cold-start): local listener
+     * pinged at first frame. Passed inline to one-off builds, never set in .env.
+     */
+    EXPO_PUBLIC_STARTUP_MARKER_URL?: string;
     NODE_ENV?: 'development' | 'production' | 'test';
   };
 };

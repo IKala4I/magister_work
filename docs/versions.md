@@ -63,9 +63,15 @@ pinned exactly.
 | @sentry/react-native                               | 7.11.0   | SDK-57-validated line (expo-doctor pins ~7.11.0; 8.x rejected); env-gated init; EU org + DSN = end-of-P2 ACTION REQUIRED |
 | @testing-library/react-native (dev)                | 14.0.1   | + test-renderer 1.2.0 (React-19-compatible universal renderer)                                                           |
 
+## Mobile — P3 additions (verified 2026-08-24)
+
+| Package                                           | Version | Notes                                                                                                    |
+| ------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------- |
+| posthog-react-native                              | 4.63.9  | pinned exact; env-gated init, EU host from env only (NFR-S2); no PostHogProvider → no autocapture/replay |
+| expo-application / expo-device / expo-file-system | ~57.0.x | posthog-react-native's documented Expo support packages (installed via `npx expo install`)               |
+
 Deferred installs (first consumer): FlashList v2 → P3 (first real list); react-native-skia →
-P7/P9 (timer ring, heatmap); supabase-js v2 → P4 (auth); chrono-node → P3; PostHog SDK → P3
-(EU instance, per P1 privacy note).
+P7/P9 (timer ring, heatmap); supabase-js v2 → P4 (auth); chrono-node → P3.
 
 ## CI actions (verified 2026-08-24)
 
