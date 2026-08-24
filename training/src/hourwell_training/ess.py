@@ -6,7 +6,9 @@ non-evidence (specs/04 §2.3); the full estimator family arrives in P11.
 
 from collections.abc import Sequence
 
-ESS_FLOOR = 100.0
+from hourwell_training.params import ESS_FLOOR
+
+__all__ = ["ESS_FLOOR", "effective_sample_size", "is_evidence"]
 
 
 def effective_sample_size(weights: Sequence[float]) -> float:
