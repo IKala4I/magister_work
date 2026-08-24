@@ -140,3 +140,21 @@ Thesis draft (2.1) inherits the same slip → thesis-corrections. **Status: appl
 No contradiction survives unresolved. H1 is the single item requiring an owner decision at
 pre-registration time (it amends the study design text); everything else is resolved under the
 decision rule (defensibility → consistency → measurability → pragmatics) and traceable above.
+
+## Post-review additions (P1 adversarial pass, 2026-08-24)
+
+- **L9.** specs/07 §4 says "Postgres 16" (following File 03); Supabase provisions **17.6** and
+  `config.toml` pins `major_version = 17`. No migration uses 16-incompatible features; 17 ⊇ 16.
+  Recorded as the normative platform version.
+- **L10.** specs/07 §4.4 grants clients DELETE on `tasks`; the hardening migration keeps the
+  grant but makes audit-substrate FKs (`recommendations.task_id`, `events.*`,
+  `feedback_rewards.recommendation_id`) NO ACTION — a task any recommendation or event
+  references cannot be hard-deleted by a client (soft delete via `deleted_at` is the product
+  path). Rationale: a cascade from a client DELETE reached `feedback_rewards`, violating
+  §3.4.2 "excluded ≠ deleted". FR-42 erasure still cascades from `auth.users` (end-of-statement
+  FK semantics; pgTAP-tested).
+- **L11.** Client-writable recommendation statuses narrowed to the plan-review set
+  {accepted, pinned, moved, rejected}: `completed` belongs to sync-resolve (File 05 §2) and
+  `lapsed` to attribute-rewards (File 05 §1 keeps the client's lapse mark local). Prevents an
+  honest client from knocking a rec out of the attribution job's {shown, accepted} scan set
+  and a hostile one from dodging lapse attribution.
