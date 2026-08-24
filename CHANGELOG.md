@@ -9,12 +9,13 @@ Updated at each phase gate. Lines end with the requirement IDs they serve.
 - Expo Router tab shell (Today · Inbox · Focus · Insights + Settings modal) on the
   expo-router/entry entry point; typed routes; scheme `hourwell`; smoke tests include a real
   router mount. — File 02 §3.5, NFR-A1
-- File 02 §3 design tokens, byte-exact: light/dark palette (WCAG AA contrast proven by
-  test), Inter + JetBrains Mono type scale, 16–20 px radii, ≤250 ms springs with
+- File 02 §3 design tokens, byte-exact: light/dark palette (WCAG AA proven by test for the
+  text/surface/glass/primary-container pairings, incl. the composited confidence floor), Inter + JetBrains Mono type scale, 16–20 px radii, ≤250 ms springs with
   reduced-motion collapse, 8–12 px glass band. — NFR-A1, NFR-A2
-- Confidence-as-solidity primitives: ConfidenceBlock (opacity ∝ confidence, dashed
-  "Experiment" treatment, screen-reader percentage), GlassPanel (iOS blur, opaque Android
-  fallback, recommendation-layer only). — FR-22 groundwork, NFR-A1
+- Confidence-as-solidity primitives: ConfidenceBlock (panel-background solidity ∝
+  confidence, dashed "Experiment" treatment, composed screen-reader label), GlassPanel (iOS
+  blur, opaque Android/Reduce-Transparency fallback, recommendation-layer only). — FR-22
+  groundwork, NFR-A1
 - Local Drizzle/SQLite schema mirroring specs/07 §4 for tasks, recommendations (incl. M-01
   propensity + M-02 conflict_flag/displacement statuses), append-only events; op outbox with
   unique client-monotonic op ids and base_version; startup migrations with a visible failure
@@ -28,6 +29,17 @@ Updated at each phase gate. Lines end with the requirement IDs they serve.
   NFR-O1, NFR-S2
 - Startup instrumentation (js-start → first-frame) + on-device cold-start measurement
   protocol. — NFR-P2
+
+### Fixed
+
+- (fresh-context adversarial pass) Confidence-as-solidity faded block copy below WCAG AA at
+  the exploration floor — solidity now scales only the panel chrome; composited-floor
+  contrast test added; iOS Reduce Transparency honored; a11y label composes block content. —
+  NFR-A1, FR-22
+- Splash screen could never hide on a font-load failure; the shell now opens on the system
+  fallback stack and the whole splash/migration flow is under test. — NFR-P2, File 02 §3.3
+- i18n lint guard missed string/template-literal JSX children (probe-verified fixed);
+  standing UI review checklist added for what linting cannot see. — decision 6
 
 ### Changed
 
