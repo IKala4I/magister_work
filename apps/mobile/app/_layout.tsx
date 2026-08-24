@@ -23,6 +23,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import migrations from '../drizzle/migrations';
 import { db } from '../src/db/client';
 import { t } from '../src/i18n';
+import { initSentry, Sentry } from '../src/observability/sentry';
+import { markFirstFrame } from '../src/observability/startup';
 import { EmptyState, Screen } from '../src/ui/primitives';
 import { useTheme } from '../src/ui/theme';
 
@@ -30,7 +32,9 @@ SplashScreen.preventAutoHideAsync().catch(() => {
   // Already hidden (fast reload) — nothing to hold.
 });
 
-export default function RootLayout() {
+initSentry(); // env-gated: disabled without EXPO_PUBLIC_SENTRY_DSN
+
+function RootLayout() {
   const theme = useTheme();
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
@@ -66,7 +70,7 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1 }} onLayout={markFirstFrame}>
       <StatusBar style={theme.scheme === 'dark' ? 'light' : 'dark'} />
       <Stack
         screenOptions={{
@@ -86,3 +90,5 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
+
+export default Sentry.wrap(RootLayout);
