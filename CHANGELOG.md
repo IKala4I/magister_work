@@ -2,6 +2,52 @@
 
 Updated at each phase gate. Lines end with the requirement IDs they serve.
 
+## P2 — Mobile shell (2026-08-24, phase/P2-mobile-shell)
+
+### Added
+
+- Expo Router tab shell (Today · Inbox · Focus · Insights + Settings modal) on the
+  expo-router/entry entry point; typed routes; scheme `hourwell`; smoke tests include a real
+  router mount. — File 02 §3.5, NFR-A1
+- File 02 §3 design tokens, byte-exact: light/dark palette (WCAG AA proven by test for the
+  text/surface/glass/primary-container pairings, incl. the composited confidence floor), Inter + JetBrains Mono type scale, 16–20 px radii, ≤250 ms springs with
+  reduced-motion collapse, 8–12 px glass band. — NFR-A1, NFR-A2
+- Confidence-as-solidity primitives: ConfidenceBlock (panel-background solidity ∝
+  confidence, dashed "Experiment" treatment, composed screen-reader label), GlassPanel (iOS
+  blur, opaque Android/Reduce-Transparency fallback, recommendation-layer only). — FR-22
+  groundwork, NFR-A1
+- Local Drizzle/SQLite schema mirroring specs/07 §4 for tasks, recommendations (incl. M-01
+  propensity + M-02 conflict_flag/displacement statuses), append-only events; op outbox with
+  unique client-monotonic op ids and base_version; startup migrations with a visible failure
+  state. — NFR-R1, M-01, M-02, invariants 1/8
+- MMKV scaffold: never-rewind pull cursor (max server_seq seen), install-scoped device id,
+  monotonic op counter, appearance flag. — NFR-R1
+- i18n scaffolding: typed English catalog + expo-localization resolution + ESLint ban on raw
+  JSX text in components (decision 6). — NFR-A1
+- Sentry crash reporting, env-gated (disabled without EXPO_PUBLIC_SENTRY_DSN — tested),
+  sendDefaultPii off, tracing off; EU org creation is the open ACTION-REQUIRED item. —
+  NFR-O1, NFR-S2
+- Startup instrumentation (js-start → first-frame) + on-device cold-start measurement
+  protocol. — NFR-P2
+
+### Fixed
+
+- (fresh-context adversarial pass) Confidence-as-solidity faded block copy below WCAG AA at
+  the exploration floor — solidity now scales only the panel chrome; composited-floor
+  contrast test added; iOS Reduce Transparency honored; a11y label composes block content. —
+  NFR-A1, FR-22
+- Splash screen could never hide on a font-load failure; the shell now opens on the system
+  fallback stack and the whole splash/migration flow is under test. — NFR-P2, File 02 §3.3
+- i18n lint guard missed string/template-literal JSX children (probe-verified fixed);
+  standing UI review checklist added for what linting cannot see. — decision 6
+
+### Changed
+
+- @sentry/react-native pinned to the SDK-57-validated 7.11.0 line (expo-doctor rejects 8.x);
+  react-native-mmkv held at 3.3.3 (4.x needs the Nitro runtime). — NFR-M1
+- Inter Variable → static Inter instances (RN has no variable-axis text API); recorded as
+  spec-conflicts L12. — File 02 §3.3
+
 ## P1 — Data layer (2026-08-24, phase/P1-data-layer)
 
 ### Added

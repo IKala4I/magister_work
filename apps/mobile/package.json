@@ -1,21 +1,25 @@
 {
   "name": "@hourwell/mobile",
   "version": "0.1.0",
-  "main": "index.ts",
+  "main": "expo-router/entry",
   "private": true,
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "test": "jest"
   },
   "jest": {
     "preset": "jest-expo",
+    "setupFiles": [
+      "<rootDir>/src/test/setup.ts"
+    ],
     "moduleNameMapper": {
       "^@hourwell/shared$": "<rootDir>/../../packages/shared/src/index.ts",
-      "^@hourwell/shared/(.*)$": "<rootDir>/../../packages/shared/src/$1"
+      "^@hourwell/shared/(.*)$": "<rootDir>/../../packages/shared/src/$1",
+      "^react-native-mmkv$": "<rootDir>/src/test/mmkv.mock.ts"
     }
   },
   "expo": {
@@ -26,17 +30,42 @@
     }
   },
   "dependencies": {
+    "@expo-google-fonts/inter": "^0.4.2",
+    "@expo-google-fonts/jetbrains-mono": "^0.4.1",
+    "@expo/vector-icons": "^15.1.1",
     "@hourwell/shared": "workspace:*",
+    "@sentry/react-native": "7.11.0",
+    "drizzle-orm": "0.45.2",
     "expo": "~57.0.16",
+    "expo-blur": "~57.0.2",
+    "expo-constants": "~57.0.14",
+    "expo-crypto": "~57.0.2",
+    "expo-font": "~57.0.1",
+    "expo-linking": "~57.0.7",
+    "expo-localization": "~57.0.1",
+    "expo-router": "~57.0.16",
+    "expo-splash-screen": "~57.0.8",
+    "expo-sqlite": "~57.0.1",
     "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
-    "react-native": "0.86.2"
+    "react-native": "0.86.2",
+    "react-native-gesture-handler": "~2.32.0",
+    "react-native-mmkv": "3.3.3",
+    "react-native-reanimated": "4.5.1",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.2",
+    "react-native-worklets": "0.10.1",
+    "zustand": "5.0.15"
   },
   "devDependencies": {
+    "@testing-library/react-native": "14.0.1",
     "@types/jest": "^29.5.14",
     "@types/react": "~19.2.2",
+    "babel-plugin-inline-import": "3.0.0",
+    "drizzle-kit": "0.31.10",
     "jest": "~29.7.0",
     "jest-expo": "~57.0.4",
+    "test-renderer": "1.2.0",
     "typescript": "~5.9.3"
   }
 }

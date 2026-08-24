@@ -153,6 +153,13 @@ decision rule (defensibility → consistency → measurability → pragmatics) a
   path). Rationale: a cascade from a client DELETE reached `feedback_rewards`, violating
   §3.4.2 "excluded ≠ deleted". FR-42 erasure still cascades from `auth.users` (end-of-statement
   FK semantics; pgTAP-tested).
+- **L12.** (P2) File 02 §3.3 specifies **Inter Variable** with "optical sizing on"; React
+  Native's text engine exposes no variable-font axis API (`fontVariationSettings` does not
+  exist in RN styles), so a variable TTF would render only its default instance. Normative:
+  the type system ships **static Inter instances** (400/500/600/700 via
+  `@expo-google-fonts/inter`) — visually identical at fixed weights; optical sizing is
+  unavailable on mobile. JetBrains Mono unaffected (monospaced ⇒ tabular by construction).
+  Spec's own fallback-stack note (SF Pro/Roboto behind Inter) is honored via runtime loading.
 - **L11.** Client-writable recommendation statuses narrowed to the plan-review set
   {accepted, pinned, moved, rejected}: `completed` belongs to sync-resolve (File 05 §2) and
   `lapsed` to attribute-rewards (File 05 §1 keeps the client's lapse mark local). Prevents an

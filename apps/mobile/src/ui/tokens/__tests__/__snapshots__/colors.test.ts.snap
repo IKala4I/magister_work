@@ -1,0 +1,46 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`File 02 §3.2 color palette matches the spec table exactly (snapshot) 1`] = `
+{
+  "dark": {
+    "danger": "#F87171",
+    "energyHigh": "#FBBF24",
+    "energyLow": "#475569",
+    "focusGradient": [
+      "#4F46E5",
+      "#7C3AED",
+    ],
+    "primary": "#818CF8",
+    "primaryContainer": "#312E81",
+    "success": "#34D399",
+    "surface": "#0F1115",
+    "surfaceElevated": {
+      "color": "#1A1D24",
+      "opacity": 0.88,
+    },
+    "textPrimary": "#EDEEF2",
+    "textSecondary": "#9AA0AE",
+    "warning": "#FB923C",
+  },
+  "light": {
+    "danger": "#EF4444",
+    "energyHigh": "#F59E0B",
+    "energyLow": "#94A3B8",
+    "focusGradient": [
+      "#4F46E5",
+      "#7C3AED",
+    ],
+    "primary": "#4F46E5",
+    "primaryContainer": "#E0E7FF",
+    "success": "#10B981",
+    "surface": "#FAFAF8",
+    "surfaceElevated": {
+      "color": "#FFFFFF",
+      "opacity": 0.92,
+    },
+    "textPrimary": "#1A1D29",
+    "textSecondary": "#5B6070",
+    "warning": "#F97316",
+  },
+}
+`;
