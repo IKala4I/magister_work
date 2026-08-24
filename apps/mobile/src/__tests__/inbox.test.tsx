@@ -4,18 +4,13 @@
  * Undo restores and whose expiry is exactly UNDO_WINDOW_MS (File 02 §3 undoable rule).
  * DB and actions are mocked — the write path itself is covered in src/db/__tests__.
  */
-jest.mock('../db/client', () => {
-  const chain: Record<string, unknown> = {
-    from: () => chain,
-    where: () => chain,
-    orderBy: () => chain,
-  };
-  return { db: { select: () => chain } };
-});
+jest.mock('../db/client', () => ({ db: {} }));
 
-const mockUseLiveQuery = jest.fn();
-jest.mock('drizzle-orm/expo-sqlite', () => ({
-  useLiveQuery: (...args: unknown[]) => mockUseLiveQuery(...args),
+// The screen reads through our own hook (src/db/useLiveRows.ts, covered by its own
+// suite); here it is a controllable row source so interactions can be tested alone.
+const mockUseLiveRows = jest.fn();
+jest.mock('../db/useLiveRows', () => ({
+  useLiveRows: (...args: unknown[]) => mockUseLiveRows(...args),
 }));
 
 jest.mock('../domain/taskActions', () => ({
@@ -72,7 +67,7 @@ function taskRow(overrides: Partial<TaskRow>): TaskRow {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockUseLiveQuery.mockReturnValue({ data: [] });
+  mockUseLiveRows.mockReturnValue([]);
 });
 
 describe('inbox list', () => {
@@ -82,9 +77,10 @@ describe('inbox list', () => {
   });
 
   it('renders live rows and opens the edit sheet on tap', async () => {
-    mockUseLiveQuery.mockReturnValue({
-      data: [taskRow({ id: 'a', title: 'write report' }), taskRow({ id: 'b', title: 'call bank' })],
-    });
+    mockUseLiveRows.mockReturnValue([
+      taskRow({ id: 'a', title: 'write report' }),
+      taskRow({ id: 'b', title: 'call bank' }),
+    ]);
     await render(withSafeArea(<InboxScreen />));
     expect(screen.getByText('write report')).toBeTruthy();
     expect(screen.getByText('call bank')).toBeTruthy();
@@ -124,7 +120,7 @@ describe('quick add (FR-11)', () => {
 
 describe('delete with undo (File 02 §3 — 6 s window)', () => {
   it('delete soft-deletes immediately; Undo restores', async () => {
-    mockUseLiveQuery.mockReturnValue({ data: [taskRow({ id: 'a', title: 'write report' })] });
+    mockUseLiveRows.mockReturnValue([taskRow({ id: 'a', title: 'write report' })]);
     await render(withSafeArea(<InboxScreen />));
     await fireEvent.press(screen.getByLabelText('Delete write report'));
     expect(deleteTaskAction).toHaveBeenCalledWith('a');
@@ -137,7 +133,7 @@ describe('delete with undo (File 02 §3 — 6 s window)', () => {
   it('the undo window closes by itself after 6 seconds', async () => {
     jest.useFakeTimers();
     try {
-      mockUseLiveQuery.mockReturnValue({ data: [taskRow({ id: 'a', title: 'write report' })] });
+      mockUseLiveRows.mockReturnValue([taskRow({ id: 'a', title: 'write report' })]);
       await render(withSafeArea(<InboxScreen />));
       await fireEvent.press(screen.getByLabelText('Delete write report'));
       expect(screen.getByText(en['inbox.undo.deleted'])).toBeTruthy();

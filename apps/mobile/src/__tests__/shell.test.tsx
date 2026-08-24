@@ -5,15 +5,8 @@
  */
 // The Inbox screen reads the live DB; tests never open the native database (P2 rule),
 // so the client and the live-query hook are stubbed to an empty inbox here.
-jest.mock('../db/client', () => {
-  const chain: Record<string, unknown> = {
-    from: () => chain,
-    where: () => chain,
-    orderBy: () => chain,
-  };
-  return { db: { select: () => chain } };
-});
-jest.mock('drizzle-orm/expo-sqlite', () => ({ useLiveQuery: () => ({ data: [] }) }));
+jest.mock('../db/client', () => ({ db: {} }));
+jest.mock('../db/useLiveRows', () => ({ useLiveRows: () => [] }));
 jest.mock('../domain/taskActions', () => ({
   createTaskAction: jest.fn(),
   updateTaskAction: jest.fn(),

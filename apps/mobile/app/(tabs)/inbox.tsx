@@ -1,16 +1,16 @@
 /**
  * Inbox — unscheduled tasks (FR-10/FR-11, UC-02). Reactive list straight from SQLite
- * (useLiveQuery — the single source of truth; no duplicated view state), NL quick-add on
+ * (useLiveRows — the single source of truth; no duplicated view state), NL quick-add on
  * top, full task sheet via row tap or the header "+". Delete is soft with a 6 s undo.
  */
 import { FlashList } from '@shopify/flash-list';
-import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 
 import { db } from '../../src/db/client';
 import { inboxTasksQuery } from '../../src/db/tasks';
 import type { TaskRow } from '../../src/db/tasks';
+import { useLiveRows } from '../../src/db/useLiveRows';
 import type { LocalDb } from '../../src/db/writes';
 import {
   createTaskAction,
@@ -25,7 +25,7 @@ import { UndoSnackbar } from '../../src/ui/task/UndoSnackbar';
 
 export default function InboxScreen() {
   const router = useRouter();
-  const { data: tasks } = useLiveQuery(inboxTasksQuery(db as unknown as LocalDb));
+  const tasks = useLiveRows<TaskRow>(() => inboxTasksQuery(db as unknown as LocalDb), ['tasks']);
   const [pendingUndo, setPendingUndo] = useState<TaskRow | null>(null);
 
   const handleDelete = useCallback((task: TaskRow) => {
@@ -49,11 +49,11 @@ export default function InboxScreen() {
           createTaskAction(draft, { source: 'quick_add', nlParseUsed })
         }
       />
-      {tasks === undefined || tasks.length === 0 ? (
+      {tasks.length === 0 ? (
         <EmptyState title={t('inbox.empty.title')} body={t('inbox.empty.body')} />
       ) : (
         <FlashList
-          data={tasks as TaskRow[]}
+          data={tasks}
           keyExtractor={(task) => task.id}
           renderItem={({ item }) => (
             <TaskListRow

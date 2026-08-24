@@ -1,0 +1,30 @@
+# P3 UC-02 walk (docs/verification/p3-manual-verification.md): NL quick-add with preview,
+# row appears, full-sheet edit, delete with undo, delete for real. After this flow the
+# runner inspects op_outbox/events in the app container's SQLite (offline queue evidence).
+appId: com.hourwell.app
+---
+- launchApp:
+    stopApp: true
+- tapOn: 'Inbox, tab.*'
+- assertVisible: 'Inbox is clear'
+- tapOn: 'Quick add task'
+- inputText: 'report draft 2h by fri'
+- assertVisible: '120 min'
+- assertVisible: 'by Fri.*'
+- tapOn: 'Add'
+- assertVisible: 'report draft'
+- assertVisible: 'Admin'
+# full-sheet edit: switch category to Deep work
+- tapOn: 'report draft'
+- assertVisible: 'Edit task'
+- tapOn: 'Deep work'
+- tapOn: 'Save changes'
+- assertVisible: 'Deep work'
+# delete → undo restores
+- tapOn: 'Delete report draft'
+- assertVisible: 'Task deleted'
+- tapOn: 'Undo'
+- assertVisible: 'report draft'
+# delete for real (undo expires on its own)
+- tapOn: 'Delete report draft'
+- assertVisible: 'Task deleted'
