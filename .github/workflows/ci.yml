@@ -25,6 +25,24 @@ jobs:
         run: npx expo-doctor
         working-directory: apps/mobile
 
+  db:
+    name: Database gates (pgTAP + contract sync)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.115.0
+      - name: Start local database with migrations
+        run: supabase db start && supabase db reset
+      - name: pgTAP suite (RLS bypass, append-only, M-01/M-02, prior seed values)
+        run: supabase test db
+      - name: Contract sync — regenerated types match committed (File 03 §6 step 1)
+        run: |
+          supabase gen types typescript --local > /tmp/database.gen.ts
+          diff -u <(grep -v 'PostgrestVersion' packages/shared/src/database.ts) \
+                  <(grep -v 'PostgrestVersion' /tmp/database.gen.ts)
+
   python:
     name: Python gates (${{ matrix.package }})
     runs-on: ubuntu-latest
