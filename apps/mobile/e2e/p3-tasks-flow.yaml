@@ -1,6 +1,11 @@
 # P3 UC-02 walk (docs/verification/p3-manual-verification.md): NL quick-add with preview,
-# row appears, full-sheet edit, delete with undo, delete for real. After this flow the
+# row appears live, full-sheet edit, delete with undo, delete for real. After this flow the
 # runner inspects op_outbox/events in the app container's SQLite (offline queue evidence).
+#
+# Selector note: a task row is ONE accessibility element with a composed label
+# ("<title>, <category>, <minutes> minutes" — TaskListRow). Its inner Text nodes are not
+# separately exposed, so assertions must match that composed label, not the bare title.
+# Maestro matches text as a FULL regex, hence the trailing .* patterns.
 appId: com.hourwell.app
 ---
 - launchApp:
@@ -12,19 +17,28 @@ appId: com.hourwell.app
 - assertVisible: '120 min'
 - assertVisible: 'by Fri.*'
 - tapOn: 'Add'
-- assertVisible: 'report draft'
-- assertVisible: 'Admin'
+# The list is reactive: the row must appear without leaving or reloading the screen.
+- assertVisible: 'report draft, Admin, 120 minutes'
+- assertNotVisible: 'Inbox is clear'
 # full-sheet edit: switch category to Deep work
-- tapOn: 'report draft'
+- tapOn: 'report draft, Admin, 120 minutes'
 - assertVisible: 'Edit task'
 - tapOn: 'Deep work'
 - tapOn: 'Save changes'
-- assertVisible: 'Deep work'
-# delete → undo restores
+- assertVisible: 'report draft, Deep work, 120 minutes'
+# delete → undo restores.
+# The undo window is 6 s (File 02 §3) and a Maestro `tapOn: 'Undo'` spends most of it
+# dumping the view hierarchy to find the element — the bar self-expires before the tap
+# lands. A point tap skips the lookup. Coordinates track UndoSnackbar's fixed geometry:
+# the action button sits at the bar's right end, ~16 pt above the safe-area bottom.
+- tapOn: 'Delete report draft'
+- tapOn:
+    point: 88%, 86%
+- assertVisible: 'report draft, Deep work, 120 minutes'
+# delete for real, then let the 6 s window expire on its own
 - tapOn: 'Delete report draft'
 - assertVisible: 'Task deleted'
-- tapOn: 'Undo'
-- assertVisible: 'report draft'
-# delete for real (undo expires on its own)
-- tapOn: 'Delete report draft'
-- assertVisible: 'Task deleted'
+- extendedWaitUntil:
+    notVisible: 'Task deleted'
+    timeout: 10000
+- assertVisible: 'Inbox is clear'

@@ -6,6 +6,7 @@
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
+import { Keyboard } from 'react-native';
 
 import { db } from '../../src/db/client';
 import { inboxTasksQuery } from '../../src/db/tasks';
@@ -29,16 +30,21 @@ export default function InboxScreen() {
   const [pendingUndo, setPendingUndo] = useState<TaskRow | null>(null);
 
   const handleDelete = useCallback((task: TaskRow) => {
+    // The undo bar sits at the bottom of the screen, where an open quick-add keyboard
+    // would cover it — leaving a destructive action with no reachable undo (File 02 §3).
+    // Deleting is not typing, so drop the keyboard.
+    Keyboard.dismiss();
     deleteTaskAction(task.id);
     setPendingUndo(task);
   }, []);
 
+  // The restore must NOT live inside a setState updater: updaters have to be pure, and
+  // React is free to re-run them (StrictMode, concurrent re-render), which would replay
+  // the write. Read the state, then write.
   const handleUndo = useCallback(() => {
-    setPendingUndo((pending) => {
-      if (pending !== null) restoreTaskAction(pending.id);
-      return null;
-    });
-  }, []);
+    if (pendingUndo !== null) restoreTaskAction(pendingUndo.id);
+    setPendingUndo(null);
+  }, [pendingUndo]);
 
   const handleExpire = useCallback(() => setPendingUndo(null), []);
 
@@ -54,6 +60,10 @@ export default function InboxScreen() {
       ) : (
         <FlashList
           data={tasks}
+          // Without this the quick-add keyboard eats the first tap on a row (FlashList is a
+          // ScrollView, whose default is "never"), so the row after a quick-add needed two
+          // taps to open. Found in the P3 on-device walk.
+          keyboardShouldPersistTaps="handled"
           keyExtractor={(task) => task.id}
           renderItem={({ item }) => (
             <TaskListRow

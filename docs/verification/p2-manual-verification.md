@@ -90,3 +90,41 @@ ReduceTransparencyEnabled=1, light + dark.
 Today/Inbox/Focus/Insights + Settings walked by the Maestro flow (assertions on each
 screen's copy); splash/launch fine across 20+ launches during measurement; migration applied
 on first launch and silent on every relaunch (all cold starts reached the Today empty state).
+
+---
+
+## Re-run — 2026-08-24, first build with real Sentry + PostHog keys present
+
+Repeated from a clean start after the observability keys landed in `.env`, on a fresh
+install (`simctl uninstall` + `install`, so first-launch migration ran again). Same
+environment and protocol as above.
+
+### NFR-P2 — cold start — ✅ PASS (p90 = **1073 ms**, target ≤ 2000 ms)
+
+1056, 1059, 1072, 1070, 1075, 1066, 1062, 1073, 1069, 1068 ms → median 1069 ms,
+**p90 1073 ms**. JS half ≈ 47–49 ms. Within 6 ms of the pre-keys run (p90 1079 ms), i.e.
+initializing both SDKs costs nothing measurable at startup — both are constructed
+synchronously at module scope with no network on the launch path.
+
+### NFR-A2 — 200% font + reduced motion + reduce transparency — ✅ PASS (27/27 steps)
+
+Full sweep green with no code changes needed this time (the header-title fix from the first
+run holds). Screenshots re-checked by eye in light and dark: nothing clipped or overlapping,
+tab labels intact, the P3 quick-add bar scales with the input and Add button both still
+tappable (placeholder truncates with an ellipsis, which is allowed — it is a hint, not
+content).
+
+### Note on the SDKs (they did not hang anything)
+
+The shell never hung with keys present. Evidence: all five `EXPO_PUBLIC_*` vars reach the
+bundler (`env: export …` in the build log), the Sentry RN SDK logs `Session replay disabled
+via configuration` on every launch, and 20 cold starts averaged ~1.07 s. The one failure
+ever seen was **build-time, not runtime**: `sentry-cli` aborts the Xcode source-map upload
+phase with "An organization ID or slug is required". Local Release builds therefore need:
+
+```bash
+SENTRY_DISABLE_AUTO_UPLOAD=true npx expo run:ios --configuration Release
+```
+
+Supplying org/project/auth-token instead of disabling upload is a P12/EAS concern
+(⛔ ACTION REQUIRED there, not now — source maps only matter for shipped builds).

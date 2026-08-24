@@ -24,6 +24,7 @@ const mockPush = jest.fn();
 jest.mock('expo-router', () => ({ useRouter: () => ({ push: mockPush, back: jest.fn() }) }));
 
 import { render, fireEvent, screen, act } from '@testing-library/react-native';
+import { Keyboard } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import type { ReactElement } from 'react';
 
@@ -119,6 +120,15 @@ describe('quick add (FR-11)', () => {
 });
 
 describe('delete with undo (File 02 §3 — 6 s window)', () => {
+  it('dismisses the keyboard so the undo bar is not hidden behind it', async () => {
+    const dismiss = jest.spyOn(Keyboard, 'dismiss');
+    mockUseLiveRows.mockReturnValue([taskRow({ id: 'a', title: 'write report' })]);
+    await render(withSafeArea(<InboxScreen />));
+    await fireEvent.press(screen.getByLabelText('Delete write report'));
+    expect(dismiss).toHaveBeenCalled();
+    dismiss.mockRestore();
+  });
+
   it('delete soft-deletes immediately; Undo restores', async () => {
     mockUseLiveRows.mockReturnValue([taskRow({ id: 'a', title: 'write report' })]);
     await render(withSafeArea(<InboxScreen />));
