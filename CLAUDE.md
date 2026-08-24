@@ -28,11 +28,13 @@
   (openapi-typescript). CI fails if regenerated ≠ committed. Generated artifacts commit
   separately as `chore(db):` / `chore(repo):`.
 
-## Commands (canonical once P0 lands; update here as they materialize)
+## Commands (canonical as of P0)
 
-- TS: `npm run typecheck` (`tsc --noEmit`) · `npm run lint` (ESLint 9 flat) · `npm run format:check`
-  (Prettier) · `npm run test` (Jest 30) · `npx expo-doctor` in `apps/mobile`.
-- Python (per package, via uv): `uv run ruff check .` · `uv run mypy .` · `uv run pytest`.
+- TS (repo root): `pnpm typecheck` · `pnpm lint` · `pnpm format:check` (fix: `pnpm format`) ·
+  `pnpm test` · `npx expo-doctor` in `apps/mobile`.
+- Python (in `services/recsys/` and `training/`): `uv sync` once, then `uv run ruff check .` ·
+  `uv run mypy src tests` · `uv run pytest`.
+- Node 24.13.1 (`.nvmrc`), pnpm 10 (`packageManager`), Python 3.12 via uv (`.python-version`).
 - All gates must be green **before every commit**, not just at phase end.
 
 ## Invariants (violating any of these is a bug, not a style choice)
