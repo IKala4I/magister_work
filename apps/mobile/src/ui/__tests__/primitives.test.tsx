@@ -3,6 +3,10 @@
  * matches FR-22, text stays scalable-but-capped (NFR-A2), and screen-reader output exists
  * for the solidity semantic (NFR-A1).
  */
+jest.mock('../useReduceTransparency', () => ({
+  useReduceTransparency: jest.fn(() => false),
+}));
+
 import { render, screen } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import type { ReactElement } from 'react';
@@ -10,6 +14,7 @@ import type { ReactElement } from 'react';
 import { en } from '../../i18n/en';
 import { ThemedText, Screen, ConfidenceBlock } from '../primitives';
 import { confidenceOpacity } from '../tokens/confidence';
+import { blendOverHex, hexWithAlpha } from '../tokens/contrast';
 import { typeScale, MAX_FONT_SCALE } from '../tokens/typography';
 import { lightColors } from '../tokens/colors';
 
@@ -59,14 +64,32 @@ describe('Screen', () => {
 });
 
 describe('ConfidenceBlock (confidence = solidity, FR-22)', () => {
-  it('maps confidence to wrapper opacity', async () => {
+  it('maps confidence into the PANEL background alpha, never onto the content', async () => {
     await renderWithSafeArea(
       <ConfidenceBlock confidence={0.4}>
-        <ThemedText>{en['block.experiment']}</ThemedText>
+        <ThemedText>{en['today.empty.body']}</ThemedText>
       </ConfidenceBlock>,
     );
+    const expectedAlpha = lightColors.surfaceElevated.opacity * confidenceOpacity(0.4);
+    expect(JSON.stringify(screen.toJSON())).toContain(
+      hexWithAlpha(lightColors.surfaceElevated.color, expectedAlpha),
+    );
+    // Solidity must not fade copy: no reduced opacity anywhere on the text's style chain.
+    const text = screen.getByText(en['today.empty.body']);
+    expect(flatStyle(text).opacity).toBeUndefined();
     const wrapper = screen.getByLabelText('Confidence 40 percent');
-    expect(flatStyle(wrapper).opacity).toBeCloseTo(confidenceOpacity(0.4), 10);
+    expect(flatStyle(wrapper).opacity).toBeUndefined();
+  });
+
+  it('higher confidence renders a more solid panel (monotone in the tree)', async () => {
+    await renderWithSafeArea(
+      <ConfidenceBlock confidence={1}>
+        <ThemedText>{en['today.empty.body']}</ThemedText>
+      </ConfidenceBlock>,
+    );
+    expect(JSON.stringify(screen.toJSON())).toContain(
+      hexWithAlpha(lightColors.surfaceElevated.color, lightColors.surfaceElevated.opacity),
+    );
   });
 
   it('experiment blocks show the tag and dashed border', async () => {
@@ -88,12 +111,43 @@ describe('ConfidenceBlock (confidence = solidity, FR-22)', () => {
     expect(screen.queryByText(en['block.experiment'])).toBeNull();
   });
 
-  it('announces confidence as a percentage to screen readers (NFR-A1)', async () => {
+  it('composes content, experiment tag, and confidence into one label (NFR-A1)', async () => {
+    await renderWithSafeArea(
+      <ConfidenceBlock confidence={0.82} isExperiment contentLabel="Deep work, 9:00 to 10:30">
+        <ThemedText>{en['today.empty.body']}</ThemedText>
+      </ConfidenceBlock>,
+    );
+    expect(
+      screen.getByLabelText('Deep work, 9:00 to 10:30, Experiment, Confidence 82 percent'),
+    ).toBeTruthy();
+  });
+
+  it('announces confidence alone when no content label is given', async () => {
     await renderWithSafeArea(
       <ConfidenceBlock confidence={0.82}>
         <ThemedText>{en['today.empty.body']}</ThemedText>
       </ConfidenceBlock>,
     );
     expect(screen.getByLabelText('Confidence 82 percent')).toBeTruthy();
+  });
+});
+
+describe('GlassPanel reduced transparency (NFR-A1/A2)', () => {
+  it('renders an opaque pre-composited panel when Reduce Transparency is on', async () => {
+    const hook = jest.requireMock('../useReduceTransparency') as {
+      useReduceTransparency: jest.Mock;
+    };
+    hook.useReduceTransparency.mockReturnValueOnce(true);
+    await renderWithSafeArea(
+      <ConfidenceBlock confidence={0.4}>
+        <ThemedText>{en['today.empty.body']}</ThemedText>
+      </ConfidenceBlock>,
+    );
+    const json = JSON.stringify(screen.toJSON());
+    const expectedAlpha = lightColors.surfaceElevated.opacity * confidenceOpacity(0.4);
+    expect(json).toContain(
+      blendOverHex(lightColors.surfaceElevated.color, expectedAlpha, lightColors.surface),
+    );
+    expect(json).not.toContain(hexWithAlpha(lightColors.surfaceElevated.color, expectedAlpha));
   });
 });

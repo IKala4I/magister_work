@@ -3,7 +3,8 @@
  * spec's own claim that pairings meet WCAG 2.2 AA (NFR-A1).
  */
 import { lightColors, darkColors, GLASS_BLUR } from '../colors';
-import { contrastRatio, WCAG_AA_BODY, WCAG_AA_LARGE } from '../contrast';
+import { blendOverHex, contrastRatio, WCAG_AA_BODY, WCAG_AA_LARGE } from '../contrast';
+import { CONFIDENCE_OPACITY_MIN } from '../confidence';
 
 describe('File 02 §3.2 color palette', () => {
   it('matches the spec table exactly (snapshot)', () => {
@@ -41,6 +42,36 @@ describe('File 02 §3.2 color palette', () => {
   ])('%s meets AA for large text / UI components (≥3:1)', (_label, fg, bg) => {
     expect(contrastRatio(fg, bg)).toBeGreaterThanOrEqual(WCAG_AA_LARGE);
   });
+
+  it.each([
+    [
+      'light text-primary on primary-container',
+      lightColors.textPrimary,
+      lightColors.primaryContainer,
+    ],
+    ['dark text-primary on primary-container', darkColors.textPrimary, darkColors.primaryContainer],
+  ])('%s meets AA body text (≥4.5:1)', (_label, fg, bg) => {
+    expect(contrastRatio(fg, bg)).toBeGreaterThanOrEqual(WCAG_AA_BODY);
+  });
+
+  // Worst case of confidence = solidity: an exploration block at the opacity floor. The
+  // panel tint is composited over the surface at spec-alpha × floor; copy stays full
+  // opacity (GlassPanel contract), so THIS is the real background text sits on.
+  it.each([
+    ['light', lightColors],
+    ['dark', darkColors],
+  ] as const)(
+    '%s glass at the confidence floor keeps both text tones AA (NFR-A1)',
+    (_scheme, c) => {
+      const flooredPanel = blendOverHex(
+        c.surfaceElevated.color,
+        c.surfaceElevated.opacity * CONFIDENCE_OPACITY_MIN,
+        c.surface,
+      );
+      expect(contrastRatio(c.textPrimary, flooredPanel)).toBeGreaterThanOrEqual(WCAG_AA_BODY);
+      expect(contrastRatio(c.textSecondary, flooredPanel)).toBeGreaterThanOrEqual(WCAG_AA_BODY);
+    },
+  );
 
   it('keeps the glass blur inside the File 02 §3.1 band (8–12 px)', () => {
     expect(GLASS_BLUR.default).toBeGreaterThanOrEqual(GLASS_BLUR.min);

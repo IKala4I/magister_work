@@ -32,3 +32,24 @@ export function contrastRatio(a: string, b: string): number {
 
 export const WCAG_AA_BODY = 4.5;
 export const WCAG_AA_LARGE = 3;
+
+/** #RRGGBB + alpha byte → #RRGGBBAA. */
+export function hexWithAlpha(hex: string, alpha: number): string {
+  hexToRgb(hex); // validate
+  const byte = Math.round(Math.min(1, Math.max(0, alpha)) * 255);
+  return `${hex}${byte.toString(16).padStart(2, '0')}`;
+}
+
+/**
+ * Opaque result of compositing `fg` at `alpha` over opaque `bg` (per-channel sRGB mix —
+ * the approximation RN itself uses when flattening translucent views). Lets the glass
+ * fallback stay opaque while preserving the solidity semantic, and lets tests prove text
+ * contrast on the *composited* panel color.
+ */
+export function blendOverHex(fg: string, alpha: number, bg: string): string {
+  const a = Math.min(1, Math.max(0, alpha));
+  const f = hexToRgb(fg);
+  const b = hexToRgb(bg);
+  const mixed = f.map((v, i) => Math.round(v * a + (b[i] as number) * (1 - a)));
+  return `#${mixed.map((v) => v.toString(16).padStart(2, '0')).join('')}`;
+}
