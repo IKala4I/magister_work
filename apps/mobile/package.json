@@ -13,6 +13,9 @@
   },
   "jest": {
     "preset": "jest-expo",
+    "setupFiles": [
+      "<rootDir>/src/test/setup.ts"
+    ],
     "moduleNameMapper": {
       "^@hourwell/shared$": "<rootDir>/../../packages/shared/src/index.ts",
       "^@hourwell/shared/(.*)$": "<rootDir>/../../packages/shared/src/$1",
