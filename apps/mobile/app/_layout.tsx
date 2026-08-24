@@ -36,7 +36,7 @@ initSentry(); // env-gated: disabled without EXPO_PUBLIC_SENTRY_DSN
 
 function RootLayout() {
   const theme = useTheme();
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
     Inter_600SemiBold,
@@ -46,7 +46,10 @@ function RootLayout() {
   });
   const { success: dbReady, error: dbError } = useMigrations(db, migrations);
 
-  const ready = fontsLoaded && (dbReady || dbError !== undefined);
+  // A font failure must never trap the user behind the splash: proceed on the system
+  // fallback stack (File 02 §3.3 specifies SF Pro/Roboto behind Inter for exactly this).
+  const fontsReady = fontsLoaded || fontError != null;
+  const ready = fontsReady && (dbReady || dbError !== undefined);
 
   useEffect(() => {
     if (ready) {
