@@ -61,12 +61,44 @@
     undoable 6 s; reduced motion + 200% font scale must not break layout.
 15. `.env` is read-only context: never print, log, or commit its contents.
 
+## Working mode (owner directive, 2026-08-24)
+
+- **Autonomous phases.** Phases run back-to-back without owner approval. Post the phase
+  report, open AND merge the phase PR yourself once gates are green, continue. **Stop only
+  for:** (1) ⛔ ACTION REQUIRED (logins, OAuth screens, HF Space, EAS, dev accounts);
+  (2) anything published or irreversible (dataset archive, store submission, public release);
+  (3) findings that change what the thesis _claims_ (not how it's built); (4) contradictions
+  of an explicit owner decision.
+- **The owner does NOT referee technical matters** (versions, libraries, algorithm details,
+  parameter values, reward shaping, estimators) — decide and proceed. Decision rule, in
+  priority order: (1) thesis defensibility — prefer the standard citable method from the
+  literature the specs cite; if inventing, say so and justify; (2) internal consistency with
+  specs/01–07; (3) measurability under the File 06 protocol (exact propensities, PAR
+  interpretability, reportable parameters); (4) engineering pragmatics last.
+- **Definition of Done does not relax under autonomy.** Adversarial review runs in a
+  **fresh-context subagent** where tooling allows.
+- **`docs/thesis/pojasnennia.uk.md`** (Ukrainian explainer for the owner) is updated **in the
+  same commit** as the work it describes; a phase is not done if it no longer matches the
+  code — this check is part of the adversarial pass.
+- **`docs/thesis/draft.docx`** is a consistency target, NOT a spec, and is git-ignored (never
+  publish the owner's thesis draft from this public repo). When a decision contradicts the
+  draft, keep the better choice and append one line to `docs/thesis/thesis-corrections.md`
+  ("draft §X says A, system does B, change text because …").
+- **`docs/thesis/spec-conflicts.md`** is the errata layer over frozen specs/ — check it before
+  implementing anything a spec file describes.
+- **Handoffs.** Keep PLAN statuses, CHANGELOG, traceability, ADRs, and the explainer current
+  as you go. At every phase boundary refresh `docs/HANDOFF.md` (phase+status, completed, exact
+  next actions, open questions, gotchas, pending ACTION-REQUIRED items) for a zero-context
+  session, and end the turn with `HANDOFF WRITTEN — safe to /clear`. On mid-phase context
+  pressure: stop at the nearest clean commit, write the handoff, say so. Resume line is:
+  "Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."
+
 ## Conventions
 
 - **Commits:** Conventional Commits with `Refs:` (requirement IDs) + `Phase:` trailers;
   `Broke-in:` on fixes when known. Types: feat|fix|refactor|perf|test|docs|chore|build|ci|revert.
   Scopes: mobile, ui, db, edge, recsys, solver, bandit, priors, sync, calendar, notifications,
-  training, ope, ci, docs, repo. One logical change per commit; every commit green
+  training, ope, ci, docs, repo, shared. One logical change per commit; every commit green
   (bisect-friendly); migrations and generated types get their own commits. `Refs:` may be omitted
   only on chore/ci/docs.
 - **Branches:** `phase/Pn-<name>`; PR title `Pn — <phase name>`; PR body lists requirement IDs +

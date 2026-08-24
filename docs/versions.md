@@ -6,22 +6,24 @@ indicative versions are footnoted and, where architectural, recorded as ADRs.
 
 ## Toolchain (verified 2026-08-24)
 
-| Tool                            | Version | Notes                                                                                     |
-| ------------------------------- | ------- | ----------------------------------------------------------------------------------------- |
-| Node                            | 24.13.1 | Active LTS. Spec-era PLAN said 22 LTS → ADR-0001                                          |
-| pnpm                            | 10.33.2 | pinned via `packageManager`; expo-doctor 21/21 → ADR-0002                                 |
-| TypeScript                      | 6.0.3   | strict everywhere                                                                         |
-| ESLint                          | 10.9.0  | flat config (File 03 §6 said "ESLint 9"; 10 is the current line, same flat-config system) |
-| typescript-eslint               | 8.67.0  |                                                                                           |
-| eslint-plugin-react-hooks       | 7.1.1   | rules registered manually (version-stable form)                                           |
-| eslint-config-prettier          | 10.1.8  |                                                                                           |
-| @eslint/js                      | 10.0.1  |                                                                                           |
-| Prettier                        | 3.9.6   |                                                                                           |
-| uv                              | 0.12.5  | Homebrew install                                                                          |
-| Python (service/training venvs) | 3.12.14 | spec-pinned line (File 03 §2.2); system 3.14 unused                                       |
-| ruff                            | 0.16.4  |                                                                                           |
-| mypy                            | 2.3.1   |                                                                                           |
-| pytest                          | 9.1.1   |                                                                                           |
+| Tool                            | Version | Notes                                                                                                  |
+| ------------------------------- | ------- | ------------------------------------------------------------------------------------------------------ |
+| Node                            | 24.13.1 | Active LTS. Spec-era PLAN said 22 LTS → ADR-0001                                                       |
+| pnpm                            | 10.33.2 | pinned via `packageManager`; expo-doctor 21/21 → ADR-0002                                              |
+| TypeScript                      | 5.9.3   | strict everywhere; 6.0 reverted → ADR-0004 (openapi-typescript peer `^5.x`)                            |
+| ESLint                          | 10.9.0  | flat config (File 03 §6 said "ESLint 9"; 10 is the current line, same flat-config system)              |
+| typescript-eslint               | 8.67.0  |                                                                                                        |
+| eslint-plugin-react-hooks       | 7.1.1   | rules registered manually (version-stable form)                                                        |
+| eslint-config-prettier          | 10.1.8  |                                                                                                        |
+| @eslint/js                      | 10.0.1  |                                                                                                        |
+| Prettier                        | 3.9.6   |                                                                                                        |
+| uv                              | 0.12.5  | Homebrew install                                                                                       |
+| supabase CLI                    | 2.115.0 | Homebrew; CI pins the same in supabase/setup-cli                                                       |
+| Postgres (hosted + local)       | 17.6    | Supabase provisions 17 (File 03 said "Postgres 16" — 17 ⊇ 16 features; config.toml major_version = 17) |
+| Python (service/training venvs) | 3.12.14 | spec-pinned line (File 03 §2.2); system 3.14 unused                                                    |
+| ruff                            | 0.16.4  |                                                                                                        |
+| mypy                            | 2.3.1   |                                                                                                        |
+| pytest                          | 9.1.1   |                                                                                                        |
 
 ## Mobile (verified 2026-08-24)
 
@@ -43,6 +45,18 @@ indicative versions are footnoted and, where architectural, recorded as ADRs.
 | pnpm/action-setup  | v4      |
 | actions/setup-node | v4      |
 | astral-sh/setup-uv | v5      |
+
+## Verified compatible, adopted later (verified 2026-08-24)
+
+| Package            | Version | Notes                                                                            |
+| ------------------ | ------- | -------------------------------------------------------------------------------- |
+| openapi-typescript | 7.13.0  | peer `typescript@^5.x` — the reason for the TS 5.9 pin (ADR-0004); adopted in P1 |
+| drizzle-orm        | 0.45.2  | strict-compile verified under TS 5.9.3 (ADR-0004); adopted in P2                 |
+
+## TODOs (revisit on upstream releases)
+
+- **jest 29.7 → 30** when jest-expo ships jest-30 support (ADR-0003).
+- **TypeScript 5.9 → 6** when openapi-typescript widens its peer range (ADR-0004).
 
 ## To pin in later phases
 

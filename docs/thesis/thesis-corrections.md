@@ -1,0 +1,55 @@
+# Thesis-Draft Corrections Worklist
+
+> One line per discrepancy between `docs/thesis/draft.docx` and the system as built.
+> Format: draft section says A, the system does B, change the text to say B because …
+> Appended by every phase whose work contradicts the draft. Started 2026-08-24 (draft read
+> end-to-end against specs/01–07 and the P0/P1 state).
+
+1. **§4.6 / табл. 3.3 (stack):** draft says "Jest 30" and "ESLint 9" — the system pins jest
+   29.7 (jest-expo 57's internals are ^29.x; ADR-0003) and ESLint 10 (current flat-config
+   line). Change the text to name jest 29.7 and ESLint 10, or drop tool version numbers from
+   prose and cite the repo's versions.md.
+2. **§3.3 / табл. 3.3:** draft implies TypeScript strict on the current major; the system pins
+   **TypeScript 5.9.3** because openapi-typescript's peer range is ^5.x (ADR-0004). Say 5.9.
+3. **Табл. 3.2 NFR-Sc1 vs §3.3 text:** the draft contradicts itself — 10 000 MAU free-tier in
+   the table, ~3 000 MAU in §3.3/§1.5. The audited figure is **$0 to ~3k MAU** (File 03 §2.2
+   "as amended"); fix the table row to say ~3k free / ≤$25 to 50k.
+4. **§2.1 (formal statement):** "кожна задача — не більше одного інтервалу" contradicts the
+   splittable-chunk constraint (2.6): change to "кожен фрагмент задачі — не більше одного
+   інтервалу" (spec-conflicts M6).
+5. **Додаток Г (SQL fragment):** the real schema differs: `events.op_id` is text (client ULID)
+   with UNIQUE(user_id, op_id) — not a bigint PK; `recommendations` additionally carries
+   plan_id, chunk_index, context_bucket, features (numeric snapshot), q_hat, rationale_key +
+   rationale_params (no free-text rationale column), is_experiment, engine, attributed_at;
+   `model_version text references model_registry(version)` is invalid (version is not unique) —
+   the system stores model_version as a plain tagged string. Update the fragment or label it
+   "спрощений ілюстративний фрагмент".
+6. **§3.4:** draft's single `user_model_state` table is normalized in the system into
+   `bandit_state` + `beta_cells` + `blend_state` (cell-level SQL access for FR-40 heatmap and
+   priors refresh). Update the entity list because the heatmap and empirical-Bayes queries
+   read cells relationally.
+7. **Додаток Ж (/plan example):** system responses use `engine: "learned" | "heuristic"` (not
+   "bandit_cpsat"), `category: "deep"` (closed archetype enum, not "deep_work"), a
+   `rationale_key` + `rationale_params` pair rendered client-side (i18n decision) instead of a
+   server-rendered Ukrainian string, and a `telemetry` object (not `solver`). Update the
+   example to the specs/07 §5 shape.
+8. **§5.1 / §5.6 (blinding) — design change APPROVED 2026-08-24 (spec-conflicts H1):** both
+   arms carry the ε-randomized slot (identical ε, identical top-m, identical badge rendering).
+   Required text edits: (a) табл. 5.1 arm A renamed **"евристика + узгоджена рандомізація"**
+   ("heuristic + matched randomization") — drop "сумлінна репліка рушія класу Motion/Reclaim"
+   and state that the matched randomization is what makes the blind hold; (b) §5.4 robustness
+   (в): the exploration-excluding refit is reported **for both arms** and recovers the
+   unperturbed comparison; (c) §5.6 add threat: matched randomization slightly depresses both
+   arms' adherence and makes A a perturbed rather than pure incumbent — argue symmetry cancels
+   this in the A-vs-B contrast; (d) §2.6/§5.3 OPE text: note baseline traffic now carries
+   exact propensities, so the randomized slice spans both arms; (e) mention the rejected
+   alternative (sham badges on non-randomized A-blocks) and why: it would falsify
+   logged-propensity semantics and deceive participants. Same edits go into the OSF
+   pre-registration text before freeze.
+9. **§4.5:** draft states SASRec-lite is trained nightly from the start; the system defers the
+   sequence model to the post-v1 feature channel (specs/07 §3.6 rung 3) — no FR requires it and
+   the v1 serving path never reads it. Either mark it "запланований компонент конвеєра" or
+   move it to перспективи (Висновки already list it as future work — align §4.5 with that).
+10. **§5.4 (H4 limitations):** add one sentence acknowledging that the model also _learns_
+    during A phases (logging on), so the phase-pair gap growth partially reflects accumulated
+    data volume, not purely policy action (spec-conflicts L5).

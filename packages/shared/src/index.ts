@@ -7,4 +7,5 @@
  *   - api.ts       — `openapi-typescript` output from the FastAPI spec (committed, CI-diffed)
  * Generated files are committed in their own chore(db)/chore(repo) commits.
  */
-export {};
+export * from './params';
+export type { Database, Json } from './database';
