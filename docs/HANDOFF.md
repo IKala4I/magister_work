@@ -2,16 +2,17 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-08-24, mid-P3 (tasks CRUD + quick-add landed and verified on device).
+> Last update: 2026-08-24, **mid-P3, end of session** (tasks CRUD + quick-add built and
+> verified on device; phase NOT closed — see "What P3 still needs").
 
 ## Where we are
 
-- **P2 — Mobile shell: COMPLETE**, and its two carry-over measurements are now **done**
-  (numbers below). Nothing is outstanding from P2.
-- **P3 — Tasks: in progress** on `phase/P3-tasks` (local branch, never pushed). FR-10 CRUD,
-  FR-11 quick-add, the offline write path and the Inbox/task-sheet UI are built, tested,
-  and walked on device. Remaining before the P3 gate: PR + merge, CHANGELOG, and the
-  adversarial fresh-subagent pass.
+- **P2 — Mobile shell: COMPLETE**, both carry-over measurements now **done** (numbers below).
+- **P3 — Tasks: IN PROGRESS, NOT MERGED.** Branch `phase/P3-tasks` is **8 commits ahead of
+  `main`** and pushed to `origin`. No PR is open. The phase gate has **not** been passed —
+  three things remain, listed under "What P3 still needs".
+- The working tree is clean and everything is pushed; a fresh session can start by checking
+  out `phase/P3-tasks` and reading that section.
 - Working mode is **autonomous** — CLAUDE.md "Working mode" has the stop conditions and the
   decision rule. Owner does not referee technical choices.
 
@@ -67,28 +68,72 @@ Traceability rows for both are flipped to ✅.
 - Observability: env-gated Sentry (7.11.0 — the SDK-57-validated line, do NOT bump to 8.x
   until Expo does), `src/observability/startup.ts` js-start→first-frame timing.
 
-## Exact next actions (finish P3)
+## What P3 delivered so far (8 commits, all on `origin/phase/P3-tasks`)
 
-Done already: FR-10 CRUD on the local mirror (`src/db/tasks.ts` + `src/db/writes.ts` — the
-only write surface, one transaction per mutation carrying row + outbox op + event), FR-11
-chrono-node quick-add (`src/domain/quickAdd.ts`, 21-case mapping suite), PostHog plumbing,
-FlashList v2 Inbox, task sheet, and the on-device UC-02 walk (22/22, evidence in
-`docs/verification/p3-manual-verification.md`). 174 tests green; domain coverage ~94% vs the
-70% NFR-M1 bar.
+- **Observability**: env-gated PostHog beside the existing Sentry — EU host read from the
+  env var and never hardcoded, disabled when either key is missing (a key without a host
+  stays off rather than falling back to the US cloud), GeoIP off, no autocapture/replay.
+  Typed event catalog makes the NFR-O1 model-version tag structurally required on
+  recommendation events.
+- **Write path** (`src/db/writes.ts`, `src/db/tasks.ts`): the only write surface. One
+  transaction per mutation carrying the row + its outbox op + (on create) the `task_created`
+  event; server-shaped snake_case payloads so P8 replays without renaming; soft-delete
+  tombstones with restore as a first-class idempotent op.
+- **Quick-add** (`src/domain/quickAdd.ts`): chrono-node owns dates, a local grammar owns
+  durations and runs first (chrono reads a bare "2h" as a relative _time_, which would turn
+  every estimate into a deadline). Ambiguities are surfaced, never guessed.
+- **UI**: FlashList v2 Inbox reading through `useLiveRows`, quick-add bar with preview and
+  disambiguation chips, full FR-10 task sheet, 6 s undo bar.
+- **Verification**: P2's two carry-over measurements closed, plus a P3 on-device walk that
+  found three real bugs (see `docs/verification/p3-manual-verification.md`).
 
-1. Fresh-context **adversarial subagent pass** (offline / DST / dup-op / 200% font — the
-   DoD list in CLAUDE.md). Not yet run for P3.
-2. `docs/thesis/pojasnennia.uk.md` — add the P3 section (same-commit rule; it currently
-   stops at P2).
-3. CHANGELOG P3 entry + requirement-checklist table (ID → file:line → test → PASS).
-4. Open **and merge** the PR `P3 — Tasks` once CI is green (autonomous mode). The branch has
-   never been pushed, so the first push needs `-u origin phase/P3-tasks`.
+## What P3 still needs before its gate (nothing else is outstanding)
+
+Already done and committed: FR-10 CRUD on the local mirror (`src/db/tasks.ts` +
+`src/db/writes.ts` — the only write surface; one transaction per mutation carrying row +
+outbox op + event), FR-11 chrono-node quick-add (`src/domain/quickAdd.ts`, 21-case mapping
+suite), PostHog plumbing, FlashList v2 Inbox, task sheet, three on-device bug fixes, and the
+UC-02 walk (22/22 — evidence in `docs/verification/p3-manual-verification.md`). Gates green:
+**174 tests / 23 suites**, typecheck, lint, format, expo-doctor 21/21. Domain coverage ~94 %
+against the 70 % NFR-M1 bar. `docs/thesis/pojasnennia.uk.md` and
+`docs/thesis/thesis-corrections.md` are current as of this commit.
+
+Remaining, in order:
+
+1. **Adversarial pass in a fresh-context subagent** (required by the Definition of Done and
+   not yet run for P3). Cover at minimum: offline behaviour, DST boundaries around
+   `localDayOf`, duplicate `op_id` replay, RLS-bypass thinking for the P8 push shape, 200 %
+   font, and reduced motion.
+2. **CHANGELOG.md** — add the P3 section (P2's entry is the format to copy: Added / Fixed,
+   each line ending in the requirement IDs it serves).
+3. **Requirement-checklist table + PR.** Table is ID → file:line → test → PASS. Then open PR
+   `P3 — Tasks`, paste the gate output, and **merge it yourself** once CI is green
+   (autonomous mode). Branch already exists on `origin`, so a plain `git push` suffices.
+
+Only after that does P4 (Onboarding) open.
 
 ## Gotchas
 
-- **Local Release builds need `SENTRY_DISABLE_AUTO_UPLOAD=true`** — otherwise `sentry-cli`
-  fails the Xcode source-map phase with "An organization ID or slug is required" (exit 65).
-  This is build-time only; the runtime SDK is fine.
+- **Local Release builds need `SENTRY_DISABLE_AUTO_UPLOAD=true`.** Without it `sentry-cli`
+  fails the Xcode source-map phase with "An organization ID or slug is required" and the
+  whole build exits 65. Build-time only — the runtime SDK is fine and initializes enabled.
+  Full line:
+  `SENTRY_DISABLE_AUTO_UPLOAD=true npx expo run:ios --configuration Release --device "iPhone 17 Pro"`
+- **Cold start must be measured against a Release build, never a Metro dev bundle.** Release
+  embeds the JS bundle; a dev bundle is served over the network by Metro and its startup
+  number is meaningless for NFR-P2. The measurement build also needs
+  `EXPO_PUBLIC_STARTUP_MARKER_URL=http://127.0.0.1:8787/first-frame` so
+  `docs/verification/measure-cold-start.py` receives the first-frame ping. Uninstall +
+  reinstall between protocol runs to get a true first launch.
+- **`docs/thesis/draft.docx` is local-only and git-ignored** (`.gitignore` line 65,
+  `docs/thesis/*.docx`) — it is the owner's thesis draft and must never be published from
+  this public repo. It is NOT in the repository: a fresh session cannot see it unless it is
+  present on this machine at `docs/thesis/draft.docx`, and must read it from disk before
+  relying on or contradicting anything attributed to it. To read it:
+  `cd /tmp && mkdir d && cd d && unzip -q <path>/draft.docx` then strip tags from
+  `word/document.xml`. If the file is absent, say so rather than guessing at its contents;
+  `docs/thesis/thesis-corrections.md` is the durable record of where it diverges from the
+  system.
 - **Maestro flows live in `apps/mobile/e2e/`** (Maestro 2.8.0, `~/.maestro/bin`). Two
   gotchas: tab bar items match as `'Inbox, tab.*'` (composed a11y text, full-regex match),
   and a task row is ONE a11y element labelled `"<title>, <category>, <minutes> minutes"` —
