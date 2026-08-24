@@ -11,7 +11,13 @@ import { randomUUID } from 'expo-crypto';
 
 import { appStorage, StorageKeys } from '../storage/mmkv';
 
-/** 12 digits ≈ 10^12 ops per install — unreachable in practice, keeps ordering sortable. */
+/**
+ * Zero-pad width: lexicographic order == numeric order while the counter has ≤12 digits
+ * (10^12 ops per install; a device logging 1000 ops/day crosses it after ~2.7M years).
+ * The hard overflow guard below only fires at 2^53 — between 10^12 and 2^53 ids stay
+ * unique and monotonic numerically, just not lexicographically. Consumers MUST order by
+ * the outbox `seq` column, not by string-sorting op ids.
+ */
 const COUNTER_PAD = 12;
 
 export function getDeviceId(): string {

@@ -3,6 +3,12 @@
  * "max `server_seq` seen", so it only ever advances — a stale pull can never rewind it.
  * server_seq is a Postgres bigint; JS numbers are exact to 2^53-1, far beyond any
  * realistic sequence value, and the guard below refuses non-integers outright.
+ *
+ * ACCOUNT-SCOPE CONTRACT (P4/P8 — binding): this cursor is install-scoped. `sync_seq` is a
+ * GLOBAL server sequence, so when auth lands, any account change (sign-out, sign-in as a
+ * different user, anonymous→full conversion to a DIFFERENT uid) MUST call resetSyncCursor()
+ * (and wipe the local mirror) — otherwise the new account silently skips every row below
+ * the previous account's cursor. Recorded in docs/HANDOFF.md; P4 must test this path.
  */
 import { appStorage, StorageKeys } from '../storage/mmkv';
 

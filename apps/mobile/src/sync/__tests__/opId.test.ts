@@ -43,10 +43,24 @@ describe('op ids', () => {
     expect(id).toBe(`${getDeviceId()}-${'0'.repeat(11)}1`);
   });
 
-  it('resume counting from persisted state, never reusing an id', () => {
+  it('resumes counting after a real module restart (state lives only in MMKV)', () => {
     const before = nextOpId();
-    // simulate app restart: module state is only MMKV, so a fresh call continues the sequence
-    const after = nextOpId();
+    const counter = appStorage.getNumber('sync.opCounter');
+    // Simulate an app restart: isolateModules gives a fresh module graph (fresh in-memory
+    // MMKV double), and we replay the persisted keys into it — modeling what real MMKV
+    // keeps on disk across launches. The fresh module must continue, not restart at 1.
+    let after = '';
+    jest.isolateModules(() => {
+      /* eslint-disable @typescript-eslint/no-require-imports */
+      const freshStorage = require('../../storage/mmkv') as typeof import('../../storage/mmkv');
+      const deviceId = appStorage.getString('sync.deviceId');
+      if (deviceId !== undefined) freshStorage.appStorage.set('sync.deviceId', deviceId);
+      if (counter !== undefined) freshStorage.appStorage.set('sync.opCounter', counter);
+      const freshOpId = require('../opId') as typeof import('../opId');
+      /* eslint-enable @typescript-eslint/no-require-imports */
+      after = freshOpId.nextOpId();
+    });
     expect(after > before).toBe(true);
+    expect(after.split('-').slice(0, 5).join('-')).toBe(before.split('-').slice(0, 5).join('-'));
   });
 });

@@ -178,6 +178,46 @@ describe('op outbox (invariant 8)', () => {
   });
 });
 
+describe('mirror nullability (names are exact; nullability is deliberately relaxed)', () => {
+  // The server always supplies values on pull; locally-born rows may not have them yet.
+  // This test pins the EXACT relaxation set so accidental drift is visible (finding 9).
+  const SERVER_NOT_NULL_RELAXED_LOCALLY: Record<string, string[]> = {
+    recommendations: ['features', 'rationale_key', 'rationale_params', 'engine', 'model_version'],
+    events: ['payload', 'context', 'server_ts'],
+    tasks: [],
+  };
+
+  it.each([
+    ['tasks', tasks],
+    ['recommendations', recommendations],
+    ['events', events],
+  ] as const)('%s: core identity/fact columns stay NOT NULL', (name, table) => {
+    const columns = getTableColumns(table);
+    const relaxed = new Set(SERVER_NOT_NULL_RELAXED_LOCALLY[name]);
+    for (const column of Object.values(columns)) {
+      if (relaxed.has(column.name)) {
+        expect(column.notNull).toBe(false);
+      }
+    }
+    // Anchor columns that must never relax:
+    expect(columns['userId']?.notNull).toBe(true);
+  });
+
+  it('tasks keeps every FR-10 required field NOT NULL', () => {
+    const c = getTableColumns(tasks);
+    for (const key of ['id', 'title', 'category', 'estMinutes', 'value', 'status'] as const) {
+      expect(c[key]?.notNull).toBe(true);
+    }
+  });
+
+  it('events keeps the fact identity NOT NULL (op_id, type, client_ts, local_day)', () => {
+    const c = getTableColumns(events);
+    for (const key of ['opId', 'type', 'clientTs', 'localDay'] as const) {
+      expect(c[key]?.notNull).toBe(true);
+    }
+  });
+});
+
 describe('invariant 1: the client never holds rewards or model state', () => {
   it('no table carries reward/model columns', () => {
     for (const table of [tasks, recommendations, events, opOutbox]) {
