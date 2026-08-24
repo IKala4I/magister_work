@@ -47,7 +47,9 @@
 ## Gotchas
 
 - `.env` = EXPO_PUBLIC_SUPABASE_URL + EXPO_PUBLIC_SUPABASE_ANON_KEY only; never print/commit.
-- `docs/thesis/draft.docx` is git-ignored on purpose (public repo) — do not commit it.
+- `docs/thesis/draft.docx` is a **local-only consistency target**: it exists only in the
+  owner's working tree, git-ignored on purpose (public repo). A fresh clone will NOT have it —
+  that is expected, not a missing file; never commit it, never conclude it must be restored.
 - Prettier reformats markdown tables on `pnpm format` — run it before committing docs.
 - specs/ is byte-frozen incl. 07; corrections go to spec-conflicts.md, never into specs files.
 - Statuses in schema are text+CHECK (not enums) so M-02 can extend them — keep it that way.

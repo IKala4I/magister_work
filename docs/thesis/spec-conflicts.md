@@ -16,14 +16,26 @@ File 06 claims single-blind via a "pixel-identical" UI across arms, but FR-22 re
 randomized slot is part of B). A participant who sees (or never sees) experiment badges over
 two weeks has a surface cue to their condition — the blinding claim as written is not
 deliverable.
-**Resolution (engineering now, study decision at OSF freeze):** the planner takes ε as a
-per-arm config, so arm A can run the same budgeted top-m uniform slot (its heuristic ranking
-defines the top-m set, exact propensity logged identically). This restores pixel-parity AND
-gives the baseline arm a randomized slice — replay/IPS become computable for A as well, which
-only strengthens RQ4. Alternative (sham badges on deterministic A-placements) rejected: it
-falsifies the logged propensity semantics. **Status: ε-symmetric support is being built (P5/P6);
-the pre-registration text change is flagged to the owner — it amends File 06 §1.1/§1.2, a
-thesis-claim-level edit that is theirs to freeze.** Also appended to thesis-corrections.md.
+**Resolution — APPROVED by owner 2026-08-24, with conditions.** The ε-randomized slot runs in
+**both arms** with identical ε, identical top-m, and identically rendered "experiment" badges
+(arm A's heuristic ranking defines its top-m set; exact propensity logged identically).
+Blinding integrity outranks baseline purity: a broken blind undermines the primary result,
+while a slightly perturbed baseline is a describable limitation. Conditions bound to this
+approval: (1) arm A is renamed and re-described everywhere as **"heuristic + matched
+randomization"** — no longer "a faithful Motion/Reclaim-class rule engine" — stating plainly
+that the matched randomization is what buys the blind (File 06 §1.1, OSF text,
+thesis-corrections #8); (2) File 06 §1.6's robustness refit excluding exploration-labeled
+blocks is kept and reported **for both arms** — that analysis recovers the unperturbed
+comparison; (3) File 06 §4 gains a threat entry: matched randomization slightly depresses both
+arms' adherence and makes A a perturbed incumbent; symmetry (same ε, same m, same rendering)
+means the perturbation cancels in the A-vs-B contrast; (4) wherever OPE is described, state
+the upside: baseline traffic now carries exact logged propensities, so the randomized slice
+spans both arms; (5) the rejected alternative — sham "experiment" badges on non-randomized
+arm-A blocks — is recorded with its rejection reasons (it falsifies logged-propensity
+semantics: a badge would claim uniform randomization that never happened, poisoning the OPE
+slice; and it deceives participants about when the system actually experiments) in
+pojasnennia.uk.md and here. **Status: approved; text changes land before the OSF freeze (still
+a stop condition); ε-symmetric engineering lands P5/P6.**
 
 ### H2. PAR and the reward table are related but distinct — never derive one from the other
 

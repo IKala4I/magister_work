@@ -33,11 +33,19 @@
    `rationale_key` + `rationale_params` pair rendered client-side (i18n decision) instead of a
    server-rendered Ukrainian string, and a `telemetry` object (not `solver`). Update the
    example to the specs/07 §5 shape.
-8. **§5.1 / §5.6 (blinding):** "інтерфейс попіксельно ідентичний" is not deliverable as
-   stated: experiment badges (FR-22) exist only in arm B. The system supports ε-symmetric
-   randomization in both arms (spec-conflicts H1); once the owner freezes that design, change
-   the text to say both arms carry the budgeted randomized slot, which also yields exact
-   propensities for the baseline arm. ⚠ thesis-claim-level change — owner decision.
+8. **§5.1 / §5.6 (blinding) — design change APPROVED 2026-08-24 (spec-conflicts H1):** both
+   arms carry the ε-randomized slot (identical ε, identical top-m, identical badge rendering).
+   Required text edits: (a) табл. 5.1 arm A renamed **"евристика + узгоджена рандомізація"**
+   ("heuristic + matched randomization") — drop "сумлінна репліка рушія класу Motion/Reclaim"
+   and state that the matched randomization is what makes the blind hold; (b) §5.4 robustness
+   (в): the exploration-excluding refit is reported **for both arms** and recovers the
+   unperturbed comparison; (c) §5.6 add threat: matched randomization slightly depresses both
+   arms' adherence and makes A a perturbed rather than pure incumbent — argue symmetry cancels
+   this in the A-vs-B contrast; (d) §2.6/§5.3 OPE text: note baseline traffic now carries
+   exact propensities, so the randomized slice spans both arms; (e) mention the rejected
+   alternative (sham badges on non-randomized A-blocks) and why: it would falsify
+   logged-propensity semantics and deceive participants. Same edits go into the OSF
+   pre-registration text before freeze.
 9. **§4.5:** draft states SASRec-lite is trained nightly from the start; the system defers the
    sequence model to the post-v1 feature channel (specs/07 §3.6 rung 3) — no FR requires it and
    the v1 serving path never reads it. Either mark it "запланований компонент конвеєра" or
