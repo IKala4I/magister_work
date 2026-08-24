@@ -1,6 +1,9 @@
 # frozen specification set — read-only, never reformatted
 specs/
 
+# generated artifacts — byte-compared against regeneration in CI
+packages/shared/src/database.ts
+
 node_modules/
 .expo/
 dist/

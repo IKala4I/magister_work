@@ -15,6 +15,7 @@ export default tseslint.config(
       'specs/**',
       'services/**',
       'training/**',
+      'packages/shared/src/database.ts',
     ],
   },
   js.configs.recommended,

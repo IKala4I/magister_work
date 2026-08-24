@@ -8,3 +8,4 @@
  * Generated files are committed in their own chore(db)/chore(repo) commits.
  */
 export * from './params';
+export type { Database, Json } from './database';
