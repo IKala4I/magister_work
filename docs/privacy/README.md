@@ -1,0 +1,27 @@
+# Privacy & Data-Protection Notes (NFR-S2/S3; FR-42)
+
+Working notes toward the DPIA (full document due P12; this file accumulates evidence per phase).
+
+## Hosting regions (NFR-S2: EU region hosting)
+
+| Service                                   | Region                                      | Evidence / status                                                                                                                                                                                                                            |
+| ----------------------------------------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Supabase (Postgres, Auth, Edge Functions) | **eu-west-1 (Ireland)**                     | `supabase projects list` 2026-08-24: project `magister_work`, region `eu-west-1`, linked ✔                                                                                                                                                   |
+| PostHog (product analytics)               | **EU Cloud (eu.posthog.com) — REQUIRED**    | Account not yet created (SDK lands P2/P3 → ACTION REQUIRED gate). Config constant must point at the EU ingestion host; the US default is a violation of decision 7 / NFR-S2. Documented here so the P3 wiring cannot silently default to US. |
+| Sentry (crash reporting)                  | EU org region required at signup            | Account not yet created (P2 gate).                                                                                                                                                                                                           |
+| Hugging Face Spaces (RecSys service)      | EU availability not guaranteed by free tier | Holds **no personal data at rest**: per-user model state lives only in Postgres (specs/07 §7); the service processes requests transiently. Documented DPIA position; revisit at P5 deploy.                                                   |
+
+## Data-minimization commitments already enforced in schema (P1)
+
+- Cross-user training export: **categorical/behavioral columns only, never task text** (NFR-S3);
+  CI test lands with the export query (P11).
+- `calendar_events.title` is display-only; excluded from every export/training path (specs/07 §7).
+- Erasure: `on delete cascade` from `auth.users` through every user-owned table (FR-42);
+  `deletion_audit` keeps proof-of-erasure with a user hash, no FK — survives the cascade.
+- `recommendations.features` snapshots are numeric arrays (no text) by contract (specs/07 §5).
+
+## Retention (defaults, fixed by ADR in P10)
+
+Raw `events`: 24 months → pseudonymized Parquet archive (File 06 §5). Unconverted anonymous
+accounts: purged after 30 days. Account deletion completes ≤30 days with email confirmation
+(UC-10).

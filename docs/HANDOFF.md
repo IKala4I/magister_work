@@ -2,62 +2,69 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-08-24, start of P1.
+> Last update: 2026-08-24, end of P1.
 
 ## Where we are
 
-- **Phase: P1 — Data layer**, branch `phase/P1-data-layer` (open, unpushed work may exist —
-  check `git log origin/phase/P1-data-layer..HEAD`).
-- P0 merged as PR #1. Repo is **public** (github.com/IKala4I/magister_work), MIT-licensed.
-- Working mode is **autonomous** — read CLAUDE.md "Working mode" for stop conditions and the
-  decision rule before doing anything.
+- **P1 — Data layer: COMPLETE** (PR #2 merged; if the PR still shows open, merging it is the
+  only leftover step — merge once CI is green, nothing else is pending).
+- **Next: P2 — Mobile shell** on a new branch `phase/P2-mobile-shell`.
+- Working mode is **autonomous** — CLAUDE.md "Working mode" has the stop conditions and the
+  decision rule. Owner does not referee technical choices.
 
-## Completed so far (beyond P0)
+## What P1 delivered
 
-- `specs/07_engine_internals_and_schema.md` **approved** → read-only truth (schema §4, rewards
-  §3.4, API §5, Appendix A parameters).
-- Spec-integrity audit: `docs/thesis/spec-conflicts.md` (errata layer — H1 ε-symmetric-arms is
-  the one OPEN owner decision, due at OSF pre-registration; H2 PAR≠rewards and H3
-  ambiguous≠0.0 are normative rules with tests due in P7).
-- `docs/thesis/thesis-corrections.md` — 10 entries from the full draft.docx read.
-- `docs/thesis/pojasnennia.uk.md` — Ukrainian explainer v1; **update in the same commit as any
-  work it describes** (owner reads this, not ADRs).
-- Appendix A params modules landed: `services/recsys/.../params.py`,
-  `training/.../params.py`, `packages/shared/src/params.ts` (+ spec-value tests).
-- TypeScript pinned **5.9.3** (ADR-0004: openapi-typescript peer `^5.x`); jest 29.7
-  (ADR-0003); Node 24 (ADR-0001); pnpm hoisted (ADR-0002).
+- 5 migrations on the linked **eu-west-1** project: base (16 tables, RLS everywhere, trimmed
+  grants, sync_seq cursor, version/updated_at triggers, status guard), M-01 propensity, M-02
+  displacement, prior_cells v0 seed (computed in SQL, 240 cells, hand-verified), and a
+  **hardening migration** from the adversarial review (NO ACTION audit FKs, fail-closed status
+  guard {accepted,pinned,moved,rejected} with old-state+attributed freeze, column-gated
+  events.server_ts, FK/job indexes, sequence privileges, size caps, model_registry priors row,
+  model-state CHECKs).
+- pgTAP suites (rls_test, schema_test, hardening_test) run in the CI `db` job on the local
+  stack; contract-sync step regenerates types and diffs (normalize via
+  `scripts/normalize-db-types.sh` — applies to BOTH sides; --linked and --local outputs differ
+  by an __InternalSupabase header).
+- `packages/shared/src/database.ts` generated + committed (normalized form).
+- Privacy evidence: `docs/privacy/README.md` (Supabase eu-west-1 verified; **PostHog must be
+  EU cloud** when wired in P2/P3 — this is an owner decision already made, do not default US).
 
-## Exact next actions (P1)
+## Exact next actions (P2 — Mobile shell, per PLAN.md)
 
-1. ⛔ PENDING ACTION REQUIRED: owner must run `supabase login` (and possibly
-   `supabase link --project-ref <ref>`; the ref is derivable from EXPO_PUBLIC_SUPABASE_URL in
-   `.env` — never print it). Verify with `supabase projects list` / `supabase db push --dry-run`.
-2. Write migrations from specs/07 §4: `0001_base` (all tables + RLS + triggers for
-   server_seq/updated_at), `0002_m01_propensity`, `0003_m02_displacement` — three separate
-   `feat(db)` commits per the convention (M-01/M-02 greppable in summaries).
-3. `supabase db push` to the linked EU (Ireland) project; paste output as evidence.
-4. RLS bypass test: two users via anon-key sign-in, assert cross-user reads return zero rows
-   (deno test or SQL-level; runnable in CI later against local supabase).
-5. Type generation: `supabase gen types typescript` → `packages/shared/src/database.ts`
-   (own `chore(db)` commit); wire the CI contract-sync diff job.
-6. Confirm + document PostHog EU instance (decision 7) in docs/versions.md or privacy docs.
-7. DoD: requirement table (NFR-S1, NFR-S2, M-01, M-02, FR-42-groundwork), adversarial pass in
-   fresh subagent, gates, traceability, CHANGELOG, explainer status table, this file.
+1. Branch `phase/P2-mobile-shell`.
+2. Expo Router file-based navigation: tabs Today · Inbox · Focus · Insights + Settings route.
+3. Design tokens from File 02 §3 EXACTLY (palette light/dark incl. hex table, Inter Variable +
+   JetBrains Mono type scale, radii 16–20, springs ≤250 ms, reduced-motion honored,
+   confidence-= -solidity styling primitives). Install: expo-router, drizzle-orm + expo-sqlite,
+   react-native-mmkv, zustand, reanimated, gesture-handler, expo-font (+ fonts), sentry.
+   drizzle-orm 0.45.2 verified TS-5.9-compatible (ADR-0004). Pin all in docs/versions.md.
+4. Local SQLite Drizzle schema mirroring server tables (tasks, recommendations, events outbox)
+   - MMKV sync cursor scaffold. Client never computes rewards (invariant 1).
+5. i18n scaffolding (expo-localization + typed catalog) — English strings only, no hardcoded
+   user-facing strings in components (decision 6).
+6. Sentry crash reporting (EU org — ACTION REQUIRED gate for account creation).
+7. NFR-P2 cold-start measurement on device; NFR-A2 200%/reduced-motion pass on the shell.
+8. DoD: requirement table, fresh-subagent adversarial pass, gates, traceability, CHANGELOG,
+   pojasnennia.uk.md (update Крок 1 status when offline shell lands), HANDOFF, PR, merge.
 
 ## Gotchas
 
-- `.env` = EXPO_PUBLIC_SUPABASE_URL + EXPO_PUBLIC_SUPABASE_ANON_KEY only; never print/commit.
-- `docs/thesis/draft.docx` is a **local-only consistency target**: it exists only in the
-  owner's working tree, git-ignored on purpose (public repo). A fresh clone will NOT have it —
-  that is expected, not a missing file; never commit it, never conclude it must be restored.
-- Prettier reformats markdown tables on `pnpm format` — run it before committing docs.
-- specs/ is byte-frozen incl. 07; corrections go to spec-conflicts.md, never into specs files.
-- Statuses in schema are text+CHECK (not enums) so M-02 can extend them — keep it that way.
-- supabase CLI not yet installed at last update (`brew install supabase/tap/supabase`).
-- Commit trailers: `Refs:` (requirement IDs; optional for chore/ci/docs), `Phase: P1`,
-  `Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>`.
+- `.env` = EXPO_PUBLIC_SUPABASE_URL + EXPO_PUBLIC_SUPABASE_ANON_KEY; never print/commit.
+- `docs/thesis/draft.docx` is a **local-only** consistency target (git-ignored; absent from
+  fresh clones by design — never "restore" or commit it).
+- specs/ byte-frozen incl. 07; normative corrections live in docs/thesis/spec-conflicts.md
+  (H1 approved: ε-randomization in BOTH study arms, arm A = "heuristic + matched
+  randomization"; L10/L11: client hard-delete FK-restricted, client statuses =
+  plan-review set only).
+- pojasnennia.uk.md updates go **in the same commit** as the work they describe.
+- Prettier reformats md tables — run `pnpm format` before committing docs; it must NOT touch
+  packages/shared/src/database.ts (ignored) or specs/.
+- No Docker on this machine: local `supabase test db`/`gen types --local` unavailable — CI
+  covers them; remote work via linked CLI (`supabase db push`, `supabase db query --linked`).
+- Commit trailers: `Refs:` + `Phase:` + `Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>`.
+- jest 29.7 (not 30) and TS 5.9.3 (not 6) are deliberate pins — ADR-0003/0004.
 
 ## Open questions (owner)
 
-- spec-conflicts **H1**: ε-randomized slot in BOTH study arms (restores blinding, gives
-  baseline propensities) — needs owner sign-off at OSF pre-registration freeze, not before P11.
+- None blocking. H1 text changes to File 06 land at OSF pre-registration freeze (stop
+  condition, P11 timeframe). PostHog/Sentry account creation gates arrive in P2/P3.

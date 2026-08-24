@@ -107,7 +107,7 @@ autonomously once green (owner directive 2026-08-24 — stop conditions in CLAUD
 mode"). Cross-cutting from P2 onward: NFR-A1/A2 respected in all new UI; every new table ships
 with RLS + a bypass test (NFR-S1).
 
-**Status board:** P0 ✅ merged (PR #1) · P1 🔨 in progress (`phase/P1-data-layer`) · P2+ pending.
+**Status board:** P0 ✅ merged (PR #1) · P1 ✅ merged (PR #2) · P2 next (`phase/P2-mobile-shell`) · P3+ pending.
 
 **P0 — Bootstrap.**
 Monorepo scaffolding (pnpm + Node 22 LTS pinned via `.nvmrc` + `packageManager`; `expo-doctor`
@@ -301,4 +301,4 @@ model_registry columns; ALS λ and confidence weighting; River blend target.
 
 ---
 
-_P1 in progress on `phase/P1-data-layer`._
+_P1 complete. P2 opens next._
