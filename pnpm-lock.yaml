@@ -32,6 +32,9 @@ importers:
 
   apps/mobile:
     dependencies:
+      '@hourwell/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       expo:
         specifier: ~57.0.16
         version: 57.0.16(@babel/core@7.29.7)(@expo/dom-webview@57.0.1)(react-native@0.86.2(@babel/core@7.29.7)(@react-native/jest-preset@0.86.2(@babel/core@7.29.7)(react@19.2.3))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)(typescript@5.9.3)

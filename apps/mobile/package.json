@@ -12,14 +12,21 @@
     "test": "jest"
   },
   "jest": {
-    "preset": "jest-expo"
+    "preset": "jest-expo",
+    "moduleNameMapper": {
+      "^@hourwell/shared$": "<rootDir>/../../packages/shared/src/index.ts",
+      "^@hourwell/shared/(.*)$": "<rootDir>/../../packages/shared/src/$1"
+    }
   },
   "expo": {
     "install": {
-      "exclude": ["typescript"]
+      "exclude": [
+        "typescript"
+      ]
     }
   },
   "dependencies": {
+    "@hourwell/shared": "workspace:*",
     "expo": "~57.0.16",
     "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
