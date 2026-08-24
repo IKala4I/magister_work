@@ -1,0 +1,27 @@
+[project]
+name = "hourwell-recsys"
+version = "0.1.0"
+description = "Hourwell RecSys service: bandit-weighted CP-SAT planning (specs/03, specs/04)"
+requires-python = ">=3.12,<3.13"
+dependencies = []
+
+[dependency-groups]
+dev = ["ruff>=0.12", "mypy>=1.14", "pytest>=8.3"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+strict = true
+python_version = "3.12"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
