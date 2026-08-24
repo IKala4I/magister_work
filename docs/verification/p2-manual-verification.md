@@ -48,3 +48,45 @@ app-start spans replace hand timing.
 
 - [ ] First launch applies the local migration silently (no error screen); relaunch is
       equally silent (idempotent).
+
+---
+
+## Results — 2026-08-24 (P2 carry-over, executed at the start of P3)
+
+Environment: iOS simulator (iPhone 17 Pro, iOS 26.5, Xcode 26.6, M-series host), **Release**
+configuration built with `SENTRY_DISABLE_AUTO_UPLOAD=true` and the startup-marker env var.
+Physical-device re-check remains part of P10's formal pass (owner accepted simulator numbers
+for this gate). Automation: `measure-cold-start.py` (this folder) for NFR-P2;
+`apps/mobile/e2e/p2-a11y-sweep.yaml` (Maestro 2.8.0) for the NFR-A2 walk.
+
+### NFR-P2 — cold start (target ≤ 2000 ms p90) — ✅ PASS
+
+10 measured cold launches (after a warm-up launch that applied the migration; app killed
+between launches): 1064, 1063, 1066, 1078, 1063, 1079, 1031, 1082, 1069, 1064 ms.
+**p90 = 1079 ms, median = 1065 ms.** JS half (js-start → first frame) ≈ 50 ms per launch.
+Timing = `simctl launch` invocation → first root frame (marker ping), which _overstates_
+user-perceived time by the simctl spawn overhead — conservative pass.
+
+### NFR-A2 — 200% font scale, reduced motion, reduce transparency — ✅ PASS (after one fix)
+
+Settings during the sweep: `content_size accessibility-extra-extra-extra-large` (beyond
+200%; ThemedText caps rendering at exactly 200%), ReduceMotionEnabled=1,
+ReduceTransparencyEnabled=1, light + dark.
+
+- **Finding (fixed in this commit):** the tab-shell header title scaled unbounded and
+  clipped at accessibility sizes — the JS header bar has a fixed height. Fix: header titles
+  render via `ThemedText` pinned at 1×, matching UIKit's own non-scaling nav-title
+  convention; screen content keeps scaling to the 200% cap.
+- After the fix, all four tabs + Settings modal: readable, nothing clipped or overlapping;
+  tab labels intact; empty-state copy wraps correctly (screenshots in the Maestro artifacts).
+- Appearance control exercised at max scale via Maestro taps (Dark → shell flips
+  immediately, System → restored): rows remained tappable — functional ≥44 px proof.
+- Reduced motion on for the whole sweep; every navigation completed without depending on an
+  animation. No glass surfaces exist in the shell yet, so reduce-transparency had nothing to
+  degrade (GlassPanel's opaque fallback is unit-tested; visual check re-runs in P6).
+
+### Shell & database checklist
+
+Today/Inbox/Focus/Insights + Settings walked by the Maestro flow (assertions on each
+screen's copy); splash/launch fine across 20+ launches during measurement; migration applied
+on first launch and silent on every relaunch (all cold starts reached the Today empty state).

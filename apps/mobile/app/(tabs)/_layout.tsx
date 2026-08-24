@@ -7,6 +7,7 @@ import { Link, Tabs } from 'expo-router';
 import { Pressable, StyleSheet } from 'react-native';
 
 import { t } from '../../src/i18n';
+import { ThemedText } from '../../src/ui/primitives';
 import { useTheme } from '../../src/ui/theme';
 
 function SettingsButton() {
@@ -34,10 +35,14 @@ export default function TabsLayout() {
         tabBarInactiveTintColor: theme.colors.textSecondary,
         tabBarStyle: { backgroundColor: theme.colors.surface },
         headerStyle: { backgroundColor: theme.colors.surface },
-        headerTitleStyle: {
-          fontFamily: theme.fontFamilies.semiBold,
-          color: theme.colors.textPrimary,
-        },
+        // Header chrome is pinned at 1× like UIKit's own nav titles — the JS header bar
+        // has a fixed height, so a scaling title clips at large accessibility sizes
+        // (NFR-A2 sweep finding). Screen content scales to the 200% cap instead.
+        headerTitle: ({ children }) => (
+          <ThemedText variant="h2" numberOfLines={1} maxFontSizeMultiplier={1}>
+            {children}
+          </ThemedText>
+        ),
         headerShadowVisible: false,
         headerRight: () => <SettingsButton />,
         sceneStyle: { backgroundColor: theme.colors.surface },
