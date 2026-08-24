@@ -100,10 +100,14 @@ docs/                   traceability.md, decisions/ (ADRs), versions.md, naming.
 
 ## 3. Phase Plan
 
-Every phase ends with: requirement-checklist table, adversarial pass, all gates green with pasted
-output, traceability + CHANGELOG updated, manual verification script, PR `phase/Pn-<name>`, my
-review → your approval. Cross-cutting from P2 onward: NFR-A1/A2 respected in all new UI; every new
-table ships with RLS + a bypass test (NFR-S1).
+Every phase ends with: requirement-checklist table, adversarial pass (fresh-context subagent),
+all gates green with pasted output, traceability + CHANGELOG + `docs/thesis/pojasnennia.uk.md` +
+`docs/HANDOFF.md` updated, manual verification script, PR `phase/Pn-<name>` opened and merged
+autonomously once green (owner directive 2026-08-24 — stop conditions in CLAUDE.md "Working
+mode"). Cross-cutting from P2 onward: NFR-A1/A2 respected in all new UI; every new table ships
+with RLS + a bypass test (NFR-S1).
+
+**Status board:** P0 ✅ merged (PR #1) · P1 🔨 in progress (`phase/P1-data-layer`) · P2+ pending.
 
 **P0 — Bootstrap.**
 Monorepo scaffolding (pnpm + Node 22 LTS pinned via `.nvmrc` + `packageManager`; `expo-doctor`
@@ -291,6 +295,10 @@ model_registry columns; ALS λ and confidence weighting; River blend target.
 | 7   | Supabase project confirmed: **West EU (Ireland)**, fresh, free to migrate; linked CLI + `supabase db push` (one-time login = ACTION REQUIRED gate in P1). Also confirm & document **PostHog EU instance** in P1 (NFR-S2 names both).                                                                                                                                 |
 | —   | Name **Hourwell approved**; formal trademark/store search stays in P12. Commit convention applies from the very first P0 commit.                                                                                                                                                                                                                                     |
 
+| 8 | (2026-08-24, post-P0) **P0 gate passed; specs/07 approved** — read-only truth. ADR-0001 (Node 24) + ADR-0003 (jest 29) accepted. **MIT license** for code; a future dataset gets CC-BY-4.0 `DATA_LICENSE`. ADR-0004: Expo 57/RN 0.86 accepted, **TS pinned 5.9** (openapi-typescript peer). |
+| 9 | (2026-08-24) **Autonomous working mode** — phases back-to-back, PRs self-merged when green; stop conditions + decision rule in CLAUDE.md "Working mode". Owner keeps thesis-claim decisions only (open: spec-conflicts H1, ε-symmetric arms, decided at OSF freeze). |
+| 10 | (2026-08-24) Thesis integration: `docs/thesis/` = pojasnennia.uk.md (living Ukrainian explainer, same-commit rule) + spec-conflicts.md (errata layer over frozen specs) + thesis-corrections.md (draft edit worklist); draft.docx is a consistency target, git-ignored. |
+
 ---
 
-_P0 in progress on `phase/P0-bootstrap`. Gate: PR review + approval of `specs/07` before P1._
+_P1 in progress on `phase/P1-data-layer`._
