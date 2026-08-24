@@ -3,6 +3,28 @@
  * modal's appearance control works end-to-end (store + MMKV flag), and the router wiring
  * mounts the Today tab at '/' with the tab bar present.
  */
+// The Inbox screen reads the live DB; tests never open the native database (P2 rule),
+// so the client and the live-query hook are stubbed to an empty inbox here.
+jest.mock('../db/client', () => {
+  const chain: Record<string, unknown> = {
+    from: () => chain,
+    where: () => chain,
+    orderBy: () => chain,
+  };
+  return { db: { select: () => chain } };
+});
+jest.mock('drizzle-orm/expo-sqlite', () => ({ useLiveQuery: () => ({ data: [] }) }));
+jest.mock('../domain/taskActions', () => ({
+  createTaskAction: jest.fn(),
+  updateTaskAction: jest.fn(),
+  deleteTaskAction: jest.fn(),
+  restoreTaskAction: jest.fn(),
+}));
+jest.mock('@react-native-community/datetimepicker', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 import { renderRouter, screen } from 'expo-router/testing-library';
 import { render, fireEvent } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';

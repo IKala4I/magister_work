@@ -91,6 +91,14 @@ function RootLayout() {
           name="settings"
           options={{ presentation: 'modal', title: t('settings.title') }}
         />
+        <Stack.Screen
+          name="task/new"
+          options={{ presentation: 'modal', title: t('task.new.title') }}
+        />
+        <Stack.Screen
+          name="task/[id]"
+          options={{ presentation: 'modal', title: t('task.edit.title') }}
+        />
       </Stack>
     </GestureHandlerRootView>
   );

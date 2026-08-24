@@ -10,6 +10,22 @@ import { t } from '../../src/i18n';
 import { ThemedText } from '../../src/ui/primitives';
 import { useTheme } from '../../src/ui/theme';
 
+function NewTaskButton() {
+  const theme = useTheme();
+  return (
+    <Link href="/task/new" asChild>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={t('task.new.title')}
+        hitSlop={8}
+        style={styles.settingsButton}
+      >
+        <Ionicons name="add" size={26} color={theme.colors.textPrimary} />
+      </Pressable>
+    </Link>
+  );
+}
+
 function SettingsButton() {
   const theme = useTheme();
   return (
@@ -61,6 +77,7 @@ export default function TabsLayout() {
         name="inbox"
         options={{
           title: t('tabs.inbox'),
+          headerLeft: () => <NewTaskButton />,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="file-tray-outline" color={color} size={size} />
           ),
