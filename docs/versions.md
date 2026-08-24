@@ -10,7 +10,7 @@ indicative versions are footnoted and, where architectural, recorded as ADRs.
 | ------------------------------- | ------- | ----------------------------------------------------------------------------------------- |
 | Node                            | 24.13.1 | Active LTS. Spec-era PLAN said 22 LTS → ADR-0001                                          |
 | pnpm                            | 10.33.2 | pinned via `packageManager`; expo-doctor 21/21 → ADR-0002                                 |
-| TypeScript                      | 6.0.3   | strict everywhere                                                                         |
+| TypeScript                      | 5.9.3   | strict everywhere; 6.0 reverted → ADR-0004 (openapi-typescript peer `^5.x`)               |
 | ESLint                          | 10.9.0  | flat config (File 03 §6 said "ESLint 9"; 10 is the current line, same flat-config system) |
 | typescript-eslint               | 8.67.0  |                                                                                           |
 | eslint-plugin-react-hooks       | 7.1.1   | rules registered manually (version-stable form)                                           |
@@ -43,6 +43,18 @@ indicative versions are footnoted and, where architectural, recorded as ADRs.
 | pnpm/action-setup  | v4      |
 | actions/setup-node | v4      |
 | astral-sh/setup-uv | v5      |
+
+## Verified compatible, adopted later (verified 2026-08-24)
+
+| Package            | Version | Notes                                                                            |
+| ------------------ | ------- | -------------------------------------------------------------------------------- |
+| openapi-typescript | 7.13.0  | peer `typescript@^5.x` — the reason for the TS 5.9 pin (ADR-0004); adopted in P1 |
+| drizzle-orm        | 0.45.2  | strict-compile verified under TS 5.9.3 (ADR-0004); adopted in P2                 |
+
+## TODOs (revisit on upstream releases)
+
+- **jest 29.7 → 30** when jest-expo ships jest-30 support (ADR-0003).
+- **TypeScript 5.9 → 6** when openapi-typescript widens its peer range (ADR-0004).
 
 ## To pin in later phases
 
