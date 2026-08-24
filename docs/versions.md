@@ -37,6 +37,36 @@ indicative versions are footnoted and, where architectural, recorded as ADRs.
 | @types/jest  | 29.5.x  | matches jest 29                                                              |
 | @types/react | 19.2.x  |                                                                              |
 
+## Mobile — P2 additions (verified 2026-08-24)
+
+Expo-managed packages installed with `npx expo install` (SDK-57-resolved ranges); the rest
+pinned exactly.
+
+| Package                                            | Version  | Notes                                                                            |
+| -------------------------------------------------- | -------- | -------------------------------------------------------------------------------- |
+| expo-router                                        | ~57.0.16 | file-based routing; typed routes experiment on                                   |
+| expo-sqlite                                        | ~57.0.1  | Drizzle driver `drizzle-orm/expo-sqlite`                                         |
+| expo-font / expo-localization / expo-splash-screen | ~57.0.x  | fonts at runtime + splash hold; locale detection for the typed catalog           |
+| expo-linking / expo-constants                      | ~57.0.x  | expo-router requirements                                                         |
+| expo-blur                                          | ~57.0.2  | glass panels (File 02 §3.1, 8–12 px blur, recommendation layer only)             |
+| react-native-safe-area-context                     | ~5.7.0   |                                                                                  |
+| react-native-screens                               | ~4.26.2  |                                                                                  |
+| react-native-reanimated                            | 4.5.1    | + react-native-worklets 0.10.1 (v4 peer)                                         |
+| react-native-gesture-handler                       | ~2.32.0  |                                                                                  |
+| @expo-google-fonts/inter                           | ^0.4.2   | static instances of Inter (see spec-conflicts L12 — RN has no variable-axis API) |
+| @expo-google-fonts/jetbrains-mono                  | ^0.4.1   | numerals/timers (File 02 §3.3)                                                   |
+| drizzle-orm                                        | 0.45.2   | pinned exact; TS 5.9 verified (ADR-0004)                                         |
+| drizzle-kit (dev)                                  | 0.31.10  | `driver: 'expo'` migration generation                                            |
+| babel-plugin-inline-import (dev)                   | 3.0.0    | inlines generated `.sql` migrations (Drizzle Expo guide)                         |
+| react-native-mmkv                                  | 3.3.3    | 4.x deferred: requires react-native-nitro-modules; 3.x is the plan-pinned line   |
+| zustand                                            | 5.0.15   | ephemeral UI state only (invariant: no domain state)                             |
+| @sentry/react-native                               | 8.23.0   | env-gated init; EU org + DSN = end-of-P2 ACTION REQUIRED                         |
+| @testing-library/react-native (dev)                | 14.0.1   | + test-renderer 1.2.0 (React-19-compatible universal renderer)                   |
+
+Deferred installs (first consumer): FlashList v2 → P3 (first real list); react-native-skia →
+P7/P9 (timer ring, heatmap); supabase-js v2 → P4 (auth); chrono-node → P3; PostHog SDK → P3
+(EU instance, per P1 privacy note).
+
 ## CI actions (verified 2026-08-24)
 
 | Action             | Version |
@@ -60,8 +90,7 @@ indicative versions are footnoted and, where architectural, recorded as ADRs.
 
 ## To pin in later phases
 
-Drizzle ORM + expo-sqlite (P2) · MMKV 3.x (P2) · Zustand 5.x (P2) · Reanimated 4 / Gesture
-Handler 2 (P2) · FlashList v2 (P2) · react-native-skia (P2/P9) · chrono-node 2.x (P3) ·
-supabase-js v2 + supabase CLI (P1/P4) · expo-notifications (P10) · FastAPI 0.11x + Pydantic v2
-(P5) · OR-Tools ≥9.x (P5) · NumPy (P5) · River (P7) · implicit 0.7.x (P11) · MABWiser (P5, CI
-oracle) · sentence-transformers ≥3 (roadmap) · PostHog / Sentry SDKs (P2/P3).
+FlashList v2 (P3, first real list) · chrono-node 2.x (P3) · PostHog SDK (P3, EU instance) ·
+supabase-js v2 (P4) · FastAPI 0.11x + Pydantic v2 (P5) · OR-Tools ≥9.x (P5) · NumPy (P5) ·
+MABWiser (P5, CI oracle) · River (P7) · react-native-skia (P7/P9) · expo-notifications (P10) ·
+implicit 0.7.x (P11) · sentence-transformers ≥3 (roadmap).
