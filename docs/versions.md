@@ -67,6 +67,9 @@ pinned exactly.
 
 | Package                                           | Version | Notes                                                                                                    |
 | ------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------- |
+| chrono-node                                       | 2.10.1  | FR-11 NL quick-add; pinned exact (File 03 §2.1); duration grammar is ours — chrono owns dates only       |
+| @shopify/flash-list                               | 2.0.2   | first real list (Inbox); v2 = New-Arch-only line per File 03 stack table                                 |
+| better-sqlite3 (dev)                              | 13.0.3  | DAO tests run the committed drizzle bundle against real SQLite in jest                                   |
 | posthog-react-native                              | 4.63.9  | pinned exact; env-gated init, EU host from env only (NFR-S2); no PostHogProvider → no autocapture/replay |
 | expo-application / expo-device / expo-file-system | ~57.0.x | posthog-react-native's documented Expo support packages (installed via `npx expo install`)               |
 
