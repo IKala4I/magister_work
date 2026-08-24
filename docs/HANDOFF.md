@@ -2,30 +2,43 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-08-24, end of P2.
+> Last update: 2026-08-24, mid-P3 (tasks CRUD + quick-add landed and verified on device).
 
 ## Where we are
 
-- **P2 — Mobile shell: COMPLETE** (PR #3; if it still shows open, merge once CI is green —
-  nothing else is pending in it).
-- **Next: P3 — Tasks** on a new branch `phase/P3-tasks`.
+- **P2 — Mobile shell: COMPLETE**, and its two carry-over measurements are now **done**
+  (numbers below). Nothing is outstanding from P2.
+- **P3 — Tasks: in progress** on `phase/P3-tasks` (local branch, never pushed). FR-10 CRUD,
+  FR-11 quick-add, the offline write path and the Inbox/task-sheet UI are built, tested,
+  and walked on device. Remaining before the P3 gate: PR + merge, CHANGELOG, and the
+  adversarial fresh-subagent pass.
 - Working mode is **autonomous** — CLAUDE.md "Working mode" has the stop conditions and the
   decision rule. Owner does not referee technical choices.
 
-## ⛔ ACTION REQUIRED (owner) — carried over from P2
+## Measurements (both carry-overs closed)
 
-1. **Sentry EU org**: create a Sentry account/org with **EU data residency**, add a project
-   (React Native), put the DSN in `.env` as `EXPO_PUBLIC_SENTRY_DSN`. Until then crash
-   reporting is initialized **disabled** (tested) — nothing ships. Also needed later for
-   source-map upload: org/project slugs + auth token at EAS build time (P12).
-2. **On-device NFR-P2/NFR-A2 measurements**: cold start ≤2 s p90 (10-launch protocol) and
-   the 200% font / reduced-motion / reduce-transparency sweep — script in
-   `docs/verification/p2-manual-verification.md`. Blocked on this machine: **disk is
-   429/460 GB full**, Xcode build died with ENOSPC (I freed ~3 GB of build artifacts; a
-   real build needs much more). Free disk space, then `cd apps/mobile && pnpm ios`, or run
-   on a physical iPhone. P10's formal a11y/perf pass re-checks both anyway.
-3. **PostHog EU** account — needed in P3 for event plumbing (decision 7 / NFR-S2: EU
-   instance only, never the US default).
+Executed on a Release build, iPhone 17 Pro simulator (iOS 26.5 / Xcode 26.6), clean install.
+Full protocol and results: `docs/verification/p2-manual-verification.md`.
+
+- **NFR-P2 cold start — PASS.** p90 = **1075 ms** on committed HEAD, against a ≤2000 ms
+  target. Three 10-launch runs (1079 ms before the keys existed, 1073 ms with them, 1075 ms
+  on HEAD) land within 6 ms of each other, so neither SDK costs anything measurable at
+  startup. Driver: `docs/verification/measure-cold-start.py` (10 launches, kill between,
+  first-frame marker ping — the build must set `EXPO_PUBLIC_STARTUP_MARKER_URL`).
+- **NFR-A2 200% font + reduced motion + reduce transparency — PASS**, 27/27 steps, run twice.
+  Flow: `apps/mobile/e2e/p2-a11y-sweep.yaml` (Maestro 2.8.0). One real bug fixed to get here:
+  the tab-shell header title scaled unbounded and clipped; header chrome is now pinned at 1×.
+
+Traceability rows for both are flipped to ✅.
+
+## ⛔ ACTION REQUIRED (owner)
+
+1. **Sentry org/project slugs + auth token** — only needed at **P12/EAS** for source-map
+   upload. The DSN is in `.env` and works; crash reporting initializes **enabled** and was
+   confirmed running on device. Until slugs exist, local Release builds must set
+   `SENTRY_DISABLE_AUTO_UPLOAD=true` (see Gotchas) — `sentry-cli` otherwise fails the build.
+2. Nothing else. Sentry EU org, PostHog EU account, and the on-device measurements are all
+   **done**.
 
 ## What P2 delivered
 
@@ -54,29 +67,48 @@
 - Observability: env-gated Sentry (7.11.0 — the SDK-57-validated line, do NOT bump to 8.x
   until Expo does), `src/observability/startup.ts` js-start→first-frame timing.
 
-## Exact next actions (P3 — Tasks, per PLAN.md)
+## Exact next actions (finish P3)
 
-1. Branch `phase/P3-tasks`.
-2. Task CRUD with all FR-10 fields on the local mirror (writes → SQLite first, rows into
-   `op_outbox` via `nextOpId()`; events appended to local `events`). Client may only write
-   plan-review statuses (schema exports `CLIENT_WRITABLE_RECOMMENDATION_STATUSES`).
-3. chrono-node NL quick-add with preview chip + disambiguation (FR-11, UC-02) — install +
-   pin chrono-node 2.x; parse mapping test suite (durations, deadlines, "by Fri",
-   ambiguity).
-4. `task_created` events; PostHog event plumbing (**EU instance host, gate on account** —
-   same env-gated pattern as Sentry).
-5. FlashList v2 for the Inbox list (first real list — pin in versions.md).
-6. Offline-first verified: create/edit/delete fully offline then sync-queue inspection;
-   domain coverage ≥70% (NFR-M1).
-7. DoD: requirement table, fresh-subagent adversarial pass, gates, traceability, CHANGELOG,
-   pojasnennia.uk.md (same-commit rule), HANDOFF, PR, merge.
+Done already: FR-10 CRUD on the local mirror (`src/db/tasks.ts` + `src/db/writes.ts` — the
+only write surface, one transaction per mutation carrying row + outbox op + event), FR-11
+chrono-node quick-add (`src/domain/quickAdd.ts`, 21-case mapping suite), PostHog plumbing,
+FlashList v2 Inbox, task sheet, and the on-device UC-02 walk (22/22, evidence in
+`docs/verification/p3-manual-verification.md`). 174 tests green; domain coverage ~94% vs the
+70% NFR-M1 bar.
+
+1. Fresh-context **adversarial subagent pass** (offline / DST / dup-op / 200% font — the
+   DoD list in CLAUDE.md). Not yet run for P3.
+2. `docs/thesis/pojasnennia.uk.md` — add the P3 section (same-commit rule; it currently
+   stops at P2).
+3. CHANGELOG P3 entry + requirement-checklist table (ID → file:line → test → PASS).
+4. Open **and merge** the PR `P3 — Tasks` once CI is green (autonomous mode). The branch has
+   never been pushed, so the first push needs `-u origin phase/P3-tasks`.
 
 ## Gotchas
 
-- `.env` = EXPO_PUBLIC_SUPABASE_URL + EXPO_PUBLIC_SUPABASE_ANON_KEY (+ later
-  EXPO_PUBLIC_SENTRY_DSN); never print/commit.
-- RNTL is v14: `render`/`fireEvent` are **async** (`await render(...)`), queries live on
-  `screen`, renderer is the `test-renderer` package (not react-test-renderer).
+- **Local Release builds need `SENTRY_DISABLE_AUTO_UPLOAD=true`** — otherwise `sentry-cli`
+  fails the Xcode source-map phase with "An organization ID or slug is required" (exit 65).
+  This is build-time only; the runtime SDK is fine.
+- **Maestro flows live in `apps/mobile/e2e/`** (Maestro 2.8.0, `~/.maestro/bin`). Two
+  gotchas: tab bar items match as `'Inbox, tab.*'` (composed a11y text, full-regex match),
+  and a task row is ONE a11y element labelled `"<title>, <category>, <minutes> minutes"` —
+  its inner Text nodes are not separately matchable. Screenshot paths must be relative
+  (Maestro sandboxes them into the run folder). `tapOn` costs seconds because it dumps the
+  hierarchy, so anything racing the 6 s undo window needs a `point:` tap.
+- **The Inbox reads through `src/db/useLiveRows.ts`, not drizzle's `useLiveQuery`** — see
+  that module's docstring and commit 8dd6e88 for the reasoning and the limits of the
+  evidence.
+- **RNTL v14 is async everywhere**: `render`, `fireEvent`, `renderHook`, AND `unmount`.
+  State updates flush only inside `await act(async () => …)` — a synchronous `act` silently
+  does nothing, which reads as "the component ignored my event".
+- jest mock factories may only close over variables whose names start with `mock`
+  (case-insensitive) — `const listeners = []` in a factory throws at transform time.
+
+- `.env` holds EXPO_PUBLIC_SUPABASE_URL/_ANON_KEY, EXPO_PUBLIC_SENTRY_DSN,
+  EXPO_PUBLIC_POSTHOG_API_KEY, EXPO_PUBLIC_POSTHOG_HOST — never print/commit. Expo reads env
+  from the app dir, so `apps/mobile/.env` is a symlink to the root file (git-ignored).
+- RNTL v14 queries live on `screen`; the renderer is the `test-renderer` package (not
+  react-test-renderer).
 - jest mocks: `react-native-mmkv` → in-memory double via moduleNameMapper
   (`src/test/mmkv.mock.ts`); `expo-localization` mocked in `src/test/setup.ts`; when
   mocking `expo-font`, spread `jest.requireActual` (vector-icons needs `Font.isLoaded`).
@@ -96,8 +128,7 @@
   covers them; remote work via linked CLI.
 - Commit trailers: `Refs:` + `Phase:` + `Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>`.
 - jest 29.7 / TS 5.9.3 / Sentry RN 7.11 are deliberate pins — ADR-0003/0004, versions.md.
-- Machine disk is nearly full (see ACTION REQUIRED 2) — avoid large local builds until the
-  owner frees space.
+- `session-backup*.txt` and `*.build.log` are git-ignored — never commit a transcript.
 
 ## Open questions (owner)
 

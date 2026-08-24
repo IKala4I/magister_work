@@ -99,12 +99,20 @@ Repeated from a clean start after the observability keys landed in `.env`, on a 
 install (`simctl uninstall` + `install`, so first-launch migration ran again). Same
 environment and protocol as above.
 
-### NFR-P2 — cold start — ✅ PASS (p90 = **1073 ms**, target ≤ 2000 ms)
+### NFR-P2 — cold start — ✅ PASS (p90 = **1075 ms**, target ≤ 2000 ms)
 
-1056, 1059, 1072, 1070, 1075, 1066, 1062, 1073, 1069, 1068 ms → median 1069 ms,
-**p90 1073 ms**. JS half ≈ 47–49 ms. Within 6 ms of the pre-keys run (p90 1079 ms), i.e.
-initializing both SDKs costs nothing measurable at startup — both are constructed
-synchronously at module scope with no network on the launch path.
+Three 10-launch runs, all well inside budget:
+
+| build                                     | times (ms)                                        | median | **p90**  |
+| ----------------------------------------- | ------------------------------------------------- | ------ | -------- |
+| before the observability keys existed     | 1064 1063 1066 1078 1063 1079 1031 1082 1069 1064 | 1065   | 1079     |
+| with Sentry + PostHog keys live           | 1056 1059 1072 1070 1075 1066 1062 1073 1069 1068 | 1069   | 1073     |
+| **committed HEAD (06c8c79)** — the number | 1066 1061 1071 1074 1069 1076 1072 1070 1075 1061 | 1071   | **1075** |
+
+JS half ≈ 47–49 ms throughout. The three runs sit within 6 ms of each other, so initializing
+both SDKs costs nothing measurable at startup — each is constructed synchronously at module
+scope with no network on the launch path. Quote **1075 ms**: it is the only one attributable
+to a commit that exists in git.
 
 ### NFR-A2 — 200% font + reduced motion + reduce transparency — ✅ PASS (27/27 steps)
 
