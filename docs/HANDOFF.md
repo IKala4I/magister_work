@@ -15,11 +15,11 @@
   OAuth code-complete but ⛔-gated), FR-02 (rMEQ + hours + categories + seed tasks, <3 min,
   every answer skippable), cold-start priors instantiated **server-side by trigger** exactly
   per File 04 §3 (M5 rule per ADR-0005). Verified three ways: CI pgTAP (240-cell spec fixture
-  - boundary/permission suites), **live smoke on the hosted EU project 9/9**
-    (`docs/verification/p4-live-smoke.mjs`), Maestro UC-01 walk 36/36 (simulator, Release).
-    Adversarial pass: 1 MAJOR (deep-link session fixation — fixed, PKCE-only) + 10 MINOR, all
-    fixed; reviewer independently recomputed all 240 prior cells with 0 mismatches. Full
-    record: `docs/verification/p4-manual-verification.md`.
+  plus boundary/permission suites), **live smoke on the hosted EU project 9/9**
+  (`docs/verification/p4-live-smoke.mjs`), Maestro UC-01 walk 36/36 (simulator, Release).
+  Adversarial pass: 1 MAJOR (deep-link session fixation — fixed, PKCE-only) + 10 MINOR, all
+  fixed; reviewer independently recomputed all 240 prior cells with 0 mismatches. Full
+  record: `docs/verification/p4-manual-verification.md`.
 
 ## ⛔ ACTION REQUIRED (owner)
 
