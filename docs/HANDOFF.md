@@ -117,6 +117,10 @@ old`): setting the same status is a silent no-op, not an error.
 - No Docker on the dev Mac: pgTAP and the PostgresRepo tests run in CI's db job only.
 - Deno tests need `--allow-read --allow-env --allow-net` (`deno task test` adds read/env; the
   service tests bind a local port → `--allow-net`).
+- **`deno lint` prints its errors BEFORE the final "Checked N files" line** — never judge it by
+  `tail -1` (P6 shipped unused imports to CI that way). Read the full output, or grep `error\[`.
+- Text patches must be applied AFTER formatting (Prettier for md/mjs/ts, `deno fmt` for the Deno
+  tree) — a patch whose anchor no longer matches silently does nothing; verify with grep.
 - `docs/decisions/revisit.md` has 8 open entries (2 from P4, 2 from P5, 4 from P6) — surface them
   in the phases named (P7: λ_f retune; P8: task-push bridge removal, cursor wipe confirm).
 

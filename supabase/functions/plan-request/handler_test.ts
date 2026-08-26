@@ -220,6 +220,23 @@ Deno.test('405 / 401 / 400 / 429 / 404 before any planning happens', async () =>
     (await handlePlanRequest(post({ plan_date: '2026-08-26', now: 'yesterday' }), h.deps)).status,
     400,
   );
+  // not a calendar date; a lying clock; too far ahead / back (in the profile's zone)
+  assertEquals((await handlePlanRequest(post({ plan_date: '2026-02-30' }), h.deps)).status, 400);
+  assertEquals(
+    (await handlePlanRequest(
+      post({ plan_date: '2026-08-26', now: '2026-08-20T08:00:00Z' }),
+      h.deps,
+    )).status,
+    400,
+  );
+  assertEquals(
+    (await handlePlanRequest(post({ plan_date: '2026-09-10', now: kyiv(8) }), h.deps)).status,
+    400,
+  );
+  assertEquals(
+    (await handlePlanRequest(post({ plan_date: '2026-08-20', now: kyiv(8) }), h.deps)).status,
+    400,
+  );
   assertEquals(
     (await handlePlanRequest(
       new Request('http://localhost/', {
@@ -318,7 +335,7 @@ Deno.test('learned path: context forwarded verbatim with the pinned ε/m, rows p
     bucket_id: 'MD.wd',
     top_m: ['MO.wd.fresh', 'MD.wd', 'AF.wd.fresh'],
     propensity: 1 / 3,
-    n_eligible: -1,
+    n_eligible: null,
   });
   assertEquals((p.telemetry.request as Record<string, unknown>).trigger, 'first_open');
   assertEquals((p.telemetry.service as Record<string, unknown>).solve_ms, 70);

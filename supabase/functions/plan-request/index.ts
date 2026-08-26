@@ -52,9 +52,9 @@ Deno.serve(async (req: Request) => {
       },
     });
   } catch (err) {
-    console.error('plan-request failed', err);
+    console.error('plan-request failed', err); // details stay in the function logs
     return new Response(
-      JSON.stringify({ error: 'internal', detail: String((err as Error)?.message ?? err) }),
+      JSON.stringify({ error: 'internal', detail: 'see function logs' }),
       {
         status: 500,
         headers: { 'content-type': 'application/json' },

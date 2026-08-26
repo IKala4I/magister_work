@@ -117,6 +117,11 @@ function parseBody(raw: unknown): PlanRequestBody | string {
   if (typeof b.plan_date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(b.plan_date)) {
     return 'plan_date must be YYYY-MM-DD';
   }
+  try {
+    parseIsoDate(b.plan_date);
+  } catch {
+    return 'plan_date is not a calendar date';
+  }
   const horizon = b.horizon ?? 'day';
   if (horizon !== 'day' && horizon !== 'week') return 'horizon must be day or week';
   if (b.now !== undefined && (typeof b.now !== 'string' || Number.isNaN(Date.parse(b.now)))) {
@@ -140,7 +145,7 @@ function experimentTelemetry(
     bucket_id: a.context_bucket,
     top_m: a.experiment_top_m ?? [],
     propensity: a.propensity,
-    n_eligible: nEligible ?? -1,
+    n_eligible: nEligible, // null on the learned path: not in the service telemetry
   };
 }
 
@@ -177,6 +182,16 @@ export async function handlePlanRequest(req: Request, deps: Deps): Promise<Respo
   const ctx = await deps.loadContext(userId, body.plan_date, horizon, nowMs);
   if (ctx === null) {
     return json(404, { error: 'profile_not_found', detail: 'complete onboarding first' });
+  }
+  // plan_date must be near "today" in the profile's zone: yesterday … a week ahead
+  const todayTz = wallClock(t0, ctx.profile.timezone);
+  const offsetDays = daysBetween(todayTz, parseIsoDate(body.plan_date));
+  if (offsetDays < -PLAN_DATE_PAST_DAYS || offsetDays > PLAN_DATE_FUTURE_DAYS) {
+    return json(400, {
+      error: 'bad_request',
+      detail:
+        `plan_date must be within ${PLAN_DATE_PAST_DAYS} day back and ${PLAN_DATE_FUTURE_DAYS} days ahead`,
+    });
   }
   if (ctx.tasks.length === 0) {
     return json(200, { status: 'empty_inbox' } satisfies PlanRequestResponse);

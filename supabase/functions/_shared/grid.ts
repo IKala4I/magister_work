@@ -111,8 +111,8 @@ export function parseIsoDate(planDate: string): { year: number; month: number; d
 
 /** Days from calendar date a to calendar date b (proleptic Gregorian, no zone involved). */
 export function daysBetween(
-  a: WallClock | { year: number; month: number; day: number },
-  b: WallClock,
+  a: { year: number; month: number; day: number },
+  b: { year: number; month: number; day: number },
 ): number {
   return Math.round(
     (Date.UTC(b.year, b.month - 1, b.day) - Date.UTC(a.year, a.month - 1, a.day)) / 86_400_000,
