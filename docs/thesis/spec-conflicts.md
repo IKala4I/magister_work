@@ -170,3 +170,33 @@ decision rule (defensibility → consistency → measurability → pragmatics) a
   `lapsed` to attribute-rewards (File 05 §1 keeps the client's lapse mark local). Prevents an
   honest client from knocking a rec out of the attribution job's {shown, accepted} scan set
   and a hostile one from dodging lapse attribution.
+
+## Post-review additions (P5, 2026-08-26)
+
+- **M7.** File 04 §1.5 says "previous plan injected via `AddHint(...)` — warm start _and_ an
+  anti-'thrashing' prior (placements only move when the objective says it's worth it)".
+  Measured: CP-SAT's hint only seeds the search; on objective ties the returned solution is
+  arbitrary (tested with 1, 2 and 8 workers). The promised behaviour needs an explicit stability
+  term. Normative: the hinted start gets **one scaled objective unit** (1e-4 in weight units,
+  below any meaningful estimate difference); the hint stays for warm start. ADR-0007 §7;
+  `test_solver.py::test_add_hint_keeps_the_previous_placement_on_ties`.
+- **M8.** File 04 §1.5's degradation trigger "|literals| > 4·10⁴" and its size argument
+  ("≈ 1.5·10⁴ literals — small for CP-SAT") hold for _search_, not for the 1.5 s cap: on the
+  P5 model, 15-min week instances with 8–10·10³ start literals were presolve-bound (probing over
+  the value encoding) and returned UNKNOWN inside the cap on an M-series Mac; 30-min instances
+  (3–4·10³) returned FEASIBLE. Normative: probing/symmetry presolve off (measured fix), the
+  ladder additionally degrades at a **measured practical threshold** (8·10³, ADR-0007 §11) and on
+  an UNKNOWN outcome ("still hot"); the 4·10⁴ constant stays as the outer bound; the 1.5 s cap is
+  a **plan-level** budget shared by rungs/days (anytime contract, NFR-P1). Thesis text should
+  cite the measured behaviour, not the 4·10⁴ figure alone → thesis-corrections.
+- **L14.** File 04 §1.3 (C3) treats chunks τ^{(j)} as tasks with weight w_{τ^{(j)},k}; read
+  literally, a split task would earn its full weight once per chunk. Normative: chunk weight is
+  the duration-proportional share w_{τ,k}·d_{τ^{(j)}}/d_τ (ADR-0007 §3) — a fully scheduled split
+  task earns exactly what an unsplit placement in the same contexts would.
+- **L15.** With Appendix A's λ_f = 0.5 per extra chunk and unit weights v·q̂ ∈ [0, 4.5], a
+  v = 1, q̂ ≈ 0.5 task gains nothing from splitting (weight 0.5 − penalty 0.5): low-value
+  splittable tasks are deferred rather than split. Kept as the proposed default; recorded in
+  `docs/decisions/revisit.md` for P7 retuning once real q̂ scales exist.
+- **L16.** specs/07 §5 lists `settings.epsilon/top_m` in the /plan request. The service **rejects**
+  values that differ from its constants (422) instead of honouring them: honouring would put an
+  unlogged propensity meaning on M-01 rows, and H1 requires identical ε, m across arms.

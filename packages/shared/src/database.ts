@@ -600,6 +600,30 @@ export type Database = {
           },
         ]
       }
+      recsys_applied_tuples: {
+        Row: {
+          applied_at: string
+          kind: string
+          recommendation_id: string
+          state_version: number
+          user_id: string
+        }
+        Insert: {
+          applied_at?: string
+          kind: string
+          recommendation_id: string
+          state_version: number
+          user_id: string
+        }
+        Update: {
+          applied_at?: string
+          kind?: string
+          recommendation_id?: string
+          state_version?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       study_assignments: {
         Row: {
           arm: string

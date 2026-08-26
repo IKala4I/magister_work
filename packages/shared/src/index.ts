@@ -9,3 +9,8 @@
  */
 export * from './params';
 export type { Database, Json } from './database';
+export type {
+  paths as ApiPaths,
+  components as ApiComponents,
+  operations as ApiOperations,
+} from './api';

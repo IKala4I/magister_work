@@ -85,3 +85,20 @@
   every lifecycle state; Android channel behaviour and OEM battery-optimization interference.
   Simulator can't settle it: iOS simulator push is a development shim, FCM needs a real
   device, and delivery timing under Doze/Low-Power mode only exists on hardware.
+
+## Service environment (HF Spaces free CPU, 2 vCPU) — same honesty rule, different box
+
+Timing measured on the development Mac is a smoke check, not evidence for the container File 04
+§1.5 names ("meeting NFR-P1 on 2 vCPU"). These flip only after a measurement on the deployed
+Space (owner-run once the Space exists, ⛔ P5 action item).
+
+- ⬜ **NFR-P1 — /plan service budget on the real container** (added P5). Run
+  `services/recsys/scripts/bench_solve.py` inside the Space (or `curl` the deployed `/plan` with
+  the same instances) and record solve/total p50/p90 for the day and week instances next to the
+  Mac numbers in `p5-manual-verification.md`. The Mac can't settle it: 12-core M-series vs
+  2 shared vCPUs — presolve time (the measured bottleneck, spec-conflicts M8) scales with
+  single-thread speed, and `num_workers = 2` behaves differently under a CPU quota.
+- ⬜ **File 04 §1.5 practical literal threshold** (added P5). Re-fit
+  `PRACTICAL_LITERAL_THRESHOLD` from container measurements (ADR-0007 §11); revisit.md entry.
+- ⬜ **Cold start of the Space** (added P5, NFR-R2). Measure wake-up latency from sleep and
+  confirm the EF's 1.9 s fallback budget (P6) covers it.

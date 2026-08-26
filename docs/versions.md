@@ -91,6 +91,28 @@ APIs verified against Supabase docs via ctx7 on 2026-08-26 (`/supabase/supabase`
 PKCE `exchangeCodeForSession`, `signInAnonymously` + `enable_anonymous_sign_ins` in config.toml,
 `updateUser({email})` conversion, `supabase config push`, deep-link redirect allow-listing.
 
+## RecSys service — P5 additions (verified 2026-08-26)
+
+| Package              | Version       | Notes                                                                                 |
+| -------------------- | ------------- | ------------------------------------------------------------------------------------- |
+| fastapi              | 0.141.1       | `/plan` `/feedback` `/insights` `/parse-preview` `/healthz`; OpenAPI → `api.ts`       |
+| pydantic             | 2.13.4        | strict request/response models (`extra="forbid"`), `AwareDatetime`                    |
+| uvicorn[standard]    | 0.52.4        | serves on `$PORT` (HF Spaces 7860)                                                    |
+| ortools              | 9.15.6755     | CP-SAT: `new_optional_interval_var`, `add_no_overlap`, `add_element`, `add_hint`      |
+| numpy                | 2.5.2         | LinUCB/TS state, Sherman–Morrison, Cholesky TS sampling                               |
+| scipy                | 1.18.1        | Beta quantiles for `/insights` CI (scipy-stubs 1.18.1.0 dev)                          |
+| psycopg[binary,pool] | 3.3.4 / 3.3.1 | Supabase pooler connection pool (PostgresRepo)                                        |
+| pyjwt[crypto]        | 2.13.0        | `PyJWKClient` ES256 verification against the project JWKS (cryptography 50.0.1)       |
+| mabwiser (dev)       | 2.7.4         | CI oracle only (File 03 §2.2): LinUCB expectation equality, LinTS moments             |
+| pytest-cov (dev)     | 7.1.0         | domain coverage gate (NFR-M1)                                                         |
+| httpx (dev)          | 0.28.1        | FastAPI TestClient                                                                    |
+| openapi-typescript   | 7.13.0        | `packages/shared/scripts/gen-api-types.sh` → `packages/shared/src/api.ts` (CI-diffed) |
+
+APIs verified via ctx7 on 2026-08-26: `/google/or-tools` (CP-SAT Python snake_case API, optional
+intervals, hints, time limit), `/fidelity/mabwiser` (LinUCB/LinTS `fit`/`predict_expectations`),
+`/jpadilla/pyjwt` (`PyJWKClient.get_signing_key_from_jwt`, `jwt.decode` audience/require).
+Project JWKS confirmed ES256 (asymmetric) — specs/07 §7's verification model applies unchanged.
+
 ## CI actions (verified 2026-08-24)
 
 | Action             | Version |
@@ -115,6 +137,5 @@ PKCE `exchangeCodeForSession`, `signInAnonymously` + `enable_anonymous_sign_ins`
 ## To pin in later phases
 
 FlashList v2 (P3, first real list) · chrono-node 2.x (P3) · PostHog SDK (P3, EU instance) ·
-supabase-js v2 (P4) · FastAPI 0.11x + Pydantic v2 (P5) · OR-Tools ≥9.x (P5) · NumPy (P5) ·
-MABWiser (P5, CI oracle) · River (P7) · react-native-skia (P7/P9) · expo-notifications (P10) ·
+supabase-js v2 (P4) · River (P7) · react-native-skia (P7/P9) · expo-notifications (P10) ·
 implicit 0.7.x (P11) · sentence-transformers ≥3 (roadmap).
