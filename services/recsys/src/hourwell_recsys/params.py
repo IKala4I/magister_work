@@ -45,3 +45,32 @@ WEEKEND_BLEND_TARGET = 0.55
 
 # --- service (specs/07 §5/§7) ---
 PLAN_RATE_LIMIT_PER_DAY = 30  # [A: /plan rate limit] P5
+
+# --- P5 additions (ADR-0007) ---
+LAMBDA_D = 1.0  # [A: M_τ carries the deferral scale; λ_d is the unit multiplier] P5 (ADR-0007 §1)
+RUN_LENGTH_CAPS: dict[str, int] = {"deep": RUN_LENGTH_CAP_TICKS}  # [A: H_g] deep only; others off
+OBJECTIVE_SCALE = 10_000  # integer scaling of float weights for CP-SAT (ADR-0007 §2)
+SOLVER_NUM_WORKERS = 2  # matches the 2 vCPU target (File 04 §1.5 "on 2 vCPU")
+# Measured 2026-08-26 (M-series Mac, ADR-0007 §11): 15-min week instances at 8–10k literals are
+# presolve-bound and return UNKNOWN inside the 1.5 s cap; 30-min at 3–4k return FEASIBLE. The
+# ladder therefore degrades at this practical threshold too, the spec's 4·10⁴ stays the outer bound,
+# and an UNKNOWN outcome escalates to the next rung ("still hot", File 04 §1.5).
+PRACTICAL_LITERAL_THRESHOLD = 8_000
+SOLVER_MIN_SLICE_S = 0.05  # smallest per-solve slice when the plan budget is split (ADR-0007 §11)
+SOLVER_LADDER_RESERVE_S = 0.5  # budget kept back for the next rung while one exists (ADR-0007 §11)
+CPSAT_PROBING_LEVEL = 0  # presolve probing dominates the cap on ~10⁴ value literals (ADR-0007 §11)
+CPSAT_SYMMETRY_LEVEL = 0
+FATIGUE_RUN_MINUTES = 90  # specs/07 §3.2.5 (SPEC-FIXED)
+FATIGUE_GAP_MINUTES = 15  # specs/07 §3.2.5 (SPEC-FIXED)
+PRECEDING_LOAD_WINDOW_MINUTES = 180  # specs/07 §3.2.4 feature 17 (SPEC-FIXED)
+LOG_DURATION_REF_MINUTES = 480  # specs/07 §3.2.4 feature 11 (SPEC-FIXED)
+POSTPONE_CAP = 5  # specs/07 §3.2.4 feature 14 (SPEC-FIXED)
+INSIGHTS_CI_QUANTILES = (0.1, 0.9)  # [INFERRED] 80% central Beta interval (ADR-0007 §9)
+CONFIDENCE_SD_MAX = 0.5  # max sd of a [0,1] variable; confidence = 1 − sd_q / 0.5 (ADR-0007 §8)
+ENERGY_PEAK_FACTOR = 1.15  # rationale "energy_peak" threshold (ADR-0007 §10)
+URGENCY_RATIONALE_THRESHOLD = (
+    0.5  # rationale "deadline_pressure" when e^{−u/η} ≥ 0.5 (ADR-0007 §10)
+)
+MAX_CHUNKS = 4  # a splittable task becomes at most 4 chunks (any d_τ stays coverable); ADR-0007 §3
+STABILITY_BONUS_UNITS = 1  # AddHint tie-break: 1 scaled unit = 1e-4 weight; ADR-0007 §7
+MODEL_VERSION = "recsys-p5.0"  # NFR-O1 model tag on every recommendation

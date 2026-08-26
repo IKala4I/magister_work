@@ -68,3 +68,7 @@ docs/thesis/*.docx
 session-backup*.txt
 *.build.log
 coverage/
+
+# python coverage
+.coverage
+coverage.xml
