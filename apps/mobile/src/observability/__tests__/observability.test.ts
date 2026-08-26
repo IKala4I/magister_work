@@ -31,6 +31,26 @@ describe('initSentry (env-gated)', () => {
     expect(options.sendDefaultPii).toBe(false);
     expect(options.tracesSampleRate).toBe(0);
   });
+
+  it('initializes enabled when EXPO_PUBLIC_SENTRY_DSN is present', () => {
+    // sentry.ts reads the env at module scope, so re-require in an isolated registry.
+    const dsn = 'https://examplekey@o000000.ingest.de.sentry.io/0000000';
+    process.env.EXPO_PUBLIC_SENTRY_DSN = dsn;
+    try {
+      let enabled: boolean | undefined;
+      jest.isolateModules(() => {
+        enabled = (jest.requireActual('../sentry') as typeof import('../sentry')).initSentry();
+      });
+      expect(enabled).toBe(true);
+      const options = initMock.mock.calls.at(-1)[0];
+      expect(options.enabled).toBe(true);
+      expect(options.dsn).toBe(dsn);
+      expect(options.sendDefaultPii).toBe(false);
+      expect(options.tracesSampleRate).toBe(0);
+    } finally {
+      delete process.env.EXPO_PUBLIC_SENTRY_DSN;
+    }
+  });
 });
 
 describe('startup timing (NFR-P2 instrumentation)', () => {

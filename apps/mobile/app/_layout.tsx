@@ -23,6 +23,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import migrations from '../drizzle/migrations';
 import { db } from '../src/db/client';
 import { t } from '../src/i18n';
+import { initAnalytics } from '../src/observability/analytics';
 import { initSentry, Sentry } from '../src/observability/sentry';
 import { markFirstFrame } from '../src/observability/startup';
 import { EmptyState, Screen } from '../src/ui/primitives';
@@ -33,6 +34,7 @@ SplashScreen.preventAutoHideAsync().catch(() => {
 });
 
 initSentry(); // env-gated: disabled without EXPO_PUBLIC_SENTRY_DSN
+initAnalytics(); // env-gated: disabled without EXPO_PUBLIC_POSTHOG_API_KEY + _HOST (EU)
 
 function RootLayout() {
   const theme = useTheme();
@@ -88,6 +90,14 @@ function RootLayout() {
         <Stack.Screen
           name="settings"
           options={{ presentation: 'modal', title: t('settings.title') }}
+        />
+        <Stack.Screen
+          name="task/new"
+          options={{ presentation: 'modal', title: t('task.new.title') }}
+        />
+        <Stack.Screen
+          name="task/[id]"
+          options={{ presentation: 'modal', title: t('task.edit.title') }}
         />
       </Stack>
     </GestureHandlerRootView>

@@ -107,7 +107,7 @@ autonomously once green (owner directive 2026-08-24 — stop conditions in CLAUD
 mode"). Cross-cutting from P2 onward: NFR-A1/A2 respected in all new UI; every new table ships
 with RLS + a bypass test (NFR-S1).
 
-**Status board:** P0 ✅ merged (PR #1) · P1 ✅ merged (PR #2) · P2 ✅ merged (PR #3; carry-over: on-device NFR-P2 p90 + NFR-A2 sweep — blocked on hardware/disk, tracked in HANDOFF) · P3 next (`phase/P3-tasks`).
+**Status board:** P0 ✅ merged (PR #1) · P1 ✅ merged (PR #2) · P2 ✅ merged (PR #3; carry-over measurements done — NFR-P2 p90 = 1075 ms, NFR-A2 sweep 27/27) · P3 ✅ merged (PR #4; adversarial pass found 3 MAJORs, all fixed + re-verified on device — see `docs/verification/p3-manual-verification.md`) · P4 opens next.
 
 **P0 — Bootstrap.**
 Monorepo scaffolding (pnpm + Node 22 LTS pinned via `.nvmrc` + `packageManager`; `expo-doctor`
@@ -301,4 +301,4 @@ model_registry columns; ALS λ and confidence weighting; River blend target.
 
 ---
 
-_P2 complete (device-measurement carry-over in HANDOFF). P3 opens next._
+_P3 complete. P4 (Onboarding) opens next — read docs/HANDOFF.md for the exact spec sections it needs._

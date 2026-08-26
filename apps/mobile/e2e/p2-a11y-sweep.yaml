@@ -1,0 +1,42 @@
+# NFR-A2 shell sweep (docs/verification/p2-manual-verification.md).
+# Precondition (set by the runner, not the flow):
+#   xcrun simctl ui booted content_size accessibility-extra-extra-extra-large
+#   xcrun simctl spawn booted defaults write com.apple.Accessibility ReduceMotionEnabled -bool true
+#   xcrun simctl spawn booted defaults write com.apple.Accessibility ReduceTransparencyEnabled -bool true
+# Walks every shell screen, asserts the key copy is on screen (nothing clipped away),
+# exercises the appearance control at max font scale, and screenshots each state.
+appId: com.hourwell.app
+---
+- launchApp:
+    stopApp: true
+- assertVisible: 'No plan yet'
+- takeScreenshot: today
+- tapOn: 'Inbox, tab.*'
+- assertVisible: 'Inbox is clear'
+- takeScreenshot: inbox
+- tapOn: 'Focus, tab.*'
+- assertVisible: 'Nothing running'
+- takeScreenshot: focus
+- tapOn: 'Insights, tab.*'
+- assertVisible: 'Still learning'
+- takeScreenshot: insights
+- tapOn: 'Open settings'
+- assertVisible: 'Appearance'
+- takeScreenshot: settings
+- tapOn: 'Dark'
+- takeScreenshot: settings-dark-override
+- swipe:
+    start: 50%, 15%
+    end: 50%, 85%
+# dismissing returns to the tab that was active before the modal (Insights)
+- assertVisible: 'Still learning'
+- takeScreenshot: insights-dark-override
+- tapOn: 'Today, tab.*'
+- assertVisible: 'No plan yet'
+- takeScreenshot: today-dark-override
+- tapOn: 'Open settings'
+- tapOn: 'System'
+- takeScreenshot: settings-restored
+- swipe:
+    start: 50%, 15%
+    end: 50%, 85%

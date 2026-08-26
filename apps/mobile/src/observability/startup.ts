@@ -6,6 +6,15 @@
  */
 const jsStartMs = Date.now();
 
+/**
+ * Measurement builds only (docs/verification/p2-manual-verification.md §cold-start):
+ * when the build was made with EXPO_PUBLIC_STARTUP_MARKER_URL set, the first frame
+ * pings that local listener so the protocol can timestamp render-complete without
+ * relying on release-mode console logging. Never set this in .env — it is passed
+ * inline to the one-off measurement build and is absent from shipping builds.
+ */
+const markerUrl = process.env.EXPO_PUBLIC_STARTUP_MARKER_URL;
+
 let firstFrameMs: number | null = null;
 
 /** Idempotent: called from the root view's first onLayout. */
@@ -14,6 +23,11 @@ export function markFirstFrame(): void {
   firstFrameMs = Date.now();
   if (__DEV__) {
     console.log(`[startup] js-start → first-frame: ${firstFrameMs - jsStartMs} ms`);
+  }
+  if (markerUrl) {
+    fetch(`${markerUrl}?js_ms=${firstFrameMs - jsStartMs}`).catch(() => {
+      // Measurement listener gone — never let instrumentation touch the app.
+    });
   }
 }
 

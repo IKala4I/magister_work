@@ -63,3 +63,8 @@ __pycache__/
 # thesis working files (never published from this repo)
 docs/thesis/draft.docx
 docs/thesis/*.docx
+
+# local session exports (never commit conversation transcripts)
+session-backup*.txt
+*.build.log
+coverage/

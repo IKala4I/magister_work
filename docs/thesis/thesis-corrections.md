@@ -53,3 +53,64 @@
 10. **§5.4 (H4 limitations):** add one sentence acknowledging that the model also _learns_
     during A phases (logging on), so the phase-pair gap growth partially reflects accumulated
     data volume, not purely policy action (spec-conflicts L5).
+
+---
+
+## Appended after P2 (mobile shell) and P3-so-far (tasks), 2026-08-24
+
+Items 1–10 were written against the P0/P1 state. Two of them already cover things that came
+up again while building P2/P3 and need **no new entry**: the TypeScript 5.9.3 pin is item 2,
+and the H1 matched-randomization rewrite of arm A is item 8 (all five sub-edits (a)–(e)).
+
+11. **Табл. 3.2, NFR-P2 — measurement condition not yet met (most important of this batch).**
+    The draft requires "холодний старт застосунку ≤ 2 с (90-й перцентиль) **на середньому
+    пристрої 2022 р.**". The measured p90 is **1075 ms**, but on an **iOS simulator running on
+    an Apple-silicon Mac** — which is not a mid-range 2022 handset, and is materially faster.
+    The number satisfies the threshold but **not the stated condition**, so it must not be
+    quoted as if it did. Either (a) report it as "simulator, Release build, p90 = 1075 ms" and
+    state that the device-class measurement lands in P10, or (b) hold the claim until the P10
+    pass produces a figure on real hardware. Do **not** write "≤ 2 s on a mid-range 2022
+    device — confirmed". Protocol and all three runs: `docs/verification/p2-manual-verification.md`.
+    (The same caution applies to the 60 fps timeline half of NFR-P2, which is not measured at
+    all yet — no timeline exists before P6.)
+12. **§3.7 / Додаток В (typography):** draft says **"Inter Variable"** for the interface (also
+    repeated in Додаток В). The system ships **static Inter instances**
+    (`@expo-google-fonts/inter`, weights 400/500/600/700) because React Native exposes no
+    variable-font axis API (spec-conflicts L12). Change "Inter Variable" to "Inter (статичні
+    накреслення 400/500/600/700)" in both places; the JetBrains Mono and SF Pro/Roboto
+    fallback statements stay correct.
+13. **Табл. 3.3 (stack) — "Expo SQLite + Drizzle ORM (useLiveQuery)":** the system reads
+    domain data through its own `src/db/useLiveRows.ts` hook, not drizzle's `useLiveQuery`
+    (commit 8dd6e88 records the reasoning and the limits of the evidence: the deciding factor
+    is the open upstream drizzle-orm#2620, "no update when the query returns no rows", which
+    is exactly the empty-inbox → first-task transition this screen lives on). The claim the
+    draft actually cares about — "живі запити роблять SQLite єдиним реактивним джерелом
+    істини" — is **unchanged and still true**; only the named mechanism differs. Cite the hook
+    instead of `useLiveQuery`, or drop the parenthetical.
+14. **§3.8 / табл. 3.3 (chrono-node) — split of responsibility:** the draft credits chrono-node
+    with "розбір **дат/тривалостей** природною мовою" and §3.8 implies it parses the whole
+    string. In the system chrono-node parses **dates only**; **durations are parsed by a local
+    grammar** in `src/domain/quickAdd.ts` that runs _first_ and masks its spans out of the text
+    chrono sees — necessary because chrono interprets a bare "2h"/"90m" as a _relative time_
+    (i.e. a deadline two hours from now) rather than an estimate, which would silently turn
+    every duration into a deadline. Reword to "розбір дат — chrono-node; тривалості —
+    власна граматика" and keep the on-device claim, which is unaffected. Worth one sentence:
+    it is a genuine implementation finding, not a library default.
+15. **§3.8 (quick-add preview):** the draft describes the preview chip as (назва, тривалість,
+    дедлайн). True as far as it goes, but the system additionally assigns **silent defaults**
+    for the FR-10 fields the sentence cannot state — category `admin`, priority 2 (normal),
+    30 min when no duration is given — all editable afterwards in the task sheet. Add half a
+    sentence, otherwise the text implies a task can be created without a category.
+16. **§3.8 (disambiguation chips):** draft says "неоднозначності розв'язуються вбудованими
+    чипами уточнення" (plural, unqualified). As built, the parser detects three ambiguity
+    kinds (bare weekday naming today; multiple dates; multiple durations) but the UI renders
+    chips for **the weekday case only** — the other two are exposed in the parse result and
+    resolved by first-match. Either qualify the sentence or finish the chips before the text
+    is frozen; this is tracked as P3 follow-up work, not a spec change.
+
+**Nothing to correct** (checked against the draft this round, and matching as built): the
+FR-10 field list in §3.6 табл. 3.1 — "назва, категорія, тривалість, дедлайн, цінність 1–3,
+подільність, найраніший старт" is exactly the implemented model; the 6-second undo for
+destructive actions; "пропустити ніколи не буває червоним"; WCAG 2.2 AA with ≥44 px targets
+and 200 % font scaling + reduced-motion (now backed by an executed sweep, 27/27); and the
+Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.

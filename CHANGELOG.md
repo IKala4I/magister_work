@@ -2,6 +2,57 @@
 
 Updated at each phase gate. Lines end with the requirement IDs they serve.
 
+## P3 — Tasks (2026-08-26, phase/P3-tasks)
+
+### Added
+
+- Single write surface for the local mirror (`src/db/writes.ts` + `src/db/tasks.ts`): every
+  mutation is ONE SQLite transaction carrying the row change, its outbox op (server-shaped
+  snake_case payload, client-monotonic op_id, base_version), and — on create — the append-only
+  `task_created` event; soft-delete tombstones with idempotent first-class restore. — FR-10,
+  NFR-R1 (local half), invariants 2/8
+- Task CRUD with all FR-10 fields: full task sheet (`app/task/new.tsx`, `app/task/[id].tsx`)
+  over a validated draft layer. — FR-10, UC-02
+- chrono-node NL quick-add with preview and disambiguation chips: chrono owns dates, a local
+  duration grammar runs first (chrono reads a bare "2h" as a relative clock time, which would
+  turn every estimate into a deadline); every recognized ambiguity — bare weekday, am/pm-less
+  clock time, multiple dates, multiple durations — renders as chips, never a silent guess. —
+  FR-11, UC-02
+- FlashList v2 Inbox reading the mirror through a direct change-listener hook
+  (`src/db/useLiveRows.ts`); deletes undoable for 6 s via a snackbar restore. — FR-10,
+  invariant 14
+- Env-gated PostHog analytics beside Sentry: EU host read from env and never hardcoded — a key
+  without a host stays OFF rather than falling back to the US cloud; GeoIP, autocapture and
+  session replay disabled; typed event catalog makes the model-version tag structurally
+  required on recommendation events. — NFR-O1, NFR-S2
+- Pre-auth local identity (`src/sync/localUser.ts`): device-derived placeholder owner for
+  offline rows, with a binding rewrite contract for P4 sign-in; nothing pushes before P8. —
+  FR-01 groundwork, NFR-R1
+
+### Fixed
+
+- Three Inbox interaction bugs from the on-device UC-02 walk: first tap after quick-add only
+  dismissed the keyboard (keyboardShouldPersistTaps), the undo bar rendered under the open
+  keyboard leaving a destructive action with no reachable undo, and restore ran inside a
+  setState updater (React may re-run updaters → replayed op). — FR-10, FR-11, invariant 14
+- Tab-shell header title scaled unbounded at accessibility-XXXL and clipped; header chrome is
+  now pinned at 1× while content scales to the 200% cap. Closed both P2 carry-overs: NFR-P2
+  cold start p90 = 1075 ms on HEAD (≤2000 ms target) and the NFR-A2 sweep 27/27 ×2 (Maestro
+  flow committed). — NFR-A2, NFR-P2
+- (fresh-context adversarial pass — 3 MAJOR) "at 2" was silently guessed as 2 AM tomorrow with
+  the clock time hidden by the day-only preview — meridiem-less hours 1–11 now surface am/pm
+  chips and the preview shows the time; consecutive deletes truncated each other's 6 s undo
+  window (single snackbar timer) — now one timer per deleted row, Undo restores all still
+  undoable; earliestStart > deadline passed form validation and the DAO throw was uncaught in
+  onPress (reachable release crash) — the cross-field rule is enforced in the form. — FR-11,
+  UC-02 A1, FR-10, invariant 14
+- (adversarial pass, minor) Inbox row a11y label now carries the deadline; undo bar announced
+  to iOS VoiceOver; radio chips use accessibilityState.checked; analytics engine tag aligned
+  to the schema vocabulary ('learned', not 'bandit'); "0m" no longer becomes a deadline of
+  now; dangling connectors stripped from titles; write-path atomicity proven by a forced
+  mid-transaction failure test; P4 account-binding contract names the outbox payload rewrite.
+  — NFR-A1, NFR-O1, NFR-R1, FR-11
+
 ## P2 — Mobile shell (2026-08-24, phase/P2-mobile-shell)
 
 ### Added
