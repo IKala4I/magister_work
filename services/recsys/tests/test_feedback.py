@@ -190,3 +190,27 @@ def test_state_version_increments_only_when_state_changes(repo: InMemoryRepo) ->
     r2 = feedback.apply_feedback(_req(_tuple("z", 1.0, "completed")), repo)
     r3 = feedback.apply_feedback(_req(_tuple("y", 1.0, "completed", excluded=True)), repo)
     assert r1.state_version == v0 + 1 and r2.state_version == v0 + 1 and r3.state_version == v0 + 1
+
+
+# --- adversarial-pass regressions (P5 review) -------------------------------------------------
+
+
+def test_excluded_correction_triggers_the_rebuild(repo: InMemoryRepo) -> None:
+    """M2: a reward later marked ambiguous must be purged — 'correction: true on ANY tuple
+    triggers the rebuild' (specs/07 §5), and the rebuild reads non-excluded tuples only."""
+    feedback.apply_feedback(_req(_tuple("r9", 1.0, "completed")), repo)
+    repo.tuples[USER] = []  # the EF flipped r9 to excluded = true; nothing non-excluded remains
+    resp = feedback.apply_feedback(
+        _req(_tuple("r9", 1.0, "completed", excluded=True, correction=True)), repo
+    )
+    assert resp.rebuilt and resp.updated == 0 and resp.skipped_excluded == 1
+    assert np.array_equal(repo.load_bandit(USER)["deep"].A, np.eye(17))
+    cell = {c.key: c for c in repo.load_cells(USER)}[("deep", "AF", "weekday")]
+    assert cell.succ == 0.0 and cell.fail == 0.0
+
+
+def test_feedback_refuses_users_without_instantiated_cells() -> None:
+    fresh = InMemoryRepo()  # no seeded cells → fallback prior (prior_version −1)
+    with pytest.raises(feedback.StateNotInstantiated):
+        feedback.apply_feedback(_req(_tuple("r1", 1.0, "completed")), fresh)
+    assert fresh.applied_keys(USER) == set()

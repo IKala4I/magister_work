@@ -23,6 +23,11 @@ from hourwell_recsys.repo import CATEGORIES, Repo
 from hourwell_recsys.schemas import FeedbackRequest, FeedbackResponse, FeedbackTuple
 
 
+class StateNotInstantiated(Exception):
+    """/feedback for a user whose Beta cells were never instantiated (trigger, ADR-0005): the
+    evidence could not be persisted, so refusing is the only honest answer (adversarial finding)."""
+
+
 class TupleDisposition(StrEnum):
     APPLY = "apply"
     EXCLUDE = "exclude"
@@ -64,6 +69,8 @@ def rebuild_all(
 def apply_feedback(req: FeedbackRequest, repo: Repo) -> FeedbackResponse:
     user_id = str(req.user_id)
     cells = {c.key: c for c in repo.load_cells(user_id)}
+    if any(c.prior_version < 0 for c in cells.values()):
+        raise StateNotInstantiated(user_id)
     states = repo.load_bandit(user_id)
     applied = repo.applied_keys(user_id)
     version = max(s.state_version for s in states.values())
@@ -85,7 +92,9 @@ def apply_feedback(req: FeedbackRequest, repo: Repo) -> FeedbackResponse:
         newly.add(key)
         updated += 1
 
-    rebuilt = any(t.correction for t in req.tuples if classify(t) is TupleDisposition.APPLY)
+    # "`correction: true` on ANY tuple triggers the rebuild" (specs/07 §5) — including an excluded
+    # correction, which is exactly the case that must purge now-ambiguous evidence (invariant 3)
+    rebuilt = any(t.correction for t in req.tuples)
     if rebuilt:
         version += 1
         states, cells, stored_keys = rebuild_all(repo, user_id, cells, version)
@@ -95,9 +104,7 @@ def apply_feedback(req: FeedbackRequest, repo: Repo) -> FeedbackResponse:
         states = {g: replace(s, state_version=version) for g, s in states.items()}
 
     if updated or rebuilt:
-        repo.save_bandit(user_id, states.values())
-        repo.save_cells(user_id, cells.values())
-        repo.mark_applied(user_id, newly, version)
+        repo.save_all(user_id, states.values(), cells.values(), newly, version)
     return FeedbackResponse(
         updated=updated, skipped_excluded=skipped_excluded, rebuilt=rebuilt, state_version=version
     )

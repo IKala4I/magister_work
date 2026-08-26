@@ -24,3 +24,8 @@ def test_openapi_paths_and_operations() -> None:
         "override_in",
     }
     assert document() == document()  # deterministic
+
+
+def test_assignment_exposes_the_replay_candidate_set() -> None:
+    doc = json.loads(document())
+    assert "experiment_top_m" in doc["components"]["schemas"]["Assignment"]["properties"]

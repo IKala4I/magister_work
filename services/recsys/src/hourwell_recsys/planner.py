@@ -12,7 +12,7 @@ import secrets
 import time
 from collections import defaultdict
 from dataclasses import dataclass, replace
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import numpy as np
@@ -117,9 +117,13 @@ def _prepare(
         deadline_tick = None if t.deadline is None else grid.tick_floor(t.deadline)
         earliest_tick = None if t.earliest_start is None else grid.tick_ceil(t.earliest_start)
         pinned_tick = None if t.pinned_start is None else grid.tick_floor(t.pinned_start)
-        if pinned_tick is not None and not (0 <= pinned_tick < n):
-            unplaceable.append(t.id)
-            continue
+        if t.pinned_start is not None and pinned_tick is not None:
+            # off-grid pins keep their instant; the tick span is the conservative cover
+            pinned_end = grid.tick_ceil(t.pinned_start + timedelta(minutes=t.est_minutes))
+            if not (pinned_tick >= 0 and pinned_end <= n) or grid.daypart(pinned_tick) is None:
+                unplaceable.append(t.id)
+                continue
+            d = max(pinned_end - pinned_tick, 1)
         if deadline_tick is not None and deadline_tick < 0:
             unplaceable.append(t.id)
             continue
@@ -135,6 +139,7 @@ def _prepare(
             deadline_tick=deadline_tick,
             earliest_tick=earliest_tick,
             pinned_tick=pinned_tick,
+            pinned_instant=t.pinned_start,
             critical=critical,
         )
         if pinned_tick is not None:
@@ -235,6 +240,7 @@ def _prepare(
                 deadline=s.deadline_tick,
                 pinned_start=s.pinned_tick,
                 critical=s.critical,
+                d_min=d_min,
             )
         )
     return _Prepared(
@@ -255,6 +261,8 @@ def _apply_experiment(
             for k in t.starts
             if buckets[k] is not None and buckets[k].id == draw.bucket_id  # type: ignore[union-attr]
         )
+        if not in_bucket:  # cannot happen when rankings use full-duration buckets (M1)
+            raise RuntimeError(f"experiment bucket {draw.bucket_id} has no start for {t.task_id}")
         # the experiment is a single placement (one M-01 row): solved unsplit inside the bucket
         out.append(replace(t, starts=in_bucket, starts_min=(), force_present=True))
     return out
@@ -322,7 +330,15 @@ def _solve_with_ladder(
         placements.extend(res.placements)
         placed = {p.task_id for p in res.placements}
         remaining = [t for t in remaining if t.task_id not in placed]
-    status = "INFEASIBLE" if "INFEASIBLE" in statuses else ("FEASIBLE" if statuses else "OPTIMAL")
+    solved = [st for st in statuses if st in ("OPTIMAL", "FEASIBLE")]
+    if "INFEASIBLE" in statuses:
+        status = "INFEASIBLE"
+    elif not statuses:
+        status = "OPTIMAL"  # nothing to solve
+    elif not solved:
+        status = "UNKNOWN"  # every day was still hot — say so (adversarial finding)
+    else:
+        status = "OPTIMAL" if all(st == "OPTIMAL" for st in statuses) else "FEASIBLE"
     deferred = tuple(t.task_id for t in remaining if t.critical)
     return (
         cpsat.SolveResult(
@@ -439,9 +455,10 @@ def _draw(prep: _Prepared, req: PlanRequest, rng: np.random.Generator) -> Experi
     ]
     max_exp_ticks = max(1, (EXPERIMENT_MAX_DURATION_TICKS * TICK_MINUTES) // prep.grid.tick_minutes)
     eligible = eligible_tasks(candidates, m=req.settings.top_m, max_duration_ticks=max_exp_ticks)
+    # rankings over the buckets an UNSPLIT placement can occupy — the experiment is solved
+    # unsplit, so chunk-only buckets must never enter the top-m set (adversarial finding M1)
     rankings = {
-        tid: [(b, e.q_hat) for (t_id, b), e in prep.estimates.items() if t_id == tid]
-        for tid in eligible
+        tid: [(b, prep.estimates[(tid, b)].q_hat) for b in bucket_ids_of(tid)] for tid in eligible
     }
     return draw_experiment(
         rng,
@@ -573,12 +590,18 @@ def plan(req: PlanRequest, repo: Repo, *, now: datetime | None = None) -> PlanRe
                 is_earliest=bool(prep.starts[tid]) and p.start == min(prep.starts[tid]),
                 hours_to_deadline=None if u is None else u * prep.grid.tick_minutes / 60.0,
             )
+            if s.pinned_instant is not None:
+                slot_start = s.pinned_instant
+                slot_end = s.pinned_instant + timedelta(minutes=s.est_minutes)
+            else:
+                slot_start = prep.grid.tick_start(p.start)
+                slot_end = prep.grid.tick_start(p.start + p.size)
             assignments.append(
                 Assignment(
                     task_id=tid,
                     chunk_index=p.chunk_index,
-                    slot_start=prep.grid.tick_start(p.start),
-                    slot_end=prep.grid.tick_start(p.start + p.size),
+                    slot_start=slot_start,
+                    slot_end=slot_end,
                     context_bucket=b.id,
                     q_hat=round(est.q_hat, 4),
                     confidence=round(est.confidence, 4),
@@ -586,6 +609,7 @@ def plan(req: PlanRequest, repo: Repo, *, now: datetime | None = None) -> PlanRe
                     rationale_params=params,
                     is_experiment=is_exp,
                     propensity=exp_propensity if is_exp else None,
+                    experiment_top_m=list(draw.top_m) if (is_exp and draw is not None) else None,
                     features=[float(v) for v in est.features],
                 )
             )

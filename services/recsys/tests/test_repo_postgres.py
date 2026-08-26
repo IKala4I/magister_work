@@ -125,3 +125,14 @@ def test_applied_keys_and_tuples(pg: PostgresRepo, user: str) -> None:
     tuples = pg.load_tuples(user)
     assert [t.recommendation_id for t in tuples] == [rec]  # excluded rows never load
     assert tuples[0].features.shape == (17,) and tuples[0].reward == 0.0
+
+
+def test_save_all_is_atomic_round_trip(pg: PostgresRepo, user: str) -> None:
+    rec = str(uuid.uuid4())
+    states = pg.load_bandit(user)
+    s = bandit.update(states["deep"], np.linspace(0, 1, 17), 1.0)
+    s = bandit.LinearState(s.category, s.A, s.b, s.A_inv, state_version=9)
+    cells = pg.load_cells(user)
+    pg.save_all(user, [s], cells, [(rec, "outcome")], 9)
+    assert pg.load_bandit(user)["deep"].state_version == 9
+    assert (rec, "outcome") in pg.applied_keys(user)

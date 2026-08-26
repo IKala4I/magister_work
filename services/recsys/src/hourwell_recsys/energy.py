@@ -78,12 +78,18 @@ def posterior(cell: BetaCell, now: datetime) -> Posterior:
 
 
 def apply_reward(cell: BetaCell, reward: float, at: datetime) -> BetaCell:
-    """Decay first (as of `at`), then S += r, F += 1 − r; `last_event_at` moves to `at`."""
+    """Decay first (as of `at`), then S += r, F += 1 − r; `last_event_at` moves to `at`.
+
+    A tuple OLDER than `last_event_at` (out-of-order delivery) is added already decayed by the
+    time that has elapsed since it, so the result equals in-order delivery (adversarial finding).
+    """
     if not 0.0 <= reward <= 1.0:
         raise ValueError(f"reward must be in [0, 1], got {reward}")
+    if cell.last_event_at is not None and at < cell.last_event_at:
+        w = decay_factor((cell.last_event_at - at).total_seconds())
+        return replace(cell, succ=cell.succ + reward * w, fail=cell.fail + (1.0 - reward) * w)
     s, f = decayed_evidence(cell, at)
-    last = at if cell.last_event_at is None else max(cell.last_event_at, at)
-    return replace(cell, succ=s + reward, fail=f + (1.0 - reward), last_event_at=last)
+    return replace(cell, succ=s + reward, fail=f + (1.0 - reward), last_event_at=at)
 
 
 def reset_evidence(cell: BetaCell) -> BetaCell:

@@ -63,7 +63,7 @@ def feature_vector(
     x[7] = 1.0 if bucket.is_weekend else 0.0
     x[8] = 1.0 if bucket.is_fatigued else 0.0
     x[9] = (value - 1) / 2.0
-    x[10] = math.log(max(est_minutes, 1)) / math.log(LOG_DURATION_REF_MINUTES)
+    x[10] = min(math.log(max(est_minutes, 1)) / math.log(LOG_DURATION_REF_MINUTES), 1.0)
     x[11] = 1.0 if splittable else 0.0
     x[12] = urgency_term(u_ticks)
     x[13] = min(postpone_count, POSTPONE_CAP) / POSTPONE_CAP

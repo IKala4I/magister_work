@@ -55,6 +55,14 @@ class Repo(Protocol):
     def mark_applied(
         self, user_id: str, keys: Iterable[tuple[str, str]], state_version: int
     ) -> None: ...
+    def save_all(
+        self,
+        user_id: str,
+        states: Iterable[bandit.LinearState],
+        cells: Iterable[BetaCell],
+        keys: Iterable[tuple[str, str]],
+        state_version: int,
+    ) -> None: ...
     def load_tuples(self, user_id: str) -> list[StoredTuple]: ...
     def healthy(self) -> bool: ...
 
@@ -111,6 +119,18 @@ class InMemoryRepo:
         store = self.applied.setdefault(user_id, {})
         for k in keys:
             store.setdefault(k, state_version)
+
+    def save_all(
+        self,
+        user_id: str,
+        states: Iterable[bandit.LinearState],
+        cells: Iterable[BetaCell],
+        keys: Iterable[tuple[str, str]],
+        state_version: int,
+    ) -> None:
+        self.save_bandit(user_id, states)
+        self.save_cells(user_id, cells)
+        self.mark_applied(user_id, keys, state_version)
 
     def load_tuples(self, user_id: str) -> list[StoredTuple]:
         return sorted(
@@ -175,6 +195,11 @@ class PostgresRepo:
         ]
 
     def save_cells(self, user_id: str, cells: Iterable[BetaCell]) -> None:
+        with self._pool.connection() as conn:
+            self._save_cells(conn, user_id, cells)
+
+    @staticmethod
+    def _save_cells(conn: Any, user_id: str, cells: Iterable[BetaCell]) -> None:
         params = [
             (c.succ, c.fail, c.last_event_at, user_id, c.category, c.daypart, c.day_type)
             for c in cells
@@ -182,13 +207,12 @@ class PostgresRepo:
         ]
         if not params:
             return
-        with self._pool.connection() as conn:
-            conn.cursor().executemany(
-                "update beta_cells set succ = %s, fail = %s, last_event_at = %s, "
-                "updated_at = now() where user_id = %s and category = %s and daypart = %s "
-                "and day_type = %s",
-                params,
-            )
+        conn.cursor().executemany(
+            "update beta_cells set succ = %s, fail = %s, last_event_at = %s, "
+            "updated_at = now() where user_id = %s and category = %s and daypart = %s "
+            "and day_type = %s",
+            params,
+        )
 
     def load_bandit(self, user_id: str) -> dict[str, bandit.LinearState]:
         with self._pool.connection() as conn:
@@ -209,19 +233,23 @@ class PostgresRepo:
         return complete_states(states)
 
     def save_bandit(self, user_id: str, states: Iterable[bandit.LinearState]) -> None:
+        with self._pool.connection() as conn:
+            self._save_bandit(conn, user_id, states)
+
+    @staticmethod
+    def _save_bandit(conn: Any, user_id: str, states: Iterable[bandit.LinearState]) -> None:
         params = []
         for s in states:
             a, b = bandit.to_arrays(s)
             params.append((user_id, s.category, s.d, a, b, s.state_version))
-        with self._pool.connection() as conn:
-            conn.cursor().executemany(
-                "insert into bandit_state (user_id, category, d, a_matrix, b_vector, "
-                "state_version) values (%s, %s, %s, %s, %s, %s) "
-                "on conflict (user_id, category) do update set "
-                "d = excluded.d, a_matrix = excluded.a_matrix, b_vector = excluded.b_vector, "
-                "state_version = excluded.state_version, updated_at = now()",
-                params,
-            )
+        conn.cursor().executemany(
+            "insert into bandit_state (user_id, category, d, a_matrix, b_vector, "
+            "state_version) values (%s, %s, %s, %s, %s, %s) "
+            "on conflict (user_id, category) do update set "
+            "d = excluded.d, a_matrix = excluded.a_matrix, b_vector = excluded.b_vector, "
+            "state_version = excluded.state_version, updated_at = now()",
+            params,
+        )
 
     def load_blend(self, user_id: str) -> Blend:
         with self._pool.connection() as conn:
@@ -248,15 +276,36 @@ class PostgresRepo:
     def mark_applied(
         self, user_id: str, keys: Iterable[tuple[str, str]], state_version: int
     ) -> None:
+        with self._pool.connection() as conn:
+            self._mark_applied(conn, user_id, keys, state_version)
+
+    @staticmethod
+    def _mark_applied(
+        conn: Any, user_id: str, keys: Iterable[tuple[str, str]], state_version: int
+    ) -> None:
         params = [(user_id, rec, kind, state_version) for rec, kind in keys]
         if not params:
             return
-        with self._pool.connection() as conn:
-            conn.cursor().executemany(
-                "insert into recsys_applied_tuples (user_id, recommendation_id, kind, "
-                "state_version) values (%s, %s, %s, %s) on conflict do nothing",
-                params,
-            )
+        conn.cursor().executemany(
+            "insert into recsys_applied_tuples (user_id, recommendation_id, kind, "
+            "state_version) values (%s, %s, %s, %s) on conflict do nothing",
+            params,
+        )
+
+    def save_all(
+        self,
+        user_id: str,
+        states: Iterable[bandit.LinearState],
+        cells: Iterable[BetaCell],
+        keys: Iterable[tuple[str, str]],
+        state_version: int,
+    ) -> None:
+        """State, cells and the id-set land in ONE transaction: a retry after a partial failure
+        can neither double-apply nor lose evidence (adversarial finding)."""
+        with self._pool.connection() as conn, conn.transaction():
+            self._save_bandit(conn, user_id, states)
+            self._save_cells(conn, user_id, cells)
+            self._mark_applied(conn, user_id, keys, state_version)
 
     def load_tuples(self, user_id: str) -> list[StoredTuple]:
         with self._pool.connection() as conn:

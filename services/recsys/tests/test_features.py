@@ -93,3 +93,18 @@ def test_decode_cell_round_trips() -> None:
     assert decode_cell(x) == (Daypart.EV, "weekend")
     with pytest.raises(ValueError):
         decode_cell(np.zeros(17))
+
+
+def test_log_duration_is_clipped_at_one() -> None:
+    x = feature_vector(
+        bucket=Bucket(Daypart.MO, "weekday", "fresh"),
+        value=2,
+        est_minutes=600,
+        splittable=False,
+        u_ticks=None,
+        postpone_count=0,
+        cell_mean=0.5,
+        cell_sd=0.1,
+        preceding_load_minutes=0,
+    )
+    assert x[10] == 1.0

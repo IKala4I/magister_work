@@ -121,6 +121,8 @@ export interface components {
             confidence: number;
             /** Context Bucket */
             context_bucket: string;
+            /** Experiment Top M */
+            experiment_top_m?: string[] | null;
             /** Features */
             features: number[];
             /** Is Experiment */

@@ -22,7 +22,7 @@ from hourwell_recsys.auth import (
     authorize_user,
 )
 from hourwell_recsys.auth import authenticate as _authenticate
-from hourwell_recsys.feedback import apply_feedback
+from hourwell_recsys.feedback import StateNotInstantiated, apply_feedback
 from hourwell_recsys.insights import insights as _insights
 from hourwell_recsys.params import MODEL_VERSION, PLAN_RATE_LIMIT_PER_DAY
 from hourwell_recsys.parse_preview import parse_preview as _parse_preview
@@ -49,8 +49,9 @@ class DailyRateLimiter:
         self.limit = limit
         self._counts: dict[tuple[str, date], int] = defaultdict(int)
 
-    def hit(self, user_id: str, day: date) -> bool:
-        stale = [k for k in self._counts if (day - k[1]).days > 1]
+    def hit(self, user_id: str, day: date, *, today: date | None = None) -> bool:
+        today = today or datetime.now(UTC).date()  # evict by wall clock, never by request data
+        stale = [k for k in self._counts if abs((today - k[1]).days) > 8]
         for k in stale:
             del self._counts[k]
         self._counts[(user_id, day)] += 1
@@ -107,9 +108,11 @@ def create_app(
         except AuthError as exc:
             raise HTTPException(exc.status, exc.detail) from exc
 
-    @app.exception_handler(ValueError)
-    async def _value_error(_: Request, exc: ValueError) -> JSONResponse:
-        return JSONResponse(status_code=422, content={"detail": str(exc)})
+    @app.exception_handler(StateNotInstantiated)
+    async def _not_instantiated(_: Request, exc: StateNotInstantiated) -> JSONResponse:
+        return JSONResponse(
+            status_code=409, content={"detail": "model state not instantiated for this user"}
+        )
 
     @app.get("/healthz", response_model=HealthzResponse, operation_id="healthz")
     def healthz() -> HealthzResponse:

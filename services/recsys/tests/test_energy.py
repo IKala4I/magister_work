@@ -47,3 +47,12 @@ def test_posterior_ci_and_sd() -> None:
     lo, hi = p.ci(0.1, 0.9)
     assert 0 < lo < 0.5 < hi < 1
     assert p.sd == pytest.approx((2 * 2 / (16 * 5)) ** 0.5)
+
+
+def test_out_of_order_older_tuple_equals_in_order_delivery() -> None:
+    cell = BetaCell("deep", "MO", "weekday", alpha0=4, beta0=4)
+    later, earlier = T0 + timedelta(days=28), T0
+    in_order = apply_reward(apply_reward(cell, 1.0, earlier), 1.0, later)
+    out_of_order = apply_reward(apply_reward(cell, 1.0, later), 1.0, earlier)
+    assert out_of_order.succ == pytest.approx(in_order.succ) == pytest.approx(1.5)
+    assert out_of_order.last_event_at == later

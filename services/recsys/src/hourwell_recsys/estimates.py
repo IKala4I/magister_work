@@ -11,6 +11,7 @@ from __future__ import annotations
 import math
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
+from datetime import datetime
 
 import numpy as np
 
@@ -35,6 +36,7 @@ class TaskSpec:
     earliest_tick: int | None
     pinned_tick: int | None
     critical: bool
+    pinned_instant: datetime | None = None
 
 
 @dataclass(frozen=True)
@@ -62,9 +64,10 @@ def sample_thetas(
     sigma_sq: float = SIGMA_SQ_TS,
 ) -> dict[str, np.ndarray]:
     """TS: one θ̃_g per category for the whole plan. LinUCB: θ̂_g (deterministic)."""
+    ordered = sorted(states.items())  # category order fixes the RNG stream across backends
     if policy == "linucb":
-        return {g: s.theta for g, s in states.items()}
-    return {g: bandit.ts_sample(s, rng, sigma_sq) for g, s in states.items()}
+        return {g: s.theta for g, s in ordered}
+    return {g: bandit.ts_sample(s, rng, sigma_sq) for g, s in ordered}
 
 
 def score_pairs(

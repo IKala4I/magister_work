@@ -135,6 +135,7 @@ def test_plan_response_shape_and_rate_limit(client: TestClient) -> None:
         "is_experiment",
         "propensity",
         "features",
+        "experiment_top_m",
     }
 
 
@@ -212,3 +213,38 @@ def test_parse_preview(client: TestClient) -> None:
     assert (
         body["deadline"].startswith("2026-09-04") and "deadline_time_of_day" in body["ambiguities"]
     )
+
+
+# --- adversarial-pass regressions (P5 review) -------------------------------------------------
+
+
+def test_non_ascii_service_key_is_401_not_500(client: TestClient) -> None:
+    r = client.get("/insights", params={"user_id": USER}, headers={"X-Service-Key": b"s3cr\xe9t"})
+    assert r.status_code == 401
+
+
+def test_feedback_for_uninstantiated_user_is_409(client: TestClient) -> None:
+    from tests.test_feedback import _tuple
+
+    body = {"user_id": OTHER_USER, "tuples": [_tuple("r1", 1.0, "completed")]}
+    assert client.post("/feedback", json=body, headers=SVC).status_code == 409
+
+
+def test_parse_preview_rejects_unknown_timezone(client: TestClient) -> None:
+    r = client.post(
+        "/parse-preview",
+        json={"text": "x", "timezone": "Mars/Olympus", "now": kyiv(9)},
+        headers={"Authorization": f"Bearer {_token()}"},
+    )
+    assert r.status_code == 422
+
+
+def test_rate_limiter_evicts_by_wall_clock_not_request_date() -> None:
+    from datetime import date, timedelta
+
+    lim = DailyRateLimiter(limit=1)
+    today = date(2026, 9, 2)
+    assert lim.hit("a", today, today=today) and not lim.hit("a", today, today=today)
+    lim.hit("b", today + timedelta(days=18), today=today)  # far-future request date
+    assert not lim.hit("a", today, today=today)  # a's counter survived
+    assert lim.hit("a", today, today=today + timedelta(days=9))  # …until the wall clock moves on

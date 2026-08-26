@@ -18,7 +18,7 @@ class Blend:
     state_version: int = 1
 
     def __post_init__(self) -> None:
-        convex = abs(self.w_energy + self.w_bandit - 1.0) <= 1e-9
+        convex = abs(self.w_energy + self.w_bandit - 1.0) <= 1e-6  # columns are float32
         if self.w_energy < 0 or self.w_bandit < 0 or not convex:
             raise ValueError("blend weights must be a convex combination")
 

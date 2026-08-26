@@ -122,6 +122,7 @@ class Assignment(_Strict):
     rationale_params: dict[str, Any]
     is_experiment: bool
     propensity: float | None  # M-01: exactly ε/m on the randomized slice, null otherwise
+    experiment_top_m: list[str] | None = None  # A_m(x) for replay (File 04 §2.2); slice rows only
     features: list[float] = Field(min_length=FEATURE_DIM, max_length=FEATURE_DIM)
 
 
@@ -226,6 +227,14 @@ class ParsePreviewRequest(_Strict):
     text: str = Field(min_length=1, max_length=500)
     timezone: str
     now: AwareDatetime
+
+    @model_validator(mode="after")
+    def _tz(self) -> ParsePreviewRequest:
+        try:
+            ZoneInfo(self.timezone)
+        except Exception as exc:  # noqa: BLE001
+            raise ValueError(f"unknown timezone {self.timezone!r}") from exc
+        return self
 
 
 class ParsePreviewResponse(_Strict):

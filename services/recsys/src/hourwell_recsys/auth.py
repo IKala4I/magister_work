@@ -73,7 +73,10 @@ def authenticate(
     verifier: TokenVerifier | None,
 ) -> Principal:
     if x_service_key is not None:
-        if settings.service_key and hmac.compare_digest(x_service_key, settings.service_key):
+        if settings.service_key and hmac.compare_digest(
+            x_service_key.encode("utf-8", "surrogateescape"),
+            settings.service_key.encode("utf-8", "surrogateescape"),
+        ):
             return Principal("service", None)
         raise AuthError(401, "invalid service key")
     if authorization and authorization.startswith("Bearer "):

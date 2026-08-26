@@ -70,12 +70,13 @@ class SolverTask:
     pinned_start: int | None = None
     critical: bool = False
     force_present: bool = False  # ε-experiment pin: y_τ = 1 with `starts` restricted to the bucket
+    d_min: int = D_MIN_TICKS  # in ticks of the grid actually solved (1 tick on the 30-min rung)
 
     @property
     def n_chunks(self) -> int:
         if not self.splittable or self.pinned_start is not None or not self.starts_min:
             return 1
-        return max(min(self.duration // D_MIN_TICKS, MAX_CHUNKS), 1)
+        return max(min(self.duration // self.d_min, MAX_CHUNKS), 1)
 
     @property
     def uses_chunks(self) -> bool:
@@ -253,7 +254,7 @@ def solve(
             ys: list[Any] = []
             starts: list[Any] = []
             sizes: list[Any] = []
-            size_domain = cp_model.Domain.from_intervals([[0, 0], [D_MIN_TICKS, t.duration]])
+            size_domain = cp_model.Domain.from_intervals([[0, 0], [t.d_min, t.duration]])
             wd_table = [0] * n
             for k in t.starts_min:
                 wd_table[k] = _scaled(t.weights[k] / t.duration)
@@ -262,7 +263,7 @@ def solve(
                 name = f"{t.task_id},{j}"
                 y_j = model.new_bool_var(f"y[{name}]")
                 s_j = model.new_int_var_from_domain(size_domain, f"s[{name}]")
-                model.add(s_j >= D_MIN_TICKS).only_enforce_if(y_j)
+                model.add(s_j >= t.d_min).only_enforce_if(y_j)
                 model.add(s_j == 0).only_enforce_if(~y_j)
                 start_j = model.new_int_var_from_domain(
                     cp_model.Domain.from_values(list(t.starts_min)), f"start[{name}]"
