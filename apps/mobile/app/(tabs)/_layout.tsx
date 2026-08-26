@@ -3,9 +3,10 @@
  * modal route, reachable from every tab header). Touch targets ≥44 px (NFR-A1).
  */
 import { Ionicons } from '@expo/vector-icons';
-import { Link, Tabs } from 'expo-router';
+import { Link, Redirect, Tabs } from 'expo-router';
 import { Pressable, StyleSheet } from 'react-native';
 
+import { useOnboardingComplete } from '../../src/db/useProfile';
 import { t } from '../../src/i18n';
 import { ThemedText } from '../../src/ui/primitives';
 import { useTheme } from '../../src/ui/theme';
@@ -44,6 +45,9 @@ function SettingsButton() {
 
 export default function TabsLayout() {
   const theme = useTheme();
+  // UC-01 gate: no completed profile for the current identity → onboarding first.
+  const onboarded = useOnboardingComplete();
+  if (!onboarded) return <Redirect href="/onboarding" />;
   return (
     <Tabs
       screenOptions={{

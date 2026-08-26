@@ -12,6 +12,11 @@ jest.mock('drizzle-orm/expo-sqlite/migrator', () => ({
 }));
 jest.mock('../db/client', () => ({ db: {} }));
 jest.mock('../../drizzle/migrations', () => ({}));
+// The readiness tests cover an onboarded user; the UC-01 gate has its own suite (P4).
+jest.mock('../db/useProfile', () => ({
+  useOnboardingComplete: () => true,
+  useCurrentProfile: () => undefined,
+}));
 jest.mock('@sentry/react-native', () => ({
   init: jest.fn(),
   wrap: (component: unknown) => component,

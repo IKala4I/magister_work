@@ -7,6 +7,11 @@
 // so the client and the live-query hook are stubbed to an empty inbox here.
 jest.mock('../db/client', () => ({ db: {} }));
 jest.mock('../db/useLiveRows', () => ({ useLiveRows: () => [] }));
+// The shell tests cover an onboarded user; the UC-01 gate has its own suite (P4).
+jest.mock('../db/useProfile', () => ({
+  useOnboardingComplete: () => true,
+  useCurrentProfile: () => undefined,
+}));
 jest.mock('../domain/taskActions', () => ({
   createTaskAction: jest.fn(),
   updateTaskAction: jest.fn(),

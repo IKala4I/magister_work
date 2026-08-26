@@ -5,4 +5,5 @@
  */
 jest.mock('expo-localization', () => ({
   getLocales: () => [{ languageCode: 'en' }],
+  getCalendars: () => [{ timeZone: 'Europe/Kyiv' }],
 }));
