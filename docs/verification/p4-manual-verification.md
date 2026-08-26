@@ -47,6 +47,14 @@ What this walk does NOT establish: real-keyboard/IME entry, VoiceOver, magic-lin
 from real mail clients, keychain persistence across reboot, Android anything — all on
 `device-checklist.md`.
 
+**200% font-scale smoke (simulator, `accessibility-extra-extra-extra-large`):** all four
+onboarding steps walked green (17/17 steps) with screenshots per step; text scales and wraps,
+nothing clips, steppers stay tappable, the seed-tasks CTA stays reachable. One cosmetic
+finding fixed: day names wrapped mid-word ("Mond/ay") from a fixed 92-px width → minWidth +
+flexShrink. Reduced motion: onboarding introduces no custom animation (system navigation
+only), so the P2 reduced-motion machinery is untouched. The authoritative NFR-A2 sweep on
+both platforms remains a device-checklist item.
+
 ## 3. Owner actions still open (⛔ — also in the phase report)
 
 1. **Magic-link + conversion E2E needs a real mailbox**: on your machine/simulator, run the

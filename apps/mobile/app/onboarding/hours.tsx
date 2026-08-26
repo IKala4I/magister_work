@@ -198,7 +198,9 @@ const styles = StyleSheet.create({
   scroll: { gap: 10, paddingBottom: 32 },
   intro: { marginBottom: 8 },
   dayRow: { flexDirection: 'row', alignItems: 'center', minHeight: 48, gap: 8, flexWrap: 'wrap' },
-  dayName: { width: 92 },
+  // minWidth (not width): at accessibility type sizes the name must grow to a full line
+  // instead of wrapping mid-word; the row's flexWrap moves the steppers below it.
+  dayName: { minWidth: 92, flexShrink: 1 },
   rangeControls: { flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 1 },
   stepper: { minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
   sleepTitle: { marginTop: 16 },
