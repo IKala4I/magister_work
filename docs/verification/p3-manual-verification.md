@@ -79,9 +79,75 @@ Sync-queue dump after the walk (the NFR-R1 local-half evidence):
 ### Harness notes (not product issues)
 
 - A task row is **one** accessibility element with a composed label
-  (`"<title>, <category>, <minutes> minutes"`); its inner `Text` nodes are not separately
-  exposed, so assertions must match the composed label. An earlier assertion on the bare
-  title failed for this reason alone and briefly looked like a stale-list bug — worth
-  remembering before diagnosing product behaviour from a red Maestro step.
+  (`"<title>, <category>, <minutes> minutes"`, plus `", due <date>"` when the task has a
+  deadline); its inner `Text` nodes are not separately exposed, so assertions must match
+  the composed label. An earlier assertion on the bare title failed for this reason alone
+  and briefly looked like a stale-list bug — worth remembering before diagnosing product
+  behaviour from a red Maestro step.
 - `tapOn: 'Undo'` cannot win against the 6 s window: Maestro spends most of it dumping the
   hierarchy to locate the element. The flow uses a **point tap** for Undo instead.
+
+## Adversarial pass — 2026-08-26 (fresh-context subagent, full main…HEAD diff)
+
+Scope: offline/outbox integrity, DST both directions (Europe/Kyiv), duplicate-op replay,
+RLS thinking for the P8 push shape, quick-add adversarial inputs, invariant scan, a11y,
+explainer consistency, test honesty. Verdict was **FAIL** (3 MAJOR); all findings below
+were fixed in-branch and each fix carries a test.
+
+### MAJOR (all fixed)
+
+1. **Meridiem silently guessed, and the preview hid the guess** (`quickAdd.ts` +
+   `QuickAddBar`). "pay rent at 2" became **tomorrow 2:00 AM** with no ambiguity chip, and
+   the preview showed only the day — a silent guess UC-02 A1 forbids, which would become a
+   real solver constraint in P5. Now: hours 1–11 without an explicit am/pm emit an
+   `am_or_pm` ambiguity rendered as two chips (nearest-future reading of each), and the
+   deadline preview shows the clock time whenever one exists. `multiple_dates` /
+   `multiple_durations` chips are now rendered too (they previously existed only in the
+   parser output).
+2. **Consecutive deletes truncated the 6 s undo window** (`inbox.tsx` + `UndoSnackbar`).
+   The bar's single effect-timer never restarted for a second delete (same mounted
+   component, stable deps), so deleting B at t=5.5 s gave it a 0.5 s window and silently
+   discarded A's undo. Now the screen owns one timer per deleted row; the bar shows a
+   count and Undo restores everything still inside its own window.
+3. **Reachable crash in the task sheet** (`TaskForm`). `earliestStart > deadline` passed
+   form validation; `assertValidDraft` then threw inside `onPress` with no catch — fatal
+   in release, input lost. The cross-field rule is now enforced in the form (Save disabled
+   plus a visible reason), keeping the DAO throw unreachable from the UI.
+
+### MINOR (fixed)
+
+- Inbox row a11y label now carries the deadline sighted users see (NFR-A1).
+- Undo bar announced on iOS via `announceForAccessibility` (`accessibilityLiveRegion` is
+  Android-only) — a VoiceOver user otherwise had 6 s to find an unannounced control.
+- Radio chips expose `accessibilityState.checked` (RN's documented pairing for
+  role="radio"), not `selected`.
+- Analytics `engine` vocabulary aligned to the DB schema: `'learned' | 'heuristic'`
+  (was `'bandit'`), preventing a P6 fork between events and stored rows.
+- `"write 0m"` no longer turns into a deadline of "now": zero durations are masked from
+  chrono like any other duration span.
+- Dangling connectors are stripped from titles ("lunch at noon" → "lunch", not "lunch at").
+- The P4 binding contract in `localUser.ts` now names the op_outbox **payload** rewrite
+  explicitly (the outbox has no user_id column; missing payloads would dead-letter the
+  queue against RLS — fail-safe, but a full-queue outage).
+- Transaction atomicity is now **proven**, not implied: a forced failure on the last write
+  inside `createTask` (dropped `events` table) rolls back the row and the op.
+
+### Known limitations kept as-is (parser edges, judged inherent or cosmetic)
+
+- "review 2h30" leaves "30" in the title (estimate itself is correct at 2 h).
+- "check in 30m" reads the phrasal verb's "in" as a relative deadline.
+- "swim 100 m" parses 100 minutes (bare "m" unit).
+- Quick-add's default category (admin) is a documented default, editable in the sheet; it
+  is not chip-visible in the preview.
+
+Clean bills: DST both transitions (deadlines stay on the intended wall-clock day),
+`localDayOf` around midnight, outbox op ordering/op_id uniqueness/base_version chain,
+payload↔specs/07 §4.1 key parity, invariant scan (no rewards on client, insert-only
+events, no secrets, no red delete, typed strings).
+
+## Re-run — 2026-08-26 (Release rebuild on HEAD, after all fixes)
+
+`apps/mobile/e2e/p3-tasks-flow.yaml` (updated for the deadline-bearing row labels):
+**22/22 steps green** — quick-add preview, live row, sheet edit round-trip, delete →
+point-tap Undo restore, second delete expiring on its own, empty state. Jest suite after
+fixes: **189 tests / 24 suites green** (was 174/23 before the pass).

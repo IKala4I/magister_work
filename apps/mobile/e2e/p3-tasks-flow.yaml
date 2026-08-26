@@ -3,8 +3,9 @@
 # runner inspects op_outbox/events in the app container's SQLite (offline queue evidence).
 #
 # Selector note: a task row is ONE accessibility element with a composed label
-# ("<title>, <category>, <minutes> minutes" — TaskListRow). Its inner Text nodes are not
-# separately exposed, so assertions must match that composed label, not the bare title.
+# ("<title>, <category>, <minutes> minutes" — plus ", due <date>" when the task has a
+# deadline; TaskListRow). Its inner Text nodes are not separately exposed, so assertions
+# must match that composed label, not the bare title.
 # Maestro matches text as a FULL regex, hence the trailing .* patterns.
 appId: com.hourwell.app
 ---
@@ -18,14 +19,14 @@ appId: com.hourwell.app
 - assertVisible: 'by Fri.*'
 - tapOn: 'Add'
 # The list is reactive: the row must appear without leaving or reloading the screen.
-- assertVisible: 'report draft, Admin, 120 minutes'
+- assertVisible: 'report draft, Admin, 120 minutes, due .*'
 - assertNotVisible: 'Inbox is clear'
 # full-sheet edit: switch category to Deep work
-- tapOn: 'report draft, Admin, 120 minutes'
+- tapOn: 'report draft, Admin, 120 minutes, due .*'
 - assertVisible: 'Edit task'
 - tapOn: 'Deep work'
 - tapOn: 'Save changes'
-- assertVisible: 'report draft, Deep work, 120 minutes'
+- assertVisible: 'report draft, Deep work, 120 minutes, due .*'
 # delete → undo restores.
 # The undo window is 6 s (File 02 §3) and a Maestro `tapOn: 'Undo'` spends most of it
 # dumping the view hierarchy to find the element — the bar self-expires before the tap
@@ -34,7 +35,7 @@ appId: com.hourwell.app
 - tapOn: 'Delete report draft'
 - tapOn:
     point: 88%, 86%
-- assertVisible: 'report draft, Deep work, 120 minutes'
+- assertVisible: 'report draft, Deep work, 120 minutes, due .*'
 # delete for real, then let the 6 s window expire on its own
 - tapOn: 'Delete report draft'
 - assertVisible: 'Task deleted'

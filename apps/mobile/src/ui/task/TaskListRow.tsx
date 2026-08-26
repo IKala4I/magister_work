@@ -36,6 +36,19 @@ function formatDeadline(deadline: Date): string {
 export function TaskListRow({ task, onPress, onDelete }: TaskListRowProps) {
   const theme = useTheme();
   const categoryLabel = t(CATEGORY_LABELS[task.category]);
+  // A sighted user sees the deadline chip; the composed label must carry it too (NFR-A1).
+  const rowLabel = task.deadline
+    ? t('inbox.row.a11y.deadline', {
+        title: task.title,
+        category: categoryLabel,
+        minutes: task.estMinutes,
+        date: formatDeadline(task.deadline),
+      })
+    : t('inbox.row.a11y', {
+        title: task.title,
+        category: categoryLabel,
+        minutes: task.estMinutes,
+      });
   return (
     <View
       style={[
@@ -45,11 +58,7 @@ export function TaskListRow({ task, onPress, onDelete }: TaskListRowProps) {
     >
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={t('inbox.row.a11y', {
-          title: task.title,
-          category: categoryLabel,
-          minutes: task.estMinutes,
-        })}
+        accessibilityLabel={rowLabel}
         onPress={() => onPress(task)}
         style={styles.body}
       >

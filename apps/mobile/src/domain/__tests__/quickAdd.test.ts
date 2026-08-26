@@ -39,6 +39,21 @@ describe('durations', () => {
     expect(parsed.deadline).toEqual(localDate(2026, 8, 24, 12, 0));
     expect(parsed.title).toBe('reply to emails');
   });
+
+  it('a zero duration ("0m") is consumed but yields no estimate and NO deadline', () => {
+    // Without masking, chrono reads the dangling "0m" as a relative time → deadline = now.
+    const parsed = parseQuickAdd('write 0m', MONDAY_10AM);
+    expect(parsed.estMinutes).toBeNull();
+    expect(parsed.deadline).toBeNull();
+    expect(parsed.title).toBe('write');
+    expect(parsed.parsed).toBe(false);
+  });
+
+  it('drops a connector left dangling by a consumed date span ("lunch at noon")', () => {
+    const parsed = parseQuickAdd('lunch at noon', MONDAY_10AM);
+    expect(parsed.title).toBe('lunch');
+    expect(parsed.deadline).toEqual(localDate(2026, 8, 24, 12, 0));
+  });
 });
 
 describe('deadlines', () => {
@@ -101,8 +116,46 @@ describe('ambiguity (UC-02 A1 — flagged, never guessed silently)', () => {
     const ambiguity = parsed.ambiguities.find((a) => a.kind === 'multiple_dates');
     expect(ambiguity).toBeDefined();
     if (ambiguity?.kind === 'multiple_dates') {
-      expect(ambiguity.candidates).toHaveLength(2);
+      // Candidates get the same end-of-day normalization as the chosen result.
+      expect(ambiguity.candidates).toEqual([
+        localDate(2026, 8, 25, 23, 59),
+        localDate(2026, 8, 28, 23, 59),
+      ]);
     }
+  });
+
+  it('clock time without am/pm ("at 2") → am_or_pm ambiguity with both readings', () => {
+    const parsed = parseQuickAdd('pay rent at 2', MONDAY_10AM);
+    const ambiguity = parsed.ambiguities.find((a) => a.kind === 'am_or_pm');
+    expect(ambiguity).toBeDefined();
+    if (ambiguity?.kind === 'am_or_pm') {
+      // 02:00 already passed at the 10:00 reference → nearest future 2 AM is Tuesday;
+      // 2 PM is still ahead on Monday itself.
+      expect(ambiguity.am).toEqual(localDate(2026, 8, 25, 2, 0));
+      expect(ambiguity.pm).toEqual(localDate(2026, 8, 24, 14, 0));
+    }
+    expect(parsed.title).toBe('pay rent');
+  });
+
+  it('an explicit day pins both am/pm readings to that day ("fri at 2")', () => {
+    const parsed = parseQuickAdd('review fri at 2', MONDAY_10AM);
+    const ambiguity = parsed.ambiguities.find((a) => a.kind === 'am_or_pm');
+    expect(ambiguity).toBeDefined();
+    if (ambiguity?.kind === 'am_or_pm') {
+      expect(ambiguity.am).toEqual(localDate(2026, 8, 28, 2, 0));
+      expect(ambiguity.pm).toEqual(localDate(2026, 8, 28, 14, 0));
+    }
+  });
+
+  it('an explicit meridiem ("2pm") or 24-hour time ("at 14:00") is NOT ambiguous', () => {
+    expect(parseQuickAdd('call mom 2pm', MONDAY_10AM).ambiguities).toEqual([]);
+    expect(parseQuickAdd('call mom at 14:00', MONDAY_10AM).ambiguities).toEqual([]);
+  });
+
+  it('noon and midnight are NOT meridiem-ambiguous', () => {
+    expect(
+      parseQuickAdd('lunch at noon', MONDAY_10AM).ambiguities.filter((a) => a.kind === 'am_or_pm'),
+    ).toEqual([]);
   });
 
   it('two durations → multiple_durations ambiguity, first one used', () => {

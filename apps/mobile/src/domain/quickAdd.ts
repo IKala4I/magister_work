@@ -20,6 +20,12 @@ export type QuickAddAmbiguity =
       nextWeek: Date;
     }
   | {
+      /** Clock time with no am/pm ("at 2"): morning or afternoon? */
+      kind: 'am_or_pm';
+      am: Date;
+      pm: Date;
+    }
+  | {
       /** More than one date expression; the first is used, the rest offered. */
       kind: 'multiple_dates';
       candidates: Date[];
@@ -48,7 +54,8 @@ const CONNECTORS = ['by', 'due by', 'due', 'before', 'until', 'till'];
 const DURATION_RE =
   /(?:(\d+(?:[.,]\d+)?)\s*(?:hours?|hrs?|h)(?![a-z]))?\s*(?:(\d+)\s*(?:minutes?|mins?|m)(?![a-z]))?/gi;
 
-const DAY_END = { hour: 23, minute: 59 };
+/** End-of-day convention for day-granular deadlines; the UI treats 23:59 as "no clock time". */
+export const DAY_END = { hour: 23, minute: 59 };
 
 const WEEKDAY_RE = /^(?:on\s+)?(mon|tue|tues|wed|thu|thur|thurs|fri|sat|sun)(?:[a-z]*day)?$/i;
 
@@ -83,19 +90,23 @@ export function parseQuickAdd(input: string, now: Date = new Date()): ParsedQuic
   const ambiguities: QuickAddAmbiguity[] = [];
 
   // --- durations first (chrono would swallow bare "90m"/"2h" as relative times) ---
+  const durationSpans: Span[] = [];
   const durations: Array<{ span: Span; minutes: number }> = [];
   for (const match of text.matchAll(DURATION_RE)) {
     if (match[0].trim() === '' || (match[1] === undefined && match[2] === undefined)) continue;
     if (RELATIVE_PREFIX_RE.test(text.slice(0, match.index))) continue; // "in 2 hours" → deadline
     const span: Span = { start: match.index, end: match.index + match[0].length };
     const minutes = minutesFrom(match[1], match[2]);
+    // A zero duration ("0m") yields no estimate but is still duration-shaped text: mask and
+    // consume it anyway, or chrono would read the dangling "0m" as a relative "now".
+    durationSpans.push(span);
+    consumed.push(span);
     if (minutes > 0) durations.push({ span, minutes });
   }
   let estMinutes: number | null = null;
   const firstDuration = durations[0];
   if (firstDuration !== undefined) {
     estMinutes = firstDuration.minutes;
-    for (const duration of durations) consumed.push(duration.span);
     if (durations.length > 1) {
       ambiguities.push({
         kind: 'multiple_durations',
@@ -106,7 +117,7 @@ export function parseQuickAdd(input: string, now: Date = new Date()): ParsedQuic
 
   // Mask duration spans with spaces so chrono indices still line up with `text`.
   let masked = text;
-  for (const { span } of durations) {
+  for (const span of durationSpans) {
     masked =
       masked.slice(0, span.start) + ' '.repeat(span.end - span.start) + masked.slice(span.end);
   }
@@ -126,6 +137,26 @@ export function parseQuickAdd(input: string, now: Date = new Date()): ParsedQuic
     const parsedDate = preferred.start.date();
     if (preferred.start.isCertain('hour')) {
       deadline = parsedDate;
+      // "at 2" carries no am/pm: chrono implies one, but implying is guessing (UC-02 A1).
+      // Hour 0 and hours 12–23 are unambiguous 24-hour statements; 1–11 get both readings.
+      const hour = parsedDate.getHours();
+      if (!preferred.start.isCertain('meridiem') && hour >= 1 && hour <= 11) {
+        const dayCertain =
+          preferred.start.isCertain('day') ||
+          preferred.start.isCertain('weekday') ||
+          preferred.start.isCertain('month');
+        const minute = parsedDate.getMinutes();
+        // An explicit day fixes the date; an implied one means "the nearest future h:mm".
+        const candidateAt = (hour24: number): Date => {
+          const candidate = dayCertain ? new Date(parsedDate) : new Date(now);
+          candidate.setHours(hour24, minute, 0, 0);
+          if (!dayCertain && candidate.getTime() <= now.getTime()) {
+            candidate.setDate(candidate.getDate() + 1);
+          }
+          return candidate;
+        };
+        ambiguities.push({ kind: 'am_or_pm', am: candidateAt(hour), pm: candidateAt(hour + 12) });
+      }
     } else {
       // "by Friday" means end of Friday, not midnight at its start.
       deadline = new Date(parsedDate);
@@ -133,9 +164,14 @@ export function parseQuickAdd(input: string, now: Date = new Date()): ParsedQuic
     }
 
     if (dateResults.length > 1) {
+      // Candidates get the same normalization as the chosen result (end of day when no time).
       ambiguities.push({
         kind: 'multiple_dates',
-        candidates: dateResults.map((r) => r.start.date()),
+        candidates: dateResults.map((r) => {
+          const candidate = r.start.date();
+          if (!r.start.isCertain('hour')) candidate.setHours(DAY_END.hour, DAY_END.minute, 0, 0);
+          return candidate;
+        }),
       });
     }
 
@@ -160,6 +196,11 @@ export function parseQuickAdd(input: string, now: Date = new Date()): ParsedQuic
     .replace(/\s+([,.;:])/g, '$1')
     .trim();
   title = title.replace(/[,.;:\s]+$/g, '').trim();
+  // A connector left dangling by a consumed date span ("lunch at noon" → "lunch at").
+  title = title
+    .replace(/\b(?:at|on|by|due|before|until|till)$/i, '')
+    .replace(/[,.;:\s]+$/g, '')
+    .trim();
 
   return {
     title,

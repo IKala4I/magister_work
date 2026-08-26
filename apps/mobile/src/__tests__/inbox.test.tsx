@@ -88,6 +88,14 @@ describe('inbox list', () => {
     await fireEvent.press(screen.getByText('write report'));
     expect(mockPush).toHaveBeenCalledWith('/task/a');
   });
+
+  it('a row with a deadline carries it in the accessibility label (NFR-A1)', async () => {
+    mockUseLiveRows.mockReturnValue([
+      taskRow({ id: 'a', title: 'write report', deadline: new Date(2026, 7, 28, 23, 59) }),
+    ]);
+    await render(withSafeArea(<InboxScreen />));
+    expect(screen.getByLabelText(/write report, Deep work, 60 minutes, due Fri/)).toBeTruthy();
+  });
 });
 
 describe('quick add (FR-11)', () => {
@@ -116,6 +124,28 @@ describe('quick add (FR-11)', () => {
     await fireEvent.press(screen.getByLabelText(en['inbox.quickAdd.add']));
     expect(createTaskAction).not.toHaveBeenCalled();
     expect(screen.getByText(en['inbox.quickAdd.noTitleHint'])).toBeTruthy();
+  });
+
+  it('am/pm-less time shows both readings as chips; picking one overrides (UC-02 A1)', async () => {
+    await render(withSafeArea(<InboxScreen />));
+    const input = screen.getByLabelText(en['inbox.quickAdd.input.a11y']);
+    await fireEvent.changeText(input, 'pay rent at 2');
+    expect(screen.getAllByLabelText(/as the deadline$/)).toHaveLength(2);
+    await fireEvent.press(screen.getByLabelText(/2:00 PM.*as the deadline$/)); // the PM reading
+    await fireEvent.press(screen.getByLabelText(en['inbox.quickAdd.add']));
+    const [draft] = (createTaskAction as jest.Mock).mock.calls[0];
+    expect((draft.deadline as Date).getHours()).toBe(14);
+  });
+
+  it('two durations render chips; picking one overrides the estimate', async () => {
+    await render(withSafeArea(<InboxScreen />));
+    const input = screen.getByLabelText(en['inbox.quickAdd.input.a11y']);
+    await fireEvent.changeText(input, 'draft 1h edit 30m');
+    expect(screen.getAllByLabelText(/as the estimate$/)).toHaveLength(2);
+    await fireEvent.press(screen.getByLabelText('Use 30 minutes as the estimate'));
+    await fireEvent.press(screen.getByLabelText(en['inbox.quickAdd.add']));
+    const [draft] = (createTaskAction as jest.Mock).mock.calls[0];
+    expect(draft.estMinutes).toBe(30);
   });
 });
 
@@ -155,5 +185,47 @@ describe('delete with undo (File 02 §3 — 6 s window)', () => {
     } finally {
       jest.useRealTimers();
     }
+  });
+
+  it('consecutive deletes each get their own full 6 s window', async () => {
+    jest.useFakeTimers();
+    try {
+      mockUseLiveRows.mockReturnValue([
+        taskRow({ id: 'a', title: 'write report' }),
+        taskRow({ id: 'b', title: 'call bank' }),
+      ]);
+      await render(withSafeArea(<InboxScreen />));
+      await fireEvent.press(screen.getByLabelText('Delete write report'));
+      await act(async () => {
+        jest.advanceTimersByTime(5500);
+      });
+      await fireEvent.press(screen.getByLabelText('Delete call bank'));
+      // 600 ms later the FIRST delete expires; the second must still be undoable
+      // (a shared timer would have closed its window after only 500 ms).
+      await act(async () => {
+        jest.advanceTimersByTime(600);
+      });
+      expect(screen.getByText(en['inbox.undo.deleted'])).toBeTruthy();
+      await fireEvent.press(screen.getByLabelText(en['inbox.undo.action']));
+      expect(restoreTaskAction).toHaveBeenCalledTimes(1);
+      expect(restoreTaskAction).toHaveBeenCalledWith('b');
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('undo after two quick deletes restores both', async () => {
+    mockUseLiveRows.mockReturnValue([
+      taskRow({ id: 'a', title: 'write report' }),
+      taskRow({ id: 'b', title: 'call bank' }),
+    ]);
+    await render(withSafeArea(<InboxScreen />));
+    await fireEvent.press(screen.getByLabelText('Delete write report'));
+    await fireEvent.press(screen.getByLabelText('Delete call bank'));
+    expect(screen.getByText(en['inbox.undo.deletedMany'].replace('{count}', '2'))).toBeTruthy();
+    await fireEvent.press(screen.getByLabelText(en['inbox.undo.action']));
+    expect(restoreTaskAction).toHaveBeenCalledWith('a');
+    expect(restoreTaskAction).toHaveBeenCalledWith('b');
+    expect(screen.queryByText(en['inbox.undo.deletedMany'].replace('{count}', '2'))).toBeNull();
   });
 });

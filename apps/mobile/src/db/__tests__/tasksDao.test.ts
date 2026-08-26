@@ -42,11 +42,11 @@ const DRAFT: TaskDraft = {
   earliestStart: null,
 };
 
-function openDb(): { db: LocalDb; close: () => void } {
+function openDb(): { db: LocalDb; sqlite: InstanceType<typeof Database>; close: () => void } {
   const sqlite = new Database(':memory:');
   const db = drizzle(sqlite);
   migrate(db, { migrationsFolder: path.join(__dirname, '..', '..', '..', 'drizzle') });
-  return { db: db as unknown as LocalDb, close: () => sqlite.close() };
+  return { db: db as unknown as LocalDb, sqlite, close: () => sqlite.close() };
 }
 
 let handle: ReturnType<typeof openDb>;
@@ -112,6 +112,19 @@ describe('createTask (FR-10 + UC-02 postcondition)', () => {
       est_minutes: 120,
       has_deadline: true,
     });
+  });
+
+  it('rolls back the row and the op when a later write in the same transaction fails', () => {
+    // Make the LAST write of the transaction (the event insert) impossible. If the three
+    // writes were not one transaction, the task row and the upsert op would survive —
+    // the validation-rejection cases below throw BEFORE the transaction opens and can
+    // never prove this.
+    handle.sqlite.exec('DROP TABLE events');
+    expect(() =>
+      createTask(db, { userId: USER, draft: DRAFT, meta: { source: 'form', nlParseUsed: false } }),
+    ).toThrow(/events/);
+    expect(db.select().from(tasks).all()).toHaveLength(0);
+    expect(db.select().from(opOutbox).all()).toHaveLength(0);
   });
 
   it.each([

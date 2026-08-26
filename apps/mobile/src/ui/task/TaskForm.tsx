@@ -57,7 +57,12 @@ export function TaskForm({ initial, submitLabel, onSubmit }: TaskFormProps) {
   const [earliestStart, setEarliestStart] = useState<Date | null>(initial?.earliestStart ?? null);
 
   const estMinutes = Number.parseInt(minutesText, 10);
-  const valid = title.trim().length > 0 && Number.isInteger(estMinutes) && estMinutes > 0;
+  // Cross-field rule mirrored from assertValidDraft: enforcing it here keeps the DAO's
+  // throw unreachable from the UI (an uncaught throw in onPress is a fatal error).
+  const rangeValid =
+    deadline === null || earliestStart === null || earliestStart.getTime() <= deadline.getTime();
+  const valid =
+    title.trim().length > 0 && Number.isInteger(estMinutes) && estMinutes > 0 && rangeValid;
 
   const chipStyle = (selected: boolean) => [
     styles.chip,
@@ -99,7 +104,7 @@ export function TaskForm({ initial, submitLabel, onSubmit }: TaskFormProps) {
           <Pressable
             key={option}
             accessibilityRole="radio"
-            accessibilityState={{ selected: option === category }}
+            accessibilityState={{ checked: option === category }}
             accessibilityLabel={t(CATEGORY_LABELS[option])}
             onPress={() => setCategory(option)}
             style={chipStyle(option === category)}
@@ -153,7 +158,7 @@ export function TaskForm({ initial, submitLabel, onSubmit }: TaskFormProps) {
           <Pressable
             key={option}
             accessibilityRole="radio"
-            accessibilityState={{ selected: option === value }}
+            accessibilityState={{ checked: option === value }}
             accessibilityLabel={t(VALUE_LABELS[option])}
             onPress={() => setValue(option)}
             style={chipStyle(option === value)}
@@ -179,6 +184,9 @@ export function TaskForm({ initial, submitLabel, onSubmit }: TaskFormProps) {
         normalize={startOfDay}
         onChange={setEarliestStart}
       />
+      {!rangeValid ? (
+        <ThemedText variant="caption">{t('task.field.range.error')}</ThemedText>
+      ) : null}
 
       <View style={styles.switchRow}>
         <ThemedText>{t('task.field.splittable')}</ThemedText>

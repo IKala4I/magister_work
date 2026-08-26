@@ -1,10 +1,11 @@
 /**
- * Undo window for destructive actions — File 02 §3: destructive actions are undoable for
- * 6 seconds. No animation (nothing may depend on one completing, NFR-A2); the bar simply
- * appears, and expiry is a timer the action button races.
+ * Undo bar for destructive actions — File 02 §3: destructive actions are undoable for
+ * 6 seconds. Timing is owned by the screen (one timer per deleted row, so consecutive
+ * deletes never shorten each other's window); the bar just renders what is currently
+ * undoable. No animation (nothing may depend on one completing, NFR-A2).
  */
 import { useEffect } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { AccessibilityInfo, Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { t } from '../../i18n';
 import { ThemedText } from '../primitives';
@@ -15,16 +16,16 @@ export const UNDO_WINDOW_MS = 6000;
 export interface UndoSnackbarProps {
   message: string;
   onUndo: () => void;
-  onExpire: () => void;
 }
 
-export function UndoSnackbar({ message, onUndo, onExpire }: UndoSnackbarProps) {
+export function UndoSnackbar({ message, onUndo }: UndoSnackbarProps) {
   const theme = useTheme();
 
+  // accessibilityLiveRegion is Android-only; without an explicit announcement a VoiceOver
+  // user gets 6 s to discover an unannounced control.
   useEffect(() => {
-    const timer = setTimeout(onExpire, UNDO_WINDOW_MS);
-    return () => clearTimeout(timer);
-  }, [onExpire]);
+    if (Platform.OS === 'ios') AccessibilityInfo.announceForAccessibility(message);
+  }, [message]);
 
   return (
     <View

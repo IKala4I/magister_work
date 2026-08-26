@@ -67,3 +67,4 @@ docs/thesis/*.docx
 # local session exports (never commit conversation transcripts)
 session-backup*.txt
 *.build.log
+coverage/

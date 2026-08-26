@@ -5,7 +5,7 @@
  */
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Keyboard } from 'react-native';
 
 import { db } from '../../src/db/client';
@@ -22,12 +22,22 @@ import { t } from '../../src/i18n';
 import { EmptyState, Screen } from '../../src/ui/primitives';
 import { QuickAddBar } from '../../src/ui/task/QuickAddBar';
 import { TaskListRow } from '../../src/ui/task/TaskListRow';
-import { UndoSnackbar } from '../../src/ui/task/UndoSnackbar';
+import { UNDO_WINDOW_MS, UndoSnackbar } from '../../src/ui/task/UndoSnackbar';
 
 export default function InboxScreen() {
   const router = useRouter();
   const tasks = useLiveRows<TaskRow>(() => inboxTasksQuery(db as unknown as LocalDb), ['tasks']);
-  const [pendingUndo, setPendingUndo] = useState<TaskRow | null>(null);
+  // One undo entry and one timer per deleted row: consecutive deletes must not shorten
+  // each other's 6 s window (File 02 §3), so a single shared bar timer is not enough.
+  const [pendingUndos, setPendingUndos] = useState<TaskRow[]>([]);
+  const undoTimers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
+
+  useEffect(() => {
+    const timers = undoTimers.current;
+    return () => {
+      for (const timer of timers.values()) clearTimeout(timer);
+    };
+  }, []);
 
   const handleDelete = useCallback((task: TaskRow) => {
     // The undo bar sits at the bottom of the screen, where an open quick-add keyboard
@@ -35,18 +45,27 @@ export default function InboxScreen() {
     // Deleting is not typing, so drop the keyboard.
     Keyboard.dismiss();
     deleteTaskAction(task.id);
-    setPendingUndo(task);
+    setPendingUndos((prev) => [...prev.filter((p) => p.id !== task.id), task]);
+    const existing = undoTimers.current.get(task.id);
+    if (existing !== undefined) clearTimeout(existing);
+    undoTimers.current.set(
+      task.id,
+      setTimeout(() => {
+        undoTimers.current.delete(task.id);
+        setPendingUndos((prev) => prev.filter((p) => p.id !== task.id));
+      }, UNDO_WINDOW_MS),
+    );
   }, []);
 
   // The restore must NOT live inside a setState updater: updaters have to be pure, and
   // React is free to re-run them (StrictMode, concurrent re-render), which would replay
-  // the write. Read the state, then write.
+  // the write. Read the state, then write. Undo restores everything still undoable.
   const handleUndo = useCallback(() => {
-    if (pendingUndo !== null) restoreTaskAction(pendingUndo.id);
-    setPendingUndo(null);
-  }, [pendingUndo]);
-
-  const handleExpire = useCallback(() => setPendingUndo(null), []);
+    for (const task of pendingUndos) restoreTaskAction(task.id);
+    for (const timer of undoTimers.current.values()) clearTimeout(timer);
+    undoTimers.current.clear();
+    setPendingUndos([]);
+  }, [pendingUndos]);
 
   return (
     <Screen>
@@ -74,11 +93,14 @@ export default function InboxScreen() {
           )}
         />
       )}
-      {pendingUndo !== null ? (
+      {pendingUndos.length > 0 ? (
         <UndoSnackbar
-          message={t('inbox.undo.deleted')}
+          message={
+            pendingUndos.length === 1
+              ? t('inbox.undo.deleted')
+              : t('inbox.undo.deletedMany', { count: pendingUndos.length })
+          }
           onUndo={handleUndo}
-          onExpire={handleExpire}
         />
       ) : null}
     </Screen>

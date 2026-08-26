@@ -15,8 +15,12 @@
 export type ModelVersionTag = {
   /** Model registry version that produced the plan (or heuristic build tag). */
   model_version: string;
-  /** Which engine answered: the bandit service or the NFR-R2 heuristic fallback. */
-  engine: 'bandit' | 'heuristic';
+  /**
+   * Which engine answered: the learned engine (bandit service) or the NFR-R2 heuristic
+   * fallback. Values match `recommendations.engine` in the schema — one vocabulary
+   * everywhere, or P6 inherits a fork between analytics and stored rows.
+   */
+  engine: 'learned' | 'heuristic';
 };
 
 export type AnalyticsEvents = {
