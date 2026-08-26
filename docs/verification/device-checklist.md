@@ -54,6 +54,24 @@
   path with the app genuinely suspended/jetsammed. Simulator can't settle it: the simulator
   does not enforce real iOS suspension, background-refresh throttling, or memory eviction.
 
+## Auth & identity
+
+- ⬜ **FR-01 — magic-link deep linking from real mail clients** (added P4). Request a link on
+  the device, open it from Mail (iOS) and Gmail (Android); verify the hourwell://auth-callback
+  handoff, the one-shot-code guard (tapping the link twice), and a cold-start arrival (app
+  killed before tapping). Simulator can't settle it: there is no real mail client on the
+  simulator, and link-preview fetchers, in-app browsers, and Android App Links/verified-domain
+  behavior only exist in real mail apps on hardware.
+- ⬜ **FR-01 — anonymous→email conversion end-to-end** (added P4). Convert the trial account
+  from Settings, open the confirmation link, verify the uid is unchanged and local data
+  survives. Same mail-client dependency as above; also requires a real mailbox (owner action
+  in `p4-manual-verification.md`).
+- ⬜ **NFR-S1 — session survives reboot/lock via keychain/keystore** (added P4). Sign in,
+  reboot the device, relaunch: session restored without re-auth; on Android verify the
+  Keystore-backed value survives an OS-forced app kill. Simulator can't settle it: simulator
+  keychain is a file-backed shim without Secure Enclave/Keystore semantics or device
+  lock-state interactions.
+
 ## Sync & notifications
 
 - ⬜ **NFR-R1 — offline→reconnect with real radios** (local half added P3; full obligation at

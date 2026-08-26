@@ -1,5 +1,46 @@
 # Changelog
 
+## P4 — Onboarding (2026-08-26, phase/P4-onboarding)
+
+**Cold start (File 04 §3, the first thesis-reported numbers).** `instantiate_user_priors`
+copies prior_cells v0 (the day-zero bootstrap — version 0 of an empirical-Bayes-refreshed
+object, File 04 §3.5) into per-user `beta_cells` with the per-user n₀ multipliers: ×0.5
+outside declared working hours (spec-conflicts M5, fixed as ≥50%-overlap + strict-majority in
+ADR-0005) and ×0.5 on survey skip (= the UC-01 A1 wider-exploration mechanism, L8). Seed
+cluster = rMEQ class (DM..DE → 0..4). Fires by trigger when `onboarding_completed_at` first
+lands; EXECUTE revoked from clients (invariant 1); `ON CONFLICT DO NOTHING` (invariant 5).
+rMEQ→class cutoffs are enforced twice: `classFromScore` on the client and a `profiles` CHECK
+in the schema. Tests assert spec values, not implementation output: pgTAP checks all 240
+prior cells against an independently generated fixture (`scripts/gen-prior-cells-expected.mjs`)
+plus hand-computed α₀/β₀ for in/out/skip/weekend/majority/50%-boundary cases; jest checks all
+10 class boundaries. A live smoke (`docs/verification/p4-live-smoke.mjs`) verified the whole
+path 9/9 on the hosted EU project.
+
+**Auth (FR-01).** Env-gated supabase-js v2 (PKCE, processLock, AppState auto-refresh);
+sessions in the official LargeSecureStore pattern (AES key in expo-secure-store, ciphertext
+in MMKV — ADR-0006). Anonymous trial auto-created on first launch, convertible via
+`updateUser` (uid retained); magic-link sign-in with a deep-link callback route handling both
+?code= and #token forms; Google OAuth code-complete but inert behind the ⛔ consent-screen
+gate. The P3 binding contracts are implemented and tested: first sign-in rewrites every local
+row and outbox payload (adopt); a different uid wipes the mirror and resets the pull cursor.
+`enable_anonymous_sign_ins` + deep-link redirect allow-list pushed via `supabase config push`;
+magic-link email rate set deliberately to 1/min.
+
+**Onboarding (FR-02, UC-01).** Welcome → 5-item rMEQ survey (published instrument structure,
+per-item skip by deselect; any blank item = unscored survey → INT at half prior strength — no
+prorating exists for the instrument, ADR-0005) → working hours + sleep window steppers
+(defaults Mon–Fri 09:00–18:00, 23:00–07:00; screen-reader operable) → top categories → seed
+tasks via the P3 quick-add. Completion persists the profile locally through the outbox, then
+a P4-only bridge push upserts it so the server trigger instantiates priors (P8 replaces the
+bridge with sync-resolve replay). Tab shell gates on a completed profile (no onboarding flash:
+synchronous first-render read). Funnel analytics carry steps and enums only — never answers,
+scores as text, or emails.
+
+**Docs/process.** Simulator-evidence rule (owner directive 2026-08-26): simulator runs are
+smoke checks; device-conditioned requirements flip ✅ only at the owner-run hardware pass
+before P12 — running list seeded in `docs/verification/device-checklist.md`; PLAN row 11.
+
+
 Updated at each phase gate. Lines end with the requirement IDs they serve.
 
 ## P3 — Tasks (2026-08-26, phase/P3-tasks)
