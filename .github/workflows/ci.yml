@@ -35,7 +35,7 @@ jobs:
           version: 2.115.0
       - name: Start local database with migrations
         run: supabase db start && supabase db reset
-      - name: pgTAP suite (RLS bypass, append-only, M-01/M-02, prior seed values)
+      - name: pgTAP suite (RLS bypass, append-only, M-01/M-02, prior seed values, P6 plan rows)
         run: supabase test db
       - name: Contract sync — regenerated types match committed (File 03 §6 step 1)
         run: |
@@ -69,6 +69,23 @@ jobs:
       - run: uv run ruff check .
       - run: uv run mypy src tests
       - run: uv run pytest
+
+  edge:
+    name: Edge Functions (Deno fmt/lint/check/test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: supabase/functions
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.9.5
+      - run: deno fmt --check
+      - run: deno lint
+      - run: deno check _shared/*.ts plan-request/*.ts
+      - name: Unit tests (arm-A heuristic, matched ε-draw, grid/φ parity with the service, handler)
+        run: deno test --allow-read --allow-env --allow-net
 
   api-contract:
     name: API contract sync (openapi → api.ts, File 03 §6 step 2)

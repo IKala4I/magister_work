@@ -22,3 +22,6 @@ CHANGELOG.md
 services/
 training/
 supabase/.temp/
+
+# Deno edge functions — formatted by `deno fmt` (CI `edge` job)
+supabase/functions/

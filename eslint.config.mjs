@@ -15,6 +15,7 @@ export default tseslint.config(
       'specs/**',
       'services/**',
       'training/**',
+      'supabase/functions/**', // Deno toolchain: deno lint / deno fmt / deno check (CI `edge` job)
       'packages/shared/src/database.ts',
       'apps/mobile/drizzle/**',
     ],
@@ -24,7 +25,14 @@ export default tseslint.config(
   {
     // Node tooling scripts (generators, verification harnesses) run under plain node.
     files: ['scripts/**/*.mjs', 'docs/verification/**/*.mjs'],
-    languageOptions: { globals: { console: 'readonly', process: 'readonly' } },
+    languageOptions: {
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+        crypto: 'readonly',
+        performance: 'readonly',
+      },
+    },
   },
   {
     files: ['apps/mobile/**/*.{ts,tsx}'],
