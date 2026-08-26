@@ -4,17 +4,17 @@
  * Imports the device database, so tests exercise the DAO directly (src/db/tasks.ts) and
  * mock this module in component tests.
  */
+import { currentUserId } from '../auth/identity';
 import { db } from '../db/client';
 import { createTask, restoreTask, softDeleteTask, updateTask } from '../db/tasks';
 import type { QuickAddMeta, TaskDraft, TaskRow } from '../db/tasks';
 import type { LocalDb } from '../db/writes';
 import { track } from '../observability/analytics';
-import { getLocalUserId } from '../sync/localUser';
 
 const localDb = db as unknown as LocalDb;
 
 export function createTaskAction(draft: TaskDraft, meta: QuickAddMeta): TaskRow {
-  const row = createTask(localDb, { userId: getLocalUserId(), draft, meta });
+  const row = createTask(localDb, { userId: currentUserId(), draft, meta });
   track('task_created', {
     source: meta.source,
     nl_parse_used: meta.nlParseUsed,

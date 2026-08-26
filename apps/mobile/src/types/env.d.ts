@@ -7,6 +7,10 @@ declare const process: {
   env: {
     /** Sentry ingest DSN (EU org). Absent → crash reporting disabled (env-gated). */
     EXPO_PUBLIC_SENTRY_DSN?: string;
+    /** Supabase project URL. Absent (with the key) → auth disabled, app stays local-only. */
+    EXPO_PUBLIC_SUPABASE_URL?: string;
+    /** Supabase anon (publishable) key — RLS-scoped, safe in the bundle (NFR-S1). */
+    EXPO_PUBLIC_SUPABASE_ANON_KEY?: string;
     /** PostHog project key. Absent → analytics disabled (env-gated, like Sentry). */
     EXPO_PUBLIC_POSTHOG_API_KEY?: string;
     /**

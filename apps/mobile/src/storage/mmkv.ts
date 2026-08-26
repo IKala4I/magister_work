@@ -13,4 +13,11 @@ export const StorageKeys = {
   deviceId: 'sync.deviceId',
   opCounter: 'sync.opCounter',
   schemePreference: 'ui.schemePreference',
+  /** Last authenticated uid — drives the account-change wipe contract (src/auth). */
+  lastUserId: 'auth.lastUserId',
+  /**
+   * Prefix for supabase session ciphertext (AES-256-CTR; key material lives in
+   * expo-secure-store, never here — src/auth/largeSecureStore.ts).
+   */
+  sessionCiphertextPrefix: 'auth.session.',
 } as const;
