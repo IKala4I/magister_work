@@ -15,6 +15,13 @@
       "when": 1787734584797,
       "tag": "0001_p4_profiles",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1787771112413,
+      "tag": "0002_p6_plans",
+      "breakpoints": true
     }
   ]
 }

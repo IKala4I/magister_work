@@ -7,8 +7,9 @@
  *
  * Type mapping from Postgres: uuid→text, timestamptz→integer(timestamp_ms), jsonb→text(json),
  * bool→integer(boolean), real→real. `server_seq` is nullable locally — rows born offline get
- * it on first pull. `plans` is not mirrored yet: recommendations carry engine/model_version
- * themselves; P6 revisits when the Today timeline needs solver telemetry.
+ * it on first pull. `plans` is mirrored from P6 on: the Today screen needs the plan's
+ * provenance (NFR-R2 fallback reason vs. a study arm) and the unplaced list, which live in
+ * `plans.telemetry` server-side.
  *
  * Local-only status values never leave the device: the client may PUSH only the plan-review
  * set {accepted, pinned, moved, rejected} (spec-conflicts L11); the full value set exists
@@ -92,6 +93,34 @@ export const tasks = sqliteTable(
     index('tasks_user_status_idx').on(t.userId, t.status),
     index('tasks_user_deadline_idx').on(t.userId, t.deadline),
   ],
+);
+
+export const PLAN_HORIZONS = ['day', 'week'] as const;
+export const PLAN_ENGINES = ['learned', 'heuristic'] as const;
+
+/**
+ * Local mirror of the server `plans` row (specs/07 §4.1): one row per generation run, written
+ * by the plan-request edge function and mirrored here from its response (P6 bridge) or by pull
+ * (P8). Read-only on the client — never enqueues an op.
+ */
+export const plans = sqliteTable(
+  'plans',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull(),
+    /** YYYY-MM-DD in the user's zone. */
+    planDate: text('plan_date').notNull(),
+    horizon: text('horizon', { enum: PLAN_HORIZONS }).notNull().default('day'),
+    engine: text('engine', { enum: PLAN_ENGINES }).notNull(),
+    modelVersion: text('model_version'),
+    arm: text('arm'),
+    solverStatus: text('solver_status'),
+    /** Server telemetry incl. `ef.reason`, `unplaced`, `infeasible` (P6 migration comment). */
+    telemetry: text('telemetry', { mode: 'json' }).notNull(),
+    generatedAt: integer('generated_at', { mode: 'timestamp_ms' }).notNull(),
+    serverSeq: integer('server_seq'),
+  },
+  (t) => [index('plans_user_date_idx').on(t.userId, t.planDate, t.generatedAt)],
 );
 
 export const recommendations = sqliteTable(
