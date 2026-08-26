@@ -442,6 +442,8 @@ export interface components {
         };
         /** Telemetry */
         Telemetry: {
+            /** Build Ms */
+            build_ms: number;
             /** Degradation */
             degradation: ("coarse_30min" | "day_by_day") | null;
             /** Experiment Drawn */
@@ -473,6 +475,8 @@ export interface components {
             solves: number;
             /** Tick Minutes */
             tick_minutes: number;
+            /** Total Ms */
+            total_ms: number;
         };
         /** TradeOffOption */
         TradeOffOption: {

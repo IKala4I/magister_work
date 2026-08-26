@@ -34,7 +34,8 @@ CATS = ("deep", "admin", "physical", "learning")
 
 
 def _iso(day: date, hh: int, mm: int = 0) -> str:
-    return datetime.combine(day, datetime.min.time(), tzinfo=ZoneInfo(TZ)).replace(hour=hh, minute=mm).isoformat()
+    midnight = datetime.combine(day, datetime.min.time(), tzinfo=ZoneInfo(TZ))
+    return midnight.replace(hour=hh, minute=mm).isoformat()
 
 
 def instance(kind: str, seed: int) -> dict[str, Any]:
