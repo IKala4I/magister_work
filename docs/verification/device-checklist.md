@@ -22,6 +22,16 @@
   blocks, Skia ring visible). Simulator can't settle it: desktop GPU + no thermal or memory
   pressure makes simulator frame rates meaningless.
 
+- ⬜ **NFR-P1 — plan end-to-end ≤ 2.5 s p95 warm, measured from the device** (added P6). On
+  hardware with the HF Space warm: trigger ten manual re-plans on a 5–8-task inbox, read the
+  `plan_requested.duration_ms` values (PostHog or a debug log) and report p50/p95 for BOTH the
+  learned path and the fallback path. Why: the P6 numbers are Node-on-a-Mac → hosted edge
+  function on the fallback path only (`docs/verification/p6-manual-verification.md`); TLS
+  handshakes, radio wake-up and the JS bridge on a handset are not represented.
+- ⬜ **NFR-P2 — 60 fps timeline scrolling** (added P6). Scroll a 12-block Today timeline with the
+  Perf Monitor open on a mid-range Android and an iPhone. Why: FlashList recycling and blur
+  (`expo-blur` on iOS) cost nothing on an M-series Mac.
+
 ## Accessibility
 
 - ⬜ **NFR-A2 — 200% font scale + reduced-motion sweep on both platforms** (added P2, extended
@@ -34,6 +44,17 @@
   a11y element incl. ", due <date>"), ambiguity chips, undo within its 6 s window. Simulator
   can't settle it: simulator VoiceOver diverges from device behaviour (focus order, gesture
   handling) and TalkBack has no simulator equivalent that counts.
+
+- ⬜ **FR-22 / NFR-A2 — Today timeline at 200 % font scale and with reduced motion** (added P6).
+  Set the OS text size to maximum and Reduce Motion on; open Today with ≥ 6 blocks incl. one
+  "Experiment" block and a two-line rationale: no clipped text, no overlapping cards, the "Now"
+  marker readable, the time gutter intact. Why: the row-list timeline was designed for this but
+  only exercised at 1× in jest; the simulator's Dynamic Type differs from device rendering.
+- ⬜ **NFR-A1 — VoiceOver / TalkBack reading order on Today** (added P6). Swipe through: header
+  → Plan/Re-plan button → planning banner (progressbar) → fallback notice (if any) → each block
+  as ONE element announcing "title, start to end, Experiment, Confidence N percent" (no percent
+  on heuristic rows) → deferred summary. Why: composed labels and `accessible` grouping are not
+  verifiable without a real screen reader.
 
 ## Behaviour the simulator under-tests
 
@@ -53,6 +74,14 @@
   at P7). Background the app for hours/overnight, re-foreground, verify the scan-and-attribute
   path with the app genuinely suspended/jetsammed. Simulator can't settle it: the simulator
   does not enforce real iOS suspension, background-refresh throttling, or memory eviction.
+
+- ⬜ **UC-03 triggers on a real day boundary** (added P6). Leave the app in the background across
+  05:59 → 06:00 local and across midnight; foreground it: a new plan must be requested exactly
+  once per plan day (`plan_requested` with `trigger = new_day`), never while backgrounded. Why:
+  the simulator's clock and AppState transitions do not reproduce iOS background suspension.
+- ⬜ **NFR-R1 — Today offline** (added P6). Airplane mode after a plan exists: the plan still
+  renders from SQLite; "Re-plan" shows the offline/error notice without clearing the plan. Why:
+  simulator network loss is not real radio loss.
 
 ## Auth & identity
 
@@ -100,5 +129,10 @@ Space (owner-run once the Space exists, ⛔ P5 action item).
   single-thread speed, and `num_workers = 2` behaves differently under a CPU quota.
 - ⬜ **File 04 §1.5 practical literal threshold** (added P5). Re-fit
   `PRACTICAL_LITERAL_THRESHOLD` from container measurements (ADR-0007 §11); revisit.md entry.
+- ⬜ **UC-03 A1 — kill the Space, verify the fallback and the wake probe** (added P6). Pause the
+  Space (or set `RECSYS_URL` to an unreachable host), request a plan: the response must be
+  `engine = heuristic` with `telemetry.ef.reason = fallback:timeout|network` within the 1.9 s
+  budget; resume the Space: the next request must come back `learned` (the probe woke it). Why:
+  P6 verified the fallback only with `fallback:not_configured` (no Space yet) and local fakes.
 - ⬜ **Cold start of the Space** (added P5, NFR-R2). Measure wake-up latency from sleep and
   confirm the EF's 1.9 s fallback budget (P6) covers it.

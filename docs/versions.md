@@ -16,7 +16,7 @@ indicative versions are footnoted and, where architectural, recorded as ADRs.
 | eslint-plugin-react-hooks       | 7.1.1   | rules registered manually (version-stable form)                                                        |
 | eslint-config-prettier          | 10.1.8  |                                                                                                        |
 | @eslint/js                      | 10.0.1  |                                                                                                        |
-| Prettier                        | 3.9.6   |                                                                                                        |
+| Prettier                        | 3.9.6   | `supabase/functions/` excluded — `deno fmt` owns it                                                    |
 | uv                              | 0.12.5  | Homebrew install                                                                                       |
 | supabase CLI                    | 2.115.0 | Homebrew; CI pins the same in supabase/setup-cli                                                       |
 | Postgres (hosted + local)       | 17.6    | Supabase provisions 17 (File 03 said "Postgres 16" — 17 ⊇ 16 features; config.toml major_version = 17) |
@@ -112,6 +112,19 @@ APIs verified via ctx7 on 2026-08-26: `/google/or-tools` (CP-SAT Python snake_ca
 intervals, hints, time limit), `/fidelity/mabwiser` (LinUCB/LinTS `fit`/`predict_expectations`),
 `/jpadilla/pyjwt` (`PyJWKClient.get_signing_key_from_jwt`, `jwt.decode` audience/require).
 Project JWKS confirmed ES256 (asymmetric) — specs/07 §7's verification model applies unchanged.
+
+## Edge Functions — P6 additions (verified 2026-08-26)
+
+| Tool / package                | Version | Notes                                                                                            |
+| ----------------------------- | ------- | ------------------------------------------------------------------------------------------------ |
+| Deno                          | 2.9.5   | Homebrew locally; CI `denoland/setup-deno@v2` pinned to v2.9.5; `config.toml` `deno_version = 2` |
+| @supabase/supabase-js (Deno)  | 2.112.4 | `npm:` specifier in `supabase/functions/deno.json`; `auth.getClaims` JWKS verification           |
+| @std/assert (jsr)             | 1.0.19  | Deno test assertions (resolved in `supabase/functions/deno.lock`)                                |
+| supabase CLI functions config | 2.115.0 | `[functions.plan-request]` `verify_jwt = false`, `import_map = ./functions/deno.json`            |
+
+APIs verified via ctx7 on 2026-08-26: `/supabase/supabase` (Edge Functions `Deno.serve`, npm/jsr
+imports, `verify_jwt` in config.toml, `EdgeRuntime.waitUntil`), `/supabase/cli` (deploy entrypoint
+and import-map resolution order: flag → config → `<fn>/deno.json` → fallback).
 
 ## CI actions (verified 2026-08-24)
 
