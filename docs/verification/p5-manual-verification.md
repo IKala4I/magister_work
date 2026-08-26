@@ -69,6 +69,29 @@ Establishes the wiring only; the same assertions run as tests (`test_planner.py`
   displacement) is the edge functions' job and is tested there in P7/P8.
 - River SGD step on blend weights (P7); MC propensities for TS traffic (P11).
 
-## 6. Adversarial pass
+## 6. Adversarial pass (fresh-context subagent, 2026-08-26)
 
-See the phase report / PR body: findings and fixes are listed there and mirrored in the CHANGELOG.
+**2 MAJOR / 11 MINOR / 7 NOTE — all MAJOR/MINOR fixed, each with a regression test.**
+
+- **MAJOR 1 — top-m over chunk-only buckets** (`planner._draw`): a splittable ≤ 2 h task's ranking
+  included buckets only a chunk could start in; drawn there, the unsplit experiment was INFEASIBLE
+  and dropped (probe: 12/60 seeds), so the logged 0.25 was conditional on the draw — biased IPS/DR.
+  Fixed (rankings = full-duration buckets; hard error on an empty restriction);
+  `test_experiment_ranking_uses_only_full_duration_buckets` (40 seeds, 0 drops, top-m = the four
+  reachable buckets).
+- **MAJOR 2 — excluded correction never rebuilt** (`feedback.apply_feedback`): the one case that
+  must purge evidence (a reward later marked ambiguous) was skipped. Fixed per specs/07 §5 ("any
+  tuple"); `test_excluded_correction_triggers_the_rebuild`.
+- MINOR (fixed): pin at a no-daypart hour → 500; off-grid pin floored; day-by-day reported
+  FEASIBLE on all-UNKNOWN; d_min hard-coded in ticks on the 30-min rung; feature 11 > 1; older
+  out-of-order tuple added undecayed; non-ASCII service key → 500; rate-limiter eviction keyed by
+  request date; fallback-cell users marked applied without persistence (now 409); three separate
+  write connections (now one transaction); A_m(x) not on the row (now `experiment_top_m`).
+- NOTE (recorded, no change): coarse-rung φ semantics; slice selection by INFEASIBLE drops (P6
+  persists `experiment_dropped`); the "≥ m buckets" eligibility rule yields few experiments on a
+  plain 09–18 day (revisit.md — owner call); TS draw order (fixed anyway); 422 handler (removed);
+  Blend float32 tolerance (relaxed).
+- Reviewer's independent recomputation matched the code: F_τ on a hand-built W (incl. L2),
+  g(0)/g(16)/g(32), the (C4) overlap coefficients, Sherman–Morrison vs `inv` (1.3e-15).
+- Requirement verdicts after fixes: 1 traceability PASS · 2 propensity PASS (was FAIL on MAJOR 1)
+  · 3 reward paths PASS (was PARTIAL on MAJOR 2) · 4 timing honesty PASS.

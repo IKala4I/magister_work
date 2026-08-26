@@ -2,107 +2,102 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-08-26, **P4 closed** (PR #5). Next: **P5 — RecSys service.**
-> Standing rules live in CLAUDE.md: "Working mode", "Context efficiency", and (new since P4)
-> **"Simulator evidence"** — simulator runs are smoke checks; device-conditioned requirements
-> flip ✅ only at the owner-run hardware pass before P12 (`docs/verification/device-checklist.md`
-> is the running list — add entries DURING each phase).
+> Last update: 2026-08-26, **P5 closed** (PR #6). Next: **P6 — Plan E2E.**
+> Standing rules live in CLAUDE.md: "Working mode", "Context efficiency", "Simulator evidence"
+> (now also applied to **service timing**: Mac numbers ≠ 2 vCPU container — see
+> `docs/verification/device-checklist.md` "Service environment"), and the new invariant 16
+> (never run expo / package-manager commands from the repo root).
 
 ## Where we are
 
-- **P0–P4 merged** (PRs #1–#5). Working tree clean on `main`.
-- **P4 — Onboarding: COMPLETE.** FR-01 (magic link + anonymous trial convertible; Google
-  OAuth code-complete but ⛔-gated), FR-02 (rMEQ + hours + categories + seed tasks, <3 min,
-  every answer skippable), cold-start priors instantiated **server-side by trigger** exactly
-  per File 04 §3 (M5 rule per ADR-0005). Verified three ways: CI pgTAP (240-cell spec fixture
-  plus boundary/permission suites), **live smoke on the hosted EU project 9/9**
-  (`docs/verification/p4-live-smoke.mjs`), Maestro UC-01 walk 36/36 (simulator, Release).
-  Adversarial pass: 1 MAJOR (deep-link session fixation — fixed, PKCE-only) + 10 MINOR, all
-  fixed; reviewer independently recomputed all 240 prior cells with 0 mismatches. Full
-  record: `docs/verification/p4-manual-verification.md`.
+- **P0–P5 merged** (PRs #1–#6). Working tree clean on `main`.
+- **P5 — RecSys service: COMPLETE.** `services/recsys` (FastAPI 0.141, Python 3.12, uv):
+  `/plan`, `/feedback`, `/insights`, `/parse-preview`, `/healthz` per specs/07 §5; JWKS ES256 user
+  JWT (sub = user_id) or `X-Service-Key`. Planner per File 04 §1: DST-safe grid, F_τ verbatim
+  (L2), φ |C| = 14, x d = 17, Beta cells (28-d decay), LinUCB/TS (one draw per category per
+  plan), convex blend, CP-SAT (optional intervals, pinned, chunks ≤ 4 with duration-proportional
+  weights, criticality-only deferral, urgency, soft run-length/fragmentation, AddHint + 1e-4
+  stability unit, 1.5 s **plan-level** budget, ladder 30-min → day-by-day with UNKNOWN
+  escalation). **Exact ε-slice**: Bernoulli(ε) per plan, uniform task, uniform top-m bucket over
+  the buckets an unsplit placement can reach, `propensity = ε/m = 0.25` as a pure function of
+  settings, `experiment_top_m` on the row; mismatched ε/m → 422. **H3 paths**: excluded → skipped,
+  lapse → r = 0 applied, displacement → unrepresentable; id-set idempotency
+  (`recsys_applied_tuples`); any `correction` → full rebuild. Verified: ruff/mypy clean,
+  **124 tests + 6 Postgres integration tests (CI db job)**, coverage 92 %, MABWiser oracle;
+  adversarial pass 2 MAJOR + 11 MINOR all fixed (`docs/verification/p5-manual-verification.md`).
+  Timing: day OPTIMAL p50 70 ms, week FEASIBLE p50 1.0 s / e2e p90 1.95 s — **on a Mac only**.
 
 ## ⛔ ACTION REQUIRED (owner)
 
-1. **Google OAuth consent screen + credentials** (FR-01 Google path, code is ready and inert):
-   Google Cloud console → OAuth consent screen (External) → create an **OAuth client ID, type
-   "Web application"**, authorized redirect URI
-   `https://uapiuehjcntilwdmpojk.supabase.co/auth/v1/callback` → paste the client ID + secret
-   into Supabase Dashboard → Authentication → Providers → Google (enable). Nothing else changes;
-   the in-app button starts working.
-2. **Magic-link + anonymous-conversion E2E needs a real mailbox** (only the mailbox hop is
-   untested): steps in `docs/verification/p4-manual-verification.md` §3.
-3. **Sentry org/project slugs + auth token** — still only needed at P12/EAS.
-4. **HF Space creation** — will be raised mid-P5 when the service is ready to deploy (build +
-   local tests need nothing).
+1. **Hugging Face Space** (P5 deploy): create a Docker Space (free CPU, EU-irrelevant for HF),
+   set repo secret `HF_TOKEN` + repo variable `HF_SPACE` (`<user>/<space>`), and Space secrets
+   `DATABASE_URL` (Supabase **pooler** DSN — session or transaction mode; the direct host is
+   IPv6-only), `SUPABASE_URL`, `HOURWELL_SERVICE_KEY` (high-entropy; the same value goes into the
+   edge-function env in P6). Then `deploy-recsys.yml` pushes `services/recsys` on merge to main.
+   After it is up: run the container timing measurement (device-checklist "Service environment").
+2. **Google OAuth consent screen + credentials** (FR-01 Google path, code ready and inert) — as
+   in the P4 handoff (Web client, redirect
+   `https://uapiuehjcntilwdmpojk.supabase.co/auth/v1/callback`, paste into Supabase → Google).
+3. **Magic-link + anonymous-conversion E2E with a real mailbox** — `p4-manual-verification.md` §3.
+4. **Sentry org/project slugs + auth token** — P12/EAS only.
+5. **Owner decision before OSF freeze (not blocking P6):** revisit.md P5 entry on experiment
+   eligibility — on a plain 09–18 day only tasks ≤ 45 min have four reachable buckets, so the
+   "1 slot/day" default often yields no experiment (RQ4 data rate). Options: keep the strict
+   p = ε/m rule, or allow |A_m(x)| ∈ {2, 3} with exact per-row p = ε/|A_m(x)|.
 
-## What P5 needs to read (exact sections — read nothing else to orient)
+## What P6 needs to read (exact sections — read nothing else to orient)
 
-- `PLAN.md` §3 "P5 — RecSys service" (scope + acceptance; note UC-01 A2: empty busy set is a
-  VALID input — MVP runs on self-declared hours, decision 5).
-- `specs/04_algorithmic_formalization_and_cold_start.md` §1 (all of it: sets/precompute F_τ,
-  ILP form, TS-in-the-weights §1.4, CP-SAT §1.5) and §2.3 (MC propensities note).
-- `specs/07_engine_internals_and_schema.md` §3.2 (engine stages: Beta cells, LinUCB/TS state,
-  feature vector x_τc, bucketing φ |C|=14, blend §3.2.6), §5 (exact /plan /feedback /insights
-  /parse-preview /healthz schemas incl. X-Service-Key), Appendix A (every row marked P5:
-  ε encoding, λ_s/λ_f, M_τ, γ_u/η, b, d_min, L/H_g, σ², α_ucb, d=17, /plan rate limit).
-- `docs/thesis/spec-conflicts.md`: **M2** (propensity exact only within-slice — eligible task
-  drawn uniformly; log the within-slice value), **M3** (fresh/fatigued split only on weekday
-  MO/AF ⇒ |C|=14), **M4** (blend: TS sample flows through the linear term; w_B=1 recovers the
-  File 04 formula = pre-registered ablation), **L2** (buffer may extend past deadline — solver
-  tests assert the exact boundary), **L3** (LinUCB propensities degenerate), **H1 conditions**
-  (ε-symmetric arms engineering lands P5/P6: same ε, same top-m, arm A's heuristic ranking
-  defines its top-m set).
-- `packages/shared/src/params.ts` (EPSILON/TOP_M and friends — service constants must match;
-  api.ts is generated FROM the FastAPI spec via openapi-typescript, CI-diffed).
-- `services/recsys/` skeleton from P0 (`dayparts.py` + tests, pyproject/uv; gates:
-  `uv sync`, `uv run ruff check .`, `uv run mypy src tests`, `uv run pytest`).
-- MABWiser is a CI test oracle ONLY (dev-dep; File 03 §2.2) — never a runtime dependency.
+- `PLAN.md` §3 "P6 — Plan E2E" (scope + acceptance: e2e ≤ 2.5 s p95 warm, cold-backend
+  fallback, `recommendation_shown` with model version, UC-03 main + A1 + A2 on device).
+- `specs/07_engine_internals_and_schema.md` §5 (request/response — now pinned by
+  `packages/shared/src/api.ts`: types `ApiPaths/ApiComponents/ApiOperations`), §4.1
+  `plans`/`recommendations` columns (persist **every** assignment field: `context_bucket`,
+  `features`, `q_hat`, `confidence`, `rationale_key/params`, `is_experiment`, `propensity`
+  (M-01), `model_version`; put `experiment_top_m`, `experiment_dropped`, `degradation`,
+  `tick_minutes`, `rng_seed` into `plans.telemetry` — P11 replay needs them), Appendix A rows
+  "/plan EF fallback budget 1.9 s", "plan triggers 06:00 local + first open".
+- `specs/02` FR-20/21/22 (+ §3.1 confidence = solidity, "experiment" label), UC-03; NFR-R2.
+- `docs/thesis/spec-conflicts.md` **H1 conditions** (arm A = "heuristic + matched
+  randomization": the EF's heuristic must run the SAME ε-draw — uniform eligible task, uniform
+  top-m bucket by the heuristic's ranking, same ε and m, same badge, propensity logged
+  identically; mirror `services/recsys/src/hourwell_recsys/exploration.py` in TS), **M8** (the
+  week plan can take ~1.5–2 s in the service — calibrate the 1.9 s fallback budget against it),
+  L16 (EF passes `settings.epsilon/top_m` equal to `packages/shared/src/params.ts`).
+- `docs/decisions/ADR-0007-recsys-service.md` §5 (eligibility), §11 (timing), §12 (auth: the EF
+  calls with `X-Service-Key` and explicit `user_id`; JWT path exists too), §15 (l)–(m).
+- `apps/mobile/src/domain/workingHours.ts` (the `working_hours`/`sleep_window` shapes the EF
+  forwards unchanged) and `src/db/schema.ts` `recommendations` mirror.
 
-## New in P4 that later phases build on
+## New in P5 that later phases build on
 
-- **Auth/identity:** `src/auth/` — env-gated supabase client (PKCE; **createSessionFromUrl is
-  PKCE-?code=-only — NEVER re-add a token-fragment branch, that's session fixation, finding
-  M1**); `currentUserId()` resolves session → lastUserId (MMKV) → local placeholder; the P3
-  contracts are implemented in `accountTransition.ts` (adopt/wipe) and orchestrated in
-  `session.ts` (INITIAL_SESSION/SIGNED_IN → adopt | noop | wipe+rehydrate; anonymous
-  bootstrap on true first launch).
-- **Profile:** server `profiles` row is pushed by the **P4-only bridge**
-  (`src/sync/profilePush.ts` — drains ONLY profile_update ops by upserting current state;
-  P8 MUST replace it with sync-resolve op replay and delete it). Pulls go through
-  `upsertProfileFromServer` (never enqueues). Local mirror table `profiles` in drizzle.
-- **Server:** `instantiate_user_priors(uuid)` + onboarding triggers + chronotype CHECKs
-  (migrations `20260826090000_p4_onboarding.sql`, `20260826150000_p4_hardening.sql`) — P5's
-  service READS beta_cells/bandit_state but never instantiates (trigger owns that).
-- **UI:** `Screen` primitive takes `topInset` for headerless screens; `Button` primitive
-  exists; onboarding gate = `useOnboardingComplete()` in `(tabs)/_layout` + symmetric
-  reverse gate on `onboarding/index`.
+- **Contract:** `packages/shared/scripts/gen-api-types.sh` regenerates `api.ts` from the FastAPI
+  OpenAPI document; CI job `api-contract` diffs it — **regenerate after ANY schema change** (the
+  first CI run caught exactly that drift). `Telemetry` has `build_ms`, `total_ms`, `solves`,
+  `degradation`, `rng_seed`, `experiment_drawn/dropped`.
+- **Service auth:** both credentials on every endpoint; `/insights` with a service key needs
+  `?user_id=`; `/feedback` returns **409** for users whose cells were never instantiated.
+- **Reproducibility:** `settings.seed` makes a plan deterministic (TS draws in category order);
+  the response echoes `rng_seed`.
+- **Local dev:** `uv run python -m hourwell_recsys.main` runs with in-memory state (no DB);
+  `scripts/bench_solve.py` is the timing smoke check (label its numbers as Mac numbers).
+- **DB:** `recsys_applied_tuples` (service-only, RLS on, no policies, no FK to recommendations);
+  `beta_cells` are UPDATEd only (trigger owns instantiation); `bandit_state` upserted lazily.
 
-## Gotchas (carry forward; P3 list still applies — see git history of this file if needed)
+## Gotchas (carry forward; earlier lists still apply)
 
-- **Local Release builds need `SENTRY_DISABLE_AUTO_UPLOAD=true`**; cold start only on Release.
-- jest 29.7/TS 5.9.3/@sentry 7.11/mmkv 3.3.3 pins (ADR-0003/0004); RNTL v14 async render;
-  never import `src/db/client.ts` in tests; mock factories only close over `mock*` vars.
-- Schema changes: `src/db/schema.ts` → `pnpm exec drizzle-kit generate --name <slug>` →
-  commit `drizzle/`.
-- **New route files** ⇒ regenerate typed routes: `npx expo customize tsconfig.json` in
-  apps/mobile (does not touch tsconfig if unchanged).
-- **`supabase config push` overwrites REMOTE auth config from config.toml** — config.toml is
-  now the source of truth (magic-link email rate deliberately 1m0s; anonymous sign-ins on).
-- `supabase gen types typescript --linked > …` then `./scripts/normalize-db-types.sh` on BOTH
-  sides — CI (CLI 2.115.0 pinned) diffs the normalized output.
-- pgTAP/`supabase test db` run ONLY in CI (no local Docker) — SQL must be right by
-  construction; the linked project accepts `supabase db push` directly.
-- Maestro at accessibility type sizes needs `scrollUntilVisible` with `timeout: 90000`;
-  `takeScreenshot` paths must be relative (land in `~/.maestro/tests/<run>/`).
-- Anonymous test users accumulate on the hosted project (live smoke + walks) — purged by the
-  P10 retention cron; harmless meanwhile.
-- Quick-add default category is **Admin** (categories are form-edited, never NL-guessed).
-- `docs/decisions/revisit.md` has 2 open entries (wipe-confirm on deep-link path → P8;
-  promoted-priors-version → P11) — surface them in those phases.
-- Prettier reformats md tables and long lines (`pnpm format` before committing docs); never
-  let it touch `packages/shared/src/database.ts`, `apps/mobile/drizzle/`, `specs/`.
+- **Never run expo / pnpm add / npx installers from the root** (CLAUDE.md invariant 16); shell
+  `cd` persists between tool calls — use absolute paths.
+- CI lints the whole recsys tree (`ruff check .`) — lint `scripts/` too; mypy covers `src tests`.
+- CP-SAT: hints do not keep ties (M7); presolve probing dominates the cap at ~10⁴ literals (M8) —
+  keep `cp_model_probing_level = 0`; the ladder is time-budgeted per plan.
+- The experiment task is solved unsplit; its top-m is over full-duration buckets only (M1).
+- `Blend` convexity tolerance is 1e-6 (float32 columns); River step lands P7.
+- Prettier reformats md tables (`pnpm format` before committing docs); `api.ts`, `database.ts`,
+  `drizzle/`, `specs/` are ignored.
+- `docs/decisions/revisit.md` has 5 open entries (2 from P4, 3 from P5 incl. the λ_f and the
+  eligibility data-rate question) — surface them in the phases named.
 
 ## Open questions (owner)
 
-- None blocking beyond the ⛔ items above. H1 text changes land at OSF freeze (P11 stop
-  condition).
+- The eligibility/data-rate question above (⛔ item 5) — decide before the OSF freeze; nothing in
+  P6 depends on it.

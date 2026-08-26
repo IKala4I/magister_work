@@ -94,6 +94,30 @@ not search — is the binding constraint. Each Appendix A row marked P5 also nee
 14. **state_version** increments once per /feedback batch that changed state and on every
     rebuild; the same version is written to all four category rows.
 
+15. **Adversarial-pass amendments (2026-08-26).** (a) The experiment's top-m ranking is built
+    over the buckets an _unsplit_ placement can occupy (full-duration starts) — chunk-only
+    buckets had entered the set and caused silent drops (20 % on the probe), which would have
+    made the logged 0.25 a conditional, biased propensity; `_apply_experiment` now fails hard on
+    an empty restriction. (b) `correction: true` on ANY tuple — excluded ones included — triggers
+    the rebuild (specs/07 §5 verbatim); the rebuild reads non-excluded rows only. (c) Pinned
+    tasks keep their exact instant (tick span is the conservative cover); pins in a no-daypart
+    hour are reported `no_feasible_start`, not a 500. (d) The day-by-day rung reports UNKNOWN when
+    no day solved. (e) d_min is expressed in ticks of the rung actually solved (1 tick = 30 min on
+    the coarse rung). (f) Feature 11 clips at 1 (§3.2.4 "components in [0, 1]"). (g) An
+    out-of-order OLDER tuple is added pre-decayed by the time since it, so delivery order cannot
+    change the posterior. (h) `X-Service-Key` is compared as bytes (non-ASCII → 401).
+    (i) The rate limiter evicts by wall clock, never by request data. (j) `/feedback` for a user
+    without instantiated cells is refused (409) instead of silently marking evidence applied.
+    (k) State, cells and the id-set are written in one transaction. (l) `Assignment.experiment_top_m`
+    carries A_m(x) for File 04 §2.2 replay — P6 must persist it with the recommendation row.
+    (m) TS draws follow category order (same seed ⇒ same plan on every backend); internal
+    `ValueError`s are no longer mapped to 422. Notes accepted without change: coarse-rung φ
+    semantics differ slightly (rows carry `tick_minutes` in plan telemetry; P6 persists it);
+    every INFEASIBLE-after-pin drop is a selection on the slice (P6 persists
+    `experiment_dropped`, P11 reports the rate); the "≥ m feasible buckets" rule leaves few
+    eligible tasks on a plain 09–18 day — a measurability concern for RQ4 raised in
+    revisit.md for the owner.
+
 ## Consequences
 
 - The propensity path is exact and testable end to end; the arm-A edge function (P6) must mirror

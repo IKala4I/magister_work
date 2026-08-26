@@ -40,7 +40,12 @@ UNKNOWN escalation: day OPTIMAL 20/20 (solve p50 70 ms), week FEASIBLE 20/20 (so
 end-to-end p90 1.95 s) — on an M-series Mac, not the 2 vCPU Space (spec-conflicts M8; checklist).
 MABWiser 2.7.4 is the CI oracle: LinUCB expectations match to 1e-6, LinTS moments match.
 
-**Tracking.** ADR-0007; spec-conflicts M7, M8, L14–L16; thesis-corrections 4 items; revisit 3
+**Adversarial pass.** 2 MAJOR (top-m ranking over chunk-only buckets silently dropped
+experiments → biased slice propensity; an excluded correction never triggered the rebuild) +
+11 MINOR, all fixed with regression tests (`docs/verification/p5-manual-verification.md` §6);
+`Assignment.experiment_top_m` added for File 04 §2.2 replay.
+
+**Tracking.** ADR-0007 (+§15 amendments); spec-conflicts M7, M8, L14–L16; thesis-corrections 4 items; revisit 3
 entries; device-checklist "Service environment" section; CLAUDE.md invariant 16 (never run
 package-manager commands from the root).
 

@@ -107,7 +107,7 @@ autonomously once green (owner directive 2026-08-24 — stop conditions in CLAUD
 mode"). Cross-cutting from P2 onward: NFR-A1/A2 respected in all new UI; every new table ships
 with RLS + a bypass test (NFR-S1).
 
-**Status board:** P0 ✅ merged (PR #1) · P1 ✅ merged (PR #2) · P2 ✅ merged (PR #3; carry-over measurements done — NFR-P2 p90 = 1075 ms and NFR-A2 sweep 27/27, both on the iOS **simulator**: threshold met, device condition not — device re-check on the checklist below) · P3 ✅ merged (PR #4; adversarial pass found 3 MAJORs, all fixed + re-verified on the iOS **simulator**, Release build — see `docs/verification/p3-manual-verification.md`) · P4 ✅ merged (PR #5; cold-start math verified 3 ways incl. live smoke on the hosted project; adversarial pass: 1 MAJOR session-fixation + 10 MINOR, all fixed — `docs/verification/p4-manual-verification.md`; ⛔ open: Google OAuth consent screen, mailbox magic-link E2E) · P5 opens next.
+**Status board:** P0 ✅ merged (PR #1) · P1 ✅ merged (PR #2) · P2 ✅ merged (PR #3; carry-over measurements done — NFR-P2 p90 = 1075 ms and NFR-A2 sweep 27/27, both on the iOS **simulator**: threshold met, device condition not — device re-check on the checklist below) · P3 ✅ merged (PR #4; adversarial pass found 3 MAJORs, all fixed + re-verified on the iOS **simulator**, Release build — see `docs/verification/p3-manual-verification.md`) · P4 ✅ merged (PR #5; cold-start math verified 3 ways incl. live smoke on the hosted project; adversarial pass: 1 MAJOR session-fixation + 10 MINOR, all fixed — `docs/verification/p4-manual-verification.md`; ⛔ open: Google OAuth consent screen, mailbox magic-link E2E) · P5 ✅ merged (PR #6; FastAPI service + CP-SAT planner per File 04 §1, exact ε-slice propensity, H3-distinct reward paths; adversarial pass: 2 MAJOR (top-m over chunk-only buckets → biased slice; excluded correction never rebuilt) + 11 MINOR, all fixed — `docs/verification/p5-manual-verification.md`; timing measured on a Mac only, 2 vCPU Space pending; ⛔ open: HF Space creation) · P6 opens next.
 
 > **Simulator ≠ device (owner directive 2026-08-26, CLAUDE.md "Simulator evidence").**
 > Device-conditioned requirements flip to ✅ only at the owner-run **hardware verification
@@ -317,4 +317,4 @@ model_registry columns; ALS λ and confidence weighting; River blend target.
 
 ---
 
-_P4 complete. P5 (RecSys service) opens next — read docs/HANDOFF.md for the exact spec sections it needs._
+_P5 complete. P6 (Plan E2E) opens next — read docs/HANDOFF.md for the exact spec sections it needs._
