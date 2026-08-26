@@ -1,5 +1,49 @@
 # Changelog
 
+## P5 — RecSys service (2026-08-26, phase/P5-recsys)
+
+**Service (File 04 §1, specs/07 §5).** FastAPI 0.141 on Python 3.12: `POST /plan`, `POST /feedback`,
+`GET /insights`, `POST /parse-preview`, `GET /healthz`; user JWTs verified against the project JWKS
+(ES256, `aud = authenticated`, `sub` must equal `user_id`), `X-Service-Key` for the edge functions;
+strict Pydantic schemas (`extra = forbid`) whose OpenAPI document generates
+`packages/shared/src/api.ts` (openapi-typescript 7.13, new CI `api-contract` job). Per-user state
+lives only in Postgres through the pooler (`PostgresRepo`, psycopg 3 pool); an in-memory repo backs
+tests and local runs. Dockerfile + HF Spaces README + `deploy-recsys.yml` ready for the Space (⛔).
+
+**Planning pipeline.** DST-safe tick grid (92/100-tick days handled; empty busy set valid —
+decision 5); F_τ exactly as File 04 §1.2 writes it (buffer inside W, may pass the deadline, L2);
+φ with |C| = 14 and the 90-min/15-min fatigue rule; x_{τ,c} d = 17 in the §3.2.4 order; Beta cells
+with 28-day decay on evidence only; LinUCB/TS linear-Gaussian state (Sherman–Morrison, one TS draw
+per category per plan, LinUCB arm deterministic); convex blend (w_B = 1 recovers File 04). CP-SAT:
+optional intervals + `AddNoOverlap`, pinned tasks, splittable chunk chains with duration-proportional
+weights (ADR-0007 §3), criticality-only deferral, urgency g(u), soft run-length (deep) and
+fragmentation penalties, `AddHint` warm start with a 1e-4 stability unit (CP-SAT hints do not keep
+ties — spec-conflicts M7), 1.5 s anytime cap as a plan-level budget, degradation ladder
+30-min → day-by-day with telemetry. FR-24 trade-off options (drop/shrink/move/unpin) ranked by
+utility loss when a critical task cannot be honoured.
+
+**Propensity exactness (M-01, M2).** One Bernoulli(ε) experiment per plan: eligible task drawn
+uniformly (non-critical, unpinned, ≤ 2 h, ≥ m feasible buckets), bucket drawn uniformly from its
+top-m, pinned into the solve unsplit; `propensity = ε/m` is a pure function of settings, tested for
+value (0.25), uniformity (χ²), eligibility, and that no non-slice row ever carries a propensity;
+requests whose ε/m differ from the constants are rejected (422).
+
+**Reward paths (H3).** `/feedback`: `excluded = true` → counted, never touches state (spy-tested);
+lapse → r = 0.0 applied; external displacement → not representable (`reason` has no such value,
+422); `(recommendation_id, kind)` id-set makes re-delivery a no-op (`recsys_applied_tuples`,
+migration + pgTAP); `correction = true` → full rebuild A = I + Σxxᵀ, b = Σrx and Beta recount with
+decay as of each tuple (never a downdate), tested ≡ from-scratch.
+
+**Measured, honestly.** Week instances (50 tasks) were presolve-bound UNKNOWN 20/20 under the
+spec's literal-count trigger; after probing/symmetry presolve off, a practical 8·10³ threshold and
+UNKNOWN escalation: day OPTIMAL 20/20 (solve p50 70 ms), week FEASIBLE 20/20 (solve p50 1.0 s,
+end-to-end p90 1.95 s) — on an M-series Mac, not the 2 vCPU Space (spec-conflicts M8; checklist).
+MABWiser 2.7.4 is the CI oracle: LinUCB expectations match to 1e-6, LinTS moments match.
+
+**Tracking.** ADR-0007; spec-conflicts M7, M8, L14–L16; thesis-corrections 4 items; revisit 3
+entries; device-checklist "Service environment" section; CLAUDE.md invariant 16 (never run
+package-manager commands from the root).
+
 ## P4 — Onboarding (2026-08-26, phase/P4-onboarding)
 
 **Cold start (File 04 §3, the first thesis-reported numbers).** `instantiate_user_priors`

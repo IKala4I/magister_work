@@ -114,3 +114,19 @@ FR-10 field list in §3.6 табл. 3.1 — "назва, категорія, т�
 destructive actions; "пропустити ніколи не буває червоним"; WCAG 2.2 AA with ≥44 px targets
 and 200 % font scaling + reduced-motion (now backed by an executed sweep, 27/27); and the
 Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
+
+17. **§2 / §3 (solver):** wherever the draft repeats File 04 §1.5's "≈ 1.5·10⁴ literals — small
+    for CP-SAT" / "|literals| > 4·10⁴ → 30-min granularity", say instead that the 1.5 s anytime cap is
+    _presolve-bound_ on this model: measured 2026-08-26 on an M-series Mac, 15-min week instances at
+    8–10·10³ start literals returned UNKNOWN, 30-min instances (3–4·10³) FEASIBLE; the service
+    degrades at a measured threshold (8·10³) and on UNKNOWN, with the cap shared across rungs
+    (spec-conflicts M8, ADR-0007 §11). Container numbers are pending (device-checklist).
+18. **§2 (warm start):** if the draft says the previous plan is injected "as a hint" so that
+    blocks only move when worthwhile, add that CP-SAT hints do not preserve ties — the system adds a
+    one-unit (1e-4) stability bonus on the hinted start to realize that promise (spec-conflicts M7).
+19. **§2 (splittable tasks):** state that a chunk's objective weight is the duration-proportional
+    share of the task's weight (spec-conflicts L14) and that chunks number at most four (ADR-0007
+    §3); the formal C3 leaves chunk weights implicit.
+20. **§3 (service API):** the propensity is logged as the within-slice value p = ε/m = 0.25 and
+    the service refuses requests whose ε or m differ from the pre-registered constants (L16) —
+    worth one sentence where the OPE substrate is described.
