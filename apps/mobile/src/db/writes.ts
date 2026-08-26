@@ -50,7 +50,7 @@ export function enqueueOp(
 }
 
 /** Append-only event types the client can emit so far; later phases extend this list. */
-export const CLIENT_EVENT_TYPES = ['task_created'] as const;
+export const CLIENT_EVENT_TYPES = ['task_created', 'recommendation_shown'] as const;
 export type ClientEventType = (typeof CLIENT_EVENT_TYPES)[number];
 
 /**

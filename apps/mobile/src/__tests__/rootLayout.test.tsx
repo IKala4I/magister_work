@@ -11,6 +11,12 @@ jest.mock('drizzle-orm/expo-sqlite/migrator', () => ({
   useMigrations: jest.fn(() => ({ success: true, error: undefined })),
 }));
 jest.mock('../db/client', () => ({ db: {} }));
+// The Today tab (P6) reads plans/recommendations through live queries and wires the UC-03
+// trigger; the shell test is about readiness, not planning.
+jest.mock('../db/useLiveRows', () => ({ useLiveRows: () => [] }));
+jest.mock('../sync/usePlanTrigger', () => ({
+  usePlanTrigger: () => ({ requestManual: jest.fn() }),
+}));
 jest.mock('../../drizzle/migrations', () => ({}));
 // The readiness tests cover an onboarded user; the UC-01 gate has its own suite (P4).
 jest.mock('../db/useProfile', () => ({

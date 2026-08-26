@@ -38,6 +38,18 @@ export type AnalyticsEvents = {
   recommendation_shown: ModelVersionTag & {
     is_experiment: boolean;
   };
+  /**
+   * UC-03 / NFR-P1 (P6): one per plan-request round trip, with the client-measured end-to-end
+   * time (push → edge function → mirrored). `outcome` separates the NFR-R2 fallback from the
+   * study's arm A so outage days are identifiable (File 06 exclusion rule).
+   */
+  plan_requested: {
+    trigger: 'first_open' | 'new_day' | 'manual';
+    outcome: 'learned' | 'arm_a' | 'fallback' | 'empty_inbox' | 'error';
+    duration_ms: number;
+    engine: 'learned' | 'heuristic' | null;
+    model_version: string | null;
+  };
   /** FR-02 funnel (P4). Steps only — never answers, scores, or emails. */
   onboarding_step_completed: {
     step: 'welcome' | 'survey' | 'hours' | 'categories' | 'seed_tasks';

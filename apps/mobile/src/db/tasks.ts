@@ -234,6 +234,14 @@ export function restoreTask(db: LocalDb, input: { id: string; now?: Date }): Tas
   });
 }
 
+/** Every live task of a user (Today needs titles for scheduled tasks; P6). */
+export function activeTasksQuery(db: LocalDb, userId: string) {
+  return db
+    .select()
+    .from(tasks)
+    .where(and(eq(tasks.userId, userId), isNull(tasks.deletedAt)));
+}
+
 /** Inbox list (FR-10 read path) — also the query fed to useLiveQuery on the Inbox tab. */
 export function inboxTasksQuery(db: LocalDb) {
   return db

@@ -16,13 +16,13 @@ import { StyleSheet, View } from 'react-native';
 
 import { t } from '../../i18n';
 import { useTheme } from '../theme';
-import { confidenceOpacity, EXPERIMENT_BORDER } from '../tokens/confidence';
+import { confidenceOpacity, EXPERIMENT_BORDER, NULL_CONFIDENCE_RENDER } from '../tokens/confidence';
 import { GlassPanel } from './GlassPanel';
 import { ThemedText } from './ThemedText';
 
 export interface ConfidenceBlockProps extends PropsWithChildren {
-  /** Model confidence ∈ [0,1] (recommendations.confidence). */
-  confidence: number;
+  /** Model confidence ∈ [0,1] (recommendations.confidence); null on heuristic rows. */
+  confidence: number | null;
   /** ε-slice exploration block (recommendations.is_experiment, FR-22). */
   isExperiment?: boolean;
   /** Screen-reader description of the block content ("Deep work, 9:00–10:30"). */
@@ -36,11 +36,12 @@ export function ConfidenceBlock({
   children,
 }: ConfidenceBlockProps) {
   const theme = useTheme();
-  const percent = Math.round(Math.min(1, Math.max(0, confidence)) * 100);
+  const percent =
+    confidence === null ? null : Math.round(Math.min(1, Math.max(0, confidence)) * 100);
   const label = [
     contentLabel,
     isExperiment ? t('block.experiment') : undefined,
-    t('block.confidence.a11y', { percent }),
+    percent === null ? undefined : t('block.confidence.a11y', { percent }),
   ]
     .filter((part): part is string => part !== undefined)
     .join(', ');
@@ -48,7 +49,7 @@ export function ConfidenceBlock({
   return (
     <View accessible accessibilityLabel={label}>
       <GlassPanel
-        solidity={confidenceOpacity(confidence)}
+        solidity={confidenceOpacity(confidence ?? NULL_CONFIDENCE_RENDER)}
         style={
           isExperiment
             ? {
