@@ -44,7 +44,11 @@ const { error: profileError } = await supabase.from('profiles').insert({
   user_id: uid,
   timezone: 'Europe/Kyiv',
   working_hours: {
-    mon: [540, 1080], tue: [540, 1080], wed: [540, 1080], thu: [540, 1080], fri: [540, 1080],
+    mon: [540, 1080],
+    tue: [540, 1080],
+    wed: [540, 1080],
+    thu: [540, 1080],
+    fri: [540, 1080],
   },
   sleep_window: [1380, 420],
   rmeq_score: 24,
@@ -59,35 +63,57 @@ const { data: cells, error: cellsError } = await supabase
   .from('beta_cells')
   .select('category, daypart, day_type, alpha0, beta0, prior_version')
   .eq('user_id', uid);
-check('trigger instantiated beta_cells', !cellsError && cells?.length === 48,
-  cellsError?.message ?? `got ${cells?.length ?? 0} cells`);
+check(
+  'trigger instantiated beta_cells',
+  !cellsError && cells?.length === 48,
+  cellsError?.message ?? `got ${cells?.length ?? 0} cells`,
+);
 
 const cell = (c, d, t) =>
   cells?.find((r) => r.category === c && r.daypart === d && r.day_type === t);
 const moWd = cell('deep', 'MO', 'weekday');
-check('deep/MO/weekday in-hours: (5.92, 2.08) @ prior_version 0',
+check(
+  'deep/MO/weekday in-hours: (5.92, 2.08) @ prior_version 0',
   moWd && near(moWd.alpha0, 5.92) && near(moWd.beta0, 2.08) && moWd.prior_version === 0,
-  JSON.stringify(moWd));
+  JSON.stringify(moWd),
+);
 const moWe = cell('deep', 'MO', 'weekend');
-check('deep/MO/weekend out-of-hours: (1.29, 0.71)',
-  moWe && near(moWe.alpha0, 1.29) && near(moWe.beta0, 0.71), JSON.stringify(moWe));
+check(
+  'deep/MO/weekend out-of-hours: (1.29, 0.71)',
+  moWe && near(moWe.alpha0, 1.29) && near(moWe.beta0, 0.71),
+  JSON.stringify(moWe),
+);
 
 const { data: cluster } = await supabase
-  .from('cluster_assignments').select('cluster_id, method').eq('user_id', uid);
-check('seed cluster = rMEQ class (DM => 0, rmeq_seed)',
+  .from('cluster_assignments')
+  .select('cluster_id, method')
+  .eq('user_id', uid);
+check(
+  'seed cluster = rMEQ class (DM => 0, rmeq_seed)',
   cluster?.length === 1 && cluster[0].cluster_id === 0 && cluster[0].method === 'rmeq_seed',
-  JSON.stringify(cluster));
+  JSON.stringify(cluster),
+);
 
 const { error: rpcError } = await supabase.rpc('instantiate_user_priors', { p_user_id: uid });
-check('invariant 1: client cannot execute instantiate_user_priors', rpcError != null,
-  'rpc unexpectedly succeeded');
+check(
+  'invariant 1: client cannot execute instantiate_user_priors',
+  rpcError != null,
+  'rpc unexpectedly succeeded',
+);
 
-const { error: modelWriteError } = await supabase.from('beta_cells')
-  .update({ succ: 99 }).eq('user_id', uid);
+const { error: modelWriteError } = await supabase
+  .from('beta_cells')
+  .update({ succ: 99 })
+  .eq('user_id', uid);
 const { data: afterWrite } = await supabase
-  .from('beta_cells').select('succ').eq('user_id', uid).eq('succ', 99);
-check('invariant 1: client cannot write model state',
-  modelWriteError != null || afterWrite?.length === 0);
+  .from('beta_cells')
+  .select('succ')
+  .eq('user_id', uid)
+  .eq('succ', 99);
+check(
+  'invariant 1: client cannot write model state',
+  modelWriteError != null || afterWrite?.length === 0,
+);
 
 await supabase.auth.signOut();
 console.log(failures === 0 ? '\nALL PASS' : `\n${failures} FAILURE(S)`);

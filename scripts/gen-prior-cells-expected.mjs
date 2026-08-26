@@ -45,7 +45,8 @@ for (const [daypart, byClass] of Object.entries(ANCHOR)) {
   for (const [cls, muDeep] of Object.entries(byClass)) {
     for (const [cat, { gamma, delta, deltaAF }] of Object.entries(CATEGORIES)) {
       const bonus = daypart === 'AF' ? deltaAF : 0;
-      const muWeekday = gamma === 1.0 && delta === 0 && bonus === 0
+      const muWeekday =
+        gamma === 1.0 && delta === 0 && bonus === 0
           ? muDeep // identity transform: the anchor passes through exactly
           : sigma(gamma * logit(muDeep) + delta + bonus);
       const muWeekend = 0.5 * muWeekday + 0.5 * WEEKEND_BLEND_TARGET;
