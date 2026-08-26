@@ -116,6 +116,24 @@ Quality stays where it is; what changes is how much we re-read.
    implementation rather than thesis-critical work, say so explicitly in the report — the owner
    may run those on a cheaper model.
 
+## Simulator evidence (owner directive, 2026-08-26)
+
+- **Simulator runs are a smoke check, not evidence about real devices.** Two distinct
+  distortions: performance is systematically flattered (an M-series Mac is nothing like a
+  mid-range 2022 handset — thesis-corrections item 11), and behaviour is under-tested
+  (gestures, haptics, VoiceOver/TalkBack, real keyboards, genuine network loss, iOS
+  background restrictions). Android has never run on hardware at all.
+- **Never report a simulator measurement as satisfying a device-conditioned requirement.**
+  Say what ran, on what, and what it does and doesn't establish (the NFR-P2 write-up is the
+  model).
+- Maintain **`docs/verification/device-checklist.md`** — the running list of everything that
+  must be re-verified on real hardware (one iPhone, one Android) before release. Add entries
+  **during every phase, not retroactively**: each names the requirement, what to do, and why
+  the simulator can't settle it.
+- A dedicated **owner-run hardware verification pass before P12** is where device-conditioned
+  requirements flip to ✅. Until then they are at best "verified on simulator; device pending".
+  P10's performance/a11y work is scoped as "prepare for device verification", not "done".
+
 ## Conventions
 
 - **Commits:** Conventional Commits with `Refs:` (requirement IDs) + `Phase:` trailers;

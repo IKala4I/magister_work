@@ -107,7 +107,13 @@ autonomously once green (owner directive 2026-08-24 — stop conditions in CLAUD
 mode"). Cross-cutting from P2 onward: NFR-A1/A2 respected in all new UI; every new table ships
 with RLS + a bypass test (NFR-S1).
 
-**Status board:** P0 ✅ merged (PR #1) · P1 ✅ merged (PR #2) · P2 ✅ merged (PR #3; carry-over measurements done — NFR-P2 p90 = 1075 ms, NFR-A2 sweep 27/27) · P3 ✅ merged (PR #4; adversarial pass found 3 MAJORs, all fixed + re-verified on device — see `docs/verification/p3-manual-verification.md`) · P4 opens next.
+**Status board:** P0 ✅ merged (PR #1) · P1 ✅ merged (PR #2) · P2 ✅ merged (PR #3; carry-over measurements done — NFR-P2 p90 = 1075 ms and NFR-A2 sweep 27/27, both on the iOS **simulator**: threshold met, device condition not — device re-check on the checklist below) · P3 ✅ merged (PR #4; adversarial pass found 3 MAJORs, all fixed + re-verified on the iOS **simulator**, Release build — see `docs/verification/p3-manual-verification.md`) · P4 opens next.
+
+> **Simulator ≠ device (owner directive 2026-08-26, CLAUDE.md "Simulator evidence").**
+> Device-conditioned requirements flip to ✅ only at the owner-run **hardware verification
+> pass before P12** (one physical iPhone + one physical Android). The running list of what
+> that pass must cover is `docs/verification/device-checklist.md` — every phase adds its
+> entries as it goes.
 
 **P0 — Bootstrap.**
 Monorepo scaffolding (pnpm + Node 22 LTS pinned via `.nvmrc` + `packageManager`; `expo-doctor`
@@ -226,9 +232,18 @@ produces the sheet, choice logged. → FR-24, FR-33, FR-40, FR-41, UC-05, UC-08.
 Block-start reminders with smart lead time, per-category mute, hard ≤5/day cap (FR-50); "plan
 tomorrow" evening ritual (FR-26); JSON export + full deletion in-app with ≤30-day cascade (FR-42,
 UC-10); WCAG 2.2 AA pass (NFR-A1) + 200%/reduced-motion sweep (NFR-A2); performance pass against
-NFR-P1/P2/P3 with numbers.
+NFR-P1/P2/P3 with numbers. The perf/a11y half is scoped as **"prepare for device verification"**,
+not "done": simulator numbers are smoke checks, protocols and instrumentation must be ready for
+the hardware pass, and every device-conditioned item must be on `device-checklist.md`.
 _Accept:_ cap enforced under notification storm (test); export contains tasks/events/learned
-params; deletion cascades verified; a11y audit checklist; before/after perf table.
+params; deletion cascades verified; a11y audit checklist; before/after perf table (labeled
+simulator vs. device); device-checklist complete and runnable as a script for the hardware pass.
+
+**Hardware verification pass (before P12, owner-run).**
+The owner runs `docs/verification/device-checklist.md` on one physical iPhone and one physical
+Android. This pass — not any simulator run — is where device-conditioned requirements (NFR-P2,
+NFR-A1/A2 on device, gesture/haptic behaviour, real-radio sync, notification delivery) flip
+to ✅. Findings feed fixes before release prep starts.
 
 **P11 — Training pipeline + OPE + study mode.**
 `train.yml` nightly: pseudonymized categorical export (CI-tested query — NFR-S3), ALS fit,
@@ -298,6 +313,7 @@ model_registry columns; ALS λ and confidence weighting; River blend target.
 | 8 | (2026-08-24, post-P0) **P0 gate passed; specs/07 approved** — read-only truth. ADR-0001 (Node 24) + ADR-0003 (jest 29) accepted. **MIT license** for code; a future dataset gets CC-BY-4.0 `DATA_LICENSE`. ADR-0004: Expo 57/RN 0.86 accepted, **TS pinned 5.9** (openapi-typescript peer). |
 | 9 | (2026-08-24) **Autonomous working mode** — phases back-to-back, PRs self-merged when green; stop conditions + decision rule in CLAUDE.md "Working mode". Owner keeps thesis-claim decisions only (open: spec-conflicts H1, ε-symmetric arms, decided at OSF freeze). |
 | 10 | (2026-08-24) Thesis integration: `docs/thesis/` = pojasnennia.uk.md (living Ukrainian explainer, same-commit rule) + spec-conflicts.md (errata layer over frozen specs) + thesis-corrections.md (draft edit worklist); draft.docx is a consistency target, git-ignored. |
+| 11 | (2026-08-26) **Simulator ≠ device evidence** — simulator runs are smoke checks; device-conditioned requirements flip to ✅ only at the owner-run hardware pass before P12 (one iPhone + one Android; running list `docs/verification/device-checklist.md`, maintained every phase). Refines row 4: the P10 "Android device pass" becomes "prepare for device verification"; the actual device pass is the pre-P12 gate. Full rule: CLAUDE.md "Simulator evidence". |
 
 ---
 
