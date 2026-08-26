@@ -66,11 +66,30 @@ both platforms remains a device-checklist item.
 2. **Google OAuth consent screen + client credentials** — see the phase report's ⛔ block.
    The code path ships inert; the button surfaces "not available yet" until configured.
 
-## 4. Gates at phase close (2026-08-26)
+## 4. Adversarial pass (fresh-context subagent, 2026-08-26)
 
-- jest: **30 suites, 238 tests, 0 failures** (includes the new rmeq/workingHours/profileDao/
-  accountTransition/largeSecureStore/onboarding suites).
+Found **1 MAJOR, 10 MINOR, 6 NIT**; the reviewer independently recomputed **all 240** prior
+cells from the spec constants (own script) — 0 mismatches — and re-derived every hand-computed
+α₀/β₀ expectation, so the thesis-critical math shipped clean. The MAJOR was a **session
+fixation** hole: `createSessionFromUrl` kept a `#access_token` fragment fallback, and with
+anonymous sign-ins enabled an attacker can mint valid project tokens for free — one hostile
+deep link would have silently signed the victim into the attacker's account and handed local
+data to the adopt/wipe machinery. Fixed by making the handler PKCE-`?code=`-only, with a
+regression test pinning that `setSession` is unreachable from a URL. All 10 MINORs fixed in
+the same commit (`c836791`): onboarding gate bounce, missing first-sign-in rehydrate,
+pull-echo op, a CHECK-constraint hole (new migration `20260826150000_p4_hardening.sql`),
+destructive-action confirms for anonymous sign-out and different-account link-send,
+auth-callback dead end, adopt PK-collision loop, misleading hours error, largeSecureStore
+throw/garbage windows, plus the NITs. Two items intentionally deferred to
+`docs/decisions/revisit.md`: confirming the wipe on the deep-link arrival path (needs
+deferred-transition state, P8) and "highest promoted priors version" (P11).
+
+## 5. Gates at phase close (2026-08-26, post-fixes)
+
+- jest: **31 suites, 248 tests, 0 failures** (includes the new rmeq/workingHours/profileDao/
+  accountTransition/largeSecureStore/flows/onboarding suites).
 - `pnpm typecheck` / `pnpm lint` / `pnpm format:check`: clean. `expo-doctor`: 21/21.
-- pgTAP (`p4_cold_start_test.sql`, 240-cell fixture + boundary/instantiation/permission
-  sections) runs in the CI db job — no local Docker; verified green on the PR before merge.
-- Live smoke: 9/9 (section 1). Maestro walk: 36/36 (section 2).
+- pgTAP (`p4_cold_start_test.sql` + hardening additions) runs in the CI db job — no local
+  Docker; green on the PR before merge.
+- Live smoke re-run after fixes: **9/9** incl. the strict 42501 assertion (section 1).
+  Maestro walk re-run on the rebuilt Release install: **36/36** (section 2).
