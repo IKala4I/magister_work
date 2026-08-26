@@ -695,7 +695,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      chronotype_seed_cluster: { Args: { p_class: string }; Returns: number }
+      instantiate_user_priors: { Args: { p_user_id: string }; Returns: number }
     }
     Enums: {
       [_ in never]: never

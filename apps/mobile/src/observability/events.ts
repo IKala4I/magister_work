@@ -38,6 +38,22 @@ export type AnalyticsEvents = {
   recommendation_shown: ModelVersionTag & {
     is_experiment: boolean;
   };
+  /** FR-02 funnel (P4). Steps only — never answers, scores, or emails. */
+  onboarding_step_completed: {
+    step: 'welcome' | 'survey' | 'hours' | 'categories' | 'seed_tasks';
+  };
+  /** FR-02/UC-01 (P4). Class is a behavioral enum, not user text (NFR-S2 rule above). */
+  onboarding_completed: {
+    survey_skipped: boolean;
+    chronotype_class: 'DM' | 'MM' | 'INT' | 'ME' | 'DE';
+    top_categories_count: number;
+    seed_tasks_added: number;
+  };
+  /** FR-01 (P4). No identifiers — method and lifecycle only. */
+  auth_event: {
+    method: 'anonymous' | 'magic_link' | 'google';
+    event: 'signed_in' | 'signed_out' | 'conversion_started' | 'converted';
+  };
 };
 
 export type AnalyticsEventName = keyof AnalyticsEvents;

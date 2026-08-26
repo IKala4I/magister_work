@@ -21,6 +21,7 @@ import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import migrations from '../drizzle/migrations';
+import { initAuth } from '../src/auth/session';
 import { db } from '../src/db/client';
 import { t } from '../src/i18n';
 import { initAnalytics } from '../src/observability/analytics';
@@ -35,6 +36,7 @@ SplashScreen.preventAutoHideAsync().catch(() => {
 
 initSentry(); // env-gated: disabled without EXPO_PUBLIC_SENTRY_DSN
 initAnalytics(); // env-gated: disabled without EXPO_PUBLIC_POSTHOG_API_KEY + _HOST (EU)
+initAuth(); // env-gated: disabled without EXPO_PUBLIC_SUPABASE_URL + _ANON_KEY (local-only)
 
 function RootLayout() {
   const theme = useTheme();
@@ -87,6 +89,9 @@ function RootLayout() {
         }}
       >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+        <Stack.Screen name="auth/sign-in" options={{ title: t('auth.signIn.title') }} />
+        <Stack.Screen name="auth-callback" options={{ headerShown: false }} />
         <Stack.Screen
           name="settings"
           options={{ presentation: 'modal', title: t('settings.title') }}

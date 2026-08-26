@@ -76,6 +76,132 @@ export const en = {
   'db.migrationFailed.title': 'Local storage problem',
   'db.migrationFailed.body':
     'Hourwell could not prepare its on-device database. Restart the app; if this persists, reinstall.',
+
+  // --- Onboarding (FR-02, UC-01) ---
+  'onboarding.welcome.title': 'The planner that learns your best hours',
+  'onboarding.welcome.body':
+    'Hourwell places your tasks where you actually finish them — and improves with every day you use it. Three quick steps, under three minutes, every question skippable.',
+  'onboarding.welcome.start': 'Get started',
+  'onboarding.welcome.signIn': 'I already have an account',
+  'onboarding.step.a11y': 'Step {current} of {total}',
+  'onboarding.continue': 'Continue',
+  'onboarding.skipStep': 'Skip this step',
+
+  'onboarding.survey.title': 'Your rhythm',
+  'onboarding.survey.intro':
+    'Five quick questions about mornings and evenings. They give your first schedule a head start; skip anything — Hourwell will simply learn from scratch.',
+  'onboarding.survey.itemSkipped': 'Skipped',
+  'onboarding.survey.skipNote':
+    'One or more answers are blank, so the survey will not be scored — Hourwell starts neutral and learns your hours from what you actually do.',
+
+  'onboarding.rmeq.wakeTime.q':
+    'If you were entirely free to plan your day, when would you get up?',
+  'onboarding.rmeq.wakeTime.o1': '5:00–6:30',
+  'onboarding.rmeq.wakeTime.o2': '6:30–7:45',
+  'onboarding.rmeq.wakeTime.o3': '7:45–9:45',
+  'onboarding.rmeq.wakeTime.o4': '9:45–11:00',
+  'onboarding.rmeq.wakeTime.o5': '11:00–12:00',
+  'onboarding.rmeq.morningFeel.q':
+    'During the first half hour after waking, how do you usually feel?',
+  'onboarding.rmeq.morningFeel.o1': 'Very tired',
+  'onboarding.rmeq.morningFeel.o2': 'Fairly tired',
+  'onboarding.rmeq.morningFeel.o3': 'Fairly refreshed',
+  'onboarding.rmeq.morningFeel.o4': 'Very refreshed',
+  'onboarding.rmeq.eveningSleepy.q': 'In the evening, when do you feel tired and in need of sleep?',
+  'onboarding.rmeq.eveningSleepy.o1': '20:00–21:00',
+  'onboarding.rmeq.eveningSleepy.o2': '21:00–22:15',
+  'onboarding.rmeq.eveningSleepy.o3': '22:15–0:45',
+  'onboarding.rmeq.eveningSleepy.o4': '0:45–2:00',
+  'onboarding.rmeq.eveningSleepy.o5': '2:00–3:00',
+  'onboarding.rmeq.bestTime.q': 'At what time of day do you feel at your best?',
+  'onboarding.rmeq.bestTime.o1': '5:00–8:00',
+  'onboarding.rmeq.bestTime.o2': '8:00–10:00',
+  'onboarding.rmeq.bestTime.o3': '10:00–17:00',
+  'onboarding.rmeq.bestTime.o4': '17:00–22:00',
+  'onboarding.rmeq.bestTime.o5': '22:00–5:00',
+  'onboarding.rmeq.selfType.q':
+    'People talk about “morning types” and “evening types.” Which are you?',
+  'onboarding.rmeq.selfType.o1': 'Definitely a morning type',
+  'onboarding.rmeq.selfType.o2': 'More morning than evening',
+  'onboarding.rmeq.selfType.o3': 'More evening than morning',
+  'onboarding.rmeq.selfType.o4': 'Definitely an evening type',
+
+  'onboarding.hours.title': 'Your hours',
+  'onboarding.hours.intro': 'When should Hourwell plan your work? Adjust anything — weekends too.',
+  'onboarding.hours.workingDay.a11y': '{day}: working {start} to {end}',
+  'onboarding.hours.dayOff.a11y': '{day}: day off',
+  'onboarding.hours.toggle.a11y': 'Toggle working day {day}',
+  'onboarding.hours.startEarlier': 'Start 30 minutes earlier, {day}',
+  'onboarding.hours.startLater': 'Start 30 minutes later, {day}',
+  'onboarding.hours.endEarlier': 'End 30 minutes earlier, {day}',
+  'onboarding.hours.endLater': 'End 30 minutes later, {day}',
+  'onboarding.hours.sleep.title': 'Sleep window',
+  'onboarding.hours.sleep.a11y': 'Sleep from {start} to {end}',
+  'onboarding.hours.sleep.startEarlier': 'Sleep 30 minutes earlier',
+  'onboarding.hours.sleep.startLater': 'Sleep 30 minutes later',
+  'onboarding.hours.sleep.endEarlier': 'Wake 30 minutes earlier',
+  'onboarding.hours.sleep.endLater': 'Wake 30 minutes later',
+  'onboarding.hours.error': 'Each working day needs a start before its end.',
+  'onboarding.hours.errorNoDays':
+    'Toggle at least one working day — Hourwell plans inside the hours you declare.',
+  'onboarding.hours.day.mon': 'Monday',
+  'onboarding.hours.day.tue': 'Tuesday',
+  'onboarding.hours.day.wed': 'Wednesday',
+  'onboarding.hours.day.thu': 'Thursday',
+  'onboarding.hours.day.fri': 'Friday',
+  'onboarding.hours.day.sat': 'Saturday',
+  'onboarding.hours.day.sun': 'Sunday',
+
+  'onboarding.categories.title': 'What fills your days?',
+  'onboarding.categories.intro':
+    'Pick the kinds of work you do most. This only orders your first suggestions.',
+
+  'onboarding.seedTasks.title': 'Add your first tasks',
+  'onboarding.seedTasks.intro':
+    'Give Hourwell up to three real tasks to plan tomorrow with. Type naturally — “report draft 2h by fri” works.',
+  'onboarding.seedTasks.added': '{count} added',
+  'onboarding.seedTasks.finish': 'Finish setup',
+
+  // --- Auth (FR-01) ---
+  'auth.signIn.title': 'Sign in',
+  'auth.signIn.emailLabel': 'Email',
+  'auth.signIn.emailPlaceholder': 'you@example.com',
+  'auth.signIn.sendLink': 'Email me a sign-in link',
+  'auth.signIn.sent.title': 'Check your email',
+  'auth.signIn.sent.body': 'We sent a sign-in link to {email}. Open it on this device to continue.',
+  'auth.signIn.google': 'Continue with Google',
+  'auth.signIn.googleUnavailable': 'Google sign-in is not available yet.',
+  'auth.signIn.differentAccountWarning':
+    'Signing in to a different account replaces the data on this device.',
+  'auth.signIn.error.invalidEmail': 'Enter a valid email address.',
+  'auth.signIn.error.sendFailed': 'Could not send the link. Check your connection and retry.',
+  'auth.signIn.error.linkFailed': 'That link did not work. Request a fresh one and try again.',
+  'auth.callback.working': 'Signing you in…',
+  'auth.callback.back': 'Back to sign in',
+  'auth.signIn.replace.title': 'Replace this device’s data?',
+  'auth.signIn.replace.body':
+    'If this email belongs to a different account, the tasks currently on this device will be replaced by that account’s data.',
+  'auth.signIn.replace.confirm': 'Continue',
+  'auth.signIn.replace.cancel': 'Cancel',
+
+  'settings.account.title': 'Account',
+  'settings.account.anonymous': 'Trial account on this device',
+  'settings.account.anonymousHint':
+    'Add your email to keep your data if you lose or change this phone.',
+  'settings.account.localOnly': 'Working offline — data lives on this device',
+  'settings.account.signedInAs': 'Signed in as {email}',
+  'settings.account.addEmail': 'Add email to keep my data',
+  'settings.account.confirmSent':
+    'Confirmation sent to {email}. Open the link to finish connecting it.',
+  'settings.account.emailExists':
+    'That email already has an account. Sign in with it instead — note this replaces the data on this device.',
+  'settings.account.signOut': 'Sign out',
+  'settings.account.signOutAnonymous.title': 'Sign out of the trial account?',
+  'settings.account.signOutAnonymous.body':
+    'This trial account has no email, so there is no way to sign back in to it. Add your email first to keep your data.',
+  'settings.account.signOutAnonymous.confirm': 'Sign out anyway',
+  'settings.account.signOutAnonymous.cancel': 'Keep my data',
+  'settings.account.signIn': 'Sign in',
 } as const;
 
 export type MessageKey = keyof typeof en;

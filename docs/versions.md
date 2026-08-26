@@ -76,6 +76,21 @@ pinned exactly.
 Deferred installs (first consumer): FlashList v2 → P3 (first real list); react-native-skia →
 P7/P9 (timer ring, heatmap); supabase-js v2 → P4 (auth); chrono-node → P3.
 
+## Mobile — P4 additions (verified 2026-08-26)
+
+| Package                        | Version | Notes                                                                                        |
+| ------------------------------ | ------- | -------------------------------------------------------------------------------------------- |
+| @supabase/supabase-js          | 2.112.4 | auth + PostgREST; PKCE flow, `processLock`, AppState auto-refresh per official RN quickstart |
+| expo-secure-store              | ~57.0.1 | AES key storage for the session (official LargeSecureStore pattern, ADR-0006)                |
+| expo-web-browser               | ~57.0.2 | `openAuthSessionAsync` for the browser OAuth flow                                            |
+| react-native-get-random-values | ~1.11.0 | `crypto.getRandomValues` for AES key generation (documented Supabase Expo pattern)           |
+| react-native-url-polyfill      | ^4.0.0  | supabase-js RN requirement (official quickstart import)                                      |
+| aes-js (+ @types/aes-js dev)   | 3.1.2   | AES-256-CTR for session ciphertext (documented Supabase Expo pattern)                        |
+
+APIs verified against Supabase docs via ctx7 on 2026-08-26 (`/supabase/supabase`): LargeSecureStore,
+PKCE `exchangeCodeForSession`, `signInAnonymously` + `enable_anonymous_sign_ins` in config.toml,
+`updateUser({email})` conversion, `supabase config push`, deep-link redirect allow-listing.
+
 ## CI actions (verified 2026-08-24)
 
 | Action             | Version |

@@ -160,6 +160,11 @@ decision rule (defensibility → consistency → measurability → pragmatics) a
   `@expo-google-fonts/inter`) — visually identical at fixed weights; optical sizing is
   unavailable on mobile. JetBrains Mono unaffected (monospaced ⇒ tabular by construction).
   Spec's own fallback-stack note (SF Pro/Roboto behind Inter) is honored via runtime loading.
+- **L13.** (P4) PLAN §4B says every unfixed parameter "gets a proposed default in `specs/07`'s
+  parameter appendix", but Appendix A has no rows for the rMEQ item wording/presentation or the
+  working-hours template default. Both are fixed by ADR (rMEQ presentation + partial-skip rule:
+  ADR-0005; working-hours/sleep defaults: ADR-0006) rather than by an appendix row; the
+  appendix stays frozen with the rest of specs/07.
 - **L11.** Client-writable recommendation statuses narrowed to the plan-review set
   {accepted, pinned, moved, rejected}: `completed` belongs to sync-resolve (File 05 §2) and
   `lapsed` to attribute-rewards (File 05 §1 keeps the client's lapse mark local). Prevents an

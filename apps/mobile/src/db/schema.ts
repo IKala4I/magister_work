@@ -41,6 +41,31 @@ export const CLIENT_WRITABLE_RECOMMENDATION_STATUSES = [
   'rejected',
 ] as const;
 
+/**
+ * Local mirror of the server `profiles` row (specs/07 §4.1) — one row per known user id
+ * (pre-auth local id or authed uid; account transitions rewrite/wipe, src/auth). Model
+ * state (beta_cells etc.) is deliberately NOT mirrored: the client renders profiles and
+ * logs facts, it never holds priors (invariant 1).
+ */
+export const profiles = sqliteTable('profiles', {
+  userId: text('user_id').primaryKey(),
+  timezone: text('timezone').notNull(),
+  locale: text('locale').notNull().default('en'),
+  /** {mon:[start,end],...} minutes from local midnight (specs/07 §5). */
+  workingHours: text('working_hours', { mode: 'json' }).notNull(),
+  /** [start,end], may wrap midnight. */
+  sleepWindow: text('sleep_window', { mode: 'json' }).notNull(),
+  rmeqScore: integer('rmeq_score'),
+  chronotypeClass: text('chronotype_class', { enum: ['DM', 'MM', 'INT', 'ME', 'DE'] }),
+  surveySkipped: integer('survey_skipped', { mode: 'boolean' }).notNull().default(false),
+  topCategories: text('top_categories', { mode: 'json' }).notNull().default('[]'),
+  onboardingCompletedAt: integer('onboarding_completed_at', { mode: 'timestamp_ms' }),
+  settings: text('settings', { mode: 'json' }),
+  version: integer('version').notNull().default(1),
+  updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
+  serverSeq: integer('server_seq'),
+});
+
 export const tasks = sqliteTable(
   'tasks',
   {
