@@ -1,22 +1,27 @@
 /**
  * Deep-link landing for magic links + OAuth (hourwell://auth-callback). expo-router
- * navigates here for both cold and warm starts; the URL (with its one-shot ?code= or
- * #access_token fragment) is read from the Linking API and exchanged for a session, then
- * the user continues wherever the routing gate sends them.
+ * navigates here for both cold and warm starts; the URL (with its one-shot ?code=) is read
+ * from the Linking API and exchanged for a session (PKCE only — see createSessionFromUrl),
+ * then the user continues wherever the routing gate sends them. A replayed/expired link on
+ * an already-signed-in device counts as done (finding m6), and failure always offers a way
+ * back to sign-in instead of a dead end.
  */
 import * as Linking from 'expo-linking';
-import { Redirect } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { createSessionFromUrl } from '../src/auth/flows';
+import { useSessionStore } from '../src/auth/session';
 import { t } from '../src/i18n';
-import { Screen, ThemedText } from '../src/ui/primitives';
+import { Button, Screen, ThemedText } from '../src/ui/primitives';
 import { useTheme } from '../src/ui/theme';
 
 export default function AuthCallbackScreen() {
   const theme = useTheme();
+  const router = useRouter();
   const url = Linking.useURL();
+  const signedIn = useSessionStore((s) => s.status === 'signed_in');
   const consumed = useRef<string | null>(null);
   const [outcome, setOutcome] = useState<'working' | 'done' | 'failed'>('working');
 
@@ -28,7 +33,7 @@ export default function AuthCallbackScreen() {
     });
   }, [url]);
 
-  if (outcome === 'done') return <Redirect href="/(tabs)" />;
+  if (outcome === 'done' || (outcome === 'failed' && signedIn)) return <Redirect href="/(tabs)" />;
 
   return (
     <Screen topInset>
@@ -39,7 +44,14 @@ export default function AuthCallbackScreen() {
             <ThemedText style={styles.spaced}>{t('auth.callback.working')}</ThemedText>
           </>
         ) : (
-          <ThemedText>{t('auth.signIn.error.linkFailed')}</ThemedText>
+          <>
+            <ThemedText style={styles.spaced}>{t('auth.signIn.error.linkFailed')}</ThemedText>
+            <Button
+              label={t('auth.callback.back')}
+              onPress={() => router.replace('/auth/sign-in')}
+              style={styles.spaced}
+            />
+          </>
         )}
       </View>
     </Screen>

@@ -37,6 +37,8 @@ export function Button({ label, onPress, kind = 'primary', disabled = false, sty
     >
       <ThemedText
         variant="body"
+        // White on primary in BOTH schemes — the token set has no on-primary color yet
+        // (File 02 §3.2 defines none); indigo-600 passes AA against white (contrast tests).
         style={[styles.label, { color: primary ? '#FFFFFF' : theme.colors.primary }]}
       >
         {label}

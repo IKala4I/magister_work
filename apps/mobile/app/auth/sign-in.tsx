@@ -4,7 +4,7 @@
  * this device already holds another account's data (the account-change wipe contract).
  */
 import { useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { Alert, StyleSheet, TextInput, View } from 'react-native';
 
 import { getLastUserId } from '../../src/auth/identity';
 import { sendMagicLink, signInWithGoogle } from '../../src/auth/flows';
@@ -25,11 +25,7 @@ export default function SignInScreen() {
     | 'auth.signIn.googleUnavailable'
   >(null);
 
-  const submit = async () => {
-    if (!EMAIL_RE.test(email.trim())) {
-      setErrorKey('auth.signIn.error.invalidEmail');
-      return;
-    }
+  const send = async () => {
     setErrorKey(null);
     setState('sending');
     const result = await sendMagicLink(email.trim());
@@ -39,6 +35,24 @@ export default function SignInScreen() {
       setState('idle');
       setErrorKey('auth.signIn.error.sendFailed');
     }
+  };
+
+  const submit = () => {
+    if (!EMAIL_RE.test(email.trim())) {
+      setErrorKey('auth.signIn.error.invalidEmail');
+      return;
+    }
+    // Until P8, a different account signing in wipes this device's unsynced tasks
+    // (cursor contract). The caption alone is easy to miss — confirm explicitly
+    // (finding m10; the deep-link path is logged in docs/decisions/revisit.md).
+    if (getLastUserId() !== null) {
+      Alert.alert(t('auth.signIn.replace.title'), t('auth.signIn.replace.body'), [
+        { text: t('auth.signIn.replace.cancel'), style: 'cancel' },
+        { text: t('auth.signIn.replace.confirm'), onPress: () => void send() },
+      ]);
+      return;
+    }
+    void send();
   };
 
   const google = async () => {
@@ -98,7 +112,7 @@ export default function SignInScreen() {
       <Button
         label={t('auth.signIn.sendLink')}
         disabled={state === 'sending'}
-        onPress={() => void submit()}
+        onPress={submit}
         style={styles.spacedTop}
       />
       <Button kind="secondary" label={t('auth.signIn.google')} onPress={() => void google()} />

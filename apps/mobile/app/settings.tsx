@@ -6,7 +6,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { isAuthAvailable } from '../src/auth/client';
 import { convertAnonymousToEmail, signOut } from '../src/auth/flows';
@@ -102,7 +102,26 @@ function AccountSection() {
       <Button
         kind="secondary"
         label={t('settings.account.signOut')}
-        onPress={() => void signOut()}
+        onPress={() => {
+          if (!session.isAnonymous) {
+            void signOut();
+            return;
+          }
+          // An anonymous account has no way back in — signing out orphans the server-side
+          // profile and priors forever (finding m5). Confirm, steering toward conversion.
+          Alert.alert(
+            t('settings.account.signOutAnonymous.title'),
+            t('settings.account.signOutAnonymous.body'),
+            [
+              { text: t('settings.account.signOutAnonymous.cancel'), style: 'cancel' },
+              {
+                text: t('settings.account.signOutAnonymous.confirm'),
+                style: 'destructive',
+                onPress: () => void signOut(),
+              },
+            ],
+          );
+        }}
       />
     </View>
   );

@@ -142,6 +142,8 @@ export const en = {
   'onboarding.hours.sleep.endEarlier': 'Wake 30 minutes earlier',
   'onboarding.hours.sleep.endLater': 'Wake 30 minutes later',
   'onboarding.hours.error': 'Each working day needs a start before its end.',
+  'onboarding.hours.errorNoDays':
+    'Toggle at least one working day — Hourwell plans inside the hours you declare.',
   'onboarding.hours.day.mon': 'Monday',
   'onboarding.hours.day.tue': 'Tuesday',
   'onboarding.hours.day.wed': 'Wednesday',
@@ -175,6 +177,12 @@ export const en = {
   'auth.signIn.error.sendFailed': 'Could not send the link. Check your connection and retry.',
   'auth.signIn.error.linkFailed': 'That link did not work. Request a fresh one and try again.',
   'auth.callback.working': 'Signing you in…',
+  'auth.callback.back': 'Back to sign in',
+  'auth.signIn.replace.title': 'Replace this device’s data?',
+  'auth.signIn.replace.body':
+    'If this email belongs to a different account, the tasks currently on this device will be replaced by that account’s data.',
+  'auth.signIn.replace.confirm': 'Continue',
+  'auth.signIn.replace.cancel': 'Cancel',
 
   'settings.account.title': 'Account',
   'settings.account.anonymous': 'Trial account on this device',
@@ -188,6 +196,11 @@ export const en = {
   'settings.account.emailExists':
     'That email already has an account. Sign in with it instead — note this replaces the data on this device.',
   'settings.account.signOut': 'Sign out',
+  'settings.account.signOutAnonymous.title': 'Sign out of the trial account?',
+  'settings.account.signOutAnonymous.body':
+    'This trial account has no email, so there is no way to sign back in to it. Add your email first to keep your data.',
+  'settings.account.signOutAnonymous.confirm': 'Sign out anyway',
+  'settings.account.signOutAnonymous.cancel': 'Keep my data',
   'settings.account.signIn': 'Sign in',
 } as const;
 

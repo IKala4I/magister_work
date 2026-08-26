@@ -20,6 +20,21 @@ import { isLocalUserId, LOCAL_USER_PREFIX } from '../sync/localUser';
 /** Rewrite pre-auth placeholder ownership to `newUserId`. Idempotent. */
 export function adoptLocalData(db: LocalDb, newUserId: string): void {
   db.transaction((tx) => {
+    // profiles is keyed by user_id: if a row for newUserId already coexists with a stale
+    // local: row (a previously failed adopt followed by re-onboarding under the uid), the
+    // rewrite would hit the PK and fail on EVERY launch (finding m7). The uid row is the
+    // newer, authoritative one — drop the placeholder row instead of colliding.
+    if (
+      tx
+        .select({ userId: profiles.userId })
+        .from(profiles)
+        .where(eq(profiles.userId, newUserId))
+        .get()
+    ) {
+      tx.delete(profiles)
+        .where(like(profiles.userId, `${LOCAL_USER_PREFIX}%`))
+        .run();
+    }
     for (const table of [tasks, recommendations, events, profiles] as const) {
       tx.update(table)
         .set({ userId: newUserId })
@@ -27,14 +42,20 @@ export function adoptLocalData(db: LocalDb, newUserId: string): void {
         .run();
     }
     const ops = tx
-      .select({ seq: opOutbox.seq, payload: opOutbox.payload })
+      .select({ seq: opOutbox.seq, payload: opOutbox.payload, entityId: opOutbox.entityId })
       .from(opOutbox)
-      .all() as { seq: number; payload: unknown }[];
+      .all() as { seq: number; payload: unknown; entityId: string | null }[];
     for (const op of ops) {
       const payload = op.payload as Record<string, unknown> | null;
-      if (payload && typeof payload.user_id === 'string' && isLocalUserId(payload.user_id)) {
+      const payloadIsLocal =
+        payload != null && typeof payload.user_id === 'string' && isLocalUserId(payload.user_id);
+      const entityIsLocal = op.entityId != null && isLocalUserId(op.entityId);
+      if (payloadIsLocal || entityIsLocal) {
         tx.update(opOutbox)
-          .set({ payload: { ...payload, user_id: newUserId } })
+          .set({
+            payload: payloadIsLocal ? { ...payload, user_id: newUserId } : payload,
+            entityId: entityIsLocal ? newUserId : op.entityId,
+          })
           .where(eq(opOutbox.seq, op.seq))
           .run();
       }

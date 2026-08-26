@@ -62,4 +62,18 @@ describe('largeSecureStore', () => {
     await SecureStore.deleteItemAsync(KEY);
     await expect(largeSecureStore.getItem(KEY)).resolves.toBeNull();
   });
+
+  it('a corrupted SecureStore key yields null, never a throw inside auth init (m9)', async () => {
+    await largeSecureStore.setItem(KEY, SESSION);
+    await SecureStore.setItemAsync(KEY, 'not-hex-and-wrong-size');
+    await expect(largeSecureStore.getItem(KEY)).resolves.toBeNull();
+  });
+
+  it('a fresh key over stale ciphertext yields null, not CTR noise (m9 crash window)', async () => {
+    await largeSecureStore.setItem(KEY, SESSION);
+    // simulate a crash between the key write and the ciphertext write on the NEXT save:
+    // valid new key, old ciphertext
+    await SecureStore.setItemAsync(KEY, 'ab'.repeat(32));
+    await expect(largeSecureStore.getItem(KEY)).resolves.toBeNull();
+  });
 });

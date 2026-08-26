@@ -95,10 +95,11 @@ check(
 );
 
 const { error: rpcError } = await supabase.rpc('instantiate_user_priors', { p_user_id: uid });
+// Specifically permission-denied (42501), not any transport error (adversarial n5).
 check(
-  'invariant 1: client cannot execute instantiate_user_priors',
-  rpcError != null,
-  'rpc unexpectedly succeeded',
+  'invariant 1: client cannot execute instantiate_user_priors (42501)',
+  rpcError?.code === '42501',
+  rpcError ? `code=${rpcError.code}` : 'rpc unexpectedly succeeded',
 );
 
 const { error: modelWriteError } = await supabase

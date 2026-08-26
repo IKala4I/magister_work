@@ -4,7 +4,7 @@
  * supabase/migrations/20260824120300_seed_prior_cells_v0.sql. The pgTAP test asserts the
  * seeded table against this output, so the test encodes the spec, not the implementation
  * (owner directive, P4). Hand-checked cells: DM/deep/EM weekday = .78 (identity transform),
- * DM/admin/EM weekday = σ(0.45·logit(.78)+0.25) ≈ 0.6941567, INT/physical/AF weekday =
+ * DM/admin/EM weekday = σ(0.45·logit(.78)+0.25) ≈ 0.6941408, INT/physical/AF weekday =
  * σ(0.55·logit(.62)+0.10+0.35) ≈ 0.6724425, DM/deep/EM weekend = .5·.78+.5·.55 = .665.
  *
  * Usage: node scripts/gen-prior-cells-expected.mjs > /tmp/prior_cells_expected.sql

@@ -17,15 +17,27 @@ const ciphertextKey = (key: string) => StorageKeys.sessionCiphertextPrefix + key
 
 export const largeSecureStore = {
   async getItem(key: string): Promise<string | null> {
-    const ciphertextHex = appStorage.getString(ciphertextKey(key));
-    if (ciphertextHex == null) return null;
-    const keyHex = await SecureStore.getItemAsync(key);
-    if (keyHex == null) return null; // key lost (reinstall) — session is unrecoverable
-    const cipher = new aesjs.ModeOfOperation.ctr(
-      aesjs.utils.hex.toBytes(keyHex),
-      new aesjs.Counter(1),
-    );
-    return aesjs.utils.utf8.fromBytes(cipher.decrypt(aesjs.utils.hex.toBytes(ciphertextHex)));
+    // Any storage corruption must read as "no session" (null) — never a throw inside
+    // supabase auth init, never garbage: a crash between the key write and the ciphertext
+    // write leaves a fresh key over old ciphertext, which CTR happily "decrypts" to noise
+    // (finding m9). Sessions are JSON, so a parse check rejects that noise.
+    try {
+      const ciphertextHex = appStorage.getString(ciphertextKey(key));
+      if (ciphertextHex == null) return null;
+      const keyHex = await SecureStore.getItemAsync(key);
+      if (keyHex == null) return null; // key lost (reinstall) — session is unrecoverable
+      const cipher = new aesjs.ModeOfOperation.ctr(
+        aesjs.utils.hex.toBytes(keyHex),
+        new aesjs.Counter(1),
+      );
+      const plaintext = aesjs.utils.utf8.fromBytes(
+        cipher.decrypt(aesjs.utils.hex.toBytes(ciphertextHex)),
+      );
+      JSON.parse(plaintext);
+      return plaintext;
+    } catch {
+      return null;
+    }
   },
 
   async setItem(key: string, value: string): Promise<void> {

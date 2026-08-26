@@ -178,7 +178,9 @@ export default function HoursScreen() {
 
         {!valid ? (
           <ThemedText variant="caption" style={styles.error}>
-            {t('onboarding.hours.error')}
+            {Object.keys(workingHours).length === 0
+              ? t('onboarding.hours.errorNoDays') // the only state steppers can reach (m8)
+              : t('onboarding.hours.error')}
           </ThemedText>
         ) : null}
         <Button

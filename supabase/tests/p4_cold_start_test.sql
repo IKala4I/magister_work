@@ -319,6 +319,12 @@ select lives_ok(
       set rmeq_score = null, chronotype_class = 'INT', survey_skipped = true
     where user_id = '00000000-0000-0000-0000-0000000000a0'$$,
   'skipped survey stores class INT with no score (File 04 §3.1)');
+select throws_ok(
+  $$update public.profiles
+      set rmeq_score = 14, chronotype_class = null, survey_skipped = true
+    where user_id = '00000000-0000-0000-0000-0000000000a0'$$,
+  '23514', null,
+  'a skipped survey cannot carry a score even with a NULL class (adversarial m4)');
 
 -- ===========================================================================
 -- §3 instantiation for an answered DM user on the default template

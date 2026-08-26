@@ -102,6 +102,48 @@ export function saveProfile(
   });
 }
 
+/**
+ * Pull-path upsert: mirror a row the SERVER already owns. Deliberately enqueues nothing —
+ * echoing a pulled row back as a `profile_update` op would bump the server version on every
+ * account switch for no reason (P4 adversarial finding m3). Push paths use saveProfile.
+ */
+export function upsertProfileFromServer(
+  db: LocalDb,
+  input: {
+    userId: string;
+    draft: ProfileDraft;
+    version: number;
+    serverSeq: number | null;
+    now: Date;
+  },
+): void {
+  const { userId, draft, now } = input;
+  db.transaction((tx) => {
+    const existing = getProfile(tx as LocalDb, userId);
+    const values = {
+      timezone: draft.timezone,
+      locale: draft.locale,
+      workingHours: draft.workingHours,
+      sleepWindow: draft.sleepWindow,
+      rmeqScore: draft.rmeqScore,
+      chronotypeClass: draft.chronotypeClass,
+      surveySkipped: draft.surveySkipped,
+      topCategories: draft.topCategories,
+      onboardingCompletedAt: draft.onboardingCompletedAt,
+      version: input.version,
+      serverSeq: input.serverSeq,
+      updatedAt: now,
+    };
+    if (existing) {
+      tx.update(profiles).set(values).where(eq(profiles.userId, userId)).run();
+    } else {
+      tx.insert(profiles)
+        .values({ userId, ...values })
+        .run();
+    }
+  });
+}
+
 /** Record what the server accepted (bridge push or, later, sync pull). */
 export function markProfileSynced(
   db: LocalDb,

@@ -48,7 +48,11 @@ FR-01's anonymous trial must not create UX friction or duplicate accounts.
    ([540,1080]); sleep window 23:00–07:00 ([1380,420] — the specs/07 §5 example). Everything
    editable in 30-min steps during onboarding; no overnight _working_ ranges in v1 (the sleep
    window is the overnight object). Recorded as spec-conflicts L13 alongside the rMEQ wording
-   (Appendix A had no rows for either).
+   (Appendix A had no rows for either). Onboarding requires **at least one working day**
+   (adversarial m8): the MVP schedules only inside declared hours (decision 5 / UC-01 A2), so
+   zero declared hours would make every plan empty; the all-days-off state shows a truthful
+   "toggle at least one day" message. The server still tolerates empty hours defensively
+   (weaker priors, never an error).
 6. **Google OAuth** ships code-complete via `signInWithOAuth` + `WebBrowser.openAuthSessionAsync`
    (browser flow needs only Supabase-side provider config — no native SDK, no SHA certs). It
    stays inert behind the ⛔ consent-screen gate; the button surfaces the provider error as

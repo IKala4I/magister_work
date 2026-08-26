@@ -109,6 +109,34 @@ describe('adoptLocalData (first sign-in contract)', () => {
     const owners = db.select({ userId: tasks.userId }).from(tasks).all();
     for (const row of owners) expect(row.userId).toBe(UID);
   });
+
+  it('survives a pre-existing profile row for the uid (m7: no PK-collision loop)', () => {
+    seedLocalData(); // stale local: profile from before a failed adopt
+    // …after which the user re-onboarded under the authenticated uid:
+    saveProfile(db, {
+      userId: UID,
+      draft: {
+        timezone: 'Europe/Kyiv',
+        locale: 'en',
+        workingHours: { tue: [540, 1080] },
+        sleepWindow: [1380, 420],
+        rmeqScore: 20,
+        chronotypeClass: 'MM',
+        surveySkipped: false,
+        topCategories: ['deep'],
+        onboardingCompletedAt: NOW,
+      },
+      now: NOW,
+    });
+
+    expect(() => adoptLocalData(db, UID)).not.toThrow();
+
+    const rows = db.select().from(profiles).all();
+    expect(rows).toHaveLength(1); // the stale placeholder row is gone
+    expect(rows[0]).toMatchObject({ userId: UID, chronotypeClass: 'MM' }); // uid row wins
+    const owners = db.select({ userId: tasks.userId }).from(tasks).all();
+    for (const row of owners) expect(row.userId).toBe(UID); // tasks still adopted
+  });
 });
 
 describe('wipeLocalMirror (account-change contract)', () => {

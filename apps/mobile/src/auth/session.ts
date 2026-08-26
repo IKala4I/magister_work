@@ -16,7 +16,7 @@ import { AppState } from 'react-native';
 import { create } from 'zustand';
 
 import { db } from '../db/client';
-import { markProfileSynced, saveProfile } from '../db/profile';
+import { getProfile, upsertProfileFromServer } from '../db/profile';
 import type { LocalDb } from '../db/writes';
 import { track } from '../observability/analytics';
 import { pushProfileIfPossible } from '../sync/profilePush';
@@ -54,15 +54,16 @@ function applySession(session: Session | null): void {
 }
 
 /**
- * A different account's rows are on the server; the P4 bridge can rehydrate the profile
- * (tasks and the rest arrive with real sync in P8). Failure is fine — the user just
- * re-onboards and the server keeps their beta_cells (ON CONFLICT DO NOTHING).
+ * The account's profile may already be on the server; the P4 bridge can rehydrate it
+ * (tasks and the rest arrive with real sync in P8). A pulled row is mirrored WITHOUT
+ * enqueueing a push op (findings m2/m3). Failure is fine — the user just re-onboards and
+ * the server keeps their beta_cells (ON CONFLICT DO NOTHING).
  */
 async function rehydrateProfile(localDb: LocalDb, userId: string): Promise<void> {
   if (!supabase) return;
   const { data } = await supabase.from('profiles').select().eq('user_id', userId).maybeSingle();
   if (!data || !data.onboarding_completed_at) return;
-  saveProfile(localDb, {
+  upsertProfileFromServer(localDb, {
     userId,
     draft: {
       timezone: data.timezone,
@@ -75,12 +76,9 @@ async function rehydrateProfile(localDb: LocalDb, userId: string): Promise<void>
       topCategories: data.top_categories,
       onboardingCompletedAt: new Date(data.onboarding_completed_at),
     },
-    now: new Date(),
-  });
-  markProfileSynced(localDb, {
-    userId,
     version: data.version,
     serverSeq: data.server_seq == null ? null : Number(data.server_seq),
+    now: new Date(),
   });
 }
 
@@ -92,6 +90,11 @@ async function handleSignedIn(session: Session): Promise<void> {
     // Same account resuming — nothing to move.
   } else if (lastUid == null) {
     adoptLocalData(localDb, uid); // first sign-in ever on this install (contract, P3)
+    // A returning user on a fresh install has their profile server-side, not here
+    // (ADR-0006 §4; finding m2) — without this they would re-onboard and LWW-overwrite it.
+    if (!getProfile(localDb, uid)?.onboardingCompletedAt) {
+      await rehydrateProfile(localDb, uid);
+    }
   } else {
     wipeLocalMirror(localDb); // different account — cursor contract (src/sync/cursor.ts)
     await rehydrateProfile(localDb, uid);
@@ -119,12 +122,17 @@ export function initAuth(): void {
     if (state === 'active') void pushProfileIfPossible();
   });
   supabase.auth.onAuthStateChange((event, session) => {
+    // Conversion completes when a formerly anonymous session stops being anonymous.
+    const wasAnonymous = useSessionStore.getState().isAnonymous;
     applySession(session);
     setTimeout(() => {
       if (session && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
         void handleSignedIn(session).catch(() => {
           // Never crash auth wiring; the next foreground/push retries.
         });
+      }
+      if (event === 'USER_UPDATED' && wasAnonymous && session?.user.is_anonymous === false) {
+        track('auth_event', { method: 'magic_link', event: 'converted' });
       }
       if (event === 'INITIAL_SESSION' && !session && getLastUserId() == null) {
         void bootstrapAnonymous();

@@ -17,7 +17,7 @@ import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 
-import { getProfile, markProfileSynced, saveProfile } from '../profile';
+import { getProfile, markProfileSynced, saveProfile, upsertProfileFromServer } from '../profile';
 import type { ProfileDraft } from '../profile';
 import { opOutbox } from '../schema';
 import type { LocalDb } from '../writes';
@@ -107,6 +107,36 @@ describe('saveProfile', () => {
     const ops = db.select().from(opOutbox).all();
     expect(ops).toHaveLength(2);
     expect(ops[1]?.baseVersion).toBe(3); // optimistic-concurrency check for the update op
+  });
+});
+
+describe('upsertProfileFromServer (pull path, finding m3)', () => {
+  it('mirrors a server row WITHOUT enqueueing a push op', () => {
+    upsertProfileFromServer(db, {
+      userId: USER,
+      draft: DRAFT,
+      version: 5,
+      serverSeq: 120,
+      now: NOW,
+    });
+    const row = getProfile(db, USER);
+    expect(row).toMatchObject({ chronotypeClass: 'DM', version: 5, serverSeq: 120 });
+    expect(db.select().from(opOutbox).all()).toHaveLength(0); // pulls never echo back
+  });
+
+  it('overwrites an existing local row in place', () => {
+    saveProfile(db, { userId: USER, draft: DRAFT, now: NOW });
+    upsertProfileFromServer(db, {
+      userId: USER,
+      draft: { ...DRAFT, workingHours: { sun: [600, 900] } },
+      version: 9,
+      serverSeq: 300,
+      now: NOW,
+    });
+    const row = getProfile(db, USER);
+    expect(row?.workingHours).toEqual({ sun: [600, 900] });
+    expect(row?.version).toBe(9);
+    expect(db.select().from(opOutbox).all()).toHaveLength(1); // only saveProfile's op
   });
 });
 

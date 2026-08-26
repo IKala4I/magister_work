@@ -41,7 +41,7 @@ export default function SurveyScreen() {
                   <Pressable
                     key={optionIndex}
                     accessibilityRole="radio"
-                    accessibilityState={{ selected }}
+                    accessibilityState={{ checked: selected }}
                     onPress={() => setAnswer(item.id, selected ? null : optionIndex)}
                     style={[
                       styles.option,

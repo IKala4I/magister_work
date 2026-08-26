@@ -1,8 +1,8 @@
 /**
  * Interactive auth flows (FR-01): magic link, Google OAuth, anonymous→email conversion.
  * All deep links land on hourwell://auth-callback (config.toml allow-list); the callback
- * route feeds the URL to createSessionFromUrl, which handles both PKCE (?code=) and
- * token-fragment (#access_token=) forms so template/provider changes can't strand users.
+ * route feeds the URL to createSessionFromUrl, which accepts ONLY the PKCE ?code= form —
+ * see its doc comment for why the token-fragment form is a session-fixation vector.
  */
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
@@ -48,8 +48,10 @@ export async function convertAnonymousToEmail(email: string): Promise<AuthFlowRe
     { emailRedirectTo: authRedirectUrl() },
   );
   if (error) {
-    const exists = error.code === 'email_exists' || error.status === 422;
-    return { ok: false, code: exists ? 'email_exists' : 'offline_or_failed' };
+    return {
+      ok: false,
+      code: error.code === 'email_exists' ? 'email_exists' : 'offline_or_failed',
+    };
   }
   track('auth_event', { method: 'magic_link', event: 'conversion_started' });
   return { ok: true };
@@ -69,7 +71,17 @@ export async function signInWithGoogle(): Promise<AuthFlowResult> {
   return createSessionFromUrl(result.url);
 }
 
-/** Turn an auth deep link into a session. Exported for the auth-callback route. */
+/**
+ * Turn an auth deep link into a session. Exported for the auth-callback route.
+ *
+ * PKCE ONLY — deliberately no `#access_token` fragment fallback. This app mints its links
+ * with flowType 'pkce', so a legitimate link always carries a one-shot `?code=` that is
+ * useless without the locally stored verifier. A fragment branch would accept
+ * attacker-supplied tokens (anonymous sign-ins make minting valid project tokens free):
+ * one hostile `hourwell://auth-callback#access_token=…` tap would silently sign the victim
+ * into the attacker's account and hand their local data to the adopt/wipe machinery
+ * (P4 adversarial finding M1 — session fixation).
+ */
 export async function createSessionFromUrl(url: string): Promise<AuthFlowResult> {
   if (!supabase) return { ok: false, code: 'unavailable' };
   let parsed: URL;
@@ -78,31 +90,18 @@ export async function createSessionFromUrl(url: string): Promise<AuthFlowResult>
   } catch {
     return { ok: false, code: 'invalid_link' };
   }
-  const fragment = new URLSearchParams(parsed.hash.replace(/^#/, ''));
-  const errorDescription =
-    parsed.searchParams.get('error_description') ?? fragment.get('error_description');
-  if (errorDescription) return { ok: false, code: 'invalid_link' };
+  if (parsed.searchParams.get('error_description')) return { ok: false, code: 'invalid_link' };
 
   const code = parsed.searchParams.get('code');
-  if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    return error ? { ok: false, code: 'invalid_link' } : { ok: true };
-  }
-
-  const accessToken = fragment.get('access_token');
-  const refreshToken = fragment.get('refresh_token');
-  if (accessToken && refreshToken) {
-    const { error } = await supabase.auth.setSession({
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    });
-    return error ? { ok: false, code: 'invalid_link' } : { ok: true };
-  }
-  return { ok: false, code: 'invalid_link' };
+  if (!code) return { ok: false, code: 'invalid_link' };
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  return error ? { ok: false, code: 'invalid_link' } : { ok: true };
 }
 
 export async function signOut(): Promise<void> {
   if (!supabase) return;
+  const { data } = await supabase.auth.getSession();
+  const method = data.session?.user.is_anonymous ? 'anonymous' : 'magic_link';
   await supabase.auth.signOut();
-  track('auth_event', { method: 'magic_link', event: 'signed_out' });
+  track('auth_event', { method, event: 'signed_out' });
 }
