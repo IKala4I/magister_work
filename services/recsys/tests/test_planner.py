@@ -94,7 +94,9 @@ def test_propensity_logging_path_is_exact_and_only_on_the_slice(
         if resp.telemetry.experiment_drawn:
             assert len(exp) == 1
             (a,) = exp
-            assert a.propensity == EPSILON / TOP_M == 0.25  # exact, pure function of settings
+            assert a.experiment_top_m is not None and 2 <= len(a.experiment_top_m) <= TOP_M
+            # exact per row: ε/|A_m(x)| — 0.25 when four buckets are reachable (ADR-0008 §1)
+            assert a.propensity == EPSILON / len(a.experiment_top_m)
             assert a.rationale_key == "experiment"
             assert a.chunk_index == 0
             t = next(t for t in _day_tasks() if t["id"] == a.task_id)

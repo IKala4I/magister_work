@@ -37,6 +37,9 @@ DURATION_EWMA_ALPHA = 0.3  # [A: duration estimator] P7
 EPSILON = 1.0  # [A: ε] P5 — P(one experiment placement per plan)
 TOP_M = 4  # [A: m] SPEC-FIXED
 EXPERIMENT_MAX_DURATION_TICKS = 8  # [A: experiment eligibility ≤2 h] P5
+# Owner decision 2026-08-26 (ADR-0008 §1): |A_m(x)| ∈ {2, 3, 4} with exact per-row p = ε/|A_m(x)|.
+# Under the strict "≥ m buckets" rule a plain 09–18 day rarely had an eligible task (RQ4 data rate).
+EXPERIMENT_MIN_BUCKETS = 2
 
 # --- cold-start priors (SPEC-FIXED, File 04 §3.3) ---
 N0_IN_HOURS = 8.0
