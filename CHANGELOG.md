@@ -1,5 +1,55 @@
 # Changelog
 
+## P6 — Plan E2E (2026-08-26, phase/P6-plan-e2e)
+
+**Edge function `plan-request` (specs/07 §5, UC-03, NFR-R2).** Deno function under
+`supabase/functions/plan-request/`: in-function JWT verification (`auth.getClaims`, asymmetric
+keys; `verify_jwt = false` at the gateway), context assembled through the USER-scoped client (profile
+hours, open tasks, busy calendar events — may be empty, previous plan for AddHint, client-pinned
+blocks → `pinned_start`, current study arm, the user's beta_cells), rate limit 30 per rolling 24 h,
+`empty_inbox` without a plan row. Arm A never calls the service; otherwise `/plan` under the
+1.9 s fallback budget (Appendix A) and, on timeout / network / HTTP / invalid response / missing
+secrets, the same heuristic answers tagged `engine = heuristic` with `telemetry.ef.reason =
+fallback:<kind>` plus a fire-and-forget `/healthz` wake probe. Persists every assignment field
+(M-01 `propensity` included) with the service role, puts `A_m(x)`, drops, degradation, tick size and
+seed in `plans.telemetry`, and supersedes still-`shown` rows of earlier plans for the date
+(`expired`). Migrations `20260827120000_p6_plan_request` (rate-limit index, telemetry key
+contract) and `20260827130000_p6_propensity_double` (M-01 `propensity` → double precision: 1/3 does
+not round-trip in float4 — found by the live smoke; spec-conflicts L22); pgTAP
+`p6_plan_request_test.sql`; new CI `edge` job (deno fmt/lint/check/test, 50 tests).
+
+**Arm A — "heuristic + matched randomization" (spec-conflicts H1; ADR-0008 §2).** TypeScript
+mirrors of the service's grid, F_τ, φ (|C| = 14, fatigue rule), 17-feature snapshot, Beta posterior
+and ε-draw (`supabase/functions/_shared/`), pinned to the Python side by a generated parity fixture
+(`scripts/gen_grid_parity.py`; both suites assert it) and a params pin across the boundary. The
+scheduler: pinned first → the matched ε-draw with the heuristic's own ranking (earliest reachable
+bucket) → critical tasks by EDF → the rest by priority tier / deadline / duration at the earliest
+free start, greedy chunking for splittable tasks; `q_hat`/`confidence` NULL; rationale subset;
+`model_version = heuristic-p6.0`.
+
+**Experiment eligibility (owner decision 2026-08-26; ADR-0008 §1).** Service and EF: a task needs
+≥ 2 reachable buckets (was ≥ m = 4); the bucket is uniform over the top-min(m, |A(x)|) set and the
+logged propensity is the exact per-row `ε/|A_m(x)|` (1/2, 1/3, 1/4). Measured with
+`scripts/experiment_rate.py`: P(plan has an eligible task) 0.57 → 0.86 at three tasks/day on a plain
+09–18 weekday, 0.00 → 0.22–0.48 on a four-meeting day; ≈ 4.3 experiments per user-week on plain
+weeks — recorded for the OSF power recomputation (thesis-corrections #21).
+
+**Client (FR-20/21/22, NFR-P1, NFR-O1).** Local `plans` mirror (drizzle migration `0002_p6_plans`);
+`applyPlanResponse` mirrors a plan in one transaction (rows, expirations, task status
+placed ⇒ `scheduled` / unplaced ⇒ `inbox` through the outbox, one `recommendation_shown` event per
+block with model version, engine, experiment flag and propensity); task-push bridge before every
+request (P8-lite, last-write-wins); lazy UC-03 triggers (first open / foreground on a plan day,
+06:00 boundary — invariant 7); Today screen with a row-list timeline, time gutter, "Now" marker,
+glass blocks (confidence = solidity; NULL confidence renders at a constant 0.7 without an a11y
+percentage), FR-21 sentences from the closed vocabulary, "Experiment" tag, optimistic planning banner,
+NFR-R2 notice only for fallback plans (never arm A), deferred-task line, manual re-plan, calm
+rate-limit/error notices; `plan_requested` analytics event with the client-measured round trip.
+
+**Docs.** ADR-0008; spec-conflicts M9, L17–L21; thesis-corrections #17 rewritten as the empirical
+presolve finding, #21–#25 added; revisit.md (eligibility entry closed; 4 new); versions.md (Deno
+2.9.5, supabase-js 2.112.4 in Deno, @std/assert 1.0.19); explainer updated; device checklist P6
+entries; `docs/verification/p6-manual-verification.md` + `p6-live-smoke.mjs`.
+
 ## P5 — RecSys service (2026-08-26, phase/P5-recsys)
 
 **Service (File 04 §1, specs/07 §5).** FastAPI 0.141 on Python 3.12: `POST /plan`, `POST /feedback`,

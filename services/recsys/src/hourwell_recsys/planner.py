@@ -35,6 +35,7 @@ from hourwell_recsys.params import (
     EPSILON,
     ETA_TICKS,
     EXPERIMENT_MAX_DURATION_TICKS,
+    EXPERIMENT_MIN_BUCKETS,
     GAMMA_U,
     MODEL_VERSION,
     PRACTICAL_LITERAL_THRESHOLD,
@@ -454,7 +455,9 @@ def _draw(prep: _Prepared, req: PlanRequest, rng: np.random.Generator) -> Experi
         if tid not in prep.unplaceable
     ]
     max_exp_ticks = max(1, (EXPERIMENT_MAX_DURATION_TICKS * TICK_MINUTES) // prep.grid.tick_minutes)
-    eligible = eligible_tasks(candidates, m=req.settings.top_m, max_duration_ticks=max_exp_ticks)
+    eligible = eligible_tasks(
+        candidates, min_buckets=EXPERIMENT_MIN_BUCKETS, max_duration_ticks=max_exp_ticks
+    )
     # rankings over the buckets an UNSPLIT placement can occupy — the experiment is solved
     # unsplit, so chunk-only buckets must never enter the top-m set (adversarial finding M1)
     rankings = {

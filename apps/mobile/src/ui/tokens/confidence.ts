@@ -20,5 +20,14 @@ export function confidenceOpacity(confidence: number): number {
   return CONFIDENCE_OPACITY_MIN + (CONFIDENCE_OPACITY_MAX - CONFIDENCE_OPACITY_MIN) * c;
 }
 
+/**
+ * Rendering value for rows WITHOUT a confidence (heuristic engine — arm A / NFR-R2 fallback —
+ * has no estimate; the stored column stays NULL). [MEASURED 2026-08-26] the learned engine's
+ * day-0 confidence under the flat prior and a fresh bandit (TS, 20 seeds × 6 tasks, n = 98):
+ * median 0.38, p25 0.31, p75 0.42 — so heuristic rows render at 0.38 and the arms start out
+ * looking alike (ADR-0008 §7; H1 blinding). The a11y label never claims a percentage here.
+ */
+export const NULL_CONFIDENCE_RENDER = 0.38;
+
 /** Dashed-border treatment for ε-slice "experiment" blocks (FR-22). */
 export const EXPERIMENT_BORDER = { style: 'dashed', width: 1 } as const;

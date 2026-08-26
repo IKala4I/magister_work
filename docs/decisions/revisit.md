@@ -30,6 +30,28 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   (adversarial NOTE). — Owner call before OSF freeze: keep p = ε/m with the strict rule, or allow
   |A_m(x)| ∈ {2, 3} with the exact per-row p = ε/|A_m(x)| (still uniform within the slice; File
   04 §2.2 replay restricted to A_m(x) works per row; `experiment_top_m` is now logged for it).
+  — **DECIDED 2026-08-26 (owner):** |A_m(x)| ∈ {2, 3, 4}, p = ε/|A_m(x)| — ADR-0008 §1; rate
+  measured and recorded (thesis-corrections #21); closed.
 - [P5, 2026-08-26] Slice selection — every INFEASIBLE-after-pin drop and every UNKNOWN rung is a
   selection on the randomized slice; `experiment_dropped`/`degradation`/`tick_minutes` live only
   in /plan telemetry. — P6: persist plan telemetry per recommendation row; P11: report drop rate.
+  — **DONE P6:** persisted in `plans.telemetry.ef` (one experiment per plan); P11 reports drops.
+- [P6, 2026-08-26] Appendix A "/plan EF fallback budget 1.9 s" — calibrated for the DAY horizon
+  (P5 day p90 170 ms on a Mac); the week horizon takes 1.5–2 s in the service (M8) and would
+  fall back most of the time. — P9/P10: if a week view is built, add an async plan path or a
+  horizon-specific budget by ADR; re-measure on the 2 vCPU Space first.
+- [P6, 2026-08-26] Task-push bridge (`apps/mobile/src/sync/taskPush.ts`) is last-write-wins by
+  design (ADR-0008 §5). — P8: replace with op replay (base_version checks) and delete the bridge.
+- [P6, 2026-08-26] Timeline as a row list (ADR-0008 §7) — reads fine but loses the "shape of
+  the day" a proportional canvas gives. — P9 (Skia work): evaluate a proportional timeline that
+  still passes the 200 % font-scale and screen-reader checks.
+- [P6, 2026-08-26] `NULL_CONFIDENCE_RENDER = 0.7` — chosen to match day-0 learned confidence
+  under the flat prior; once real confidence distributions exist, arm-A blocks may look
+  systematically different (a residual blinding cue). — P9/P11: compare rendered solidity
+  distributions across arms; consider rendering learned rows in a compressed band.
+- [P6, 2026-08-26] `persist.ts` writes plans + recommendations + supersede as three PostgREST
+  calls with a compensating delete (ADR-0008 §4). — P8 (sync-resolve needs transactional writes
+  anyway): one `security definer` RPC, service-role only, for plan persistence.
+- [P6, 2026-08-26] Drop rates on the randomized slice differ by arm by construction (the EF drops
+  only on pinned occupancy; the service on any INFEASIBLE). — P11: report `experiment_dropped`
+  per arm and condition the replay on the arm.

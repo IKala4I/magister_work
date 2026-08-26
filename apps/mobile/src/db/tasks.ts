@@ -46,7 +46,7 @@ export function assertValidDraft(draft: TaskDraft): void {
 }
 
 /** Server-shaped op payload (snake_case, epoch-ms) so P8 replays without renaming. */
-function taskOpPayload(row: TaskRow): Record<string, unknown> {
+export function taskOpPayload(row: TaskRow): Record<string, unknown> {
   return {
     id: row.id,
     user_id: row.userId,
@@ -232,6 +232,14 @@ export function restoreTask(db: LocalDb, input: { id: string; now?: Date }): Tas
     });
     return next;
   });
+}
+
+/** Every live task of a user (Today needs titles for scheduled tasks; P6). */
+export function activeTasksQuery(db: LocalDb, userId: string) {
+  return db
+    .select()
+    .from(tasks)
+    .where(and(eq(tasks.userId, userId), isNull(tasks.deletedAt)));
 }
 
 /** Inbox list (FR-10 read path) — also the query fed to useLiveQuery on the Inbox tab. */

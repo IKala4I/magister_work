@@ -115,12 +115,23 @@ destructive actions; "пропустити ніколи не буває черв
 and 200 % font scaling + reduced-motion (now backed by an executed sweep, 27/27); and the
 Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
 
-17. **§2 / §3 (solver):** wherever the draft repeats File 04 §1.5's "≈ 1.5·10⁴ literals — small
-    for CP-SAT" / "|literals| > 4·10⁴ → 30-min granularity", say instead that the 1.5 s anytime cap is
-    _presolve-bound_ on this model: measured 2026-08-26 on an M-series Mac, 15-min week instances at
-    8–10·10³ start literals returned UNKNOWN, 30-min instances (3–4·10³) FEASIBLE; the service
-    degrades at a measured threshold (8·10³) and on UNKNOWN, with the cap shared across rungs
-    (spec-conflicts M8, ADR-0007 §11). Container numbers are pending (device-checklist).
+17. **§2 / §3 (solver) — a checked assumption that failed; present it as an empirical result.**
+    The draft (with File 04 §1.5) states that a 15-min week instance has "≈ 1.5·10⁴ literals —
+    small for CP-SAT" and that the degradation ladder triggers at "|literals| > 4·10⁴". That was
+    a stated assumption about where the 1.5 s anytime cap binds, and measurement falsified it:
+    on the P5 model (M-series Mac, OR-Tools 9.15, 2 workers), 15-min week instances with
+    8–10·10³ start literals returned **UNKNOWN inside the cap without ever starting search** —
+    the time was consumed by CP-SAT's **presolve probing over the ≈ 11 k value literals of the
+    start encoding**, not by search — while 30-min instances (3–4·10³ literals) returned
+    FEASIBLE. Mechanism: probing is superlinear in the number of Boolean literals of the
+    `AddElement` start encoding, so the practical threshold sits an order of magnitude below the
+    spec's 4·10⁴. Consequences implemented and to be reported: probing/symmetry presolve off,
+    a **measured practical threshold of 8·10³ literals** in addition to the 4·10⁴ outer bound,
+    escalation on an UNKNOWN outcome ("still hot"), and the cap as a plan-level budget shared
+    across rungs. Write it as "the spec's size argument was tested and did not hold; here is the
+    mechanism and the measurement" (spec-conflicts M8, ADR-0007 §11,
+    `docs/verification/p5-manual-verification.md` §2). Container numbers (2 vCPU Space) are
+    still pending and must be quoted separately (device-checklist "Service environment").
 18. **§2 (warm start):** if the draft says the previous plan is injected "as a hint" so that
     blocks only move when worthwhile, add that CP-SAT hints do not preserve ties — the system adds a
     one-unit (1e-4) stability bonus on the hinted start to realize that promise (spec-conflicts M7).
@@ -130,3 +141,44 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
 20. **§3 (service API):** the propensity is logged as the within-slice value p = ε/m = 0.25 and
     the service refuses requests whose ε or m differ from the pre-registered constants (L16) —
     worth one sentence where the OPE substrate is described.
+
+---
+
+## Appended after P6 (plan E2E), 2026-08-26
+
+21. **§5 (MRT slice / power) — flag for the OSF freeze.** The draft and File 06 §2.3 compute the
+    MRT-slice power from "1 randomized slot per day". Measured on the planner's own grid and
+    eligibility code (`services/recsys/scripts/experiment_rate.py`): under the strict "≥ 4
+    reachable buckets" rule a plain 09–18 weekday makes every task ≥ 60 min ineligible, so a
+    plan with three tasks has an eligible task with probability 0.57 and a four-meeting day
+    never has one. With the P6 rule (owner decision 2026-08-26: |A_m(x)| ∈ {2, 3, 4}, exact
+    per-row p = ε/|A_m(x)|) the probability is **0.86 (three tasks/day), 0.96 (five), 0.22–0.48
+    on heavy days**, i.e. **≈ 4.3 experiments per user-week on plain weeks and ≈ 1–2.4 on heavy
+    weeks**, before INFEASIBLE-after-pin drops (P11 reports the drop rate) and before re-plans
+    supersede earlier draws (only the last shown plan of a day is acted on). Recompute the
+    slice's achieved power from this rate (Liao et al. 2016) and state the eligibility rule and
+    the per-row propensity formula in the pre-registration text. (ADR-0008 §1; spec-conflicts M9.)
+22. **§5.1 табл. 5.1 (arm A) — concrete definition, in addition to item 8's rename.** Arm A is
+    now built: a deterministic list scheduler on the SAME grid, feasibility set, context buckets
+    and feature snapshot as the learned engine — pinned tasks first; the matched ε-draw with the
+    heuristic's own ranking (earliest reachable bucket first); then critical tasks by
+    Earliest-Deadline-First (Liu & Layland 1973) and the rest by priority tier, deadline,
+    duration at their earliest free start (Graham 1966 list scheduling); greedy chunking for
+    splittable tasks. It never calls the RecSys service, logs `q_hat`/`confidence` as NULL and
+    `model_version = heuristic-p6.0`, and logs the SAME 17-feature snapshot (features 15–16 read
+    from the user's Beta cells) so the learned policy can be replayed on arm-A slice rows.
+    Cite EDF/list scheduling rather than "Motion/Reclaim-class rule engine". (ADR-0008 §2–3.)
+23. **§3 (graceful degradation, NFR-R2):** if the draft says fallback plans are "labeled as
+    such", add that the label is tied to the fallback _reason_ (service timeout/unreachable),
+    not to the heuristic engine — arm-A plans are unlabeled so the blind holds; outage user-days
+    are excluded from the analysis (File 06). Also: the fallback budget is 1.9 s of a 2.5 s
+    end-to-end target and is calibrated for day plans; week plans are not requested by the v1
+    client. (spec-conflicts L17; ADR-0008 §4, §7.)
+24. **§3.6 / UC-03 (plan triggers):** if the draft describes "06:00 local" as a scheduled server
+    or background job, say instead that planning is triggered lazily on first open/foreground of
+    a plan day (06:00 is the day boundary) because no correctness may depend on background
+    execution on mobile; the 06:00 reminder is a notification (P10). (spec-conflicts L20.)
+25. **§3.7 (Today screen):** the timeline is a row list with a time gutter and a "Now" marker,
+    not a pixel-proportional canvas — chosen so 200 % font scale and screen readers work
+    (NFR-A1/A2); a proportional canvas is a P9+ option. Confidence-as-solidity applies to
+    learned rows; heuristic rows render at a constant solidity with no percentage claimed.

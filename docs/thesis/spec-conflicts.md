@@ -200,3 +200,44 @@ decision rule (defensibility → consistency → measurability → pragmatics) a
 - **L16.** specs/07 §5 lists `settings.epsilon/top_m` in the /plan request. The service **rejects**
   values that differ from its constants (422) instead of honouring them: honouring would put an
   unlogged propensity meaning on M-01 rows, and H1 requires identical ε, m across arms.
+
+## Post-review additions (P6, 2026-08-26)
+
+- **M9.** File 04 §1.4 "default 1 slot/day" and File 06 §2.3's MRT-slice power both assume an
+  experiment on (nearly) every plan. Measured on the service's own grid/eligibility code
+  (`scripts/experiment_rate.py`): under ADR-0007 §5's strict "≥ m reachable buckets" rule a
+  plain 09–18 weekday makes every task ≥ 60 min ineligible (|A(x)| = 3), so P(plan has an
+  eligible task) is 0.57 with three tasks and 0.00 on a four-meeting day. **Owner decision
+  2026-08-26:** eligibility is |A_m(x)| ∈ {2, 3, 4} with the exact per-row p = ε/|A_m(x)|
+  (uniform within the logged set — File 04 §2.2 replay stays valid per row); P(eligible) becomes
+  0.86 (three tasks) / 0.22–0.48 (heavy day) ⇒ ≈ 4.3 vs. 1.1–2.4 experiments per user-week
+  before drops. File 06's power must be recomputed against that rate before the OSF freeze
+  (thesis-corrections #21). ADR-0008 §1.
+- **L17.** NFR-R2 "fall back to a deterministic heuristic scheduler, **labeled as such**" vs.
+  H1's blind: arm A is also `engine = heuristic`. Normative: the label is tied to the
+  provenance (`plans.telemetry.ef.reason` starting with `fallback:`), never to the engine tag,
+  so arm-A plans are unlabeled and fallback plans are labeled; outage user-days are excluded by
+  File 06 §1.6 anyway. ADR-0008 §7.
+- **L18.** FR-22 "visual confidence encoding per block" presumes an estimate; the heuristic has
+  none. Normative: `confidence` is NULL on heuristic rows (no fabricated number in the logs), the
+  client renders NULL at a constant solidity (0.7, ≈ day-0 learned confidence) and omits the
+  percentage from the accessibility label. ADR-0008 §7.
+- **L19.** specs/07 §5 has the plan-request EF assemble context from the server's tables and
+  File 05 §2 assumes push-then-pull sync — but sync is P8, so before P6 the server holds no
+  task rows. Normative for P6–P7: a task-push bridge (same pattern as the P4 profile bridge,
+  last-write-wins, own rows through RLS) runs before every plan request; P8 replaces it with
+  op replay. ADR-0008 §5.
+- **L20.** UC-03 "System (06:00 local or first open)" reads as a scheduled trigger; invariant 7
+  forbids correctness that depends on background execution. Normative: lazy triggers — first
+  open/foreground on a plan day without a plan; 06:00 is the plan-day boundary; the 06:00
+  nudge is P10's notification. ADR-0008 §6.
+- **L21.** specs/07 §5's /plan response lists `engine: learned | heuristic`; since P5 the
+  service only ever answers `learned` (a `policy = heuristic-shadow` still scores with the
+  learned machinery). Heuristic plans are produced by the edge function, whose OWN response to
+  the client carries `engine`; the server rows are written by the EF either way. No spec text
+  change needed beyond noting where the tag originates.
+- **L22.** specs/07 §4.2 M-01 declares `recommendations.propensity real` (float4). With the P6
+  eligibility rule the exact per-row propensity can be 1/3, which float4 stores as 0.33333334 —
+  a 6·10⁻⁸ relative error that would ride into every 1/p weight and contradict "exact".
+  Normative: the column is `double precision` (migration `20260827130000_p6_propensity_double`);
+  `A_m(x)` is logged beside it, so p is also recoverable as ε/|A_m(x)| symbolically. ADR-0008 §4.

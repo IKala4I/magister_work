@@ -1,5 +1,6 @@
-"""ε-slice: the logged propensity is EXACTLY ε/m, the draws are uniform, eligibility is as
-specified, and nothing outside the slice ever carries a propensity."""
+"""ε-slice: the logged propensity is EXACTLY ε/|A_m(x)|, the draws are uniform, eligibility is
+as specified (≥ EXPERIMENT_MIN_BUCKETS reachable buckets, ADR-0008 §1), and nothing outside the
+slice ever carries a propensity."""
 
 from __future__ import annotations
 
@@ -14,7 +15,7 @@ from hourwell_recsys.exploration import (
     propensity,
     top_m_buckets,
 )
-from hourwell_recsys.params import EPSILON, TOP_M
+from hourwell_recsys.params import EPSILON, EXPERIMENT_MIN_BUCKETS, TOP_M
 
 BUCKETS = ["MO.wd.fresh", "AF.wd.fresh", "MD.wd", "EV.wd", "EM.wd"]
 
@@ -41,10 +42,14 @@ def test_eligibility_rules() -> None:
         _cand("crit", critical=True),
         _cand("pin", pinned=True),
         _cand("long", duration=9),  # > 2 h (8 ticks)
-        _cand("few", feasible_bucket_ids=("MO.wd.fresh", "AF.wd.fresh", "MD.wd")),  # < m buckets
+        _cand("three", feasible_bucket_ids=("MO.wd.fresh", "AF.wd.fresh", "MD.wd")),  # < m: OK
+        _cand("two", feasible_bucket_ids=("MO.wd.fresh", "MO.wd.fresh", "MD.wd")),  # 2 distinct
+        _cand("one", feasible_bucket_ids=("MO.wd.fresh",)),  # a single bucket is no experiment
         _cand("edge", duration=8),
     ]
-    assert eligible_tasks(cands) == ["edge", "ok"]
+    assert EXPERIMENT_MIN_BUCKETS == 2
+    assert eligible_tasks(cands) == ["edge", "ok", "three", "two"]
+    assert eligible_tasks(cands, min_buckets=4) == ["edge", "ok"]  # the pre-P6 strict rule
 
 
 def test_top_m_is_deterministic_with_id_tie_break() -> None:
@@ -100,7 +105,22 @@ def test_bernoulli_epsilon_rate() -> None:
     assert d.propensity == 0.3 / 4
 
 
-def test_fewer_than_m_ranked_buckets_is_a_hard_error() -> None:
+def test_fewer_than_min_buckets_is_a_hard_error() -> None:
     rng = np.random.default_rng(1)
     with pytest.raises(ValueError):
         draw_experiment(rng, eligible=["t"], rankings={"t": [("MO.wd.fresh", 0.5)]})
+
+
+def test_small_slices_log_the_exact_per_row_propensity() -> None:
+    """|A_m(x)| ∈ {2, 3}: p = ε/|A_m(x)| and the draw is uniform within the smaller set."""
+    rng = np.random.default_rng(7)
+    for k in (2, 3):
+        rankings = {"t": [(b, 0.9 - i * 0.1) for i, b in enumerate(BUCKETS[:k])]}
+        counts = {b: 0 for b in BUCKETS[:k]}
+        for _ in range(3000):
+            d = draw_experiment(rng, eligible=["t"], rankings=rankings)
+            assert d is not None
+            assert d.propensity == EPSILON / k
+            assert d.top_m == tuple(BUCKETS[:k])
+            counts[d.bucket_id] += 1
+        assert chisquare(list(counts.values())).pvalue > 0.001

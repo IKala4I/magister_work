@@ -9,6 +9,7 @@ import { getTableConfig } from 'drizzle-orm/sqlite-core';
 
 import {
   tasks,
+  plans,
   recommendations,
   events,
   opOutbox,
@@ -23,6 +24,27 @@ function columnNames(table: Parameters<typeof getTableColumns>[0]): string[] {
     .map((c) => c.name)
     .sort();
 }
+
+describe('plans mirror (specs/07 §4.1, P6)', () => {
+  it('carries the server row column-for-column', () => {
+    expect(columnNames(plans)).toEqual(
+      [
+        'id',
+        'user_id',
+        'plan_date',
+        'horizon',
+        'engine',
+        'model_version',
+        'arm',
+        'solver_status',
+        'telemetry',
+        'generated_at',
+        'server_seq',
+      ].sort(),
+    );
+    expect(plans.engine.enumValues).toEqual(['learned', 'heuristic']);
+  });
+});
 
 describe('tasks mirror (specs/07 §4.1)', () => {
   it('carries every FR-10 field the server has', () => {
