@@ -27,7 +27,7 @@ values ('00000000-0000-4000-8000-00000000ad01', '00000000-0000-4000-8000-0000000
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-8000-000000000a01","role":"authenticated"}', true);
 select is((select count(*) from public.plans), 2::bigint, 'owner sees both plans');
-select is((select propensity from public.recommendations where id = '00000000-0000-4000-8000-00000000ad01'), 0.5::real, 'owner reads the exact propensity (M-01)');
+select is((select propensity from public.recommendations where id = '00000000-0000-4000-8000-00000000ad01'), 0.5::double precision, 'owner reads the exact propensity (M-01, double precision — L22)');
 select is((select telemetry->'ef'->'experiment'->>'propensity' from public.plans where id = '00000000-0000-4000-8000-00000000ac01'), '0.5', 'A_m(x) telemetry is readable by the owner');
 
 -- a client may not supersede (expired is a server-side status)

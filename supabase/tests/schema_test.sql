@@ -6,7 +6,8 @@ select no_plan();
 
 -- M-01
 select has_column('public', 'recommendations', 'propensity', 'M-01: propensity column exists');
-select col_type_is('public', 'recommendations', 'propensity', 'real', 'M-01: propensity is real');
+select col_type_is('public', 'recommendations', 'propensity', 'double precision',
+  'M-01: propensity is double precision (P6: 1/3 must round-trip — spec-conflicts L22)');
 
 -- M-02
 select has_column('public', 'recommendations', 'conflict_flag', 'M-02: conflict_flag exists');
