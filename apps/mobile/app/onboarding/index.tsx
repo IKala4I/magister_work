@@ -10,7 +10,7 @@ import { Button, Screen, ThemedText } from '../../src/ui/primitives';
 export default function WelcomeScreen() {
   const router = useRouter();
   return (
-    <Screen>
+    <Screen topInset>
       <View style={styles.hero}>
         <ThemedText variant="display">{t('app.name')}</ThemedText>
         <ThemedText variant="h2" style={styles.tagline}>

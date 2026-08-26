@@ -31,7 +31,7 @@ export default function AuthCallbackScreen() {
   if (outcome === 'done') return <Redirect href="/(tabs)" />;
 
   return (
-    <Screen>
+    <Screen topInset>
       <View style={styles.centered}>
         {outcome === 'working' ? (
           <>

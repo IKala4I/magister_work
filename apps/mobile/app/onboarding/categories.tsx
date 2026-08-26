@@ -16,7 +16,7 @@ export default function CategoriesScreen() {
   const toggleCategory = useOnboardingStore((s) => s.toggleCategory);
 
   return (
-    <Screen>
+    <Screen topInset>
       <ThemedText variant="caption">
         {t('onboarding.step.a11y', { current: 3, total: 4 })}
       </ThemedText>

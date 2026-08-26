@@ -74,7 +74,7 @@ export default function HoursScreen() {
   const valid = isValidWorkingHours(workingHours);
 
   return (
-    <Screen>
+    <Screen topInset>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <ThemedText variant="caption">
           {t('onboarding.step.a11y', { current: 2, total: 4 })}

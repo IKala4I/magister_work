@@ -21,7 +21,7 @@ export default function SurveyScreen() {
   const anySkipped = RMEQ_ITEMS.some((item) => answers[item.id] === null);
 
   return (
-    <Screen>
+    <Screen topInset>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <ThemedText variant="caption">
           {t('onboarding.step.a11y', { current: 1, total: 4 })}

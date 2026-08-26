@@ -4,7 +4,7 @@
  * server instantiates cold-start priors from it (the first plan itself arrives with P6).
  */
 import { useRouter } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 
 import { completeOnboardingAction } from '../../src/domain/onboarding';
 import { createTaskAction } from '../../src/domain/taskActions';
@@ -36,37 +36,46 @@ export default function SeedTasksScreen() {
   };
 
   return (
-    <Screen>
-      <ThemedText variant="caption">
-        {t('onboarding.step.a11y', { current: 4, total: 4 })}
-      </ThemedText>
-      <ThemedText variant="h1">{t('onboarding.seedTasks.title')}</ThemedText>
-      <ThemedText style={styles.intro}>{t('onboarding.seedTasks.intro')}</ThemedText>
-
-      <QuickAddBar
-        onSubmit={(draft, nlParseUsed) => {
-          createTaskAction(draft, { source: 'quick_add', nlParseUsed });
-          countSeedTask();
-        }}
-      />
-      <View style={styles.counter}>
+    <Screen topInset>
+      {/* Keep the primary CTA reachable while the quick-add keyboard is up (P4 Maestro
+          walk caught it buried behind the keyboard — keyboard stays open for consecutive
+          adds by design, so the footer must float above it). */}
+      <KeyboardAvoidingView
+        style={styles.avoider}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
         <ThemedText variant="caption">
-          {t('onboarding.seedTasks.added', { count: Math.min(seedTasksAdded, SEED_TASK_TARGET) })}
+          {t('onboarding.step.a11y', { current: 4, total: 4 })}
         </ThemedText>
-      </View>
+        <ThemedText variant="h1">{t('onboarding.seedTasks.title')}</ThemedText>
+        <ThemedText style={styles.intro}>{t('onboarding.seedTasks.intro')}</ThemedText>
 
-      <View style={styles.footer}>
-        <Button
-          label={seedTasksAdded > 0 ? t('onboarding.seedTasks.finish') : t('onboarding.skipStep')}
-          onPress={finish}
+        <QuickAddBar
+          onSubmit={(draft, nlParseUsed) => {
+            createTaskAction(draft, { source: 'quick_add', nlParseUsed });
+            countSeedTask();
+          }}
         />
-      </View>
+        <View style={styles.counter}>
+          <ThemedText variant="caption">
+            {t('onboarding.seedTasks.added', { count: Math.min(seedTasksAdded, SEED_TASK_TARGET) })}
+          </ThemedText>
+        </View>
+
+        <View style={styles.footer}>
+          <Button
+            label={seedTasksAdded > 0 ? t('onboarding.seedTasks.finish') : t('onboarding.skipStep')}
+            onPress={finish}
+          />
+        </View>
+      </KeyboardAvoidingView>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  avoider: { flex: 1 },
   intro: { marginTop: 4, marginBottom: 12 },
   counter: { marginTop: 8 },
-  footer: { flex: 1, justifyContent: 'flex-end' },
+  footer: { flex: 1, justifyContent: 'flex-end', paddingBottom: 8 },
 });
