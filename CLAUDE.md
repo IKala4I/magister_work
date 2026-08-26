@@ -93,6 +93,29 @@
   pressure: stop at the nearest clean commit, write the handoff, say so. Resume line is:
   "Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."
 
+## Context efficiency (owner directive, 2026-08-26)
+
+Quality stays where it is; what changes is how much we re-read.
+
+1. **Read narrowly.** Before a phase, consult only the spec sections that phase actually needs —
+   never re-read all of `specs/` to orient. At the end of every phase, HANDOFF.md must list the
+   exact files and sections the next phase requires, so a fresh session reads addressably.
+2. **Adversarial review runs in a real subagent** with its own context window; its transcript
+   never lands in the main session — only the findings come back.
+3. **Verbose output stays out of the conversation.** Pipe build logs, full test output, and CI
+   dumps to files; paste only the summary line plus counts. Evidence stays linkable, not inlined.
+4. **Split `docs/traceability.md` per phase** once reading it is a cost.
+5. **Findings vs. second-guessing.** Concrete evidence that a settled decision is wrong (a bug, a
+   spec contradiction, a measurement that doesn't hold) → raise it: if it blocks further work,
+   stop and tell the owner; otherwise log one line in `docs/decisions/revisit.md` and surface it
+   in the phase report. Never re-litigate a decided question on argument alone — the reasoning
+   was already weighed in the ADR.
+6. **One session per phase.** After each merged phase PR: refresh HANDOFF.md, end the turn with
+   `HANDOFF WRITTEN — safe to /clear`, and let the owner clear before the next phase starts.
+7. **Flag routine phases.** Whenever a phase (or a remaining slice of one) is routine
+   implementation rather than thesis-critical work, say so explicitly in the report — the owner
+   may run those on a cheaper model.
+
 ## Conventions
 
 - **Commits:** Conventional Commits with `Refs:` (requirement IDs) + `Phase:` trailers;
