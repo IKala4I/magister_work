@@ -306,6 +306,41 @@ Deno.test('splittable tasks chunk (≥ d_min, ≤ 4 chunks) when no whole slot f
   checkHardConstraints(req, result);
 });
 
+Deno.test("features are the bucket's k* snapshot (service parity), not the placed tick", () => {
+  // two admin tasks land in MO.wd.fresh at different ticks; both log the SAME x (evaluated at k*)
+  const req = request([
+    task('a', { category: 'admin', est_minutes: 30 }),
+    task('b', { category: 'admin', est_minutes: 30 }),
+  ]);
+  req.settings = { ...req.settings, epsilon: 0 };
+  const result = heuristicPlan(req, { nowMs: NOW, cells: [], seed: 1 });
+  const rows = result.assignments.filter((x) => x.context_bucket === 'MO.wd.fresh');
+  assertEquals(rows.length, 2);
+  assertNotEquals(rows[0].slot_start, rows[1].slot_start);
+  assertEquals(rows[0].features, rows[1].features);
+});
+
+Deno.test('overlapping pins: the later pin is infeasible with an unpin option; others still placed', () => {
+  const req = request([
+    task('p1', { est_minutes: 60, pinned_start: kyiv(10) }),
+    task('p2', { est_minutes: 60, pinned_start: kyiv(10, 30) }),
+    task('x', { est_minutes: 30 }),
+  ]);
+  req.settings = { ...req.settings, epsilon: 0 };
+  const result = heuristicPlan(req, { nowMs: NOW, cells: [], seed: 1 });
+  assertEquals(result.unplaced, [{ task_id: 'p2', reason: 'infeasible' }]);
+  assertEquals(result.infeasible?.options, [
+    {
+      kind: 'unpin',
+      task_id: 'p2',
+      delta_minutes: null,
+      consequence: { metric: 'pinned_overlap_minutes', value: 30 },
+    },
+  ]);
+  assertEquals(result.assignments.map((a) => a.task_id).sort(), ['p1', 'x']);
+  checkHardConstraints(req, result);
+});
+
 Deno.test('unplaceable tasks: deadline in the past, pin off-grid or in a no-daypart hour', () => {
   const req = request([
     task('past', { deadline: '2026-08-25T12:00:00+03:00' }),

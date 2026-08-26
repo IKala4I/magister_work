@@ -13,7 +13,7 @@ import type { ReactElement } from 'react';
 
 import { en } from '../../i18n/en';
 import { ThemedText, Screen, ConfidenceBlock } from '../primitives';
-import { confidenceOpacity } from '../tokens/confidence';
+import { confidenceOpacity, NULL_CONFIDENCE_RENDER } from '../tokens/confidence';
 import { blendOverHex, hexWithAlpha } from '../tokens/contrast';
 import { typeScale, MAX_FONT_SCALE } from '../tokens/typography';
 import { lightColors } from '../tokens/colors';
@@ -79,6 +79,22 @@ describe('ConfidenceBlock (confidence = solidity, FR-22)', () => {
     expect(flatStyle(text).opacity).toBeUndefined();
     const wrapper = screen.getByLabelText('Confidence 40 percent');
     expect(flatStyle(wrapper).opacity).toBeUndefined();
+  });
+
+  it('NULL confidence (heuristic rows) renders at the measured day-0 solidity and claims no percentage', async () => {
+    await renderWithSafeArea(
+      <ConfidenceBlock confidence={null} contentLabel="Deep work, 9:00 to 10:30">
+        <ThemedText>{en['today.empty.body']}</ThemedText>
+      </ConfidenceBlock>,
+    );
+    const expectedAlpha =
+      lightColors.surfaceElevated.opacity * confidenceOpacity(NULL_CONFIDENCE_RENDER);
+    expect(JSON.stringify(screen.toJSON())).toContain(
+      hexWithAlpha(lightColors.surfaceElevated.color, expectedAlpha),
+    );
+    expect(screen.getByLabelText('Deep work, 9:00 to 10:30')).toBeTruthy();
+    expect(screen.queryByLabelText(/Confidence/)).toBeNull();
+    expect(NULL_CONFIDENCE_RENDER).toBeCloseTo(0.38, 2);
   });
 
   it('higher confidence renders a more solid panel (monotone in the tree)', async () => {

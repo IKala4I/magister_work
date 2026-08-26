@@ -110,7 +110,7 @@ export function parseIsoDate(planDate: string): { year: number; month: number; d
 }
 
 /** Days from calendar date a to calendar date b (proleptic Gregorian, no zone involved). */
-function daysBetween(
+export function daysBetween(
   a: WallClock | { year: number; month: number; day: number },
   b: WallClock,
 ): number {

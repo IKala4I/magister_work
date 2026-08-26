@@ -14,7 +14,12 @@ import { useEffect, useRef, useState } from 'react';
 
 type SyncQuery<T> = { all(): T[] };
 
-export function useLiveRows<T>(buildQuery: () => SyncQuery<T>, tables: readonly string[]): T[] {
+export function useLiveRows<T>(
+  buildQuery: () => SyncQuery<T>,
+  tables: readonly string[],
+  /** Builder inputs that must re-run the query when they change (e.g. the plan day). */
+  deps: readonly unknown[] = [],
+): T[] {
   const buildRef = useRef(buildQuery);
   buildRef.current = buildQuery;
   const [rows, setRows] = useState<T[]>([]);
@@ -32,10 +37,10 @@ export function useLiveRows<T>(buildQuery: () => SyncQuery<T>, tables: readonly 
       alive = false;
       subscription.remove();
     };
-    // The table names ARE the deps: a deps array compares element-wise, so a literal
-    // ['tasks'] at the call site never re-subscribes.
+    // The table names (plus the caller's builder inputs) ARE the deps: a deps array compares
+    // element-wise, so a literal ['tasks'] at the call site never re-subscribes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, tables);
+  }, [...tables, ...deps]);
 
   return rows;
 }

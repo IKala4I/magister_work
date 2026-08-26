@@ -23,7 +23,7 @@ export const en = {
   'today.offline': 'Offline — showing your last plan.',
   'today.noSession': 'Sign in to plan your day.',
   'today.error': 'Could not plan right now. Try again in a moment.',
-  'today.rateLimited': 'Daily planning limit reached — tomorrow’s plan will be ready at 6:00.',
+  'today.rateLimited': 'Daily planning limit reached — you can plan again tomorrow.',
   'today.deferred.title': 'Not placed today',
   'today.deferred.body': 'No room today for {count} tasks — they stay in your Inbox.',
   'today.deferred.one': 'No room today for one task — it stays in your Inbox.',

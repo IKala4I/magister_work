@@ -20,6 +20,7 @@ export type PlanRequestOutcome =
   | { kind: 'planned'; plan: PlanRow; durationMs: number }
   | { kind: 'empty_inbox'; durationMs: number }
   | { kind: 'no-session' }
+  | { kind: 'offline' }
   | { kind: 'rate_limited' }
   | { kind: 'profile_missing' }
   | { kind: 'failed'; detail: string };
@@ -55,7 +56,7 @@ async function run(input: {
   const now = input.now ?? new Date();
 
   const pushed = await pushTasksIfPossible();
-  if (pushed === 'failed') return { kind: 'failed', detail: 'task push failed' };
+  if (pushed === 'failed') return { kind: 'offline' }; // the push is the first network hop
 
   const body: PlanRequestBody = {
     plan_date: input.planDate,
@@ -69,6 +70,8 @@ async function run(input: {
   );
   const durationMs = Date.now() - started;
   if (error) {
+    // supabase-js: FunctionsFetchError = no response at all (network); FunctionsHttpError = non-2xx
+    if (error.name === 'FunctionsFetchError') return { kind: 'offline' };
     const status = (error as FunctionsHttpError).context?.status as number | undefined;
     if (status === 429) return { kind: 'rate_limited' };
     if (status === 404) return { kind: 'profile_missing' };

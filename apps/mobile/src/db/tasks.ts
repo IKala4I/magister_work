@@ -46,7 +46,7 @@ export function assertValidDraft(draft: TaskDraft): void {
 }
 
 /** Server-shaped op payload (snake_case, epoch-ms) so P8 replays without renaming. */
-function taskOpPayload(row: TaskRow): Record<string, unknown> {
+export function taskOpPayload(row: TaskRow): Record<string, unknown> {
   return {
     id: row.id,
     user_id: row.userId,

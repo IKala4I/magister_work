@@ -1,4 +1,4 @@
-import { decidePlanTrigger, planDayOf } from '../planTrigger';
+import { decidePlanTrigger, planDayOf, requestPlanDayOf } from '../planTrigger';
 
 describe('planDayOf — 06:00 local day boundary (Appendix A plan triggers)', () => {
   it('rolls back before 06:00 and not at/after it', () => {
@@ -47,7 +47,7 @@ describe('decidePlanTrigger — lazy UC-03 (invariant 7: no background dependenc
       decidePlanTrigger({ now, latestPlanDate: null, lastRequestedDay: null, inFlight: true }),
     ).toEqual({ request: false });
   });
-  it('a 02:00 open still belongs to yesterday’s plan', () => {
+  it('a 02:00 open never auto-requests; a manual request plans the current calendar day', () => {
     const night = new Date(2026, 7, 27, 2, 0);
     expect(
       decidePlanTrigger({
@@ -57,5 +57,15 @@ describe('decidePlanTrigger — lazy UC-03 (invariant 7: no background dependenc
         inFlight: false,
       }),
     ).toEqual({ request: false });
+    expect(
+      decidePlanTrigger({
+        now: night,
+        latestPlanDate: null,
+        lastRequestedDay: null,
+        inFlight: false,
+      }),
+    ).toEqual({ request: false });
+    expect(requestPlanDayOf(night)).toBe('2026-08-27');
+    expect(planDayOf(night)).toBe('2026-08-26');
   });
 });

@@ -16,6 +16,8 @@ import type {
 } from '../sync/planTypes';
 
 import { plans, recommendations, tasks } from './schema';
+import { taskOpPayload } from './tasks';
+import type { TaskRow } from './tasks';
 import { appendEvent, enqueueOp } from './writes';
 import type { LocalDb } from './writes';
 
@@ -27,6 +29,16 @@ export type UnplacedEntry = {
   task_id: string;
   reason: 'no_feasible_start' | 'deferred' | 'infeasible';
 };
+
+/** The user's most recent plan of any date — feeds the UC-03 trigger (first_open vs new_day). */
+export function latestPlanAnyQuery(db: LocalDb, userId: string) {
+  return db
+    .select()
+    .from(plans)
+    .where(and(eq(plans.userId, userId), eq(plans.horizon, 'day')))
+    .orderBy(desc(plans.generatedAt))
+    .limit(1);
+}
 
 /** Latest plan for a local day (the one the Today screen renders) — fed to useLiveRows. */
 export function latestPlanQuery(db: LocalDb, userId: string, planDate: string) {
@@ -157,17 +169,18 @@ export function applyPlanResponse(db: LocalDb, input: ApplyPlanInput): PlanRow {
       .all() as Array<typeof tasks.$inferSelect>;
     for (const row of rows) {
       if (row.deletedAt !== null) continue;
-      const next = placedIds.has(row.id) ? 'scheduled' : unplacedIds.has(row.id) ? 'inbox' : null;
-      if (next === null || next === row.status) continue;
-      const version = row.version + 1;
+      const next_ = placedIds.has(row.id) ? 'scheduled' : unplacedIds.has(row.id) ? 'inbox' : null;
+      if (next_ === null || next_ === row.status) continue;
+      const next: TaskRow = { ...row, status: next_, version: row.version + 1, updatedAt: now };
       tx.update(tasks)
-        .set({ status: next, version, updatedAt: now })
+        .set({ status: next.status, version: next.version, updatedAt: now })
         .where(eq(tasks.id, row.id))
         .run();
+      // full server-shaped row like every other task op (P8 replays it unchanged)
       enqueueOp(tx, {
         opType: 'task_upsert',
         entityId: row.id,
-        payload: { id: row.id, user_id: userId, status: next, version, updated_at: now.getTime() },
+        payload: taskOpPayload(next),
         baseVersion: row.version,
         now,
       });

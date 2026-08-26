@@ -65,7 +65,12 @@ export async function persist(client: AnyClient, input: PersistInput): Promise<P
         })),
       )
       .select(REC_COLUMNS);
-    if (error) fail('recommendations insert', error);
+    if (error) {
+      // Two PostgREST writes are not one transaction: never leave a plan row without its blocks
+      // (it would count against the rate limit and pose as the AddHint "previous plan").
+      await client.from('plans').delete().eq('id', plan.id);
+      fail('recommendations insert', error);
+    }
     recommendations = (data ?? []) as RecommendationRow[];
     recommendations.sort((
       x,

@@ -143,7 +143,8 @@ export interface EfTelemetry {
     bucket_id: string;
     top_m: string[];
     propensity: number;
-    n_eligible: number;
+    /** Heuristic path only; null on the learned path (not in the service telemetry). */
+    n_eligible: number | null;
   } | null;
   experiment_drawn: boolean;
   experiment_dropped: boolean;

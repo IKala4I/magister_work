@@ -7,13 +7,13 @@ import { useCallback, useEffect } from 'react';
 import { AppState } from 'react-native';
 
 import type { PlanTrigger } from '../db/plans';
-import { decidePlanTrigger, planDayOf } from '../domain/planTrigger';
+import { decidePlanTrigger, requestPlanDayOf } from '../domain/planTrigger';
 import { usePlanStore } from '../state/plan';
 
 import { isPlanRequestInFlight, requestPlan } from './planRequest';
 
 export async function runPlanRequest(trigger: PlanTrigger, now: Date = new Date()): Promise<void> {
-  const planDate = planDayOf(now);
+  const planDate = requestPlanDayOf(now);
   usePlanStore.setState({ status: 'planning', lastRequestedDay: planDate });
   const outcome = await requestPlan({ planDate, trigger, now });
   switch (outcome.kind) {
@@ -25,6 +25,9 @@ export async function runPlanRequest(trigger: PlanTrigger, now: Date = new Date(
       break;
     case 'no-session':
       usePlanStore.setState({ status: 'no_session' });
+      break;
+    case 'offline':
+      usePlanStore.setState({ status: 'offline' });
       break;
     case 'rate_limited':
       usePlanStore.setState({ status: 'rate_limited' });

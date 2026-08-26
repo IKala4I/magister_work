@@ -10,6 +10,7 @@
  * reason (so outage days are distinguishable from arm-A days — File 06 excludes the former).
  */
 import { type BetaCell } from '../_shared/energy.ts';
+import { daysBetween, parseIsoDate, wallClock } from '../_shared/grid.ts';
 import { heuristicPlan } from '../_shared/heuristic.ts';
 import {
   EPSILON,
@@ -95,6 +96,10 @@ export interface Deps {
 }
 
 const JSON_HEADERS = { 'content-type': 'application/json' };
+/** Client clock skew tolerated on `now` (past ticks become workable if `now` lies) — [INFERRED]. */
+const NOW_SKEW_LIMIT_MS = 24 * 3_600_000;
+const PLAN_DATE_PAST_DAYS = 1;
+const PLAN_DATE_FUTURE_DAYS = 7;
 
 function json(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), { status, headers: JSON_HEADERS });
@@ -157,6 +162,12 @@ export async function handlePlanRequest(req: Request, deps: Deps): Promise<Respo
   if (typeof body === 'string') return json(400, { error: 'bad_request', detail: body });
   const horizon: Horizon = body.horizon ?? 'day';
   const nowMs = body.now === undefined ? t0 : Date.parse(body.now);
+  if (Math.abs(nowMs - t0) > NOW_SKEW_LIMIT_MS) {
+    return json(400, {
+      error: 'bad_request',
+      detail: 'now is more than 24 h from the server clock',
+    });
+  }
 
   const recent = await deps.countPlansLast24h(userId, t0);
   if (recent >= PLAN_RATE_LIMIT_PER_DAY) {
@@ -203,7 +214,7 @@ export async function handlePlanRequest(req: Request, deps: Deps): Promise<Respo
     solverStatus = h.solver_status;
     assignments = h.assignments;
     unplaced = h.unplaced;
-    infeasible = null;
+    infeasible = h.infeasible;
     ef = {
       reason,
       service_status: call?.status ?? null,

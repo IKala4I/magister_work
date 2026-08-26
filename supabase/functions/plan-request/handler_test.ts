@@ -245,6 +245,25 @@ Deno.test('405 / 401 / 400 / 429 / 404 before any planning happens', async () =>
   assertEquals(h.serviceCalls.length, 0);
 });
 
+Deno.test('arm A: overlapping pins yield infeasible + unpin options in the response', async () => {
+  const h = harness({
+    ctx: context({
+      arm: 'A',
+      tasks: [
+        task('p1', { pinned_start: kyiv(10) }),
+        task('p2', { pinned_start: kyiv(10, 30) }),
+        task('x', { est_minutes: 30 }),
+      ],
+    }),
+  });
+  const res = await handlePlanRequest(post({ plan_date: '2026-08-26', now: kyiv(8) }), h.deps);
+  const body = (await res.json()) as PlanRequestResponse;
+  assert(body.status === 'planned');
+  assertEquals(body.unplaced, [{ task_id: 'p2', reason: 'infeasible' }]);
+  assertEquals(body.infeasible?.options[0]?.kind, 'unpin');
+  assertEquals(body.infeasible?.options[0]?.task_id, 'p2');
+});
+
 Deno.test('empty inbox (UC-03 A2): no service call, nothing persisted, status empty_inbox', async () => {
   const h = harness({ ctx: context({ tasks: [] }) });
   const res = await handlePlanRequest(post({ plan_date: '2026-08-26' }), h.deps);

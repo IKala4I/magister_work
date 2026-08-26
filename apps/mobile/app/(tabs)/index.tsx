@@ -13,6 +13,7 @@ import { useSessionStore } from '../../src/auth/session';
 import { db } from '../../src/db/client';
 import {
   isFallbackPlan,
+  latestPlanAnyQuery,
   latestPlanQuery,
   planRecommendationsQuery,
   unplacedOf,
@@ -23,7 +24,7 @@ import { activeTasksQuery } from '../../src/db/tasks';
 import type { TaskRow } from '../../src/db/tasks';
 import { useLiveRows } from '../../src/db/useLiveRows';
 import type { LocalDb } from '../../src/db/writes';
-import { planDayOf } from '../../src/domain/planTrigger';
+import { planDayOf, requestPlanDayOf } from '../../src/domain/planTrigger';
 import { t } from '../../src/i18n';
 import { usePlanStore } from '../../src/state/plan';
 import { usePlanTrigger } from '../../src/sync/usePlanTrigger';
@@ -50,22 +51,38 @@ export default function TodayScreen() {
   useSessionStore((s) => s.userId);
   const userId = currentUserId();
   const now = useNow();
+  // Display: today's plan if one exists; before 06:00 fall back to the previous plan day's plan.
+  const todayDay = requestPlanDayOf(now);
   const planDay = planDayOf(now);
-  const planRows = useLiveRows<PlanRow>(
+  const todayRows = useLiveRows<PlanRow>(
+    () => latestPlanQuery(localDb, userId, todayDay),
+    PLAN_TABLES,
+    [userId, todayDay],
+  );
+  const previousRows = useLiveRows<PlanRow>(
     () => latestPlanQuery(localDb, userId, planDay),
     PLAN_TABLES,
+    [userId, planDay],
   );
-  const plan = planRows[0];
+  const latestAnyRows = useLiveRows<PlanRow>(
+    () => latestPlanAnyQuery(localDb, userId),
+    PLAN_TABLES,
+    [userId],
+  );
+  const plan = todayRows[0] ?? (planDay !== todayDay ? previousRows[0] : undefined);
   const planId = plan?.id ?? '__none__';
   const recs = useLiveRows<RecommendationRow>(
     () => planRecommendationsQuery(localDb, planId),
     REC_TABLES,
+    [planId],
   );
-  const taskRows = useLiveRows<TaskRow>(() => activeTasksQuery(localDb, userId), TASK_TABLES);
+  const taskRows = useLiveRows<TaskRow>(() => activeTasksQuery(localDb, userId), TASK_TABLES, [
+    userId,
+  ]);
   const titles = useMemo(() => new Map(taskRows.map((task) => [task.id, task.title])), [taskRows]);
   const status = usePlanStore((s) => s.status);
   const emptyInbox = usePlanStore((s) => s.emptyInbox);
-  const { requestManual } = usePlanTrigger(plan?.planDate ?? null);
+  const { requestManual } = usePlanTrigger(latestAnyRows[0]?.planDate ?? null);
 
   const unplaced = unplacedOf(plan);
   const planning = status === 'planning';

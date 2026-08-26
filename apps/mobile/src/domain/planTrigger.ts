@@ -25,19 +25,29 @@ export function planDayOf(now: Date): string {
   return localDayOf(now);
 }
 
+/**
+ * The date a REQUEST plans for: always the current calendar day — before 06:00 the previous
+ * plan day is entirely in the past, so planning it would place nothing (and churn task status).
+ */
+export function requestPlanDayOf(now: Date): string {
+  return localDayOf(now);
+}
+
 export type TriggerDecision =
   { request: true; trigger: 'first_open' | 'new_day' } | { request: false };
 
 export function decidePlanTrigger(input: {
   now: Date;
-  /** Latest local plan's plan_date, if any. */
+  /** plan_date of the user's most recent plan of ANY date, if any. */
   latestPlanDate: string | null;
   /** Plan day of the last request this session made (dedup across foregrounds). */
   lastRequestedDay: string | null;
   inFlight: boolean;
 }): TriggerDecision {
   if (input.inFlight) return { request: false };
-  const today = planDayOf(input.now);
+  const today = localDayOf(input.now);
+  // before 06:00 yesterday's plan still stands; the new day is planned on the first open after it
+  if (planDayOf(input.now) !== today) return { request: false };
   if (input.latestPlanDate === today) return { request: false };
   if (input.lastRequestedDay === today) return { request: false };
   return { request: true, trigger: input.latestPlanDate === null ? 'first_open' : 'new_day' };

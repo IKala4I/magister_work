@@ -2,7 +2,7 @@
 -- by their owner only; the supersede transition (shown → expired) is service-only; the P6
 -- indexes exist.
 begin;
-select plan(9);
+select plan(10);
 
 select has_index('public', 'plans', 'plans_user_date_idx', 'base plans (user_id, plan_date) index exists');
 select has_index('public', 'plans', 'plans_user_generated_idx', 'plans (user_id, generated_at desc) index exists');
@@ -21,13 +21,16 @@ values ('00000000-0000-4000-8000-00000000ac01', '00000000-0000-4000-8000-0000000
        ('00000000-0000-4000-8000-00000000ac02', '00000000-0000-4000-8000-000000000a01', '2026-08-26', 'day', 'learned', 'recsys-p5.0', null, 'OPTIMAL', '{"ef": {"reason": "learned"}}');
 insert into public.recommendations (id, user_id, plan_id, task_id, slot_start, slot_end, context_bucket, features, q_hat, confidence, rationale_key, rationale_params, is_experiment, engine, model_version, propensity)
 values ('00000000-0000-4000-8000-00000000ad01', '00000000-0000-4000-8000-000000000a01', '00000000-0000-4000-8000-00000000ac01', '00000000-0000-4000-8000-00000000ab01',
-        '2026-08-26 06:00+00', '2026-08-26 06:30+00', 'MO.wd.fresh', '[1,0,1,0,0,0,0,0,0,0.5,0.5,0,0,0,0.5,0.22,0]', null, null, 'experiment', '{"category":"admin","daypart":"MO"}', true, 'heuristic', 'heuristic-p6.0', 0.5);
+        '2026-08-26 06:00+00', '2026-08-26 06:30+00', 'MO.wd.fresh', '[1,0,1,0,0,0,0,0,0,0.5,0.5,0,0,0,0.5,0.22,0]', null, null, 'experiment', '{"category":"admin","daypart":"MO"}', true, 'heuristic', 'heuristic-p6.0', 0.5),
+       ('00000000-0000-4000-8000-00000000ad02', '00000000-0000-4000-8000-000000000a01', '00000000-0000-4000-8000-00000000ac02', '00000000-0000-4000-8000-00000000ab01',
+        '2026-08-26 11:00+00', '2026-08-26 11:30+00', 'AF.wd.fresh', '[1,0,0,0,1,0,0,0,0,0.5,0.5,0,0,0,0.5,0.22,0]', 0.6, 0.4, 'experiment', '{"category":"admin","daypart":"AF"}', true, 'learned', 'recsys-p5.0', 1.0/3);
 
 -- owner reads own plan + recommendation (RLS select policies)
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-8000-000000000a01","role":"authenticated"}', true);
 select is((select count(*) from public.plans), 2::bigint, 'owner sees both plans');
 select is((select propensity from public.recommendations where id = '00000000-0000-4000-8000-00000000ad01'), 0.5::double precision, 'owner reads the exact propensity (M-01, double precision — L22)');
+select is((select propensity from public.recommendations where id = '00000000-0000-4000-8000-00000000ad02'), (1.0/3)::double precision, 'p = 1/3 round-trips exactly (the reason for L22)');
 select is((select telemetry->'ef'->'experiment'->>'propensity' from public.plans where id = '00000000-0000-4000-8000-00000000ac01'), '0.5', 'A_m(x) telemetry is readable by the owner');
 
 -- a client may not supersede (expired is a server-side status)
