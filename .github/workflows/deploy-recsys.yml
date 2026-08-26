@@ -1,0 +1,25 @@
+name: Deploy RecSys to Hugging Face Space
+
+on:
+  push:
+    branches: [main]
+    paths: ['services/recsys/**', '.github/workflows/deploy-recsys.yml']
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Push services/recsys subtree to the Space
+    runs-on: ubuntu-latest
+    if: ${{ vars.HF_SPACE != '' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Split the service subtree
+        run: git subtree split --prefix services/recsys -b hf-deploy
+      - name: Push to the Space (force — the Space mirrors main's subtree)
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE: ${{ vars.HF_SPACE }}
+        run: |
+          git push --force "https://user:${HF_TOKEN}@huggingface.co/spaces/${HF_SPACE}" hf-deploy:main

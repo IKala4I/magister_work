@@ -3,6 +3,7 @@ specs/
 
 # generated artifacts — byte-compared against regeneration in CI
 packages/shared/src/database.ts
+packages/shared/src/api.ts
 
 # drizzle-kit output (local SQLite migration bundle)
 apps/mobile/drizzle/

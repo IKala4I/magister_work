@@ -44,6 +44,14 @@ jobs:
           ./scripts/normalize-db-types.sh packages/shared/src/database.ts
           git diff --exit-code packages/shared/src/database.ts
           diff -u packages/shared/src/database.ts /tmp/database.gen.ts
+      - uses: astral-sh/setup-uv@v5
+      - name: RecSys PostgresRepo against the local database (P5)
+        working-directory: services/recsys
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: |
+          uv sync --locked
+          uv run pytest -q tests/test_repo_postgres.py
 
   python:
     name: Python gates (${{ matrix.package }})
@@ -61,3 +69,22 @@ jobs:
       - run: uv run ruff check .
       - run: uv run mypy src tests
       - run: uv run pytest
+
+  api-contract:
+    name: API contract sync (openapi → api.ts, File 03 §6 step 2)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - uses: astral-sh/setup-uv@v5
+      - run: pnpm install --frozen-lockfile
+      - run: uv sync --locked
+        working-directory: services/recsys
+      - name: Regenerate api.ts and diff against the committed file
+        run: |
+          ./packages/shared/scripts/gen-api-types.sh
+          git diff --exit-code packages/shared/src/api.ts
