@@ -58,6 +58,18 @@
   states, progress bar role, Pause/Finish/Stop, inline rating with the empty state still visible,
   one tap counts, optional second tap, skippable, never re-shown for a rated session.
 
+## 2b. Live routing check on the hosted project (2026-08-27)
+
+Both functions deployed (`supabase functions deploy attribute-rewards` / `plan-request`); the P7
+migrations pushed (`20260827150000_p7_feedback`, `20260827160000_p7_sweep_bearer`). `curl` to
+`/functions/v1/attribute-rewards` with no headers, or with `apikey` only → **401 from the gateway**
+(`{"error":"unauthorized","detail":"missing bearer token"}` — not the handler's message, even
+though `verify_jwt = false`); with `Authorization: Bearer <publishable key>` → the handler answers
+(401 `{"error":"unauthorized"}`: no backend key configured, no user). Consequence: the cron tick
+sends the publishable key as bearer (+ `apikey`) and the third Vault secret is required
+(HANDOFF ⛔ 2). Establishes: deploy + routing + the handler's own auth gate. Does not establish:
+a successful daily run (needs the Vault secrets) or delivery (needs the host).
+
 ## 3. What is NOT established (and where it is tracked)
 
 - **Live `/feedback` delivery and the learned-path smoke** — no service host (ADR-0009, owner

@@ -46,9 +46,11 @@
 2. **Vault secrets for the attribution cron (P7)** — once the host exists: in the SQL editor of
    project `uapiuehjcntilwdmpojk` run
    `select vault.create_secret('https://uapiuehjcntilwdmpojk.supabase.co/functions/v1', 'hourwell_functions_url');`
-   and `select vault.create_secret('<HOURWELL_SERVICE_KEY value>', 'hourwell_service_key');`
-   (optionally `hourwell_anon_key` = the publishable key if the gateway ever answers 401 to the
-   tick). Until then `attribution_sweep_tick()` returns `skipped: …` every 15 min by design; the
+   , `select vault.create_secret('<HOURWELL_SERVICE_KEY value>', 'hourwell_service_key');` and
+   `select vault.create_secret('<EXPO_PUBLIC_SUPABASE_ANON_KEY value>', 'hourwell_anon_key');`
+   — all three are REQUIRED: the functions gateway rejects calls without an
+   `Authorization: Bearer <publishable key>` header even with `verify_jwt = false` (measured
+   live 2026-08-27; migration `20260827160000_p7_sweep_bearer`). Until then `attribution_sweep_tick()` returns `skipped: …` every 15 min by design; the
    client's instant path still runs and stores tuples. Verify with
    `select public.attribution_sweep_tick();` → `posted`, then check the function logs.
 3. **Google OAuth consent screen + credentials** (FR-01 Google path, code ready and inert) — as

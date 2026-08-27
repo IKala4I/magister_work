@@ -151,7 +151,9 @@ correction`, `delivered_at = NULL`) and re-sent with `correction = true` → the
 - P11 reports per-arm drop/attribution/correction rates and reads `duration_estimates` for the
   RQ2 ablations; the OSF text describes the off-slot/partial/override values as fixed here.
 - Owner actions before anything learns live: the RecSys host (ADR-0009), then Vault secrets
-  `hourwell_functions_url` + `hourwell_service_key` (+ optional `hourwell_anon_key`) for the
-  cron tick and `RECSYS_URL`/`HOURWELL_SERVICE_KEY` for the functions (HANDOFF).
+  `hourwell_functions_url` + `hourwell_service_key` + `hourwell_anon_key` (all three required:
+  the functions gateway demands `Authorization: Bearer <publishable key>` even with
+  `verify_jwt = false` — measured live, migration `20260827160000_p7_sweep_bearer`) for the
+  cron tick, and `RECSYS_URL`/`HOURWELL_SERVICE_KEY` for the functions (HANDOFF).
 - λ_f retune (revisit, P5): needs observed q̂ scales — no live feedback exists yet; deferred to
   the first data review (P11), recorded in revisit.md.
