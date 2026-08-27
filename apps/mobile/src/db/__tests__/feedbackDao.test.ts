@@ -19,6 +19,7 @@ import { drizzle } from 'drizzle-orm/better-sqlite3';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 
 import {
+  abandonStaleSessions,
   activeFocusSessionQuery,
   answerSkipDiagnostic,
   applyServerRecommendations,
@@ -185,6 +186,7 @@ describe('focus sessions (FR-30, UC-06)', () => {
     ]);
     const end = eventsOf(db, 'focus_end')[0]!;
     expect(end.recommendationId).toBe(rec.id);
+    expect(end.localDay).toBe('2026-09-02'); // anchored on the session START (midnight-safe)
     expect(end.payload).toMatchObject({
       outcome: 'finished',
       started_at: '2026-09-02T11:05:00.000Z',
@@ -219,10 +221,10 @@ describe('focus sessions (FR-30, UC-06)', () => {
     expect(ended.state).toBe('abandoned');
     expect(taskOf(db, task.id).status).toBe('scheduled');
     expect(recOf(db, rec.id).status).toBe('accepted');
-    expect(eventsOf(db, 'focus_end')[0]!.payload).toMatchObject({
-      outcome: 'abandoned',
-      fraction: 0.3,
-    });
+    const endFact = eventsOf(db, 'focus_end')[0]!;
+    expect(endFact.payload).toMatchObject({ outcome: 'abandoned', focused_ms: 27 * 60_000 });
+    expect(Object.keys(endFact.payload as object)).not.toContain('fraction'); // no client-side reward arithmetic
+    expect((endFact.context as { tz?: string }).tz).toBeTruthy(); // device zone rides on every fact
     const rated = rateFocusSession(db, {
       sessionId: s.id,
       energy: 3,
@@ -259,6 +261,7 @@ describe('block actions (FR-23, FR-25, UC-04, UC-07)', () => {
     const { task, rec } = seed(db);
     const first = skipBlock(db, { recommendationId: rec.id, now: T('2026-09-02T14:02:00+03:00') });
     expect(first.diagnosticDue).toBe(false);
+    expect(eventsOf(db, 'block_skipped')[0]!.payload).not.toHaveProperty('fraction');
     expect(first.task.status).toBe('inbox');
     expect(first.task.postponeCount).toBe(1);
     expect(recOf(db, rec.id).status).toBe('rejected');
@@ -278,6 +281,15 @@ describe('block actions (FR-23, FR-25, UC-04, UC-07)', () => {
       expect(r.diagnosticDue).toBe(i === 3);
     }
     expect(taskOf(db, task.id).skipStreak).toBe(3);
+    // a 4th skip after "ask me later" does not re-ask (one question per third skip)
+    db.insert(recommendations)
+      .values({ ...rec, id: `${rec.id}-4`, status: 'shown' })
+      .run();
+    expect(
+      skipBlock(db, { recommendationId: `${rec.id}-4`, now: T('2026-09-04T14:02:00+03:00') })
+        .diagnosticDue,
+    ).toBe(false);
+    expect(taskOf(db, task.id).skipStreak).toBe(4);
     const answered = answerSkipDiagnostic(db, {
       taskId: task.id,
       answer: 'too_big',
@@ -287,7 +299,7 @@ describe('block actions (FR-23, FR-25, UC-04, UC-07)', () => {
     expect(answered.skipStreak).toBe(0);
     expect(eventsOf(db, 'skip_diagnostic')[0]!.payload).toEqual({
       answer: 'too_big',
-      consecutive_skips: 3,
+      consecutive_skips: 4,
       category: 'deep',
       est_minutes: 60,
     });
@@ -299,6 +311,13 @@ describe('block actions (FR-23, FR-25, UC-04, UC-07)', () => {
   it('Move keeps the duration, marks the row moved, and logs both slots with the distance', () => {
     const { db, close } = openDb();
     const { rec } = seed(db);
+    // a target before "now" is lifted to the next 15-min tick (never into the past)
+    const past = moveBlock(db, {
+      recommendationId: rec.id,
+      toStart: T('2026-09-02T08:00:00+03:00'),
+      now: T('2026-09-02T09:50:00+03:00'),
+    });
+    expect(past.slotStart.toISOString()).toBe('2026-09-02T07:00:00.000Z'); // 10:00 Kyiv
     const moved = moveBlock(db, {
       recommendationId: rec.id,
       toStart: T('2026-09-02T18:00:00+03:00'),
@@ -306,12 +325,12 @@ describe('block actions (FR-23, FR-25, UC-04, UC-07)', () => {
     });
     expect(moved.status).toBe('moved');
     expect(moved.slotEnd.getTime() - moved.slotStart.getTime()).toBe(90 * 60_000);
-    expect(eventsOf(db, 'block_moved')[0]!.payload).toEqual({
-      from_start: '2026-09-02T11:00:00.000Z',
-      from_end: '2026-09-02T12:30:00.000Z',
+    expect(eventsOf(db, 'block_moved')[1]!.payload).toEqual({
+      from_start: '2026-09-02T07:00:00.000Z',
+      from_end: '2026-09-02T08:30:00.000Z',
       to_start: '2026-09-02T15:00:00.000Z',
       to_end: '2026-09-02T16:30:00.000Z',
-      distance_minutes: 240,
+      distance_minutes: 480,
     });
     close();
   });
@@ -393,6 +412,49 @@ describe('lazy lapse scan (File 05 §1; invariant 7)', () => {
     expect(recOf(db, late.rec.id).status).toBe('shown');
     const r2 = lapseScan(db, { userId: USER, now: T('2026-10-25T02:31:00Z') });
     expect(r2.lapsed.map((r) => r.id)).toEqual([late.rec.id]);
+    close();
+  });
+
+  it('a session running on ANOTHER placement of the same task keeps its ended chunk from lapsing', () => {
+    const { db, close } = openDb();
+    const a = seed(db, {
+      title: 'chunked',
+      slotStart: T('2026-09-02T09:00:00+03:00'),
+      slotEnd: T('2026-09-02T10:00:00+03:00'),
+    });
+    db.insert(recommendations)
+      .values({
+        ...a.rec,
+        id: `${a.rec.id}-2`,
+        slotStart: T('2026-09-02T14:00:00+03:00'),
+        slotEnd: T('2026-09-02T15:00:00+03:00'),
+      })
+      .run();
+    startFocusSession(db, {
+      userId: USER,
+      recommendationId: `${a.rec.id}-2`,
+      now: T('2026-09-02T14:01:00+03:00'),
+    });
+    const r = lapseScan(db, { userId: USER, now: T('2026-09-02T14:30:00+03:00') });
+    expect(r.lapsed).toEqual([]);
+    expect(taskOf(db, a.task.id).status).toBe('scheduled');
+    close();
+  });
+
+  it('a session left running far beyond its block is abandoned on the next foreground', () => {
+    const { db, close } = openDb();
+    const { rec } = seed(db);
+    const s = startFocusSession(db, {
+      userId: USER,
+      recommendationId: rec.id,
+      now: T('2026-09-02T14:00:00+03:00'),
+    });
+    expect(abandonStaleSessions(db, { userId: USER, now: T('2026-09-02T17:59:00+03:00') })).toEqual(
+      [],
+    ); // 90×2 + 60 = 240 min
+    const closed = abandonStaleSessions(db, { userId: USER, now: T('2026-09-02T18:01:00+03:00') });
+    expect(closed.map((x) => x.id)).toEqual([s.id]);
+    expect(closed[0]!.state).toBe('abandoned');
     close();
   });
 

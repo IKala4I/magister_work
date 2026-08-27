@@ -9,14 +9,17 @@ import { AppState } from 'react-native';
 
 import { currentUserId } from '../auth/identity';
 import { db } from '../db/client';
-import { lapseScan } from '../db/feedback';
+import { abandonStaleSessions, lapseScan } from '../db/feedback';
 import type { TaskRow } from '../db/tasks';
 import type { LocalDb } from '../db/writes';
 
 import { pushFactsIfPossible } from './factsPush';
 
 export function runLapseScan(now: Date = new Date()): TaskRow[] {
-  const result = lapseScan(db as unknown as LocalDb, { userId: currentUserId(), now });
+  const localDb = db as unknown as LocalDb;
+  const userId = currentUserId();
+  abandonStaleSessions(localDb, { userId, now });
+  const result = lapseScan(localDb, { userId, now });
   void pushFactsIfPossible();
   return result.diagnosticDue;
 }

@@ -55,6 +55,14 @@ export function enqueueOp(
  * the UC-04 A2 diagnostic. Payload shapes are documented in
  * supabase/functions/_shared/rewards.ts — the server maps them to rewards; the client never does.
  */
+export function deviceTimeZone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'UTC';
+  } catch {
+    return 'UTC';
+  }
+}
+
 export const CLIENT_EVENT_TYPES = [
   'task_created',
   'recommendation_shown',
@@ -87,11 +95,16 @@ export function appendEvent(
     payload?: Record<string, unknown>;
     context?: Record<string, unknown>;
     now: Date;
+    /** Attribution day anchor when it is not `now` (a session's start, File 05 §1). */
+    localDayAt?: Date;
   },
 ): string {
   const opId = nextOpId();
   const clientTs = input.now;
-  const localDay = localDayOf(input.now);
+  const localDay = localDayOf(input.localDayAt ?? input.now);
+  // the device zone rides on every fact so the server can tell a zone change from a lapse
+  // (specs/07 §3.4.2 ambiguity exclusion; adversarial #11)
+  const context = { tz: deviceTimeZone(), ...(input.context ?? {}) };
   tx.insert(events)
     .values({
       opId,
@@ -100,7 +113,7 @@ export function appendEvent(
       taskId: input.taskId ?? null,
       recommendationId: input.recommendationId ?? null,
       payload: input.payload ?? null,
-      context: input.context ?? null,
+      context,
       clientTs,
       localDay,
     })
@@ -117,7 +130,7 @@ export function appendEvent(
         task_id: input.taskId ?? null,
         recommendation_id: input.recommendationId ?? null,
         payload: input.payload ?? null,
-        context: input.context ?? null,
+        context,
         client_ts: clientTs.getTime(),
         local_day: localDay,
       },

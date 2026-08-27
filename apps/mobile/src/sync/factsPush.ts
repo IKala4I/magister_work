@@ -31,9 +31,14 @@ type EventInsert = Database['public']['Tables']['events']['Insert'];
 
 let inFlight: Promise<FactsPushResult> | null = null;
 
-export function pushFactsIfPossible(): Promise<FactsPushResult> {
+export interface FactsPushOptions {
+  /** Skip the attribute-rewards call (plan-request pushes facts first but must not pay a second round trip). */
+  invoke?: boolean;
+}
+
+export function pushFactsIfPossible(options: FactsPushOptions = {}): Promise<FactsPushResult> {
   if (inFlight) return inFlight;
-  inFlight = run().finally(() => {
+  inFlight = run(options.invoke ?? true).finally(() => {
     inFlight = null;
   });
   return inFlight;
@@ -45,7 +50,7 @@ interface InstantResponse {
   recommendations?: ServerRecommendationPatch[];
 }
 
-async function run(): Promise<FactsPushResult> {
+async function run(invoke: boolean): Promise<FactsPushResult> {
   if (!supabase) return { kind: 'no-session' };
   const { data } = await supabase.auth.getSession();
   const uid = data.session?.user.id;
@@ -54,6 +59,8 @@ async function run(): Promise<FactsPushResult> {
 
   const tasksPushed = await pushTasksIfPossible();
   if (tasksPushed === 'failed') return { kind: 'offline' };
+  const statusPushed = await pushStatusOps(localDb, uid);
+  if (statusPushed === 'failed') return { kind: 'offline' };
 
   const pending = localDb
     .select()
@@ -75,7 +82,9 @@ async function run(): Promise<FactsPushResult> {
       client_ts: new Date(p.client_ts as number).toISOString(),
       local_day: String(p.local_day),
     }));
-  if (rows.length === 0 && tasksPushed === 'nothing-pending') {
+  if (!invoke) {
+    if (rows.length === 0) return { kind: 'nothing-pending' };
+  } else if (rows.length === 0 && tasksPushed === 'nothing-pending') {
     // still poke the server: facts may have synced earlier while the service was down
     return invokeInstant(0);
   }
@@ -106,7 +115,55 @@ async function run(): Promise<FactsPushResult> {
       }
     });
   }
+  if (!invoke) return { kind: 'pushed', events: rows.length, tuples: 0, delivery: 'not_invoked' };
   return invokeInstant(rows.length);
+}
+
+/**
+ * Plan-review statuses the client may set (L11: `accepted` on Start) go up as row updates —
+ * otherwise a same-day re-plan would expire a block whose session is in progress (adversarial #7).
+ * A guard rejection (the row is no longer in a plan-review state) makes the op moot: acked with
+ * the reason recorded.
+ */
+async function pushStatusOps(
+  localDb: LocalDb,
+  uid: string,
+): Promise<'pushed' | 'nothing-pending' | 'failed'> {
+  if (!supabase) return 'failed';
+  const pending = localDb
+    .select()
+    .from(opOutbox)
+    .where(and(eq(opOutbox.opType, 'recommendation_status'), isNull(opOutbox.ackedAt)))
+    .orderBy(opOutbox.seq)
+    .all();
+  if (pending.length === 0) return 'nothing-pending';
+  const now = new Date();
+  for (const op of pending) {
+    const p = op.payload as { id?: string; status?: string; version?: number };
+    if (typeof p.id !== 'string' || typeof p.status !== 'string') continue;
+    const { error } = await supabase
+      .from('recommendations')
+      .update({ status: p.status, version: (p.version ?? 1) + 1 })
+      .eq('id', p.id)
+      .eq('user_id', uid);
+    if (error) {
+      const network = error.message.toLowerCase().includes('fetch');
+      if (network) return 'failed';
+      // guard rejection (P0001) or a missing row: the op is moot, keep the reason
+      localDb
+        .update(opOutbox)
+        .set({ sentAt: now, ackedAt: now, attempts: op.attempts + 1, lastError: error.message })
+        .where(eq(opOutbox.seq, op.seq))
+        .run();
+      continue;
+    }
+    localDb
+      .update(opOutbox)
+      .set({ sentAt: now, ackedAt: now })
+      .where(eq(opOutbox.seq, op.seq))
+      .run();
+  }
+  return 'pushed';
 }
 
 async function invokeInstant(eventsPushed: number): Promise<FactsPushResult> {

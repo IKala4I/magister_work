@@ -27,23 +27,37 @@ export function snapToGrid(date: Date, tickMinutes = 15): Date {
 }
 
 export function MovePicker({ recommendation, title, onConfirm, onCancel }: MovePickerProps) {
-  const [value, setValue] = useState<Date>(recommendation.slotStart);
+  const floor = snapToGrid(new Date(Date.now() + 7.5 * 60_000)); // now, rounded up to the grid
+  const initial = recommendation.slotStart < floor ? floor : recommendation.slotStart;
+  const [value, setValue] = useState<Date>(initial);
+  // Android's picker is a dialog: keep it mounted only while open, or it re-opens on every render
+  const [open, setOpen] = useState(Platform.OS !== 'android');
   const handleChange = (_event: DateTimePickerEvent, picked?: Date) => {
-    if (picked) setValue(snapToGrid(picked));
+    if (Platform.OS === 'android') setOpen(false);
+    if (picked) setValue(picked < floor ? floor : snapToGrid(picked));
   };
   return (
     <GlassPanel solidity={1} style={styles.panel} accessibilityLabel={t('block.move.title')}>
       <ThemedText variant="body">
         {t('block.move.title')} · {title}
       </ThemedText>
-      <DateTimePicker
-        value={value}
-        mode="time"
-        minuteInterval={15}
-        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-        onChange={handleChange}
-        accessibilityLabel={t('block.move.a11y')}
-      />
+      {open ? (
+        <DateTimePicker
+          value={value}
+          mode="time"
+          minuteInterval={15}
+          minimumDate={floor}
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={handleChange}
+          accessibilityLabel={t('block.move.a11y')}
+        />
+      ) : (
+        <Button
+          label={value.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
+          kind="secondary"
+          onPress={() => setOpen(true)}
+        />
+      )}
       <View style={styles.row}>
         <Button label={t('block.move.confirm')} onPress={() => onConfirm(value)} />
         <Button label={t('block.move.cancel')} kind="secondary" onPress={onCancel} />

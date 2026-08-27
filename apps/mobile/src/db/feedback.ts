@@ -25,6 +25,13 @@ export type SkipDiagnosticAnswer = 'too_big' | 'wrong_time' | 'not_important';
 /** UC-04 A2: the diagnostic question is asked on the third consecutive skip/lapse. */
 export const SKIP_DIAGNOSTIC_STREAK = 3;
 const OPEN_STATUSES = ['shown', 'accepted', 'pinned', 'moved'] as const;
+/** A running session left behind for this long is abandoned on the next foreground (adversarial #17). */
+export const STALE_SESSION_EXTRA_MS = 60 * 60_000;
+
+/** One question per third consecutive skip/lapse — the same rule for both paths. */
+export function diagnosticDueFor(streak: number): boolean {
+  return streak >= SKIP_DIAGNOSTIC_STREAK && streak % SKIP_DIAGNOSTIC_STREAK === 0;
+}
 
 // --- queries (fed to useLiveRows) -----------------------------------------------------------
 
@@ -192,7 +199,6 @@ export function startFocusSession(
         started_at: now.toISOString(),
         slot_start: rec.slotStart.toISOString(),
         planned_minutes: row.plannedMinutes,
-        start_offset_minutes: minutesBetween(rec.slotStart, now),
       },
       now,
     });
@@ -275,6 +281,8 @@ export function endFocusSession(
       type: 'focus_end',
       taskId: s.taskId,
       recommendationId: s.recommendationId,
+      // facts only — no fraction/reward arithmetic on the client (invariant 1); the attribution
+      // day is the session's START day so a session crossing midnight stays with its block
       payload: {
         session_id: s.id,
         outcome: input.outcome,
@@ -283,9 +291,9 @@ export function endFocusSession(
         focused_ms: focusedMs,
         planned_minutes: s.plannedMinutes,
         est_minutes: s.estMinutes,
-        fraction: Math.min(focusedMs / (s.plannedMinutes * 60_000), 1),
       },
       now,
+      localDayAt: s.startedAt,
     });
     return requireSession(tx, s.id);
   });
@@ -371,7 +379,7 @@ export function skipBlock(
       },
       now,
     });
-    return { task, diagnosticDue: task.skipStreak >= SKIP_DIAGNOSTIC_STREAK };
+    return { task, diagnosticDue: diagnosticDueFor(task.skipStreak) };
   });
 }
 
@@ -384,8 +392,11 @@ export function moveBlock(
   return db.transaction((tx) => {
     const rec = requireRec(tx, input.recommendationId);
     const durationMs = rec.slotEnd.getTime() - rec.slotStart.getTime();
-    const toEnd = new Date(input.toStart.getTime() + durationMs);
-    setRecStatus(tx, rec.id, 'moved', now, { slotStart: input.toStart, slotEnd: toEnd });
+    // never into the past: the earliest start is "now" rounded up to the 15-min grid
+    const floor = new Date(Math.ceil(now.getTime() / 900_000) * 900_000);
+    const toStart = input.toStart < floor ? floor : input.toStart;
+    const toEnd = new Date(toStart.getTime() + durationMs);
+    setRecStatus(tx, rec.id, 'moved', now, { slotStart: toStart, slotEnd: toEnd });
     appendEvent(tx, {
       userId: rec.userId,
       type: 'block_moved',
@@ -394,9 +405,9 @@ export function moveBlock(
       payload: {
         from_start: rec.slotStart.toISOString(),
         from_end: rec.slotEnd.toISOString(),
-        to_start: input.toStart.toISOString(),
+        to_start: toStart.toISOString(),
         to_end: toEnd.toISOString(),
-        distance_minutes: minutesBetween(rec.slotStart, input.toStart),
+        distance_minutes: minutesBetween(rec.slotStart, toStart),
       },
       now,
     });
@@ -423,6 +434,36 @@ export function correctLapse(db: LocalDb, input: { recommendationId: string; now
       now,
     });
   });
+}
+
+/**
+ * A session left running/paused far beyond its block (phone in a drawer) is closed as abandoned
+ * on the next foreground: it would otherwise block every Start, keep its block from lapsing, and
+ * feed a meaningless duration sample. Cap = planned × 2 + 60 min of wall time since the start.
+ */
+export function abandonStaleSessions(
+  db: LocalDb,
+  input: { userId: string; now?: Date },
+): FocusSessionRow[] {
+  const now = input.now ?? new Date();
+  const open = db
+    .select()
+    .from(focusSessions)
+    .where(
+      and(
+        eq(focusSessions.userId, input.userId),
+        inArray(focusSessions.state, ['running', 'paused']),
+      ),
+    )
+    .all() as FocusSessionRow[];
+  const closed: FocusSessionRow[] = [];
+  for (const s of open) {
+    const capMs = s.plannedMinutes * 2 * 60_000 + STALE_SESSION_EXTRA_MS;
+    if (now.getTime() - s.startedAt.getTime() > capMs) {
+      closed.push(endFocusSession(db, { sessionId: s.id, outcome: 'abandoned', now }));
+    }
+  }
+  return closed;
 }
 
 export interface LapseScanResult {
@@ -456,8 +497,14 @@ export function lapseScan(db: LocalDb, input: { userId: string; now?: Date }): L
     for (const rec of open) {
       const task = requireTask(tx, rec.taskId);
       if (task.status === 'done' || task.deletedAt !== null) continue;
-      const sessions = sessionsForRecommendation(tx, rec.id);
-      if (sessions.some((s) => s.state !== 'abandoned')) continue; // running/paused/finished
+      // a session on ANY placement of this task (running/paused/finished) means it is being worked
+      // on — chunks of one task share the task (adversarial #14)
+      const sessions = tx
+        .select()
+        .from(focusSessions)
+        .where(eq(focusSessions.taskId, rec.taskId))
+        .all() as FocusSessionRow[];
+      if (sessions.some((s) => s.state !== 'abandoned')) continue;
       const next = deferTask(tx, task, now);
       setRecStatus(tx, rec.id, 'lapsed', now);
       appendEvent(tx, {

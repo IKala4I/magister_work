@@ -13,7 +13,7 @@ import { applyPlanResponse, type PlanRow, type PlanTrigger } from '../db/plans';
 import type { LocalDb } from '../db/writes';
 import { track } from '../observability/analytics';
 
-import { pushTasksIfPossible } from './taskPush';
+import { pushFactsIfPossible } from './factsPush';
 import type { PlanRequestBody, PlanRequestResponse } from './planTypes';
 
 export type PlanRequestOutcome =
@@ -55,8 +55,10 @@ async function run(input: {
   const started = Date.now();
   const now = input.now ?? new Date();
 
-  const pushed = await pushTasksIfPossible();
-  if (pushed === 'failed') return { kind: 'offline' }; // the push is the first network hop
+  // tasks + plan-review statuses + facts go up first so the server plans from the same day the
+  // device sees (a block with a running session must not be expired by the re-plan — ADR-0010)
+  const pushed = await pushFactsIfPossible({ invoke: false });
+  if (pushed.kind === 'offline') return { kind: 'offline' }; // the push is the first network hop
 
   const body: PlanRequestBody = {
     plan_date: input.planDate,
