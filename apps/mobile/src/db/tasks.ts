@@ -88,6 +88,7 @@ export function createTask(
     status: 'inbox',
     doneAt: null,
     postponeCount: 0,
+    skipStreak: 0,
     deletedAt: null,
     version: 1,
     createdAt: now,

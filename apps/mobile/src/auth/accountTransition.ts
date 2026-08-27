@@ -12,7 +12,7 @@
  */
 import { eq, like } from 'drizzle-orm';
 
-import { events, opOutbox, profiles, recommendations, tasks } from '../db/schema';
+import { events, opOutbox, profiles, recommendations, tasks, focusSessions } from '../db/schema';
 import type { LocalDb } from '../db/writes';
 import { resetSyncCursor } from '../sync/cursor';
 import { isLocalUserId, LOCAL_USER_PREFIX } from '../sync/localUser';
@@ -35,7 +35,7 @@ export function adoptLocalData(db: LocalDb, newUserId: string): void {
         .where(like(profiles.userId, `${LOCAL_USER_PREFIX}%`))
         .run();
     }
-    for (const table of [tasks, recommendations, events, profiles] as const) {
+    for (const table of [tasks, recommendations, events, profiles, focusSessions] as const) {
       tx.update(table)
         .set({ userId: newUserId })
         .where(like(table.userId, `${LOCAL_USER_PREFIX}%`))

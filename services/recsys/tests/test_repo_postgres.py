@@ -136,3 +136,18 @@ def test_save_all_is_atomic_round_trip(pg: PostgresRepo, user: str) -> None:
     pg.save_all(user, [s], cells, [(rec, "outcome")], 9)
     assert pg.load_bandit(user)["deep"].state_version == 9
     assert (rec, "outcome") in pg.applied_keys(user)
+
+
+def test_blend_round_trip_and_save_all_with_blend(pg: PostgresRepo, user: str) -> None:
+    from hourwell_recsys.blend import Blend
+
+    pg.save_blend(user, Blend(0.55, 0.45, 3))
+    loaded = pg.load_blend(user)
+    assert loaded.w_energy == pytest.approx(0.55, abs=1e-6)
+    assert loaded.w_bandit == pytest.approx(0.45, abs=1e-6)
+    assert loaded.state_version == 3
+    s = bandit.init_state("deep", state_version=4)
+    pg.save_all(user, [s], [], [], 4, blend=Blend(0.2, 0.8, 4))
+    again = pg.load_blend(user)
+    assert again.w_energy == pytest.approx(0.2, abs=1e-6)
+    assert again.state_version == 4

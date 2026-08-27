@@ -23,6 +23,16 @@ Deno.test('EF params == packages/shared params (client side of the boundary)', (
   assertEquals(ef.TOP_M, shared.TOP_M);
   assertEquals(ef.PLAN_FALLBACK_BUDGET_MS, shared.PLAN_FALLBACK_BUDGET_MS);
   assertEquals(ef.PLAN_RATE_LIMIT_PER_DAY, shared.PLAN_RATE_LIMIT_PER_DAY);
+  // P7 reward mapping + duration estimator (H2: PAR anchors are one source on the TS side)
+  assertEquals(ef.PAR_GRACE_MINUTES, shared.PAR_GRACE_MINUTES);
+  assertEquals(ef.PAR_MIN_FRACTION, shared.PAR_MIN_FRACTION);
+  assertEquals(ef.REWARD_OFF_SLOT, shared.REWARD_OFF_SLOT);
+  assertEquals(ef.REWARD_OVERRIDE_OUT, shared.REWARD_OVERRIDE_OUT);
+  assertEquals(ef.REWARD_OVERRIDE_IN, shared.REWARD_OVERRIDE_IN);
+  assertEquals(ef.CORRECTION_WINDOW_DAYS, shared.CORRECTION_WINDOW_DAYS);
+  assertEquals(ef.DURATION_EWMA_ALPHA, shared.DURATION_EWMA_ALPHA);
+  assertEquals(ef.DURATION_MIN_SESSIONS, shared.DURATION_MIN_SESSIONS);
+  assertEquals([...ef.DURATION_RATIO_CLIP], [...shared.DURATION_RATIO_CLIP]);
 });
 
 Deno.test('EF params == services/recsys params.py (service side of the boundary)', async () => {
@@ -45,6 +55,7 @@ Deno.test('EF params == services/recsys params.py (service side of the boundary)
     ['FEATURE_DIM', 'FEATURE_DIM'],
     ['BETA_HALF_LIFE_DAYS', 'BETA_HALF_LIFE_DAYS'],
     ['PLAN_RATE_LIMIT_PER_DAY', 'PLAN_RATE_LIMIT_PER_DAY'],
+    ['DURATION_EWMA_ALPHA', 'DURATION_EWMA_ALPHA'],
   ];
   for (const [efName, pyName] of pins) {
     assertEquals(ef[efName], pyConst(py, pyName), `${efName} drifted from params.py`);

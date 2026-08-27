@@ -7,12 +7,17 @@ Rewards enter as fractional Bernoulli evidence: S += r, F += 1 − r (ADR-0007 �
 from __future__ import annotations
 
 import math
+from collections.abc import Iterable
 from dataclasses import dataclass, replace
 from datetime import datetime
 
 from scipy.stats import beta as beta_dist
 
-from hourwell_recsys.params import BETA_HALF_LIFE_DAYS
+from hourwell_recsys.params import (
+    BETA_HALF_LIFE_DAYS,
+    RUNG2_ACTIVE_CELL_FRACTION,
+    RUNG2_CELL_EVIDENCE_FACTOR,
+)
 
 HALF_LIFE_SECONDS = BETA_HALF_LIFE_DAYS * 86_400.0
 
@@ -94,3 +99,24 @@ def apply_reward(cell: BetaCell, reward: float, at: datetime) -> BetaCell:
 
 def reset_evidence(cell: BetaCell) -> BetaCell:
     return replace(cell, succ=0.0, fail=0.0, last_event_at=None)
+
+
+def is_personal(cell: BetaCell, now: datetime) -> bool:
+    """Rung 2 (specs/07 §3.6): the cell's decayed evidence exceeds its prior strength."""
+    s, f = decayed_evidence(cell, now)
+    return s + f > RUNG2_CELL_EVIDENCE_FACTOR * (cell.alpha0 + cell.beta0)
+
+
+def is_active(cell: BetaCell) -> bool:
+    """An ACTIVE cell has ever received evidence (the rung-2 denominator, §3.6 [INFERRED])."""
+    return cell.last_event_at is not None
+
+
+def learning_mode(cells: Iterable[BetaCell], now: datetime) -> bool:
+    """True while the population-prior badge stays on: fewer than 50 % of active cells are
+    personal (no active cells ⇒ still learning)."""
+    active = [c for c in cells if is_active(c)]
+    if not active:
+        return True
+    personal = sum(1 for c in active if is_personal(c, now))
+    return personal < RUNG2_ACTIVE_CELL_FRACTION * len(active)

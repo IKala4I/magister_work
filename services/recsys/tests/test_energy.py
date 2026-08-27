@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 
 import pytest
@@ -56,3 +57,24 @@ def test_out_of_order_older_tuple_equals_in_order_delivery() -> None:
     out_of_order = apply_reward(apply_reward(cell, 1.0, later), 1.0, earlier)
     assert out_of_order.succ == pytest.approx(in_order.succ) == pytest.approx(1.5)
     assert out_of_order.last_event_at == later
+
+
+# --- P7: rung-2 thresholds (specs/07 §3.6; ADR-0010) ------------------------------------------
+
+
+def test_rung2_cell_is_personal_once_decayed_evidence_exceeds_prior_strength() -> None:
+    from hourwell_recsys.energy import BetaCell, is_active, is_personal, learning_mode
+
+    now = datetime(2026, 9, 2, 12, tzinfo=UTC)
+    prior = BetaCell("deep", "AF", "weekday", alpha0=4.0, beta0=4.0)  # n0 = 8
+    assert not is_active(prior) and not is_personal(prior, now)
+    weak = replace(prior, succ=5.0, fail=3.0, last_event_at=now)  # S+F = 8, not > 8
+    assert is_active(weak) and not is_personal(weak, now)
+    strong = replace(prior, succ=6.0, fail=3.0, last_event_at=now)  # 9 > 8
+    assert is_personal(strong, now)
+    # decay relaxes a personal cell back toward the prior (56 d = two half-lives → 9/4 < 8)
+    assert not is_personal(strong, now + timedelta(days=56))
+    # learning mode: no active cells → still learning; 1 of 2 active personal → 50 % → badge off
+    assert learning_mode([prior, prior], now)
+    assert learning_mode([weak, strong, prior], now) is False  # 1/2 active personal ≥ 0.5
+    assert learning_mode([weak, weak, strong], now) is True  # 1/3 < 0.5

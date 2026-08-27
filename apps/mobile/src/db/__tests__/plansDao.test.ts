@@ -186,7 +186,7 @@ describe('applyPlanResponse', () => {
         confidence: 0.7,
         chunk_index: 0,
       });
-      expect(experimentEvent?.context).toEqual({ trigger: 'first_open', horizon: 'day' });
+      expect(experimentEvent?.context).toMatchObject({ trigger: 'first_open', horizon: 'day' }); // + tz (P7)
       expect(JSON.stringify(shown)).not.toContain('write report');
       expect(unplacedOf(plan)).toEqual([{ task_id: ids[2], reason: 'deferred' }]);
       expect(isFallbackPlan(plan)).toBe(false);

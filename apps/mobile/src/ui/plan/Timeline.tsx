@@ -6,6 +6,7 @@
  * thin spacer whose height is proportional to the gap, capped, so the day's shape still reads.
  */
 import { FlashList } from '@shopify/flash-list';
+import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import type { RecommendationRow } from '../../db/plans';
@@ -19,6 +20,10 @@ export interface TimelineProps {
   recommendations: RecommendationRow[];
   titles: Map<string, string>;
   now: Date;
+  /** Recommendation id with a running/paused focus session (P7). */
+  activeRecommendationId?: string | null;
+  /** Renders the P7 action row for a block; omitted on read-only renders. */
+  renderActions?: (rec: RecommendationRow, title: string) => ReactNode;
 }
 
 type Row =
@@ -53,7 +58,13 @@ export function buildRows(recommendations: RecommendationRow[], now: Date): Row[
   return rows;
 }
 
-export function Timeline({ recommendations, titles, now }: TimelineProps) {
+export function Timeline({
+  recommendations,
+  titles,
+  now,
+  activeRecommendationId = null,
+  renderActions,
+}: TimelineProps) {
   const theme = useTheme();
   const rows = buildRows(recommendations, now);
   return (
@@ -82,6 +93,11 @@ export function Timeline({ recommendations, titles, now }: TimelineProps) {
                   recommendation={item.rec}
                   title={titles.get(item.rec.taskId) ?? t('task.notFound')}
                   chunkCount={item.chunkCount}
+                  active={item.rec.id === activeRecommendationId}
+                  actions={renderActions?.(
+                    item.rec,
+                    titles.get(item.rec.taskId) ?? t('task.notFound'),
+                  )}
                 />
               </View>
             </View>

@@ -15,8 +15,37 @@ const mockRequestManual = jest.fn();
 jest.mock('../sync/usePlanTrigger', () => ({
   usePlanTrigger: () => ({ requestManual: mockRequestManual }),
 }));
+const mockLapse = { diagnosticTask: null as unknown, dismissDiagnostic: jest.fn() };
+jest.mock('../sync/useLapseScan', () => ({ useLapseScan: () => mockLapse }));
+const mockBlockActions = {
+  startFocusAction: jest.fn(),
+  doneBlockAction: jest.fn(),
+  skipBlockAction: jest.fn((): { task: TaskRow | null; diagnosticDue: boolean } => ({
+    task: null,
+    diagnosticDue: false,
+  })),
+  moveBlockAction: jest.fn(),
+  correctLapseAction: jest.fn(),
+  skipDiagnosticAction: jest.fn(),
+};
+// factories run when the module is first required (before this file's consts exist), so the
+// mocked functions delegate lazily — the same pattern as mockUseLiveRows above
+jest.mock('../domain/blockActions', () => ({
+  startFocusAction: (...a: unknown[]) => mockBlockActions.startFocusAction(...a),
+  doneBlockAction: (...a: unknown[]) => mockBlockActions.doneBlockAction(...a),
+  skipBlockAction: () => mockBlockActions.skipBlockAction(),
+  moveBlockAction: (...a: unknown[]) => mockBlockActions.moveBlockAction(...a),
+  correctLapseAction: (...a: unknown[]) => mockBlockActions.correctLapseAction(...a),
+  skipDiagnosticAction: (...a: unknown[]) => mockBlockActions.skipDiagnosticAction(...a),
+}));
+jest.mock('@react-native-community/datetimepicker', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+const mockNavigate = jest.fn();
+jest.mock('expo-router', () => ({ useRouter: () => ({ navigate: mockNavigate }) }));
 
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import type { ReactElement } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -103,6 +132,7 @@ function task(over: Partial<TaskRow> = {}): TaskRow {
     status: 'scheduled',
     doneAt: null,
     postponeCount: 0,
+    skipStreak: 0,
     deletedAt: null,
     version: 1,
     createdAt: new Date(),
@@ -112,16 +142,24 @@ function task(over: Partial<TaskRow> = {}): TaskRow {
   };
 }
 
-function rows(input: { plans?: PlanRow[]; recs?: RecommendationRow[]; tasks?: TaskRow[] }) {
+function rows(input: {
+  plans?: PlanRow[];
+  recs?: RecommendationRow[];
+  tasks?: TaskRow[];
+  sessions?: Array<{ recommendationId: string }>;
+}) {
   mockUseLiveRows.mockImplementation((_build: unknown, tables: readonly string[]) => {
     if (tables[0] === 'plans') return input.plans ?? [];
     if (tables[0] === 'recommendations') return input.recs ?? [];
+    if (tables[0] === 'focus_sessions') return input.sessions ?? [];
     return input.tasks ?? [];
   });
 }
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockLapse.diagnosticTask = null;
+  mockBlockActions.skipBlockAction.mockImplementation(() => ({ task: null, diagnosticDue: false }));
   usePlanStore.setState({ status: 'idle', lastRequestedDay: null, emptyInbox: false });
   rows({});
 });
@@ -130,7 +168,9 @@ describe('Today', () => {
   it('shows the empty state and a "Plan my day" button that triggers a manual request', async () => {
     await render(withSafeArea(<TodayScreen />));
     expect(screen.getByText(en['today.empty.title'])).toBeTruthy();
-    fireEvent.press(screen.getByText(en['today.plan']));
+    await act(async () => {
+      fireEvent.press(screen.getByText(en['today.plan']));
+    });
     expect(mockRequestManual).toHaveBeenCalledTimes(1);
   });
 
@@ -224,5 +264,125 @@ describe('Today', () => {
     usePlanStore.setState({ status: 'error' });
     await render(withSafeArea(<TodayScreen />));
     expect(screen.getByText(en['today.error'])).toBeTruthy();
+  });
+
+  // --- P7 block actions (FR-23/25/30, UC-04/06/07) ---------------------------------------------
+
+  it('a shown block offers Start / Done / Skip / Move; Start logs the fact and opens the Focus tab', async () => {
+    rows({ plans: [plan()], recs: [rec()], tasks: [task()] });
+    await render(withSafeArea(<TodayScreen />));
+    for (const key of [
+      'block.action.start',
+      'block.action.done',
+      'block.action.skip',
+      'block.action.move',
+    ] as const) {
+      expect(screen.getByText(en[key])).toBeTruthy();
+    }
+    await act(async () => {
+      await act(async () => {
+        fireEvent.press(screen.getByText(en['block.action.start']));
+      });
+    });
+    expect(mockBlockActions.startFocusAction).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith('/(tabs)/focus');
+    await act(async () => {
+      fireEvent.press(screen.getByText(en['block.action.done']));
+    });
+    expect(mockBlockActions.doneBlockAction).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      fireEvent.press(screen.getByText(en['block.action.skip']));
+    });
+    expect(mockBlockActions.skipBlockAction).toHaveBeenCalledTimes(1);
+  });
+
+  it('Move… opens the inline picker; confirming logs the move with a 15-min-snapped start', async () => {
+    rows({ plans: [plan()], recs: [rec()], tasks: [task()] });
+    await render(withSafeArea(<TodayScreen />));
+    await act(async () => {
+      await act(async () => {
+        fireEvent.press(screen.getByText(en['block.action.move']));
+      });
+    });
+    await act(async () => {
+      await act(async () => {
+        fireEvent.press(screen.getByText(en['block.move.confirm']));
+      });
+    });
+    expect(mockBlockActions.moveBlockAction).toHaveBeenCalledTimes(1);
+    const picked = mockBlockActions.moveBlockAction.mock.calls[0]![1] as Date;
+    expect(picked.getMinutes() % 15).toBe(0);
+    expect(screen.queryByText(en['block.move.confirm'])).toBeNull();
+  });
+
+  it('a lapsed block reads neutrally, offers "I did it", and never shows Skip', async () => {
+    rows({ plans: [plan()], recs: [rec({ status: 'lapsed' })], tasks: [task()] });
+    await render(withSafeArea(<TodayScreen />));
+    expect(screen.getByText(en['block.status.lapsed'])).toBeTruthy();
+    expect(screen.queryByText(en['block.action.skip'])).toBeNull();
+    await act(async () => {
+      await act(async () => {
+        fireEvent.press(screen.getByText(en['block.action.didIt']));
+      });
+    });
+    expect(mockBlockActions.correctLapseAction).toHaveBeenCalledTimes(1);
+  });
+
+  it('a completed block shows "Done" with no actions; a running block shows "In progress" and blocks Start elsewhere', async () => {
+    rows({
+      plans: [plan()],
+      recs: [
+        rec({ id: 'rec-1', status: 'completed' }),
+        rec({ id: 'rec-2', taskId: 't-2' }),
+        rec({ id: 'rec-3', taskId: 't-3' }),
+      ],
+      tasks: [task(), task({ id: 't-2', title: 'second' }), task({ id: 't-3', title: 'third' })],
+      sessions: [{ recommendationId: 'rec-2' }],
+    });
+    await render(withSafeArea(<TodayScreen />));
+    expect(screen.getByText(en['block.status.completed'])).toBeTruthy();
+    expect(screen.getByText(en['block.status.active'])).toBeTruthy();
+    // only the third block has a Start button, and it is disabled while another session runs
+    const starts = screen.getAllByText(en['block.action.start']);
+    expect(starts).toHaveLength(1);
+    await act(async () => {
+      fireEvent.press(starts[0]!);
+    });
+    expect(mockBlockActions.startFocusAction).not.toHaveBeenCalled();
+  });
+
+  it('the third consecutive skip asks the one-question diagnostic; an answer routes and shows the result line', async () => {
+    mockBlockActions.skipBlockAction.mockImplementation(() => ({
+      task: task({ skipStreak: 3 }),
+      diagnosticDue: true,
+    }));
+    rows({ plans: [plan()], recs: [rec()], tasks: [task()] });
+    await render(withSafeArea(<TodayScreen />));
+    await act(async () => {
+      await act(async () => {
+        fireEvent.press(screen.getByText(en['block.action.skip']));
+      });
+    });
+    await act(async () => {
+      await act(async () => {
+        fireEvent.press(screen.getByText(en['diagnostic.tooBig']));
+      });
+    });
+    expect(mockBlockActions.skipDiagnosticAction).toHaveBeenCalledWith('t-1', 'too_big');
+    expect(screen.getByText(en['diagnostic.tooBig.result'])).toBeTruthy();
+    expect(screen.queryByText(en['diagnostic.title'])).toBeNull();
+  });
+
+  it('the diagnostic surfaced by the foreground lapse scan can be deferred ("ask me later")', async () => {
+    mockLapse.diagnosticTask = task({ skipStreak: 3 });
+    rows({ plans: [plan()], recs: [rec()], tasks: [task()] });
+    await render(withSafeArea(<TodayScreen />));
+    await act(async () => {
+      await act(async () => {
+        fireEvent.press(screen.getByText(en['diagnostic.later']));
+      });
+    });
+    expect(mockLapse.dismissDiagnostic).toHaveBeenCalledTimes(1);
+    expect(mockBlockActions.skipDiagnosticAction).not.toHaveBeenCalled();
   });
 });

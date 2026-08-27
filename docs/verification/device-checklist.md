@@ -83,6 +83,39 @@
   renders from SQLite; "Re-plan" shows the offline/error notice without clearing the plan. Why:
   simulator network loss is not real radio loss.
 
+## Feedback loop (P7)
+
+- ⬜ **FR-30 — a running focus session survives lock / app kill / relaunch** (added P7). Start a
+  session, lock the phone for 10 min, relaunch from the app switcher and from a cold start: the
+  Focus tab must show the session still running with the elapsed time including the locked
+  minutes (the row lives in SQLite; the display re-derives from `lastResumedAt`). The simulator
+  never suspends JS the way iOS does under lock/Low-Power mode.
+- ⬜ **File 05 §1 — lazy lapse scan on foreground after a real background stint** (added P7).
+  Leave a block to expire while the app is in the background for > 30 min, foreground: the block
+  must read "Not done — back in your Inbox" and the Inbox must list the task; then confirm the
+  `lapse_observed` row reached the server (Table Editor). The simulator's AppState transitions
+  are instantaneous and never involve OS-level suspension.
+- ⬜ **NFR-A1 — VoiceOver/TalkBack on the block action row and the rating chips** (added P7).
+  Each action must announce "Skip write report" style labels; the rating chips must be
+  reachable in order and announce "Rate your energy: High"; the progress bar must announce its
+  value. Screen readers are not exercised on the simulator.
+- ⬜ **NFR-A2 — 200 % font scale on the Today card with actions and on the Focus tab**
+  (added P7). Four action buttons and the status caption must wrap, never clip or overlap the
+  next block; the timer digits (JetBrains Mono) must not overflow the panel. The P2 sweep ran on
+  the simulator only.
+- ⬜ **NFR-R1 — facts logged offline reach the server later** (added P7). Airplane mode: start,
+  pause, finish a session, skip another block, rate; go online, foreground: the `events` rows
+  must appear once (no duplicates — `UNIQUE(user_id, op_id)`), and `attribute-rewards` must
+  return the derived statuses (Table Editor → `recommendations.status`). Simulator network loss
+  is not genuine network loss.
+- ⬜ **DST — the device clock crossing a transition** (added P7). Set the device date to the
+  Europe/Kyiv fall-back night (2026-10-25 03:59 → 03:00) with a block spanning it: the lazy scan
+  must not lapse it early and the 23:55 attribution must fire once for that local day (pgTAP
+  covers the SQL; the device's own wall clock is what the client's `local_day` uses).
+- ⬜ **UC-07 Move picker on Android** (added P7). The native time picker must return a value
+  snapped to the 15-min grid and the moved block must re-render in slot order; the Android
+  picker was never rendered on hardware (iOS-first development).
+
 ## Auth & identity
 
 - ⬜ **FR-01 — magic-link deep linking from real mail clients** (added P4). Request a link on
@@ -115,11 +148,15 @@
   Simulator can't settle it: iOS simulator push is a development shim, FCM needs a real
   device, and delivery timing under Doze/Low-Power mode only exists on hardware.
 
-## Service environment (HF Spaces free CPU, 2 vCPU) — same honesty rule, different box
+## Service environment (the deployed 2-vCPU container — host pending ADR-0009) — same honesty rule, different box
 
 Timing measured on the development Mac is a smoke check, not evidence for the container File 04
 §1.5 names ("meeting NFR-P1 on 2 vCPU"). These flip only after a measurement on the deployed
-Space (owner-run once the Space exists, ⛔ P5 action item).
+container. **2026-08-27:** the container that was going to be a free HF Docker Space no longer
+exists as a free tier (spec-conflicts H4); the host is an open owner decision (ADR-0009). Every
+item below stays ⬜ until a container exists — Mac numbers are never substituted. When the host is
+chosen, pin the container to 2 CPUs (`--cpus=2` or the platform equivalent) so the measurement
+matches the box File 04 §1.5 names.
 
 - ⬜ **NFR-P1 — /plan service budget on the real container** (added P5). Run
   `services/recsys/scripts/bench_solve.py` inside the Space (or `curl` the deployed `/plan` with

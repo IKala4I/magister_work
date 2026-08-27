@@ -30,8 +30,14 @@ FEATURE_DIM = 17  # [A: d] P5 (specs/07 §3.2.4)
 BETA_HALF_LIFE_DAYS = 28.0  # [A: Beta half-life] SPEC-FIXED (File 05 §1)
 BLEND_INIT_W_ENERGY = 0.7  # [A: blend init] P7
 BLEND_INIT_W_BANDIT = 0.3  # [A: blend init] P7
-BLEND_SGD_LR = 0.05  # [A: blend lr] P7
-DURATION_EWMA_ALPHA = 0.3  # [A: duration estimator] P7
+BLEND_SGD_LR = 0.05  # [A: blend lr] P7 (ADR-0010: projected SGD on ½(pred − r)²)
+DURATION_EWMA_ALPHA = 0.3  # [A: duration estimator] P7 — computed in the edge function (ADR-0010)
+
+# --- cold-start rungs (specs/07 §3.6; Appendix A "rung-2 thresholds") — P7 (ADR-0010) ---
+RUNG2_CELL_EVIDENCE_FACTOR = 1.0  # a cell is "personal" once decayed S + F > factor · (α₀ + β₀)
+RUNG2_ACTIVE_CELL_FRACTION = (
+    0.5  # the learning-mode badge drops when ≥ 50 % of ACTIVE cells are personal
+)
 
 # --- exploration slice (File 04 §1.4; spec-conflicts M2) ---
 EPSILON = 1.0  # [A: ε] P5 — P(one experiment placement per plan)

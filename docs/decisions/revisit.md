@@ -55,3 +55,24 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
 - [P6, 2026-08-26] Drop rates on the randomized slice differ by arm by construction (the EF drops
   only on pinned occupancy; the service on any INFEASIBLE). — P11: report `experiment_dropped`
   per arm and condition the replay on the arm.
+- [P7, 2026-08-27] Appendix A λ_f = 0.5 retune (the P5 line above, scheduled "P7") — no live
+  feedback exists yet (the service host is the open ADR-0009 decision), so there are no observed
+  q̂ scales to retune against; retuning on synthetic data would be invention. — P11 first data
+  review: retune λ_f (e.g. ∝ v·q̂) by ADR once real tuples exist; keep 0.5 until then.
+- [P7, 2026-08-27] ADR-0010 §6 one override pair per placement — a user who moves a block twice
+  teaches only the first move; the second is logged but unrewarded. — P9/P11: decide whether a
+  second move should replace the pair (correction semantics) once override frequency is known.
+- [P7, 2026-08-27] ADR-0010 §9 duration multiplier applied to est_minutes for both engines — this
+  changes the task's feature 11 (log duration) and its feasibility, i.e. the planner's inputs
+  drift with learning even for arm A. Symmetric by design, but the pre-registration should say
+  so. — OSF freeze: add one sentence; P11: report how often scaling was active per arm.
+- [P7, 2026-08-27] `attribution_sweep_tick()` posts to the function with the backend key from
+  Vault; a leaked Vault read (postgres role) equals a leaked service key. — P12 runbook: rotate
+  `HOURWELL_SERVICE_KEY` when the service host is set up; consider a cron-only key.
+- [P7, 2026-08-27] Expo SDK 57 patch drift (expo 57.0.16→.17, RN 0.86.2→.3, jest-expo 57.0.4→.5,
+  @expo/metro-runtime pinned directly) applied via `expo install --fix` to keep expo-doctor green;
+  jest-expo 57.0.5 tightened the `jest.mock` factory scope rule (mock objects must be
+  `mock`-prefixed or lazily referenced). — device pass: nothing; P12: re-verify versions.md.
+- [P7, 2026-08-27] `gatePatches` (adversarial #6) closes the daily/instant race by re-reading the
+  stored tuple before patching; a per-user `pg_advisory_xact_lock` RPC around map+write would be
+  the stronger answer. — P8: when sync-resolve shares the path, move map+write into one RPC.

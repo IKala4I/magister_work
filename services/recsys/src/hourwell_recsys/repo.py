@@ -51,6 +51,7 @@ class Repo(Protocol):
     def load_bandit(self, user_id: str) -> dict[str, bandit.LinearState]: ...
     def save_bandit(self, user_id: str, states: Iterable[bandit.LinearState]) -> None: ...
     def load_blend(self, user_id: str) -> Blend: ...
+    def save_blend(self, user_id: str, blend: Blend) -> None: ...
     def applied_keys(self, user_id: str) -> set[tuple[str, str]]: ...
     def mark_applied(
         self, user_id: str, keys: Iterable[tuple[str, str]], state_version: int
@@ -62,6 +63,7 @@ class Repo(Protocol):
         cells: Iterable[BetaCell],
         keys: Iterable[tuple[str, str]],
         state_version: int,
+        blend: Blend | None = None,
     ) -> None: ...
     def load_tuples(self, user_id: str) -> list[StoredTuple]: ...
     def healthy(self) -> bool: ...
@@ -110,6 +112,9 @@ class InMemoryRepo:
     def load_blend(self, user_id: str) -> Blend:
         return self.blends.get(user_id, Blend())
 
+    def save_blend(self, user_id: str, blend: Blend) -> None:
+        self.blends[user_id] = blend
+
     def applied_keys(self, user_id: str) -> set[tuple[str, str]]:
         return set(self.applied.get(user_id, {}))
 
@@ -127,14 +132,18 @@ class InMemoryRepo:
         cells: Iterable[BetaCell],
         keys: Iterable[tuple[str, str]],
         state_version: int,
+        blend: Blend | None = None,
     ) -> None:
         self.save_bandit(user_id, states)
         self.save_cells(user_id, cells)
         self.mark_applied(user_id, keys, state_version)
+        if blend is not None:
+            self.save_blend(user_id, blend)
 
     def load_tuples(self, user_id: str) -> list[StoredTuple]:
         return sorted(
-            self.tuples.get(user_id, []), key=lambda t: (t.attributed_at, t.recommendation_id)
+            self.tuples.get(user_id, []),
+            key=lambda t: (t.attributed_at, t.recommendation_id, t.kind),
         )
 
     def healthy(self) -> bool:
@@ -263,6 +272,20 @@ class PostgresRepo:
             return Blend()
         return Blend(float(row["w_energy"]), float(row["w_bandit"]), int(row["state_version"]))
 
+    def save_blend(self, user_id: str, blend: Blend) -> None:
+        with self._pool.connection() as conn:
+            self._save_blend(conn, user_id, blend)
+
+    @staticmethod
+    def _save_blend(conn: Any, user_id: str, blend: Blend) -> None:
+        conn.execute(
+            "insert into blend_state (user_id, w_energy, w_bandit, state_version) "
+            "values (%s, %s, %s, %s) on conflict (user_id) do update set "
+            "w_energy = excluded.w_energy, w_bandit = excluded.w_bandit, "
+            "state_version = excluded.state_version, updated_at = now()",
+            (user_id, blend.w_energy, blend.w_bandit, blend.state_version),
+        )
+
     def applied_keys(self, user_id: str) -> set[tuple[str, str]]:
         with self._pool.connection() as conn:
             rows = _dicts(
@@ -299,13 +322,16 @@ class PostgresRepo:
         cells: Iterable[BetaCell],
         keys: Iterable[tuple[str, str]],
         state_version: int,
+        blend: Blend | None = None,
     ) -> None:
-        """State, cells and the id-set land in ONE transaction: a retry after a partial failure
-        can neither double-apply nor lose evidence (adversarial finding)."""
+        """State, cells, blend and the id-set land in ONE transaction: a retry after a partial
+        failure can neither double-apply nor lose evidence (adversarial finding)."""
         with self._pool.connection() as conn, conn.transaction():
             self._save_bandit(conn, user_id, states)
             self._save_cells(conn, user_id, cells)
             self._mark_applied(conn, user_id, keys, state_version)
+            if blend is not None:
+                self._save_blend(conn, user_id, blend)
 
     def load_tuples(self, user_id: str) -> list[StoredTuple]:
         with self._pool.connection() as conn:
@@ -313,7 +339,7 @@ class PostgresRepo:
                 conn.execute(
                     "select recommendation_id, kind, reward, category, features, attributed_at "
                     "from feedback_rewards where user_id = %s and excluded = false "
-                    "order by attributed_at, recommendation_id",
+                    "order by attributed_at, recommendation_id, kind",
                     (user_id,),
                 ).fetchall()
             )

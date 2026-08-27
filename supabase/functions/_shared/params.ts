@@ -41,5 +41,23 @@ export const FALLBACK_PRIOR_N0 = 4; // N0_IN_HOURS · 0.5 — flat prior at half
 export const PLAN_FALLBACK_BUDGET_MS = 1900; // [A: /plan EF fallback budget] P6
 export const PLAN_RATE_LIMIT_PER_DAY = 30; // [A: /plan rate limit] P5
 
+// --- reward mapping (specs/07 §3.4.1–3.4.2; File 06 §1.4 PAR anchors; spec-conflicts H2) — P7 ---
+/** PAR anchor: a session "belongs" to its block when started within ±15 min of slot_start. */
+export const PAR_GRACE_MINUTES = 15; // [A: slot start grace] SPEC-ANCHORED
+export const PAR_MIN_FRACTION = 0.5; // [A: ≥50% finished] SPEC-FIXED
+export const REWARD_OFF_SLOT = 0.3; // [A: off-slot same-day reward] P7 (ADR-0010)
+export const REWARD_OVERRIDE_OUT = 0.1; // [A: override rewards] P7 (ADR-0010)
+export const REWARD_OVERRIDE_IN = 0.7; // [A: override rewards] P7 (ADR-0010)
+export const CORRECTION_WINDOW_DAYS = 7; // [A: correction window] P7 (ADR-0010)
+
+// --- duration estimator (UC-06 A2; Appendix A "duration estimator") — P7 (ADR-0010) ---
+export const DURATION_EWMA_ALPHA = 0.3; // [A: duration estimator] EWMA α per (user, category)
+/** Sessions before the estimate is applied to planning; below it the user's own estimate stands. */
+export const DURATION_MIN_SESSIONS = 3; // [INFERRED] ADR-0010
+/** The applied multiplier is clipped so one outlier session cannot halve or double a task. */
+export const DURATION_RATIO_CLIP: readonly [number, number] = [0.5, 2.0]; // [INFERRED] ADR-0010
+/** A single session ratio is clipped before it enters the EWMA (a 5-min "finish" of a 4 h task). */
+export const DURATION_SAMPLE_CLIP: readonly [number, number] = [0.25, 4.0]; // [INFERRED] ADR-0010
+
 /** NFR-O1 model tag on every heuristic recommendation (arm A and the NFR-R2 fallback). */
 export const HEURISTIC_MODEL_VERSION = 'heuristic-p6.0';
