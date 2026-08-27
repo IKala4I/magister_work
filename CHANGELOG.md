@@ -8,7 +8,8 @@ DuckDNS hostname (PSL-listed, free) + Caddy automatic HTTPS; **pull-based rollou
 a native arm64 runner, verifies a CP-SAT solve with the aarch64 OR-Tools wheel inside the image,
 pushes to GHCR; the VM's systemd timer pulls every 5 min — no SSH from CI, no GitHub secrets,
 port 22 stays owner-only); container pinned to `cpus: 2` (File 04 §1.5's box); PAYG upgrade
-recommended, keep-busy timer until then.
+recommended for support access (G1); the keep-busy timer stays on — Oracle's docs state no
+reclamation exemption for PAYG.
 
 **Repo.** `services/recsys/Dockerfile` (multi-arch bases, `RECSYS_BUILD`, scripts in the image),
 `/healthz` reports `build` + `arch` (api.ts regenerated), `services/recsys/deploy/` (compose,

@@ -56,8 +56,8 @@ re-verifiable with `deploy/verify.sh`):
 
 - **G1 — Oracle sub-processor transparency.** Oracle publishes its sub-processor list only via
   My Oracle Support (Doc 2121811.1); Always Free tenancies "are not eligible for Oracle Support".
-  Residual gap for Art. 28(3)(h): record it, or upgrade to Pay As You Go (also removes the
-  idle-reclaim rule) and confirm access to the document.
+  Residual gap for Art. 28(3)(h): record it, or upgrade to Pay As You Go (Always Free stays
+  free) and confirm access to the document.
 - **G2 — Exports to the researcher's machine are a Chapter V transfer.** Ukraine has no EU
   adequacy decision. EDPB Guidelines 05/2021 (v2.0, Example 10): data flowing from an EU
   processor to a controller established in a third country **is** a transfer. So the

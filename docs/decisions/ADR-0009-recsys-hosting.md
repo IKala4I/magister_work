@@ -190,10 +190,16 @@ speed only and should be declined on the EU ground alone.
    12 GB, Ubuntu 24.04 Minimal aarch64) in **France South / Marseille (`eu-marseille-1`)**, an
    EU member-state region, with a reserved public IPv4 and 80/443 open. NFR-S2 holds for every
    tier; NFR-Sc1's envelope stays as written. Q1 answered by the provisioning; Q3/Q4 moot.
-2. **Q2 (idle reclamation):** default kept — **upgrade the tenancy to Pay As You Go** (Always
-   Free shapes remain free; the 1 EUR budget alert guards mistakes). Until the owner confirms the
-   upgrade, `hourwell-keepbusy.timer` runs `bench_solve.py` hourly inside the container to keep
-   the 7-day 95th-percentile CPU above the reclaim threshold; disable it once upgraded.
+2. **Q2 (idle reclamation) — corrected after verification.** Oracle reclaims an Always Free
+   instance only if, over 7 days, 95th-percentile CPU < 20 % **and** network < 20 % **and** (A1)
+   memory < 20 % — all three together (docs.oracle.com, Always Free Resources). Oracle's docs do
+   **not** state that a Pay-As-You-Go upgrade exempts instances from that rule (the earlier
+   default assumed it did). So `hourwell-keepbusy.timer` (hourly `bench_solve.py` inside the
+   container, ~3 min of CPU on 2 cores) stays on **regardless of plan** — it alone breaks the
+   conjunction. PAYG remains recommended for a different reason: Always Free tenancies are not
+   eligible for Oracle Support, which is the only channel to Oracle's sub-processor list
+   (privacy README G1); Always Free resources stay free after the upgrade, and the 1 EUR budget
+   alert guards mistakes.
 3. **Hostname + TLS = DuckDNS** (`hourwell-recsys.duckdns.org`) + Caddy automatic HTTPS. The edge
    function needs an `https` `RECSYS_URL` and Let's Encrypt does not issue for bare IPs, so a name
    is on the critical path. DuckDNS is free without a card, gives a stable name for a static IP,

@@ -145,10 +145,10 @@ the repo is public). Until then `docker compose pull` on the box answers "denied
 - `hourwell-rollout.timer` → every 5 min `docker compose pull && up -d`; recreates only when
   `:latest` changed; prunes old images; `journalctl -u hourwell-rollout -n 20`.
 - `hourwell-keepbusy.timer` → hourly `bench_solve.py --runs 100` inside the pinned container
-  (~3 min of CPU): keeps the 7-day 95th-percentile CPU above Oracle's Always Free idle threshold.
-  **Unnecessary once the tenancy is upgraded to Pay As You Go** (recommended, ADR-0009 Q2 — the
-  Always Free shapes stay free; PAYG only removes the reclaim rule and the 1 EUR budget alert
-  guards mistakes): then `sudo systemctl disable --now hourwell-keepbusy.timer`.
+  (~3 min of CPU): Oracle reclaims an idle Always Free instance only when CPU **and** network
+  **and** memory are all below their 7-day thresholds, so keeping CPU p95 ≥ 20 % is enough.
+  **Keep it on regardless of plan** — Oracle's docs do not say a PAYG upgrade exempts instances
+  (ADR-0009 Q2, corrected). Check it ran: `journalctl -u hourwell-keepbusy -n 3`.
 - Manual rollout: `ssh oracle-recsys 'sudo -u ubuntu /usr/local/bin/hourwell-rollout'`.
 - Pin a version: set `RECSYS_TAG=<sha12>` in `.env` (CI publishes `:sha` and `:latest`), re-run
   the rollout; unpin by setting `latest` back.
@@ -210,5 +210,5 @@ Set `RECSYS_URL` only after `https://<host>/healthz` answers, so fallback teleme
 [ ] verify.sh → ALL OK                       [ ] Security List: 22 only from <YOUR_IP>/32
 [ ] https://<host>/healthz build == main sha [ ] GitHub Packages: hourwell-recsys public
 [ ] Vault: attribution_sweep_tick() → posted [ ] supabase secrets: RECSYS_URL + HOURWELL_SERVICE_KEY
-[ ] unattended-upgrades dry-run clean         [ ] keep-busy disabled iff PAYG upgraded
+[ ] unattended-upgrades dry-run clean         [ ] keep-busy timer active (journalctl -u hourwell-keepbusy)
 ```

@@ -66,9 +66,10 @@
    — set `RECSYS_URL` only after `curl https://hourwell-recsys.duckdns.org/healthz` answers.
 6. **Vault** — run `$CLAUDE_JOB_DIR/tmp/vault-secrets.sql` in the SQL editor (all three secrets
    filled in; expect `attribution_sweep_tick()` → `posted`).
-7. **Oracle: Pay As You Go upgrade** (ADR-0009 Q2 default yes — Always Free stays free, removes
-   the idle-reclaim rule, unlocks Oracle Support / the sub-processor list, privacy G1). Then
-   `sudo systemctl disable --now hourwell-keepbusy.timer`.
+7. **Oracle: Pay As You Go upgrade — recommended for support access only** (privacy G1: the
+   sub-processor list is My-Oracle-Support-only; Always Free stays free; the 1 EUR alert guards).
+   It does NOT replace the keep-busy timer — Oracle's docs state no reclamation exemption for
+   PAYG (ADR-0009 Q2 corrected); leave `hourwell-keepbusy.timer` enabled.
 8. **DPIA decisions before P11** (privacy README G2/G3, thesis-corrections #34): where analysis
    and training run (in-region on the VM vs anonymised exports vs Art. 46/49 grounds).
 9. **Then the measurements** (next session; runbook §7): live learned-path smoke, warm NFR-P1
