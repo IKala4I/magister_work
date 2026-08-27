@@ -152,3 +152,17 @@ and import-map resolution order: flag → config → `<fn>/deno.json` → fallba
 FlashList v2 (P3, first real list) · chrono-node 2.x (P3) · PostHog SDK (P3, EU instance) ·
 supabase-js v2 (P4) · River (P7) · react-native-skia (P7/P9) · expo-notifications (P10) ·
 implicit 0.7.x (P11) · sentence-transformers ≥3 (roadmap).
+
+## P7 additions (verified 2026-08-27)
+
+| Package / tool                         | Version                    | Notes                                                                                                                                                                                                              |
+| -------------------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| river (recsys, dev)                    | 0.26.1                     | CI oracle only for the blend SGD step (File 03 §2.2 name kept; spec-conflicts L23); `LinearRegression(optimizer=optim.SGD(lr), intercept_lr=0, l2=0)`, Squared-loss gradient carries the factor 2 → pinned at lr/2 |
+| pg_net (Supabase extension)            | hosted                     | `net.http_post(url:=, headers:=, body:=, timeout_milliseconds:=)` per supabase.com/docs/guides/database/extensions/pg_net (ctx7, 2026-08-27); cron→function pattern per docs/guides/functions/schedule-functions   |
+| supabase_vault                         | hosted                     | `vault.decrypted_secrets` read by the cron tick (function is `security definer`, owner-set secrets)                                                                                                                |
+| expo / expo-router / expo-sqlite / …   | 57.0.17 / 57.0.17 / 57.0.2 | SDK 57 patch alignment by `expo install --fix` (expo-doctor gate); react-native 0.86.3; jest-expo 57.0.5; `@expo/metro-runtime` ^57.0.14 pinned directly (doctor "overridden dependencies" check)                  |
+| @react-native-community/datetimepicker | 9.1.0                      | already installed (P3); reused for the UC-07 Move picker (`mode="time"`, `minuteInterval={15}`)                                                                                                                    |
+
+Gotcha recorded: RNTL 14 on the universal renderer makes `render` and post-press re-renders
+asynchronous — assert after `await act(async () => { fireEvent.press(…) })` (the Inbox tests'
+pattern); `findBy*` / `waitFor` hung the suite in P7.

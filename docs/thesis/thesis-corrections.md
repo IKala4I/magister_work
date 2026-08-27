@@ -199,3 +199,30 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     EU. The P1 DPIA note recorded only "not guaranteed". The ADR-0009 decision should be the
     one that makes the EU claim true for every tier; until then the claim holds for Supabase
     (eu-west-1) and the EU PostHog/Sentry instances only.
+28. **§3.x / UC-07 (manual override as teaching):** if the draft describes the v1 override as a
+    drag with haptic snap, say that v1 offers "Move…" (a start-time picker on the row-list
+    timeline) producing the same paired feedback (origin 0.1 / target 0.7, one pair per
+    placement, target context computed server-side from the shared grid/φ/feature code); the
+    drag gesture is a later UI refinement, not part of the learning signal. (spec-conflicts M10;
+    ADR-0010 §6.)
+29. **§3.4 (blend weights):** if the draft says "River learns the blend weights online", write
+    instead: the service takes one projected-SGD step on the squared error of the convex blend
+    per applied reward tuple (lr 0.05, exact projection onto the simplex, Duchi et al. 2008) and
+    replays the trajectory on rebuild; River reproduces the unprojected step and serves as the
+    test oracle (like MABWiser for the bandit). (spec-conflicts L23; ADR-0010 §10.)
+30. **§3.4.1 / §3.4.2 (attribution):** state the concrete rules as built — sessions within
+    ±15 min of slot start belong to the block (Σ focused over in-window sessions ÷ planned; ≥ 50 %
+    → 1.0, else r = f); a completion without a session counts as in-window inside the slot
+    ± 15 min; same-day completions outside the window earn 0.3 only at the 23:55 authority;
+    a skip is 0.0 instantly and sets the row to `rejected` (there is no `skipped` status);
+    "actually did it" within 7 days rewrites the stored lapse to 1.0 and triggers a full rebuild,
+    keeping the original attribution time for decay. The 23:55-local boundary is evaluated in
+    SQL in the user's timezone and is DST-tested. (ADR-0010 §3–§7.)
+31. **§3.6 / UC-06 A2 (duration estimator):** the EWMA (α = 0.3) of focused/estimated minutes
+    over finished sessions is computed in the edge function and applied to the task's estimate
+    for both engines once three sessions exist (multiplier clipped to [0.5, 2]); it is not part
+    of the bandit's state. (spec-conflicts L27; ADR-0010 §9.)
+32. **§4 (feedback delivery / robustness):** add that reward tuples are stored first and
+    delivered to the service afterwards with an acknowledgement marker; a service outage delays
+    learning but loses nothing (idempotent re-delivery). Relevant to the hosting discussion in
+    #26. (ADR-0010 §8.)

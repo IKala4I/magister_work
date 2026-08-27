@@ -276,3 +276,35 @@ _proposed_) against what the service needs — CP-SAT with 2 workers under the 1
 availability during the study, EU residency (NFR-S2), $0 — with a recommendation. Until the
 owner decides, `deploy-recsys.yml` stays gated off (`vars.HF_SPACE` unset), no Space and no
 GitHub secrets are created, and P7 proceeds (its work is service-internal and local-testable).
+
+## Post-review additions (P7, 2026-08-27)
+
+- **M10.** File 03 §2.1 ("drag-to-teach interaction (UC-07) — drag physics never touch the JS
+  thread") and UC-07 ("drags suggested block to a new slot → haptic snap") presume a proportional
+  canvas; ADR-0008 §7 chose a row-list timeline for NFR-A1/A2. Normative for P7: the override is
+  a "Move…" start-time picker snapped to the 15-min grid that logs the same `block_moved` fact and
+  yields the same paired tuples; the drag gesture and haptic snap return with the proportional
+  timeline (P9, revisit.md). The study's signal (FR-25 "overrides are first-class training
+  signals") is identical either way. ADR-0010 §6.
+- **L23.** File 03 §2.2 / File 05 §1 name River as the runtime for the blend weights ("River SGD
+  step on blend weights w"). The service owns a two-parameter projected-SGD step in plain Python
+  and uses River as the **CI oracle** for the unprojected step (River's Squared loss carries the
+  factor 2 — pinned at lr/2), the same pattern File 03 fixes for MABWiser. The simplex projection
+  is outside River anyway. ADR-0010 §10.
+- **L24.** specs/07 §4.1 `recommendations.status` has no `skipped` value while §3.4.1 rows 6
+  (skipped) and 7 (rejected) both exist. Normative: a skip sets `rejected` on the row and the
+  event type (`block_skipped` vs the P9 `block_rejected`) distinguishes the rows for the mapping
+  and for the PAR code (H2). ADR-0010 §5.
+- **L25.** specs/07 §3.4.1 row 1 "task marked done, session in-window" leaves the window of a
+  completion WITHOUT a session undefined. Normative [INFERRED]: `done_at` within
+  [slot_start − 15 min, slot_end + 15 min]; a finished session started > 15 min late is a same-day
+  completion (row 4, 0.3), consistent with PAR = 0. ADR-0010 §4.
+- **L26.** File 05 §1's diagram logs the lazy lapse as "event type=skip". Normative: the client
+  logs `lapse_observed` (its own reading, not a reward-bearing fact) and an explicit skip logs
+  `block_skipped`; the two must stay distinct so rows 5/6 and the pre-registered PAR code never
+  conflate them. ADR-0010 §2.
+- **L27.** Appendix A "duration estimator (UC-06 A2)" is listed among service parameters, but
+  the estimator is an input calibration of `est_minutes`, not model state. Normative: computed in
+  `attribute-rewards` from finished sessions, stored in `duration_estimates`, applied by
+  `plan-request` to BOTH engines (H1 symmetry) once n ≥ 3, clipped to [0.5, 2]; `params.py`
+  keeps `DURATION_EWMA_ALPHA` pinned. ADR-0010 §9.
