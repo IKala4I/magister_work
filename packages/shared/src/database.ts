@@ -211,6 +211,33 @@ export type Database = {
         }
         Relationships: []
       }
+      duration_estimates: {
+        Row: {
+          category: string
+          ewma_ratio: number
+          last_session_at: string | null
+          n: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          ewma_ratio: number
+          last_session_at?: string | null
+          n?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          ewma_ratio?: number
+          last_session_at?: string | null
+          n?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           client_ts: string
@@ -273,6 +300,7 @@ export type Database = {
           attributed_at: string
           category: string
           corrected_at: string | null
+          delivered_at: string | null
           excluded: boolean
           excluded_reason: string | null
           features: Json
@@ -281,12 +309,14 @@ export type Database = {
           reason: string
           recommendation_id: string
           reward: number
+          source: string
           user_id: string
         }
         Insert: {
           attributed_at?: string
           category: string
           corrected_at?: string | null
+          delivered_at?: string | null
           excluded?: boolean
           excluded_reason?: string | null
           features: Json
@@ -295,12 +325,14 @@ export type Database = {
           reason: string
           recommendation_id: string
           reward: number
+          source?: string
           user_id: string
         }
         Update: {
           attributed_at?: string
           category?: string
           corrected_at?: string | null
+          delivered_at?: string | null
           excluded?: boolean
           excluded_reason?: string | null
           features?: Json
@@ -309,6 +341,7 @@ export type Database = {
           reason?: string
           recommendation_id?: string
           reward?: number
+          source?: string
           user_id?: string
         }
         Relationships: [
@@ -719,6 +752,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      attribution_due: {
+        Args: { p_limit?: number; p_now?: string }
+        Returns: {
+          category: string
+          conflict_flag: boolean
+          context_bucket: string
+          features: Json
+          id: string
+          local_day: string
+          slot_end: string
+          slot_start: string
+          status: string
+          task_id: string
+          timezone: string
+          user_id: string
+        }[]
+      }
+      attribution_sweep_tick: { Args: never; Returns: string }
       chronotype_seed_cluster: { Args: { p_class: string }; Returns: number }
       instantiate_user_priors: { Args: { p_user_id: string }; Returns: number }
     }
