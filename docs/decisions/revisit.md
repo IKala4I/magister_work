@@ -78,9 +78,11 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   the stronger answer. — P8: when sync-resolve shares the path, move map+write into one RPC.
 - [P7.1, 2026-08-27] File 06 §5 archive + P11 training on GitHub-hosted runners — EDPB 05/2021
   Example 10 makes exports from EU processors to the controller in Ukraine (and to US runners) a
-  Chapter V transfer; the specs assume none. — Owner decision before P11: in-region analysis (a
-  self-hosted runner on the Oracle VM, EU, arm64) vs anonymised-aggregate exports vs Art. 46/49
-  grounds. `docs/privacy/README.md` G2/G3; thesis-corrections #34.
+  Chapter V transfer; the specs assume none. — **Analysis written 2026-08-27: ADR-0011
+  (proposed).** Owner decision pending — needed before the consent text (P8/P9) and P11;
+  recommended default = option A (in-region analysis + training on the VM, aggregates only,
+  Art. 49(1)(a) clause). `docs/privacy/README.md` G2–G6; thesis-corrections #34–36.
 - [P7.1, 2026-08-27] Oracle sub-processor list is My-Oracle-Support-only and Always Free
-  tenancies have no support access (privacy README G1). — Owner: PAYG upgrade (also removes the
-  idle-reclaim rule) or record the residual gap in the DPIA.
+  tenancies have no support access (privacy README G1). — **Owner 2026-08-27: PAYG deferred**
+  (no reclamation exemption; keep-busy stays on); revisit before participant enrollment, when
+  support access may matter. Residual gap recorded in the DPIA until then.

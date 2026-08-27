@@ -221,6 +221,11 @@ speed only and should be declined on the EU ground alone.
 6. **Container pinned to 2 CPUs** (`cpus: 2` in compose) so `bench_solve.py` inside it measures
    the box File 04 §1.5 names; a threshold different from the Mac numbers is an empirical result
    (ADR-0007 §11 treatment).
+7. **Owner addendum (2026-08-27): PAYG upgrade deferred.** It grants no reclamation exemption
+   (item 2), so the keep-busy timer stays on; revisit before participant enrollment, when Oracle
+   Support access (privacy README G1) may matter. The Chapter V transfer questions raised by the
+   privacy rewrite (G2/G3) are analysed in **ADR-0011** (proposed, owner decision) and were not
+   deferred to P11.
 
 ## Questions for the owner (as asked before the decision; answers above)
 

@@ -25,6 +25,19 @@ to the researcher's machine in Ukraine are Chapter V transfers (EDPB 05/2021 Exa
 GitHub-hosted training runners (US), G4 Edge Functions region pinning. thesis-corrections
 #33–#34, revisit lines, CLAUDE.md §7 (verification depth, never model choice).
 
+**Session 2026-08-27 (evening) — remote steps + transfer analysis.** PR #9 opened; box hardened
+(`harden.sh apply` → new-session SSH re-check → `persist`; sshd key-only/no-root/`AllowUsers
+ubuntu`; iptables 22 from the owner /32 only, persisted; security updates applied), `.env`
+created with the backend key; `verify.sh` fixed (root-only `rules.v4` read with sudo) — all
+non-app checks OK. **ADR-0011 (proposed, owner decision):** cross-border data flows path by
+path (what moves, identifiability, Chapter V under EDPB 05/2021 Examples 6/10, Ukrainian law
+2297-VI Art. 29), lawful bases (no adequacy for Ukraine; no Art. 46 instrument for an Art. 3(2)
+importer; Art. 49(1)(a) consent; anonymous aggregates), four options + public-release options;
+recommended A = in-region analysis + training on the EU VM, participant data never on CI,
+aggregates only to the researcher. Privacy README G2–G6, thesis-corrections #34–36,
+spec-conflicts H5. Owner decisions recorded: PAYG deferred until before enrollment (keep-busy
+stays on).
+
 ## P7 — Feedback loop (2026-08-27, phase/P7-feedback-loop)
 
 **Hosting assumption falsified (spec-conflicts H4, ADR-0009 — owner decision).** Hugging Face

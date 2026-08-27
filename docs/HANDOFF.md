@@ -2,16 +2,18 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-08-27, **P7 closed** (PR #8) + **P7.1 RecSys hosting on the Oracle VM**
-> (branch `phase/P7-hosting`; ADR-0009 accepted). Next: finish the P7.1 owner steps + the three
-> blocked measurements, then **P8 — Sync.**
+> Last update: 2026-08-27 (evening), **P7 closed** (PR #8) + **P7.1 RecSys hosting on the Oracle
+> VM** (PR #9 — `phase/P7-hosting`; ADR-0009 accepted; box hardened + verified; **ADR-0011**
+> cross-border transfers proposed for the owner). Next: the owner steps **one at a time** (below),
+> the three measurements + the live `/feedback` check, then **P8 — Sync.**
 > Standing rules live in CLAUDE.md: "Working mode", "Context efficiency", "Simulator evidence"
 > (also applied to service timing and to the edge functions: Node-on-a-Mac → hosted function is
 > not a handset), and invariant 16 (never run expo / package-manager commands from the root).
 
 ## Where we are
 
-- **P0–P7 merged** (PRs #1–#8). Working tree clean on `main`.
+- **P0–P7 merged** (PRs #1–#8). **P7.1 = PR #9** (CI green; merged by the session once the
+  gates passed — if you read this on `main`, it is in).
 - **P7 — Feedback loop: COMPLETE, minus anything that needs a live RecSys service.** Server:
   migration `20260827150000_p7_feedback` (pg_net, `duration_estimates`,
   `feedback_rewards.delivered_at/source`, `attribution_due(p_now)` — the 23:55-local boundary in
@@ -26,76 +28,86 @@
   actions (Start/Done/Skip/Move…/"I did it"), lazy lapse scan on foreground, third-skip diagnostic,
   facts bridge (`src/sync/factsPush.ts`), local migration `0003_p7_feedback`. Verified: 290 jest +
   98 Deno + 135 pytest (92 %) + 32 pgTAP (CI) — `docs/verification/p7-manual-verification.md`.
-  Decisions: **ADR-0010**. Adversarial pass: same file §4 — 7 MAJOR (late facts after the daily
-  job, partial freezing the block, move+session batches, bucket-less moves, second moves, the
-  daily/instant race, re-plan expiring an in-progress block) + 14 MINOR, all MAJORs fixed.
-- **Hosting decided (2026-08-27): ADR-0009 option A.** Hugging Face withdrew free Docker Spaces
-  (spec-conflicts H4); the owner provisioned `recsys-oracle` (Oracle Always Free A1, 2 OCPU /
-  12 GB, Ubuntu 24.04 arm64, `eu-marseille-1`, public IP 84.235.238.25). **P7.1 built:**
-  arm64-ready Dockerfile + `/healthz` build/arch; `services/recsys/deploy/` (compose with the
-  service pinned to `cpus: 2`, Caddyfile, `.env.example`, `hourwell-rollout` + systemd timers,
-  `harden.sh` / `install.sh` / `verify.sh`); `deploy-recsys.yml` = build on `ubuntu-24.04-arm` →
-  verify a CP-SAT solve inside the image → push GHCR → confirm the VM's pull-based rollout (no
-  SSH from CI, no GitHub secrets); `docs/runbooks/oracle-vm.md`; privacy README rewritten
-  (processors table, self-hosted VM section, DPIA gaps G1–G4). **Not yet done:** the remote
-  steps (this session had no DNS/directory services — see ⛔ 1–3) and the three measurements.
+  Decisions: **ADR-0010**. Adversarial pass: same file §4 — 7 MAJOR + 14 MINOR, all MAJORs fixed.
+- **Hosting (ADR-0009 option A, accepted 2026-08-27):** `recsys-oracle` (Oracle Always Free A1,
+  2 OCPU / 12 GB, Ubuntu 24.04 arm64, `eu-marseille-1`, public IP 84.235.238.25). **P7.1 built
+  and partly deployed:** arm64 Dockerfile + `/healthz` build/arch; `services/recsys/deploy/`
+  (compose `cpus: 2`, Caddyfile, `.env.example`, `hourwell-rollout` + systemd timers, `harden.sh`
+  / `install.sh` / `verify.sh`); `deploy-recsys.yml` = build on `ubuntu-24.04-arm` → CP-SAT solve
+  inside the image → push GHCR → confirm the VM's pull-based rollout (skipped until
+  `vars.RECSYS_HOST`); `docs/runbooks/oracle-vm.md`; privacy README (processors, VM section, gaps
+  G1–G6). **Done on the box (2026-08-27 evening, from the owner IP 193.0.218.70):** deploy bundle
+  copied; `harden.sh apply` → fresh-connection SSH re-check → `persist`; sshd effective
+  `PermitRootLogin no` / `PasswordAuthentication no` / `AllowUsers ubuntu` / `MaxAuthTries 3`;
+  iptables 22 only from 193.0.218.70/32, persisted to `rules.v4`; security updates applied (no
+  reboot required); `install.sh` first run created `~/hourwell/.env` with `HOURWELL_SERVICE_KEY`
+  filled (never printed). `verify.sh 193.0.218.70` → every check OK except the four app checks
+  that need DuckDNS + `DATABASE_URL` + the second `install.sh` run.
+- **ADR-0011 (proposed, owner decision, claim-level):** cross-border data flows path by path —
+  who the participants are decides the regime (EDPB 05/2021 Example 10 vs 6), what actually
+  moves on each of ten paths (today: nothing — only the researcher's test accounts exist; CI has
+  no hosted-project secret), lawful bases (no adequacy for Ukraine; no Art. 46 instrument yet for
+  an Art. 3(2) importer; Art. 49(1)(a) consent; anonymous aggregates), options A–D + public-release
+  options. Recommended default **A**: analysis + training on the EU VM, participant data never on
+  CI, aggregates only to the researcher, consent-form clause. Owner questions: population, Art.
+  27 representative, consent clause, rMEQ note. Privacy README G2–G6; thesis-corrections
+  #34–36; spec-conflicts H5.
+- **Owner decisions recorded 2026-08-27:** PAYG deferred until before enrollment (keep-busy
+  stays on — ADR-0009 §7); the transfer analysis is not deferred to P11 (this ADR).
 
-## ⛔ ACTION REQUIRED (owner) — P7.1 hosting, in this order
+## ⛔ ACTION REQUIRED (owner) — one step at a time; the session verifies each before the next
 
-1. **DuckDNS hostname** — runbook §2: sign in at duckdns.org, add `hourwell-recsys`, point it at
-   `84.235.238.25`. If the name is taken, pick another and use it in every step below.
-2. **Security List** — runbook §3.1: ingress rule for port 22 → source `<YOUR_IP>/32` only
-   (`curl -s https://api.ipify.org` on the Mac); 80/443 stay `0.0.0.0/0`.
-3. **Box: harden → .env → install → verify** (needs a shell with DNS; from the repo root):
-   ```
-   scp -r services/recsys/deploy oracle-recsys:~/hourwell/deploy
-   ssh oracle-recsys 'sudo bash ~/hourwell/deploy/harden.sh apply <YOUR_IP>'
-   ssh oracle-recsys true && ssh oracle-recsys 'sudo bash ~/hourwell/deploy/harden.sh persist'   # NEW terminal first
-   ssh oracle-recsys 'bash ~/hourwell/deploy/install.sh'      # creates ~/hourwell/.env, exits 3
-   ssh oracle-recsys 'nano ~/hourwell/.env'                   # RECSYS_HOST, DATABASE_URL (pooler 6543), HOURWELL_SERVICE_KEY
-   ssh oracle-recsys 'bash ~/hourwell/deploy/install.sh'      # timers + first pull/up
-   ssh oracle-recsys 'bash ~/hourwell/deploy/verify.sh <YOUR_IP>'
-   ```
-   The backend key is in `~/.hourwell/HOURWELL_SERVICE_KEY` (one 64-hex line; same
-   value everywhere). A restarted session runs the scp/ssh lines itself (see gotcha below); the
-   `.env` values are yours to fill (the DB password never goes through chat).
-4. **GitHub** — merge PR "P7.1"; after the first `RecSys image → GHCR` run: Packages →
-   `hourwell-recsys` → visibility **Public**; Settings → Variables → `RECSYS_HOST` =
-   `hourwell-recsys.duckdns.org` (no secrets needed).
-5. **Supabase function secrets** (repo root, `supabase login` once):
-   `supabase secrets set HOURWELL_SERVICE_KEY=<key> RECSYS_URL=https://hourwell-recsys.duckdns.org`
-   — set `RECSYS_URL` only after `curl https://hourwell-recsys.duckdns.org/healthz` answers.
-6. **Vault** — run `~/.hourwell/vault-secrets.sql` in the SQL editor (all three secrets
-   filled in; expect `attribution_sweep_tick()` → `posted`).
-7. **Oracle: Pay As You Go upgrade — recommended for support access only** (privacy G1: the
-   sub-processor list is My-Oracle-Support-only; Always Free stays free; the 1 EUR alert guards).
-   It does NOT replace the keep-busy timer — Oracle's docs state no reclamation exemption for
-   PAYG (ADR-0009 Q2 corrected); leave `hourwell-keepbusy.timer` enabled.
-8. **DPIA decisions before P11** (privacy README G2/G3, thesis-corrections #34): where analysis
-   and training run (in-region on the VM vs anonymised exports vs Art. 46/49 grounds).
-9. **Then the measurements** (next session; runbook §7): live learned-path smoke, warm NFR-P1
-   p95, `bench_solve.py` inside the pinned container, live `/feedback` delivery.
-10. **Google OAuth consent screen + credentials** (FR-01 Google path, code ready and inert) — as
-    in the P4 handoff.
-11. **Magic-link + anonymous-conversion E2E with a real mailbox** — `p4-manual-verification.md` §3.
-12. **Sentry org/project slugs + auth token** — P12/EAS only.
-13. **OSF freeze items** (not blocking P8): thesis-corrections #21 (MRT-slice power from the
-    measured experiment rate), #8/#22 (arm A definition), #17 (presolve finding as an empirical
-    result), #23–#34 (P6–P7 text changes: arm A, off-slot/partial/override values, blend SGD,
-    duration estimator, hosting, processors, transfer analysis).
+The order matters (each step is checked by the next). Current owner IP as seen from the Mac:
+`193.0.218.70` (re-check with `curl -s https://api.ipify.org` — if it changed, redo step 2 and
+`harden.sh apply <new-ip>` + `persist`).
 
-## Resume point for the next session (P7.1 → measurements → P8)
+1. **DuckDNS hostname** — https://www.duckdns.org → sign in → add `hourwell-recsys` → current ip
+   `84.235.238.25` → update ip. If the name is taken, pick another and tell the session (it
+   changes `RECSYS_HOST` on the box + the GitHub variable + `RECSYS_URL`). _Session check:_
+   `dig +short hourwell-recsys.duckdns.org` → `84.235.238.25`.
+2. **Security List** — OCI Console → Networking → VCN `recsys-vcn` → Default Security List →
+   Ingress → edit the port-22 rule → Source CIDR `193.0.218.70/32`; keep 80/443 from `0.0.0.0/0`;
+   no other rule for 22. _Session check:_ `ssh oracle-recsys true` still works (the console
+   connection is the recovery path if not).
+3. **GHCR + variable** (needs PR #9 merged and the first `RecSys image → GHCR` run finished):
+   GitHub → repo → Packages → `hourwell-recsys` → Package settings → **Change visibility →
+   Public**; Settings → Secrets and variables → Actions → **Variables** → `RECSYS_HOST` =
+   `hourwell-recsys.duckdns.org`. _Session check:_ `docker manifest inspect
+ghcr.io/ikala4i/hourwell-recsys:latest` anonymously; `gh variable list`.
+4. **`DATABASE_URL` on the box** — Supabase dashboard → Connect → Transaction pooler (6543) →
+   copy the DSN with the DB password (URL-encode special characters) → `ssh oracle-recsys 'nano
+~/hourwell/.env'` → replace the `DATABASE_URL=` line (and `RECSYS_HOST=` if step 1 changed the
+   name). Never paste it into chat. _Session then runs:_ `install.sh` (second run: timers + pull +
+   up), `verify.sh` → `ALL OK`, `curl https://<host>/healthz` → `storage: postgres`, `arch:
+aarch64`, `build: <main sha>`.
+5. **`supabase login`** — type `! supabase login` in the prompt (browser flow). _Session then
+   runs:_ `supabase secrets set HOURWELL_SERVICE_KEY=<from ~/.hourwell> RECSYS_URL=https://<host>`
+   (values piped, not printed) and checks `supabase secrets list`.
+6. **Vault SQL** — Supabase SQL editor → paste `~/.hourwell/vault-secrets.sql` (all three secrets
+   filled) → run. _Session check:_ `select public.attribution_sweep_tick();` → `posted`, and
+   `net._http_response` shows a 2xx.
+7. **Then the session does the measurements** (runbook §7): live learned-path smoke (`reason =
+learned`), warm NFR-P1 p95, `bench_solve.py` inside the pinned container, live `/feedback`
+   delivery (`delivered_at` null count → 0) → recorded in `p6-manual-verification.md` §3,
+   `p5-manual-verification.md` §2, device-checklist "Service environment". Then P8.
 
-1. `git status` clean on `phase/P7-hosting` (8 commits ahead of `main`, unpushed) → `git push -u
-origin phase/P7-hosting`, open PR "P7.1 — RecSys hosting (Oracle)", CI green (the `RecSys image →
-GHCR` workflow runs after the merge; its rollout job is skipped until `vars.RECSYS_HOST` exists).
-2. Owner ⛔ 1–2 done? → run ⛔ 3 (scp/ssh; `verify.sh` must print ALL OK) — with the owner's IP.
-3. Owner ⛔ 4–6 done? → `curl https://hourwell-recsys.duckdns.org/healthz` shows `storage:
-postgres`, `arch: aarch64`, `build: <main sha>`; then the runbook §7 measurements → record in
-   `p6-manual-verification.md` §3 (learned path + warm p95), `p5-manual-verification.md` §2
-   (container bench next to the Mac numbers; a different presolve threshold = empirical result,
-   ADR-0007 §11 treatment), device-checklist "Service environment" flips, `feedback_rewards`
-   delivery check, `attribution_sweep_tick()` → `posted`. Then P8.
+**Owner decisions pending (not blocking the steps above):**
+
+- **ADR-0011** — answer §6 (population; Art. 27 representative; consent clause; rMEQ note) and
+  pick option A/B/C/D + the release option. Needed before the consent text (P8/P9) and P11.
+- **PAYG** — deferred to before participant enrollment (support access, G1).
+- Later gates unchanged: Google OAuth consent screen (FR-01), magic-link E2E with a real
+  mailbox, Sentry slugs (P12), OSF-freeze text items (thesis-corrections #21, #8/#22, #17,
+  #23–36).
+
+## Resume point for the next session
+
+1. `git status` clean on `main` after PR #9 (or on `phase/P7-hosting` if the merge did not
+   happen — then `gh pr checks 9`, merge with a merge commit like the earlier PRs).
+2. Ask the owner for the next unchecked ⛔ step, verify it as listed, continue down the list;
+   `verify.sh 193.0.218.70` after step 4 must print `ALL OK`.
+3. After ⛔ 6: the measurements (⛔ 7), then a docs commit on a small branch (measurements are
+   docs-only), then P8.
 
 ## What P8 needs to read (exact sections — read nothing else to orient)
 

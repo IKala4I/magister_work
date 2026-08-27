@@ -57,23 +57,40 @@ re-verifiable with `deploy/verify.sh`):
 - **G1 — Oracle sub-processor transparency.** Oracle publishes its sub-processor list only via
   My Oracle Support (Doc 2121811.1); Always Free tenancies "are not eligible for Oracle Support".
   Residual gap for Art. 28(3)(h): record it, or upgrade to Pay As You Go (Always Free stays
-  free) and confirm access to the document.
+  free) and confirm access to the document. **Owner 2026-08-27:** PAYG deferred (it grants no
+  idle-reclamation exemption); revisit before participant enrollment, when support access may
+  matter. Recorded as a residual gap until then.
 - **G2 — Exports to the researcher's machine are a Chapter V transfer.** Ukraine has no EU
-  adequacy decision. EDPB Guidelines 05/2021 (v2.0, Example 10): data flowing from an EU
-  processor to a controller established in a third country **is** a transfer. So the
-  data-subject → controller and controller → EU-processor legs are fine (no transfer), but
-  **pulling participant data — including pseudonymised event logs — from Supabase/Oracle to a
-  laptop in Ukraine needs a safeguard**: keep analysis in-region (an EU VM or Supabase-side SQL),
-  or export only aggregated / anonymised results, or document Art. 49 derogations. This affects
-  the File 06 archive (§5, "pseudonymized Parquet") and the P11 OPE/training design — decision
-  before P11 (thesis-corrections #34).
-- **G3 — GitHub-hosted runners for training (P11).** The nightly pipeline as specified pulls
-  pseudonymised behavioural data onto GitHub-hosted runners (US). Options: a self-hosted runner
-  on the Oracle VM (EU, arm64, free), or Art. 46 safeguards under GitHub's DPA + DPF certification.
-  Same decision point as G2.
-- **G4 — Edge Functions region.** Until pinned, functions run nearest the caller; for EU
-  participants that is an EU edge, but it is not contractually the project region. P10: pin
-  `eu-west-1` via the client `region` option.
+  adequacy decision (17 decisions as of 2026-08-27). EDPB Guidelines 05/2021 (v2.0): data
+  flowing from an EU processor back to a controller established in a third country **is** a
+  transfer — Example 10 when the controller is subject to the GDPR (EU participants), Example 6
+  when it is not (participants in Ukraine; then it is the processor's obligation and Ukrainian
+  law 2297-VI Art. 29 governs the controller). So the data-subject → controller and controller →
+  EU-processor legs are fine, but **pulling participant data — dashboard browsing, `db dump`, the
+  study dataset, the Parquet archive — to a machine in Ukraine needs a ground**, and no Art. 46
+  instrument exists today for an importer already subject to Art. 3(2). **Full path-by-path
+  analysis, lawful bases and options: `docs/decisions/ADR-0011-cross-border-transfers.md`
+  (proposed — owner decision, claim-level).** Recommended default: in-region analysis + training
+  on the EU VM, aggregates only to the researcher, Art. 49(1)(a) clause in the consent form.
+- **G3 — GitHub-hosted runners for training (P11).** The nightly pipeline as specified would
+  pull pseudonymised behavioural data onto GitHub-hosted runners (US) and push artefacts to HF
+  Hub (US). Today **no CI job touches participant data** (`ci.yml` has no hosted-project
+  secret). GitHub is DPF-certified (Art. 45), the DPF is under appeal (C-703/25 P), HF Hub's DPF
+  status is unverified, and under Ukrainian law the US is not adequate regardless. ADR-0011
+  option A keeps participant data off CI entirely (training on the VM; `train.yml` on synthetic
+  data; registry in Supabase Storage).
+- **G4 — Edge Functions region.** Until pinned, functions run nearest the caller (deployed
+  globally); for callers in the EU or Ukraine that is an EU region, for a participant travelling
+  outside Europe it is not. Pin with `region: FunctionRegion.EuWest1` on `functions.invoke`
+  (verify: `x-sb-edge-region` response header) — **P8**, when the sync engine replaces both
+  call sites (`planRequest.ts`, `factsPush.ts`).
+- **G5 — Public dataset (File 06 §5).** A row-level event dataset of 42 people is not anonymous
+  by relabelling; publication is lawful only if genuinely anonymous. ADR-0011 §4: synthetic
+  dataset + replay harness, and/or restricted-access OSF deposit (Frankfurt storage). ⛔ owner
+  decision at the OSF freeze.
+- **G6 — Art. 27 representative.** If participants are in the EU, a controller in Ukraine
+  monitoring their behaviour for 8 weeks needs a representative in the Union unless Art. 27(2)
+  applies (it does not read as "occasional"). ADR-0011 §6.
 
 ## 5. Data-minimization commitments already enforced in schema (P1)
 

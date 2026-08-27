@@ -247,3 +247,21 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     decision for Ukraine). Add the safeguard chosen before P11 (in-region analysis on the EU VM /
     Supabase-side SQL, anonymised aggregates only, or Art. 46/49 grounds) and apply the same
     reasoning to GitHub-hosted training runners (US). (`docs/privacy/README.md` G2/G3.)
+    **2026-08-27, ADR-0011 (proposed):** the path-by-path analysis, the two population cases
+    (EDPB Example 10 vs Example 6), the lawful bases and four options are written; the text
+    change depends on the owner's choice — under the recommended option A the sentence becomes
+    "all participant data is stored and processed in EU regions; the researcher, located in
+    Ukraine, receives anonymous aggregates; incidental administrative access is covered by
+    explicit consent under Art. 49(1)(a)".
+35. **§3.x (legal framing) — state the participant population and its consequence:** File 06
+    §1.3 does not say where participants are. If in the EU/EEA, the GDPR applies to the
+    researcher under Art. 3(2)(b) and **Art. 27 requires a representative in the Union** (the
+    27(2) exemption needs "occasional" processing — an 8-week behavioural study is not); if in
+    Ukraine only, the GDPR binds the EU processors, not the researcher, and Law 2297-VI Art. 29
+    governs transfers (EU/EEA adequate; the US is not a Convention 108 party). Say which case
+    holds, or that the design satisfies the stricter one. (ADR-0011 §1, §6.)
+36. **File 06 §5 / §3.x (artefact statement):** "anonymized event dataset (Parquet, HF
+    datasets)" over-claims — a row-level dataset of 42 people with 8 weeks of timestamped
+    behaviour is pseudonymised, not anonymous, and HF datasets is US-hosted. Replace with the
+    release option chosen at the OSF freeze (recommended: synthetic dataset + replay harness,
+    and a restricted-access OSF deposit on Frankfurt storage). spec-conflicts H5; ADR-0011 §4.

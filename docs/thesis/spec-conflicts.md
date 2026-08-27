@@ -309,3 +309,19 @@ GitHub secrets are created, and P7 proceeds (its work is service-internal and lo
   `attribute-rewards` from finished sessions, stored in `duration_estimates`, applied by
   `plan-request` to BOTH engines (H1 symmetry) once n ≥ 3, clipped to [0.5, 2]; `params.py`
   keeps `DURATION_EWMA_ALPHA` pinned. ADR-0010 §9.
+
+## Post-review additions (P7.1, 2026-08-27)
+
+### H5. File 06 §5 and specs/07 `model_registry.artifact_uri` put participant-derived data and the training run outside the EU
+
+File 06 §5 promises an "anonymized event dataset (Parquet, HF datasets)" and PLAN P11 (from
+File 03/04) a nightly `train.yml` on GitHub-hosted runners with an HF Hub push; specs/07 §4 types
+`artifact_uri` as an HF Hub reference. Three facts make this a claim-level conflict with NFR-S2
+as the thesis states it: (1) the controller is in Ukraine (no adequacy decision), so every
+export from the EU processors to the researcher is a Chapter V transfer (EDPB 05/2021 Examples
+6/10); (2) GitHub-hosted runners and HF Hub are US processing; (3) a row-level dataset of 42
+people is not anonymous by relabelling. **Resolution (proposed, owner decision):**
+`docs/decisions/ADR-0011-cross-border-transfers.md` — recommended: analysis + training on the
+EU VM, `train.yml` on synthetic data only, `artifact_uri` = Supabase Storage (EU), public release
+as a synthetic dataset + replay harness and/or a restricted-access OSF deposit (Frankfurt
+storage). Text: thesis-corrections #34–36.
