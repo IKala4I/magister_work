@@ -17,6 +17,12 @@ export const REWARD_OFF_SLOT = 0.3; // [A: off-slot same-day reward] P7
 export const REWARD_OVERRIDE_OUT = 0.1; // [A: override rewards] P7
 export const REWARD_OVERRIDE_IN = 0.7; // [A: override rewards] P7
 export const CORRECTION_WINDOW_DAYS = 7; // [A: correction window] P7
+export const REWARD_OVERRIDE_MAX_PER_REC = 1; // one override pair per placement [INFERRED, ADR-0010]
+
+// --- duration estimator (UC-06 A2), computed only in Edge Functions (ADR-0010) ---
+export const DURATION_EWMA_ALPHA = 0.3; // [A: duration estimator] P7
+export const DURATION_MIN_SESSIONS = 3; // [INFERRED] ADR-0010
+export const DURATION_RATIO_CLIP = [0.5, 2.0] as const; // [INFERRED] ADR-0010
 
 // --- exploration slice, passed to /plan by the edge facade (File 04 §1.4) ---
 export const EPSILON = 1.0; // [A: ε] P5

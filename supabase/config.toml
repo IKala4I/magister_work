@@ -402,6 +402,13 @@ deno_version = 2
 enabled = true
 verify_jwt = false
 import_map = "./functions/deno.json"
+
+# P7: attribute-rewards — instant mode with the user JWT (verified in-function), daily mode with
+# the backend key from pg_cron (no JWT at all), so the gateway check stays off here too.
+[functions.attribute-rewards]
+enabled = true
+verify_jwt = false
+import_map = "./functions/deno.json"
 entrypoint = "./functions/plan-request/index.ts"
 
 [analytics]

@@ -52,6 +52,8 @@ export interface PlanContext {
   cells: BetaCell[];
   /** Every earlier plan for the same (user, date, horizon) — their `shown` rows get superseded. */
   existing_plan_ids: string[];
+  /** Tasks whose est_minutes the UC-06 A2 estimator rescaled (P7; both engines, H1 symmetry). */
+  duration_scaled?: number;
 }
 
 export interface PersistInput {
@@ -294,6 +296,7 @@ export async function handlePlanRequest(req: Request, deps: Deps): Promise<Respo
       trigger: body.trigger ?? 'manual',
       n_busy: ctx.busy.length,
       n_previous: ctx.previous_assignments.length,
+      duration_scaled: ctx.duration_scaled ?? 0,
     },
     unplaced: unplaced!,
     infeasible: infeasible!,

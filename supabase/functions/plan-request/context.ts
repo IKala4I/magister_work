@@ -8,7 +8,14 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { BetaCell } from '../_shared/energy.ts';
 import { localMidnightUtcMs, parseIsoDate } from '../_shared/grid.ts';
 import { HORIZON_DAYS } from '../_shared/params.ts';
-import type { Arm, Horizon, ServicePreviousAssignment, ServiceTaskIn } from '../_shared/types.ts';
+import { type DurationEstimate, effectiveEstMinutes } from '../_shared/rewards.ts';
+import type {
+  Arm,
+  Category,
+  Horizon,
+  ServicePreviousAssignment,
+  ServiceTaskIn,
+} from '../_shared/types.ts';
 import type { PlanContext } from './handler.ts';
 
 // deno-lint-ignore no-explicit-any
@@ -42,7 +49,7 @@ export async function loadContext(
   }
   const endMs = startMs + HORIZON_DAYS[horizon] * 86_400_000 + 3 * 3_600_000; // + DST slack; the grid clips
 
-  const [tasksRes, busyRes, plansRes, armRes, cellsRes] = await Promise.all([
+  const [tasksRes, busyRes, plansRes, armRes, cellsRes, durRes] = await Promise.all([
     client
       .from('tasks')
       .select(
@@ -79,7 +86,9 @@ export async function loadContext(
       .from('beta_cells')
       .select('category, daypart, day_type, alpha0, beta0, succ, fail, last_event_at')
       .eq('user_id', userId),
+    client.from('duration_estimates').select('category, ewma_ratio, n').eq('user_id', userId),
   ]);
+  if (durRes.error) fail('duration_estimates', durRes.error);
   if (tasksRes.error) fail('tasks', tasksRes.error);
   if (busyRes.error) fail('calendar_events', busyRes.error);
   if (plansRes.error) fail('plans', plansRes.error);
@@ -104,10 +113,15 @@ export async function loadContext(
     }
   }
 
+  const estimates: Partial<Record<Category, DurationEstimate>> = {};
+  for (const d of durRes.data ?? []) {
+    estimates[d.category as Category] = { ewma_ratio: Number(d.ewma_ratio), n: Number(d.n) };
+  }
   const tasks: ServiceTaskIn[] = (tasksRes.data ?? []).map((t) => ({
     id: t.id,
     category: t.category,
-    est_minutes: t.est_minutes,
+    // UC-06 A2: the learned duration multiplier applies to BOTH engines (H1 symmetry) — P7
+    est_minutes: effectiveEstMinutes(t.est_minutes, estimates[t.category as Category] ?? null),
     deadline: t.deadline,
     value: t.value,
     splittable: t.splittable,
@@ -139,6 +153,11 @@ export async function loadContext(
     arm: (armRes.data?.[0]?.arm as Arm | undefined) ?? null,
     cells,
     existing_plan_ids: existingPlanIds,
+    duration_scaled:
+      (tasksRes.data ?? []).filter((t) =>
+        effectiveEstMinutes(t.est_minutes, estimates[t.category as Category] ?? null) !==
+          t.est_minutes
+      ).length,
   };
 }
 

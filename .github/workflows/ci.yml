@@ -83,8 +83,8 @@ jobs:
           deno-version: v2.9.5
       - run: deno fmt --check
       - run: deno lint
-      - run: deno check _shared/*.ts plan-request/*.ts
-      - name: Unit tests (arm-A heuristic, matched ε-draw, grid/φ parity with the service, handler)
+      - run: deno check _shared/*.ts plan-request/*.ts attribute-rewards/*.ts
+      - name: Unit tests (arm-A heuristic, matched ε-draw, grid/φ parity with the service, plan-request + attribute-rewards handlers, reward mapping)
         run: deno test --allow-read --allow-env --allow-net
 
   api-contract:
