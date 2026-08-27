@@ -55,7 +55,15 @@ focus_resume / focus_end` (FR-30; `focus_end` carries `outcome`, `started_at`, `
    fall-back and spring-forward, a second zone in the same sweep). The mapping re-checks the
    instant rows in daily mode, so facts that synced late still get their instant reward instead of
    a lapse. A same-day out-of-window completion seen by the instant path is **not** rewarded early
-   (spec-literal: row 4's timing is the attribution job).
+   (spec-literal: row 4's timing is the attribution job). **Late facts (adversarial pass):** facts
+   that sync after the daily job — the offline-overnight case of File 05 §2 — may _upgrade_ an
+   uncorrected stored `lapsed` / `off_slot` / `partial` inside the 7-day window through the
+   correction path (strictly better reward only; `correction = true` → rebuild; original
+   `attributed_at` kept). Row 3 (`partial`) is emitted only once the slot can no longer be resumed
+   (`now > slot_end + 15 min`, or daily mode), so a restart inside the slot still reaches rows 1–2.
+   Concurrency: after writing, a pass patches a row only if the stored `(recommendation_id,
+kind)` tuple is the one it computed (`gatePatches`), so the daily sweep and an in-flight
+   instant call cannot leave a status that contradicts the tuple.
 
 4. **In-window.** A session belongs to its block when `|started_at − slot_start| ≤ 15 min` (File 06
    §1.4). **[INFERRED]** a completion without a session (block "Done") is in-window when `done_at`
@@ -75,9 +83,12 @@ focus_resume / focus_end` (FR-30; `focus_end` carries `outcome`, `started_at`, `
    the parity fixture pins; a-priori occupancy for the fatigue rule and feature 17 = calendar busy
    ∪ the user's other committed blocks of that day **[INFERRED]** (they are facts at move time).
    The row moves (`slot_*`, `context_bucket`, `features`), so a later outcome attaches to the
-   new context (§3.4.1 note). **One override pair per placement** **[INFERRED]** (the
-   `feedback_rewards (recommendation_id, kind)` key): a second move is logged, not rewarded.
-   A target outside 06–24 has no bucket → no `override_in`, only the move.
+   new context (§3.4.1 note) — also when the move and the session arrive in the same batch.
+   **The latest move always moves the placement**; the paired tuples are written **once per
+   placement** **[INFERRED]** (the `feedback_rewards (recommendation_id, kind)` key): a second
+   move re-places the row (slot, bucket, features) without a second pair. A target outside
+   06–24 has no bucket → the row still moves, no `override_in`/features change. The client never
+   moves a block into the past (the target is lifted to the next 15-min tick).
 
 7. **Correction (UC-04 A1).** With a stored `lapsed` tuple inside the 7-day window the row is
    rewritten in place (`reward = 1.0`, `reason = completed`, `corrected_at`, `source =
@@ -145,7 +156,11 @@ correction`, `delivered_at = NULL`) and re-sent with `correction = true` → the
 ## Consequences
 
 - P8's `sync-resolve` imports `_shared/rewards.ts` and calls `processUser(…, 'instant')` after
-  replay; the facts bridge and the task-push bridge are deleted then (revisit.md).
+  replay; the facts bridge (events + `recommendation_status` ops) and the task-push bridge are
+  deleted then (revisit.md). Every fact carries `context.tz` (device zone); a fact logged under
+  another zone than the profile's makes its outcome `excluded = timezone_mismatch` (§3.4.2).
+  `focus_end.local_day` is the session's START day; `attribution_due` waits for
+  `slot_end + 15 min`; a running session is auto-abandoned on foreground after planned × 2 + 60 min.
 - P9 adds the drag gesture on the proportional timeline, the Skia ring, the learning-mode badge
   and plan review (row 7 `block_rejected`); P10 adds `notification_response` to FR-32.
 - P11 reports per-arm drop/attribution/correction rates and reads `duration_estimates` for the

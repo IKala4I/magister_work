@@ -41,6 +41,17 @@ bridge (`src/sync/factsPush.ts`: events through RLS with `ignoreDuplicates`, the
 `0003_p7_feedback` (`focus_sessions`, local-only `tasks.skip_streak`). Every fact payload is
 categorical/numeric (NFR-S3, tested). Expo SDK 57 patch alignment (`expo install --fix`).
 
+**Adversarial pass (fresh context).** 7 MAJOR + 14 MINOR; all MAJORs fixed before merge: late
+facts after the daily job now upgrade a stored lapse/off-slot/partial as a correction; row 3 waits
+until the slot cannot be resumed; the latest move always re-places the row (pair once) and
+composes with a session in the same batch; bucket-less targets still move; patches are gated
+against the stored tuple (daily/instant race); `recommendation_status` ops are pushed and facts
+go up before a re-plan. Plus: total tuple order, device zone on every fact (`timezone_mismatch`
+exclusion), midnight-safe `local_day` + `slot_end + grace` guard (migration
+`20260827170000_p7_attribution_guards`, timezone validation), stale-session auto-abandon,
+sessions by task in the lapse scan, unified diagnostic rule, past-proof Move picker. Details:
+`docs/verification/p7-manual-verification.md` §4.
+
 **Docs.** ADR-0009 (hosting, proposed), ADR-0010 (P7 decisions), spec-conflicts H4, M10,
 L23–L27, thesis-corrections #26–#32, revisit (5 lines), device-checklist "Feedback loop (P7)",
 explainer, traceability, `docs/verification/p7-manual-verification.md`.

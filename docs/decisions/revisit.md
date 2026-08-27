@@ -73,3 +73,6 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   @expo/metro-runtime pinned directly) applied via `expo install --fix` to keep expo-doctor green;
   jest-expo 57.0.5 tightened the `jest.mock` factory scope rule (mock objects must be
   `mock`-prefixed or lazily referenced). — device pass: nothing; P12: re-verify versions.md.
+- [P7, 2026-08-27] `gatePatches` (adversarial #6) closes the daily/instant race by re-reading the
+  stored tuple before patching; a per-user `pg_advisory_xact_lock` RPC around map+write would be
+  the stronger answer. — P8: when sync-resolve shares the path, move map+write into one RPC.

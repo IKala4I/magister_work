@@ -22,9 +22,11 @@
   engines (n ≥ 3). Service: blend weights learn by projected SGD (River = CI oracle), rebuild
   replays them, `blend_state` persisted; rung-2 helpers. Client: Focus tab (FR-30/31), block
   actions (Start/Done/Skip/Move…/"I did it"), lazy lapse scan on foreground, third-skip diagnostic,
-  facts bridge (`src/sync/factsPush.ts`), local migration `0003_p7_feedback`. Verified: 288 jest +
-  92 Deno + 135 pytest (92 %) + 29 pgTAP (CI) — `docs/verification/p7-manual-verification.md`.
-  Decisions: **ADR-0010**. Adversarial pass: same file §4.
+  facts bridge (`src/sync/factsPush.ts`), local migration `0003_p7_feedback`. Verified: 290 jest +
+  98 Deno + 135 pytest (92 %) + 32 pgTAP (CI) — `docs/verification/p7-manual-verification.md`.
+  Decisions: **ADR-0010**. Adversarial pass: same file §4 — 7 MAJOR (late facts after the daily
+  job, partial freezing the block, move+session batches, bucket-less moves, second moves, the
+  daily/instant race, re-plan expiring an in-progress block) + 14 MINOR, all MAJORs fixed.
 - **External change recorded (2026-08-27):** Hugging Face withdrew free Docker Spaces (July 2026)
   — spec-conflicts **H4**, thesis-corrections #26–#27, **ADR-0009 (proposed — owner decision)**.
   `deploy-recsys.yml` suspended. No Space, no secrets, no host created.
@@ -162,6 +164,9 @@ old`): setting the same status is a silent no-op, not an error.
 - The Expo SDK line drifts in patch versions between phases (`expo-doctor` fails the version
   check): run `npx expo install --fix` **from apps/mobile**, then check the "overridden
   dependencies" check — a transitive `@expo/metro-runtime` had to be pinned directly.
+- **Cron health:** pg_net never surfaces HTTP failures — check
+  `select id, status_code, left(content, 120), created from net._http_response order by created desc limit 5;`
+  in the SQL editor when the sweep seems silent; a 401 there means the Vault secrets are wrong.
 - `attribution_sweep_tick()` reads Vault inside an exception block — if it ever returns
   `skipped: vault unavailable` on the hosted project, the `supabase_vault` extension or the
   function owner's privileges changed.
