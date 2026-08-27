@@ -79,7 +79,7 @@ def rebuild_all(
     fresh = {k: reset_evidence(c) for k, c in cells.items()}
     blend = Blend(state_version=state_version)
     replay = {g: bandit.init_state(g) for g in CATEGORIES}  # θ trajectory for the blend replay
-    for s in sorted(stored, key=lambda t: (t.attributed_at, t.recommendation_id)):
+    for s in sorted(stored, key=lambda t: (t.attributed_at, t.recommendation_id, t.kind)):
         key = _cell_key(s.category, s.features)
         fresh[key] = apply_reward(fresh[key], s.reward, s.attributed_at)
         blend = _blend_step(blend, replay[s.category], s.features, s.reward)
@@ -100,7 +100,10 @@ def apply_feedback(req: FeedbackRequest, repo: Repo) -> FeedbackResponse:
     skipped_excluded = 0
     updated = 0
     newly: set[tuple[str, str]] = set()
-    for t in req.tuples:
+    # deterministic order (attributed_at, recommendation_id, kind) — the same total order the
+    # rebuild replays, so blend state is a pure function of the tuples (adversarial #8)
+    ordered = sorted(req.tuples, key=lambda t: (t.attributed_at, str(t.recommendation_id), t.kind))
+    for t in ordered:
         if classify(t) is TupleDisposition.EXCLUDE:
             skipped_excluded += 1
             continue  # never reaches any state update

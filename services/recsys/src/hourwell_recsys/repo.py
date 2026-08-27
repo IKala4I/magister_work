@@ -142,7 +142,8 @@ class InMemoryRepo:
 
     def load_tuples(self, user_id: str) -> list[StoredTuple]:
         return sorted(
-            self.tuples.get(user_id, []), key=lambda t: (t.attributed_at, t.recommendation_id)
+            self.tuples.get(user_id, []),
+            key=lambda t: (t.attributed_at, t.recommendation_id, t.kind),
         )
 
     def healthy(self) -> bool:
@@ -338,7 +339,7 @@ class PostgresRepo:
                 conn.execute(
                     "select recommendation_id, kind, reward, category, features, attributed_at "
                     "from feedback_rewards where user_id = %s and excluded = false "
-                    "order by attributed_at, recommendation_id",
+                    "order by attributed_at, recommendation_id, kind",
                     (user_id,),
                 ).fetchall()
             )
