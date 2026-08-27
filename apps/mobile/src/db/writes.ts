@@ -49,8 +49,27 @@ export function enqueueOp(
   return opId;
 }
 
-/** Append-only event types the client can emit so far; later phases extend this list. */
-export const CLIENT_EVENT_TYPES = ['task_created', 'recommendation_shown'] as const;
+/**
+ * Append-only event types the client can emit. P7 adds the feedback-loop FACTS (specs/07 §3.4;
+ * File 05 §1): sessions, completions, skips, moves, the lazy lapse mark, corrections, ratings and
+ * the UC-04 A2 diagnostic. Payload shapes are documented in
+ * supabase/functions/_shared/rewards.ts — the server maps them to rewards; the client never does.
+ */
+export const CLIENT_EVENT_TYPES = [
+  'task_created',
+  'recommendation_shown',
+  'focus_start',
+  'focus_pause',
+  'focus_resume',
+  'focus_end',
+  'task_completed',
+  'block_skipped',
+  'block_moved',
+  'lapse_observed',
+  'lapse_corrected',
+  'session_rated',
+  'skip_diagnostic',
+] as const;
 export type ClientEventType = (typeof CLIENT_EVENT_TYPES)[number];
 
 /**

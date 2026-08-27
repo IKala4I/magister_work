@@ -14,6 +14,10 @@ jest.mock('../db/client', () => ({ db: {} }));
 // The Today tab (P6) reads plans/recommendations through live queries and wires the UC-03
 // trigger; the shell test is about readiness, not planning.
 jest.mock('../db/useLiveRows', () => ({ useLiveRows: () => [] }));
+// P7: the Today tab runs the lazy lapse scan on mount — a DB write path, mocked here like the DB
+jest.mock('../sync/useLapseScan', () => ({
+  useLapseScan: () => ({ diagnosticTask: null, dismissDiagnostic: () => {} }),
+}));
 jest.mock('../sync/usePlanTrigger', () => ({
   usePlanTrigger: () => ({ requestManual: jest.fn() }),
 }));

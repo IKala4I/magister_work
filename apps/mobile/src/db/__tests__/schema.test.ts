@@ -63,6 +63,7 @@ describe('tasks mirror (specs/07 §4.1)', () => {
         'status',
         'done_at',
         'postpone_count',
+        'skip_streak', // LOCAL-ONLY (P7 UC-04 A2 streak) — excluded from the op payload by tasks.ts
         'deleted_at',
         'version',
         'created_at',

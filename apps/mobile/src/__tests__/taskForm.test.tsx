@@ -31,6 +31,7 @@ function existingTask(overrides: Partial<TaskRow>): TaskRow {
     status: 'inbox',
     doneAt: null,
     postponeCount: 0,
+    skipStreak: 0,
     deletedAt: null,
     version: 1,
     createdAt: new Date(2026, 7, 24, 9, 0),

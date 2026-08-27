@@ -83,6 +83,11 @@ export const tasks = sqliteTable(
     status: text('status', { enum: TASK_STATUSES }).notNull().default('inbox'),
     doneAt: integer('done_at', { mode: 'timestamp_ms' }),
     postponeCount: integer('postpone_count').notNull().default(0),
+    /**
+     * LOCAL-ONLY (never in the op payload): consecutive skips/lapses since the last completion —
+     * the UC-04 A2 "third consecutive skip" trigger. Server-side skip counts live in events.
+     */
+    skipStreak: integer('skip_streak').notNull().default(0),
     deletedAt: integer('deleted_at', { mode: 'timestamp_ms' }),
     version: integer('version').notNull().default(1),
     createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
@@ -186,6 +191,43 @@ export const events = sqliteTable(
   (t) => [
     uniqueIndex('events_op_id_unique').on(t.opId),
     index('events_local_day_idx').on(t.localDay),
+  ],
+);
+
+export const FOCUS_SESSION_STATES = ['running', 'paused', 'finished', 'abandoned'] as const;
+
+/**
+ * Focus sessions (FR-30) — LOCAL-ONLY table: the durable facts are the `focus_*` events in
+ * `events` (append-only, synced); this row is the device's own record of the session so a
+ * running timer survives an app restart and the Focus tab can render it from SQLite
+ * (single source of truth). `focusedMs` accumulates completed run segments; while `running`,
+ * the live elapsed time is `focusedMs + (now − lastResumedAt)`.
+ */
+export const focusSessions = sqliteTable(
+  'focus_sessions',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull(),
+    recommendationId: text('recommendation_id').notNull(),
+    taskId: text('task_id').notNull(),
+    state: text('state', { enum: FOCUS_SESSION_STATES }).notNull().default('running'),
+    startedAt: integer('started_at', { mode: 'timestamp_ms' }).notNull(),
+    endedAt: integer('ended_at', { mode: 'timestamp_ms' }),
+    /** Focused milliseconds from completed run segments (pauses excluded). */
+    focusedMs: integer('focused_ms').notNull().default(0),
+    /** Start of the current run segment while `running`; NULL while paused/ended. */
+    lastResumedAt: integer('last_resumed_at', { mode: 'timestamp_ms' }),
+    plannedMinutes: integer('planned_minutes').notNull(),
+    estMinutes: integer('est_minutes').notNull(),
+    /** FR-31 1-tap ratings (1–3); NULL = not rated (never required). */
+    ratedEnergy: integer('rated_energy'),
+    ratedDifficulty: integer('rated_difficulty'),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
+    updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
+  },
+  (t) => [
+    index('focus_sessions_user_state_idx').on(t.userId, t.state),
+    index('focus_sessions_rec_idx').on(t.recommendationId),
   ],
 );
 

@@ -61,6 +61,29 @@ export type AnalyticsEvents = {
     top_categories_count: number;
     seed_tasks_added: number;
   };
+  /**
+   * P7 block actions on a recommendation (FR-23/25/30, UC-04/06/07) — recommendation-lifecycle
+   * events, so the NFR-O1 tag is required. `did_it` = UC-04 A1 correction.
+   */
+  block_action: ModelVersionTag & {
+    action: 'start' | 'done' | 'skip' | 'move' | 'did_it';
+    is_experiment: boolean;
+  };
+  /** FR-30 (P7): duration telemetry — minutes only, never task text. */
+  focus_session_ended: {
+    outcome: 'finished' | 'abandoned';
+    focused_minutes: number;
+    planned_minutes: number;
+  };
+  /** FR-31 (P7): the rating happened (values stay in `events`; PostHog sees the shape only). */
+  session_rated: {
+    energy: 1 | 2 | 3;
+    has_difficulty: boolean;
+  };
+  /** UC-04 A2 (P7). */
+  skip_diagnostic: {
+    answer: 'too_big' | 'wrong_time' | 'not_important';
+  };
   /** FR-01 (P4). No identifiers — method and lifecycle only. */
   auth_event: {
     method: 'anonymous' | 'magic_link' | 'google';

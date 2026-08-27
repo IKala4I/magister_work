@@ -7,6 +7,10 @@
 // so the client and the live-query hook are stubbed to an empty inbox here.
 jest.mock('../db/client', () => ({ db: {} }));
 jest.mock('../db/useLiveRows', () => ({ useLiveRows: () => [] }));
+// P7: the Today tab runs the lazy lapse scan on mount — a DB write path, mocked here like the DB
+jest.mock('../sync/useLapseScan', () => ({
+  useLapseScan: () => ({ diagnosticTask: null, dismissDiagnostic: () => {} }),
+}));
 // The shell tests cover an onboarded user; the UC-01 gate has its own suite (P4).
 jest.mock('../db/useProfile', () => ({
   useOnboardingComplete: () => true,
