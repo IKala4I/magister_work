@@ -26,7 +26,8 @@ else
   chk "port 22 restricted to one /32"          'grep -E -- "--dport 22 " <<<"$rules" | grep -q -- "-s " && ! grep -E -- "--dport 22 " <<<"$rules" | grep -vq -- "-s "'
 fi
 chk "80/443 accepted"                          'grep -qE -- "--dport 80 " <<<"$rules" && grep -qE -- "--dport 443 " <<<"$rules"'
-chk "rules persisted (rules.v4 matches live 22 rule)" 'grep -qE -- "--dport 22 " /etc/iptables/rules.v4 && diff <(sudo iptables -S INPUT | grep -E -- "--dport 22 ") <(grep -E -- "--dport 22 " /etc/iptables/rules.v4 | sed "s/^-A INPUT/-A INPUT/") >/dev/null'
+# rules.v4 is root-only (640) — read it with sudo, or this check fails for the wrong reason
+chk "rules persisted (rules.v4 matches live 22 rule)" 'diff <(sudo iptables -S INPUT | grep -E -- "--dport 22 ") <(sudo grep -E -- "^-A INPUT .*--dport 22 " /etc/iptables/rules.v4) >/dev/null'
 echo "== updates =="
 chk "unattended-upgrades installed+enabled"    'dpkg -s unattended-upgrades >/dev/null && systemctl is-enabled unattended-upgrades'
 chk "periodic upgrades on (20auto-upgrades)"   'grep -q "Unattended-Upgrade \"1\"" /etc/apt/apt.conf.d/20auto-upgrades'

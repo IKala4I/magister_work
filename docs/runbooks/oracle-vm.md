@@ -79,7 +79,7 @@ ssh oracle-recsys 'sudo bash ~/hourwell/deploy/harden.sh apply <YOUR_IP>'
 - **sshd** drop-in `/etc/ssh/sshd_config.d/60-hourwell.conf`: `PasswordAuthentication no`,
   `KbdInteractiveAuthentication no`, `PermitRootLogin no`, `AllowUsers ubuntu`, `MaxAuthTries 3`,
   no X11/agent/TCP forwarding; `sshd -t` then reload. (OCI images already disable passwords via
-  `50-cloud-init.conf`; root's `authorized_keys` only echoes "login as ubuntu" — the drop-in makes
+  `60-cloudimg-settings.conf`; root's `authorized_keys` only echoes "login as ubuntu" — the drop-in makes
   both explicit and effective: `sudo sshd -T | grep -Ei 'passwordauthentication|permitrootlogin'`.)
 - **unattended-upgrades** (Minimal ships without it): installs it + `ca-certificates curl jq
 iptables-persistent`; `20auto-upgrades` (daily lists + upgrade), `52hourwell-reboot`
