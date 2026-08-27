@@ -57,7 +57,8 @@
    ssh oracle-recsys 'bash ~/hourwell/deploy/verify.sh <YOUR_IP>'
    ```
    The backend key is in `~/.hourwell/HOURWELL_SERVICE_KEY` (one 64-hex line; same
-   value everywhere). The next session can run these itself once its environment resolves DNS.
+   value everywhere). A restarted session runs the scp/ssh lines itself (see gotcha below); the
+   `.env` values are yours to fill (the DB password never goes through chat).
 4. **GitHub** — merge PR "P7.1"; after the first `RecSys image → GHCR` run: Packages →
    `hourwell-recsys` → visibility **Public**; Settings → Variables → `RECSYS_HOST` =
    `hourwell-recsys.duckdns.org` (no secrets needed).
@@ -82,6 +83,19 @@
     measured experiment rate), #8/#22 (arm A definition), #17 (presolve finding as an empirical
     result), #23–#34 (P6–P7 text changes: arm A, off-slot/partial/override values, blend SGD,
     duration estimator, hosting, processors, transfer analysis).
+
+## Resume point for the next session (P7.1 → measurements → P8)
+
+1. `git status` clean on `phase/P7-hosting` (8 commits ahead of `main`, unpushed) → `git push -u
+origin phase/P7-hosting`, open PR "P7.1 — RecSys hosting (Oracle)", CI green (the `RecSys image →
+GHCR` workflow runs after the merge; its rollout job is skipped until `vars.RECSYS_HOST` exists).
+2. Owner ⛔ 1–2 done? → run ⛔ 3 (scp/ssh; `verify.sh` must print ALL OK) — with the owner's IP.
+3. Owner ⛔ 4–6 done? → `curl https://hourwell-recsys.duckdns.org/healthz` shows `storage:
+postgres`, `arch: aarch64`, `build: <main sha>`; then the runbook §7 measurements → record in
+   `p6-manual-verification.md` §3 (learned path + warm p95), `p5-manual-verification.md` §2
+   (container bench next to the Mac numbers; a different presolve threshold = empirical result,
+   ADR-0007 §11 treatment), device-checklist "Service environment" flips, `feedback_rewards`
+   delivery check, `attribution_sweep_tick()` → `posted`. Then P8.
 
 ## What P8 needs to read (exact sections — read nothing else to orient)
 
@@ -183,10 +197,14 @@ old`): setting the same status is a silent no-op, not an error.
 - The Expo SDK line drifts in patch versions between phases (`expo-doctor` fails the version
   check): run `npx expo install --fix` **from apps/mobile**, then check the "overridden
   dependencies" check — a transitive `@expo/metro-runtime` had to be pinned directly.
-- **This job environment can lose DNS and directory services** (2026-08-27: `getpwuid` failed,
-  `curl` could not resolve any host, `ssh`/`supabase`/`gh` unusable while jest/deno/pytest ran
-  fine). Do local work, arm a `curl github.com` watcher, and hand remote steps to the owner as
-  `! …` commands if it does not return. `uv run --no-sync` keeps uv from re-resolving offline.
+- **Session process context can lose the Mach bootstrap** (2026-08-27, after a `/login` in the
+  running session): `launchctl managername` → "Could not get manager name", `getpwuid(501)`
+  fails, `scutil --dns` empty, keychain unreachable, system resolver dead — while `dig` (reads
+  `/etc/resolv.conf` itself) and `ping 1.1.1.1` work. So the Mac is fine; the session is not.
+  `ssh`, `git push`/`gh`, `supabase`, `curl` are all unusable from it; jest/deno/pytest/uv (with
+  `--no-sync`) work. It does NOT come back on its own — **restart the CLI session from a
+  terminal** and resume ("Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue"). A
+  restarted session can run ⛔ 3–4 itself (scp/ssh/push/PR); ⛔ 1, 2, 5–8 stay owner steps.
 - **Remote deploy is pull-based**: CI never touches the box; if `/healthz.build` lags `main`,
   look at `journalctl -u hourwell-rollout` on the VM (image pull denied = package not public).
 - **Cron health:** pg_net never surfaces HTTP failures — check
