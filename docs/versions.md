@@ -166,3 +166,14 @@ implicit 0.7.x (P11) · sentence-transformers ≥3 (roadmap).
 Gotcha recorded: RNTL 14 on the universal renderer makes `render` and post-press re-renders
 asynchronous — assert after `await act(async () => { fireEvent.press(…) })` (the Inbox tests'
 pattern); `findBy*` / `waitFor` hung the suite in P7.
+
+## P7.1 hosting additions (verified 2026-08-27)
+
+| Component                                              | Version / value               | Notes                                                                                                 |
+| ------------------------------------------------------ | ----------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Oracle Cloud VM.Standard.A1.Flex                       | 2 OCPU / 12 GB, aarch64       | Always Free; Ubuntu 24.04 Minimal; `eu-marseille-1`; Docker 29.1.3, Compose v2.40.3 (owner-installed) |
+| caddy (Docker image)                                   | `caddy:2`                     | automatic HTTPS (Let's Encrypt HTTP-01/TLS-ALPN-01), reverse proxy, JSON access log rotated           |
+| python:3.12-slim / ghcr.io/astral-sh/uv                | multi-arch / 0.12.5           | both publish linux/arm64; the image builds natively on `ubuntu-24.04-arm`                             |
+| docker/build-push-action · setup-buildx · login-action | v6 · v3 · v3                  | GHCR push with `GITHUB_TOKEN` (`packages: write`); `load: true` for the in-runner verification        |
+| DuckDNS                                                | `hourwell-recsys.duckdns.org` | free; on the Public Suffix List (per-subdomain Let's Encrypt rate limits)                             |
+| systemd timers (on the VM)                             | rollout 5 min · keep-busy 1 h | `services/recsys/deploy/systemd/`                                                                     |

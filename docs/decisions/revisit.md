@@ -76,3 +76,11 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
 - [P7, 2026-08-27] `gatePatches` (adversarial #6) closes the daily/instant race by re-reading the
   stored tuple before patching; a per-user `pg_advisory_xact_lock` RPC around map+write would be
   the stronger answer. — P8: when sync-resolve shares the path, move map+write into one RPC.
+- [P7.1, 2026-08-27] File 06 §5 archive + P11 training on GitHub-hosted runners — EDPB 05/2021
+  Example 10 makes exports from EU processors to the controller in Ukraine (and to US runners) a
+  Chapter V transfer; the specs assume none. — Owner decision before P11: in-region analysis (a
+  self-hosted runner on the Oracle VM, EU, arm64) vs anonymised-aggregate exports vs Art. 46/49
+  grounds. `docs/privacy/README.md` G2/G3; thesis-corrections #34.
+- [P7.1, 2026-08-27] Oracle sub-processor list is My-Oracle-Support-only and Always Free
+  tenancies have no support access (privacy README G1). — Owner: PAYG upgrade (also removes the
+  idle-reclaim rule) or record the residual gap in the DPIA.

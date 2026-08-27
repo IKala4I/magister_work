@@ -148,15 +148,14 @@
   Simulator can't settle it: iOS simulator push is a development shim, FCM needs a real
   device, and delivery timing under Doze/Low-Power mode only exists on hardware.
 
-## Service environment (the deployed 2-vCPU container — host pending ADR-0009) — same honesty rule, different box
+## Service environment (Oracle A1 VM, container pinned to `cpus: 2` — ADR-0009) — same honesty rule, different box
 
 Timing measured on the development Mac is a smoke check, not evidence for the container File 04
 §1.5 names ("meeting NFR-P1 on 2 vCPU"). These flip only after a measurement on the deployed
-container. **2026-08-27:** the container that was going to be a free HF Docker Space no longer
-exists as a free tier (spec-conflicts H4); the host is an open owner decision (ADR-0009). Every
-item below stays ⬜ until a container exists — Mac numbers are never substituted. When the host is
-chosen, pin the container to 2 CPUs (`--cpus=2` or the platform equivalent) so the measurement
-matches the box File 04 §1.5 names.
+container. **2026-08-27:** the host is the Oracle Always Free A1 VM (ADR-0009); `compose.yml`
+pins the service to `cpus: 2` so `bench_solve.py` inside it measures the box File 04 §1.5 names.
+Every item below stays ⬜ until the first deploy completes (HANDOFF ⛔ 1–7) — Mac numbers are
+never substituted. Command: runbook `docs/runbooks/oracle-vm.md` §7.
 
 - ⬜ **NFR-P1 — /plan service budget on the real container** (added P5). Run
   `services/recsys/scripts/bench_solve.py` inside the Space (or `curl` the deployed `/plan` with

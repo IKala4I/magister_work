@@ -187,18 +187,25 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     July 2026 Hugging Face requires a paid plan (PRO, $9/mo) to create any Docker or Gradio
     Space, free or not; only Static Spaces are free (spec-conflicts H4, verified 2026-08-27
     against huggingface.co/docs/hub/spaces-overview and hub-docs PR #2624). Rewrite the
-    hosting paragraph to name the host chosen in ADR-0009 once decided, and restate the cost
-    envelope accordingly ($0 if a free EU host is chosen; "$9/mo service tier" if HF PRO is
-    chosen). Add one sentence in the limitations/threats section: the free-tier assumption
-    was true when the architecture was written (early 2026) and was falsified by the provider
-    during implementation — an external-dependency risk of free-tier research systems.
+    hosting paragraph: the service runs in a container on an **Oracle Cloud Infrastructure
+    "Always Free" Ampere A1 VM (2 OCPU / 12 GB) in the EU region France South, Marseille
+    (`eu-marseille-1`)**, behind Caddy with automatic TLS, deployed by a pull-based rollout from
+    the GitHub Container Registry (ADR-0009, decided 2026-08-27). The cost envelope stays as
+    written ("$0 through ~3k MAU; ≤ $25/mo to ~50k"): Always Free resources never expire and the
+    50k-MAU tier maps to a paid A1 shape. Add one sentence in the limitations/threats section: the
+    free-tier assumption was true when the architecture was written (early 2026) and was
+    falsified by the provider during implementation — an external-dependency risk of free-tier
+    research systems, mitigated by an infrastructure-agnostic container and a provider with a
+    contractual (not promotional) free tier.
 27. **§3.x (privacy / NFR-S2 "EU region hosting"):** if the draft claims every service runs in
     the EU, qualify it: Hugging Face Spaces on free and PRO plans run in the US only (EU
     runtime is a Team/Enterprise feature — docs "storage-regions", 2026-08-27), so the
     RecSys tier as specified would have processed pseudonymous behavioural data outside the
-    EU. The P1 DPIA note recorded only "not guaranteed". The ADR-0009 decision should be the
-    one that makes the EU claim true for every tier; until then the claim holds for Supabase
-    (eu-west-1) and the EU PostHog/Sentry instances only.
+    EU. The P1 DPIA note recorded only "not guaranteed". With ADR-0009 (Oracle, Marseille) the
+    EU claim is true for every tier; state additionally that the RecSys tier is **self-hosted on
+    infrastructure the researcher administers** (Oracle as processor under its Data Processing
+    Agreement; OS patching, access control and key rotation are the researcher's
+    responsibility — `docs/runbooks/oracle-vm.md`, `docs/privacy/README.md`).
 28. **§3.x / UC-07 (manual override as teaching):** if the draft describes the v1 override as a
     drag with haptic snap, say that v1 offers "Move…" (a start-time picker on the row-list
     timeline) producing the same paired feedback (origin 0.1 / target 0.7, one pair per
@@ -226,3 +233,17 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     delivered to the service afterwards with an acknowledgement marker; a service outage delays
     learning but loses nothing (idempotent re-delivery). Relevant to the hosting discussion in
     #26. (ADR-0010 §8.)
+33. **§3.x (privacy / processors):** name the processors as built — Oracle Cloud Infrastructure
+    (IaaS, `eu-marseille-1`, Data Processing Agreement for Oracle Services incorporated by the
+    Cloud Services Agreement), Supabase (BaaS, eu-west-1, DPA), PostHog EU, Sentry EU — and state
+    that the RecSys tier is self-hosted on a VM the researcher administers (patching, access
+    control and key rotation are the researcher's responsibility; `docs/privacy/README.md` §3).
+    If the draft says "no infrastructure is operated by the researcher", change it.
+34. **§3.x / File 06 §5 (archive) and §5 (evaluation pipeline) — transfer analysis:** the draft
+    treats "controller in Ukraine, data in the EU" as transfer-free. Per EDPB Guidelines 05/2021
+    (v2.0, Example 10) that holds for participant → controller and controller → EU-processor
+    flows, but **exports from the EU processors to the researcher's machine in Ukraine — including
+    pseudonymised event logs and the Parquet archive — are Chapter V transfers** (no adequacy
+    decision for Ukraine). Add the safeguard chosen before P11 (in-region analysis on the EU VM /
+    Supabase-side SQL, anonymised aggregates only, or Art. 46/49 grounds) and apply the same
+    reasoning to GitHub-hosted training runners (US). (`docs/privacy/README.md` G2/G3.)

@@ -2,7 +2,9 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-08-27, **P7 closed** (PR #8). Next: **P8 — Sync.**
+> Last update: 2026-08-27, **P7 closed** (PR #8) + **P7.1 RecSys hosting on the Oracle VM**
+> (branch `phase/P7-hosting`; ADR-0009 accepted). Next: finish the P7.1 owner steps + the three
+> blocked measurements, then **P8 — Sync.**
 > Standing rules live in CLAUDE.md: "Working mode", "Context efficiency", "Simulator evidence"
 > (also applied to service timing and to the edge functions: Node-on-a-Mac → hosted function is
 > not a handset), and invariant 16 (never run expo / package-manager commands from the root).
@@ -27,42 +29,58 @@
   Decisions: **ADR-0010**. Adversarial pass: same file §4 — 7 MAJOR (late facts after the daily
   job, partial freezing the block, move+session batches, bucket-less moves, second moves, the
   daily/instant race, re-plan expiring an in-progress block) + 14 MINOR, all MAJORs fixed.
-- **External change recorded (2026-08-27):** Hugging Face withdrew free Docker Spaces (July 2026)
-  — spec-conflicts **H4**, thesis-corrections #26–#27, **ADR-0009 (proposed — owner decision)**.
-  `deploy-recsys.yml` suspended. No Space, no secrets, no host created.
+- **Hosting decided (2026-08-27): ADR-0009 option A.** Hugging Face withdrew free Docker Spaces
+  (spec-conflicts H4); the owner provisioned `recsys-oracle` (Oracle Always Free A1, 2 OCPU /
+  12 GB, Ubuntu 24.04 arm64, `eu-marseille-1`, public IP 84.235.238.25). **P7.1 built:**
+  arm64-ready Dockerfile + `/healthz` build/arch; `services/recsys/deploy/` (compose with the
+  service pinned to `cpus: 2`, Caddyfile, `.env.example`, `hourwell-rollout` + systemd timers,
+  `harden.sh` / `install.sh` / `verify.sh`); `deploy-recsys.yml` = build on `ubuntu-24.04-arm` →
+  verify a CP-SAT solve inside the image → push GHCR → confirm the VM's pull-based rollout (no
+  SSH from CI, no GitHub secrets); `docs/runbooks/oracle-vm.md`; privacy README rewritten
+  (processors table, self-hosted VM section, DPIA gaps G1–G4). **Not yet done:** the remote
+  steps (this session had no DNS/directory services — see ⛔ 1–3) and the three measurements.
 
-## ⛔ ACTION REQUIRED (owner)
+## ⛔ ACTION REQUIRED (owner) — P7.1 hosting, in this order
 
-1. **RecSys host — DECISION REQUIRED (replaces the P5/P6 "create a Hugging Face Space" item).**
-   Hugging Face withdrew free Docker Spaces in July 2026 (verified 2026-08-27; spec-conflicts H4,
-   thesis-corrections #26–#27). Read **`docs/decisions/ADR-0009-recsys-hosting.md`** and answer its
-   four questions (recommended: Oracle Cloud Always Free in an EU region, Cloud Run Tier-1 EU as the
-   bounded fallback). Nothing was created (no Space, no GitHub secrets). Once decided, the next
-   session rewrites `deploy-recsys.yml`, writes the runbook, and only THEN the blocked items run:
-   `node docs/verification/p6-live-smoke.mjs 10` from `apps/mobile` (expect `reason = learned`),
-   warm p50/p95 into `p6-manual-verification.md` §3, the P5 container timing (device-checklist
-   "Service environment"), and the P7 live `/feedback` delivery check. Secrets contract is
-   unchanged whatever the host: service gets `DATABASE_URL` (pooler DSN), `SUPABASE_URL`,
-   `HOURWELL_SERVICE_KEY`; edge functions get `RECSYS_URL` + the same `HOURWELL_SERVICE_KEY`
-   (`supabase secrets set …` from the repo root; CLI linked to `uapiuehjcntilwdmpojk`).
-2. **Vault secrets for the attribution cron (P7)** — once the host exists: in the SQL editor of
-   project `uapiuehjcntilwdmpojk` run
-   `select vault.create_secret('https://uapiuehjcntilwdmpojk.supabase.co/functions/v1', 'hourwell_functions_url');`
-   , `select vault.create_secret('<HOURWELL_SERVICE_KEY value>', 'hourwell_service_key');` and
-   `select vault.create_secret('<EXPO_PUBLIC_SUPABASE_ANON_KEY value>', 'hourwell_anon_key');`
-   — all three are REQUIRED: the functions gateway rejects calls without an
-   `Authorization: Bearer <publishable key>` header even with `verify_jwt = false` (measured
-   live 2026-08-27; migration `20260827160000_p7_sweep_bearer`). Until then `attribution_sweep_tick()` returns `skipped: …` every 15 min by design; the
-   client's instant path still runs and stores tuples. Verify with
-   `select public.attribution_sweep_tick();` → `posted`, then check the function logs.
-3. **Google OAuth consent screen + credentials** (FR-01 Google path, code ready and inert) — as
-   in the P4 handoff.
-4. **Magic-link + anonymous-conversion E2E with a real mailbox** — `p4-manual-verification.md` §3.
-5. **Sentry org/project slugs + auth token** — P12/EAS only.
-6. **OSF freeze items** (not blocking P8): thesis-corrections #21 (MRT-slice power from the
-   measured experiment rate), #8/#22 (arm A definition), #17 (presolve finding as an empirical
-   result), #23–#32 (P6–P7 text changes: arm A, off-slot/partial/override values, blend SGD,
-   duration estimator, hosting).
+1. **DuckDNS hostname** — runbook §2: sign in at duckdns.org, add `hourwell-recsys`, point it at
+   `84.235.238.25`. If the name is taken, pick another and use it in every step below.
+2. **Security List** — runbook §3.1: ingress rule for port 22 → source `<YOUR_IP>/32` only
+   (`curl -s https://api.ipify.org` on the Mac); 80/443 stay `0.0.0.0/0`.
+3. **Box: harden → .env → install → verify** (needs a shell with DNS; from the repo root):
+   ```
+   scp -r services/recsys/deploy oracle-recsys:~/hourwell/deploy
+   ssh oracle-recsys 'sudo bash ~/hourwell/deploy/harden.sh apply <YOUR_IP>'
+   ssh oracle-recsys true && ssh oracle-recsys 'sudo bash ~/hourwell/deploy/harden.sh persist'   # NEW terminal first
+   ssh oracle-recsys 'bash ~/hourwell/deploy/install.sh'      # creates ~/hourwell/.env, exits 3
+   ssh oracle-recsys 'nano ~/hourwell/.env'                   # RECSYS_HOST, DATABASE_URL (pooler 6543), HOURWELL_SERVICE_KEY
+   ssh oracle-recsys 'bash ~/hourwell/deploy/install.sh'      # timers + first pull/up
+   ssh oracle-recsys 'bash ~/hourwell/deploy/verify.sh <YOUR_IP>'
+   ```
+   The backend key is in `$CLAUDE_JOB_DIR/tmp/HOURWELL_SERVICE_KEY.txt` (one 64-hex line; same
+   value everywhere). The next session can run these itself once its environment resolves DNS.
+4. **GitHub** — merge PR "P7.1"; after the first `RecSys image → GHCR` run: Packages →
+   `hourwell-recsys` → visibility **Public**; Settings → Variables → `RECSYS_HOST` =
+   `hourwell-recsys.duckdns.org` (no secrets needed).
+5. **Supabase function secrets** (repo root, `supabase login` once):
+   `supabase secrets set HOURWELL_SERVICE_KEY=<key> RECSYS_URL=https://hourwell-recsys.duckdns.org`
+   — set `RECSYS_URL` only after `curl https://hourwell-recsys.duckdns.org/healthz` answers.
+6. **Vault** — run `$CLAUDE_JOB_DIR/tmp/vault-secrets.sql` in the SQL editor (all three secrets
+   filled in; expect `attribution_sweep_tick()` → `posted`).
+7. **Oracle: Pay As You Go upgrade** (ADR-0009 Q2 default yes — Always Free stays free, removes
+   the idle-reclaim rule, unlocks Oracle Support / the sub-processor list, privacy G1). Then
+   `sudo systemctl disable --now hourwell-keepbusy.timer`.
+8. **DPIA decisions before P11** (privacy README G2/G3, thesis-corrections #34): where analysis
+   and training run (in-region on the VM vs anonymised exports vs Art. 46/49 grounds).
+9. **Then the measurements** (next session; runbook §7): live learned-path smoke, warm NFR-P1
+   p95, `bench_solve.py` inside the pinned container, live `/feedback` delivery.
+10. **Google OAuth consent screen + credentials** (FR-01 Google path, code ready and inert) — as
+    in the P4 handoff.
+11. **Magic-link + anonymous-conversion E2E with a real mailbox** — `p4-manual-verification.md` §3.
+12. **Sentry org/project slugs + auth token** — P12/EAS only.
+13. **OSF freeze items** (not blocking P8): thesis-corrections #21 (MRT-slice power from the
+    measured experiment rate), #8/#22 (arm A definition), #17 (presolve finding as an empirical
+    result), #23–#34 (P6–P7 text changes: arm A, off-slot/partial/override values, blend SGD,
+    duration estimator, hosting, processors, transfer analysis).
 
 ## What P8 needs to read (exact sections — read nothing else to orient)
 
@@ -164,6 +182,12 @@ old`): setting the same status is a silent no-op, not an error.
 - The Expo SDK line drifts in patch versions between phases (`expo-doctor` fails the version
   check): run `npx expo install --fix` **from apps/mobile**, then check the "overridden
   dependencies" check — a transitive `@expo/metro-runtime` had to be pinned directly.
+- **This job environment can lose DNS and directory services** (2026-08-27: `getpwuid` failed,
+  `curl` could not resolve any host, `ssh`/`supabase`/`gh` unusable while jest/deno/pytest ran
+  fine). Do local work, arm a `curl github.com` watcher, and hand remote steps to the owner as
+  `! …` commands if it does not return. `uv run --no-sync` keeps uv from re-resolving offline.
+- **Remote deploy is pull-based**: CI never touches the box; if `/healthz.build` lags `main`,
+  look at `journalctl -u hourwell-rollout` on the VM (image pull denied = package not public).
 - **Cron health:** pg_net never surfaces HTTP failures — check
   `select id, status_code, left(content, 120), created from net._http_response order by created desc limit 5;`
   in the SQL editor when the sweep seems silent; a 401 there means the Vault secrets are wrong.
@@ -177,6 +201,7 @@ old`): setting the same status is a silent no-op, not an error.
 
 ## Open questions (owner)
 
-- **ADR-0009 (RecSys host)** — blocks the live learned path, the warm NFR-P1 p95, the container
+- **P7.1 owner steps ⛔ 1–7** gate the live learned path, the warm NFR-P1 p95, the container
   timing, the live `/feedback` delivery and the cron tick end-to-end. Not blocking P8's code.
-- OSF-freeze text items are listed under ⛔ 6.
+- **DPIA G2/G3** (transfers to Ukraine / US runners) — decision before P11.
+- OSF-freeze text items are listed under ⛔ 13.

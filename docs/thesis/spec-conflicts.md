@@ -268,8 +268,9 @@ tier; the deploy path (`deploy-recsys.yml`, the Space secrets in HANDOFF ⛔ 1);
 "2 vCPU" as the named measurement box (device-checklist "Service environment"); the P5/P6
 verification items blocked on the Space (live learned-path smoke, warm NFR-P1 p95, container
 timing) — they stay on the backlog, never substituted by Mac numbers.
-**Status: OPEN — owner decision.** This changes a stated constraint of the thesis (free tier,
-EU hosting) rather than how something is built, so it is not an autonomous call. The options
+**Status: RESOLVED 2026-08-27 — owner decision: option A (Oracle Cloud Always Free, EU
+region eu-marseille-1), ADR-0009 accepted.** This changed a stated constraint of the thesis
+(free tier, EU hosting) rather than how something is built, so it was not an autonomous call. The options
 (another free-tier EU container host; HF PRO as a paid exception; Supabase-only restructuring
 without a Python container; a paid EU endpoint) are evaluated in **ADR-0009** (status
 _proposed_) against what the service needs — CP-SAT with 2 workers under the 1.5 s cap, warm
