@@ -67,6 +67,9 @@ def test_healthz_is_open(client: TestClient) -> None:
         and body["storage"] == "memory"
         and "priors" in body["model_versions"]
     )
+    assert (
+        body["build"] == "dev" and body["arch"]
+    )  # RECSYS_BUILD unset in tests; arch is informational
 
 
 def test_auth_matrix(client: TestClient) -> None:

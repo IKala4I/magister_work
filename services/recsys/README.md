@@ -1,19 +1,14 @@
----
-title: Hourwell RecSys
-emoji: ⏱️
-colorFrom: indigo
-colorTo: blue
-sdk: docker
-app_port: 7860
-pinned: false
-license: mit
----
-
 # Hourwell RecSys service
 
 Bandit-weighted CP-SAT planning service for Hourwell (thesis codename Kairos): `POST /plan`,
 `POST /feedback`, `GET /insights`, `POST /parse-preview`, `GET /healthz` — the contract in
 `specs/07_engine_internals_and_schema.md` §5, generated into `packages/shared/src/api.ts`.
+
+## Deploy
+
+Self-hosted on an Oracle Cloud Always Free VM in the EU (ADR-0009): CI builds the linux/arm64
+image (`deploy-recsys.yml`), pushes it to GHCR, and the VM's rollout timer pulls it — see
+`deploy/` (compose, Caddyfile, systemd units) and `docs/runbooks/oracle-vm.md`.
 
 ## Run locally
 

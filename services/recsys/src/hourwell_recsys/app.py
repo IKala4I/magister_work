@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import platform
 import time
 from collections import defaultdict
 from collections.abc import AsyncIterator
@@ -123,6 +124,8 @@ def create_app(
             model_versions={"priors": "0", "als": None, "blend": "init", "recsys": MODEL_VERSION},
             uptime_s=round(time.monotonic() - started, 1),
             storage=repo.storage,  # type: ignore[arg-type]
+            build=os.environ.get("RECSYS_BUILD", "dev"),
+            arch=platform.machine(),
         )
 
     @app.post("/plan", response_model=PlanResponse, operation_id="plan")
