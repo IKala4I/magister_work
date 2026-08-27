@@ -1,0 +1,26 @@
+# Caddy in front of the RecSys container: automatic HTTPS (Let's Encrypt via HTTP-01 on :80 /
+# TLS-ALPN-01 on :443), reverse proxy to recsys:7860. RECSYS_HOST comes from .env through
+# compose (docs/runbooks/oracle-vm.md §2 — the DuckDNS hostname).
+{
+	admin off
+}
+
+{$RECSYS_HOST} {
+	encode zstd gzip
+	header {
+		-Server
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options nosniff
+	}
+	reverse_proxy recsys:7860 {
+		header_up X-Forwarded-Proto https
+	}
+	log {
+		output file /data/access.log {
+			roll_size 10MiB
+			roll_keep 3
+			roll_keep_for 168h
+		}
+		format json
+	}
+}

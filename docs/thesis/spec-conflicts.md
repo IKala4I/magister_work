@@ -268,8 +268,9 @@ tier; the deploy path (`deploy-recsys.yml`, the Space secrets in HANDOFF ⛔ 1);
 "2 vCPU" as the named measurement box (device-checklist "Service environment"); the P5/P6
 verification items blocked on the Space (live learned-path smoke, warm NFR-P1 p95, container
 timing) — they stay on the backlog, never substituted by Mac numbers.
-**Status: OPEN — owner decision.** This changes a stated constraint of the thesis (free tier,
-EU hosting) rather than how something is built, so it is not an autonomous call. The options
+**Status: RESOLVED 2026-08-27 — owner decision: option A (Oracle Cloud Always Free, EU
+region eu-marseille-1), ADR-0009 accepted.** This changed a stated constraint of the thesis
+(free tier, EU hosting) rather than how something is built, so it was not an autonomous call. The options
 (another free-tier EU container host; HF PRO as a paid exception; Supabase-only restructuring
 without a Python container; a paid EU endpoint) are evaluated in **ADR-0009** (status
 _proposed_) against what the service needs — CP-SAT with 2 workers under the 1.5 s cap, warm
@@ -308,3 +309,19 @@ GitHub secrets are created, and P7 proceeds (its work is service-internal and lo
   `attribute-rewards` from finished sessions, stored in `duration_estimates`, applied by
   `plan-request` to BOTH engines (H1 symmetry) once n ≥ 3, clipped to [0.5, 2]; `params.py`
   keeps `DURATION_EWMA_ALPHA` pinned. ADR-0010 §9.
+
+## Post-review additions (P7.1, 2026-08-27)
+
+### H5. File 06 §5 and specs/07 `model_registry.artifact_uri` put participant-derived data and the training run outside the EU
+
+File 06 §5 promises an "anonymized event dataset (Parquet, HF datasets)" and PLAN P11 (from
+File 03/04) a nightly `train.yml` on GitHub-hosted runners with an HF Hub push; specs/07 §4 types
+`artifact_uri` as an HF Hub reference. Three facts make this a claim-level conflict with NFR-S2
+as the thesis states it: (1) the controller is in Ukraine (no adequacy decision), so every
+export from the EU processors to the researcher is a Chapter V transfer (EDPB 05/2021 Examples
+6/10); (2) GitHub-hosted runners and HF Hub are US processing; (3) a row-level dataset of 42
+people is not anonymous by relabelling. **Resolution (proposed, owner decision):**
+`docs/decisions/ADR-0011-cross-border-transfers.md` — recommended: analysis + training on the
+EU VM, `train.yml` on synthetic data only, `artifact_uri` = Supabase Storage (EU), public release
+as a synthetic dataset + replay harness and/or a restricted-access OSF deposit (Frankfurt
+storage). Text: thesis-corrections #34–36.

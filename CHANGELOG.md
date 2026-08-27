@@ -1,5 +1,43 @@
 # Changelog
 
+## P7.1 — RecSys hosting on the Oracle VM (2026-08-27, phase/P7-hosting)
+
+**ADR-0009 accepted (option A).** The owner provisioned an Oracle Cloud Always Free Ampere A1 VM
+(2 OCPU / 12 GB, Ubuntu 24.04 arm64) in France South / Marseille (`eu-marseille-1`). Decisions:
+DuckDNS hostname (PSL-listed, free) + Caddy automatic HTTPS; **pull-based rollout** (CI builds on
+a native arm64 runner, verifies a CP-SAT solve with the aarch64 OR-Tools wheel inside the image,
+pushes to GHCR; the VM's systemd timer pulls every 5 min — no SSH from CI, no GitHub secrets,
+port 22 stays owner-only); container pinned to `cpus: 2` (File 04 §1.5's box); PAYG upgrade
+recommended for support access (G1); the keep-busy timer stays on — Oracle's docs state no
+reclamation exemption for PAYG.
+
+**Repo.** `services/recsys/Dockerfile` (multi-arch bases, `RECSYS_BUILD`, scripts in the image),
+`/healthz` reports `build` + `arch` (api.ts regenerated), `services/recsys/deploy/` (compose,
+Caddyfile, `.env.example`, `hourwell-rollout`, systemd units, `harden.sh`, `install.sh`,
+`verify.sh`), `.github/workflows/deploy-recsys.yml` rewritten, `docs/runbooks/oracle-vm.md`.
+
+**Data protection (treated as a finding, not plumbing).** `docs/privacy/README.md` rewritten:
+processors table with verified instruments (Oracle DPA v14082025 incorporated by the CSA,
+Supabase DPA, PostHog/Sentry EU, Let's Encrypt, DuckDNS, GHCR), the self-hosted VM section (what
+personal data touches the box — transient only; credentials; patching = ours), and DPIA gaps:
+G1 Oracle sub-processor list behind My Oracle Support (no support on Always Free), **G2 exports
+to the researcher's machine in Ukraine are Chapter V transfers (EDPB 05/2021 Example 10)**, G3
+GitHub-hosted training runners (US), G4 Edge Functions region pinning. thesis-corrections
+#33–#34, revisit lines, CLAUDE.md §7 (verification depth, never model choice).
+
+**Session 2026-08-27 (evening) — remote steps + transfer analysis.** PR #9 opened; box hardened
+(`harden.sh apply` → new-session SSH re-check → `persist`; sshd key-only/no-root/`AllowUsers
+ubuntu`; iptables 22 from the owner /32 only, persisted; security updates applied), `.env`
+created with the backend key; `verify.sh` fixed (root-only `rules.v4` read with sudo) — all
+non-app checks OK. **ADR-0011 (proposed, owner decision):** cross-border data flows path by
+path (what moves, identifiability, Chapter V under EDPB 05/2021 Examples 6/10, Ukrainian law
+2297-VI Art. 29), lawful bases (no adequacy for Ukraine; no Art. 46 instrument for an Art. 3(2)
+importer; Art. 49(1)(a) consent; anonymous aggregates), four options + public-release options;
+recommended A = in-region analysis + training on the EU VM, participant data never on CI,
+aggregates only to the researcher. Privacy README G2–G6, thesis-corrections #34–36,
+spec-conflicts H5. Owner decisions recorded: PAYG deferred until before enrollment (keep-busy
+stays on).
+
 ## P7 — Feedback loop (2026-08-27, phase/P7-feedback-loop)
 
 **Hosting assumption falsified (spec-conflicts H4, ADR-0009 — owner decision).** Hugging Face

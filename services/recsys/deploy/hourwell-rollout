@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Pull-based rollout (ADR-0009): CI pushes ghcr.io/ikala4i/hourwell-recsys:latest; this runs every
+# 5 min from a systemd timer on the VM, so no inbound SSH from CI is ever needed and port 22 can
+# stay restricted to the owner's IP. `compose up -d` recreates the container only when the image
+# id changed; old images are pruned. Logs land in the journal (journalctl -u hourwell-rollout).
+set -euo pipefail
+cd /home/ubuntu/hourwell
+before="$(docker compose images -q recsys 2>/dev/null | head -1 || true)"
+docker compose pull --quiet recsys
+docker compose up -d --remove-orphans --quiet-pull
+after="$(docker compose images -q recsys 2>/dev/null | head -1 || true)"
+if [ "$before" != "$after" ]; then
+  echo "rolled out recsys image ${after:-?} (was ${before:-none})"
+  for _ in $(seq 1 12); do
+    if docker compose ps --format '{{.Health}}' recsys 2>/dev/null | grep -q healthy; then
+      echo "recsys healthy"; docker image prune -f >/dev/null; exit 0
+    fi
+    sleep 5
+  done
+  echo "WARNING: recsys not healthy 60 s after rollout" >&2
+  docker compose logs --tail 30 recsys >&2
+  exit 1
+fi

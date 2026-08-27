@@ -1,8 +1,8 @@
 # ADR-0009 — RecSys service hosting after the loss of free Hugging Face Docker Spaces
 
 - **Date:** 2026-08-27
-- **Status:** **proposed — OWNER DECISION REQUIRED** (changes a stated thesis constraint; not an
-  autonomous call under CLAUDE.md "Working mode" rule 3)
+- **Status:** **accepted 2026-08-27 — owner decision: option A** (Oracle Cloud Always Free,
+  `eu-marseille-1`); the options analysis below is kept as the record of why
 - **Phase:** P7 (raised); affects P5/P6 verification backlog, P11 (model registry), P12 (release)
 - **Spec anchors:** File 03 §2.2 (stack, cost envelope), File 02 NFR-Sc1 / NFR-S2 / NFR-P1 /
   NFR-R2, File 04 §1.5 ("meeting NFR-P1 on 2 vCPU"), UC-03 A1 ("free-tier sleep"), specs/07 §7;
@@ -184,7 +184,50 @@ speed only and should be declined on the EU ground alone.
 - **Not done, by owner instruction:** no Space, no GitHub secrets, no host account; the three
   blocked measurements stay on the verification backlog explicitly (device-checklist, HANDOFF).
 
-## Questions for the owner (each with the recommended default)
+## Decision (2026-08-27)
+
+1. **Host = option A.** The owner provisioned `recsys-oracle` (VM.Standard.A1.Flex, 2 OCPU /
+   12 GB, Ubuntu 24.04 Minimal aarch64) in **France South / Marseille (`eu-marseille-1`)**, an
+   EU member-state region, with a reserved public IPv4 and 80/443 open. NFR-S2 holds for every
+   tier; NFR-Sc1's envelope stays as written. Q1 answered by the provisioning; Q3/Q4 moot.
+2. **Q2 (idle reclamation) — corrected after verification.** Oracle reclaims an Always Free
+   instance only if, over 7 days, 95th-percentile CPU < 20 % **and** network < 20 % **and** (A1)
+   memory < 20 % — all three together (docs.oracle.com, Always Free Resources). Oracle's docs do
+   **not** state that a Pay-As-You-Go upgrade exempts instances from that rule (the earlier
+   default assumed it did). So `hourwell-keepbusy.timer` (hourly `bench_solve.py` inside the
+   container, ~3 min of CPU on 2 cores) stays on **regardless of plan** — it alone breaks the
+   conjunction. PAYG remains recommended for a different reason: Always Free tenancies are not
+   eligible for Oracle Support, which is the only channel to Oracle's sub-processor list
+   (privacy README G1); Always Free resources stay free after the upgrade, and the 1 EUR budget
+   alert guards mistakes.
+3. **Hostname + TLS = DuckDNS** (`hourwell-recsys.duckdns.org`) + Caddy automatic HTTPS. The edge
+   function needs an `https` `RECSYS_URL` and Let's Encrypt does not issue for bare IPs, so a name
+   is on the critical path. DuckDNS is free without a card, gives a stable name for a static IP,
+   and is on the **Public Suffix List** — Let's Encrypt's per-registered-domain rate limit then
+   applies to our subdomain alone; `sslip.io`/`nip.io`-style wildcard names share one bucket with
+   every other user and can fail for reasons outside our control. Owning a domain would cost money
+   (invariant 11). Steps: runbook §2.
+4. **Rollout = pull-based, no SSH from CI.** The owner's hardening requirement (port 22 only from
+   their IP) is incompatible with GitHub-hosted runners SSHing into the box (hundreds of changing
+   egress ranges). CI therefore builds the linux/arm64 image on a native arm64 runner, verifies a
+   real CP-SAT solve with the aarch64 OR-Tools wheel inside it, pushes to GHCR (`:sha` + `:latest`),
+   and only _observes_ the rollout (`/healthz.build == sha`); the VM's `hourwell-rollout.timer`
+   pulls every 5 min. Consequence: **no GitHub secrets** are needed at all — one repo variable
+   (`RECSYS_HOST`). The GHCR package must be public (the image holds no secrets; the repo is public).
+5. **Box hardening and re-verification are scripted** (`deploy/harden.sh`, `verify.sh`) and
+   listed step by step in `docs/runbooks/oracle-vm.md` §3; the data-protection change (self-hosted
+   processing, Oracle as processor, our patching responsibility) is recorded in
+   `docs/privacy/README.md` — treated like the HF EU finding, not as plumbing.
+6. **Container pinned to 2 CPUs** (`cpus: 2` in compose) so `bench_solve.py` inside it measures
+   the box File 04 §1.5 names; a threshold different from the Mac numbers is an empirical result
+   (ADR-0007 §11 treatment).
+7. **Owner addendum (2026-08-27): PAYG upgrade deferred.** It grants no reclamation exemption
+   (item 2), so the keep-busy timer stays on; revisit before participant enrollment, when Oracle
+   Support access (privacy README G1) may matter. The Chapter V transfer questions raised by the
+   privacy rewrite (G2/G3) are analysed in **ADR-0011** (proposed, owner decision) and were not
+   deferred to P11.
+
+## Questions for the owner (as asked before the decision; answers above)
 
 1. Host: **A with B as fallback** (default) · B only · C · F?
 2. If A: PAYG upgrade to exempt the tenancy from idle reclamation (default: **yes**, it stays $0)

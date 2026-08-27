@@ -228,6 +228,10 @@ export interface components {
         };
         /** HealthzResponse */
         HealthzResponse: {
+            /** Arch */
+            arch: string;
+            /** Build */
+            build: string;
             /** Model Versions */
             model_versions: {
                 [key: string]: string | null;

@@ -1,0 +1,65 @@
+# Hourwell RecSys on the ADR-0009 VM (Oracle Cloud Always Free, Ampere A1 2 OCPU / 12 GB, Ubuntu
+# 24.04 arm64). Lives in /home/ubuntu/hourwell on the box next to `Caddyfile` and `.env`
+# (docs/runbooks/oracle-vm.md §4). Only Caddy publishes ports; the service is reachable solely on
+# the compose network. Docker-published ports bypass the host INPUT chain, so this file IS the
+# firewall for 80/443 — never add `ports:` to `recsys`.
+name: hourwell
+
+services:
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    environment:
+      RECSYS_HOST: ${RECSYS_HOST:?set RECSYS_HOST in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      recsys:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options: { max-size: '10m', max-file: '3' }
+
+  recsys:
+    image: ${RECSYS_IMAGE:-ghcr.io/ikala4i/hourwell-recsys}:${RECSYS_TAG:-latest}
+    restart: unless-stopped
+    env_file: .env # DATABASE_URL, SUPABASE_URL, HOURWELL_SERVICE_KEY (chmod 600, never in git)
+    environment:
+      PORT: '7860'
+    expose:
+      - '7860'
+    # File 04 §1.5 "meeting NFR-P1 on 2 vCPU": the container is pinned to the two cores the spec
+    # names, so bench_solve.py inside it measures exactly that box (device-checklist "Service
+    # environment"). num_workers = 2 in params.py matches.
+    cpus: 2
+    mem_limit: 3g
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test:
+        - CMD
+        - /opt/venv/bin/python
+        - -c
+        - "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:7860/healthz', timeout=5).status == 200 else 1)"
+      interval: 30s
+      timeout: 8s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options: { max-size: '10m', max-file: '3' }
+
+volumes:
+  caddy_data:
+  caddy_config:

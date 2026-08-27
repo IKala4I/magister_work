@@ -1,4 +1,4 @@
-"""`python -m hourwell_recsys.main` — serve on $PORT (HF Spaces Docker default 7860)."""
+"""`python -m hourwell_recsys.main` — serve on $PORT (default 7860; Caddy proxies to it)."""
 
 from __future__ import annotations
 

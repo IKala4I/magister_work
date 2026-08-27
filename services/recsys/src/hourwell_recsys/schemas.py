@@ -250,3 +250,5 @@ class HealthzResponse(_Strict):
     model_versions: dict[str, str | None]
     uptime_s: float
     storage: Literal["postgres", "memory"]
+    build: str  # RECSYS_BUILD at image build time (git sha) — the rollout check reads it
+    arch: str  # platform.machine(): "aarch64" on the ADR-0009 box

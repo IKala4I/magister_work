@@ -1,0 +1,13 @@
+[Unit]
+Description=Hourwell keep-busy: solve the benchmark instances inside the pinned container (Oracle Always Free idle-reclaim guard)
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/home/ubuntu/hourwell
+# ~3 min of CPU on the two pinned cores each hour keeps the 7-day 95th-percentile CPU above the
+# reclaim threshold (Oracle reclaims only when CPU AND network AND memory are all idle); keep it
+# on regardless of plan — no PAYG exemption is documented (ADR-0009 Q2).
+ExecStart=/usr/bin/docker compose exec -T recsys /opt/venv/bin/python scripts/bench_solve.py --runs 100

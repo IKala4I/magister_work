@@ -112,9 +112,11 @@ Quality stays where it is; what changes is how much we re-read.
    was already weighed in the ADR.
 6. **One session per phase.** After each merged phase PR: refresh HANDOFF.md, end the turn with
    `HANDOFF WRITTEN — safe to /clear`, and let the owner clear before the next phase starts.
-7. **Flag routine phases.** Whenever a phase (or a remaining slice of one) is routine
-   implementation rather than thesis-critical work, say so explicitly in the report — the owner
-   may run those on a cheaper model.
+7. **Flag verification depth, not model choice** (owner directive, 2026-08-27). Every remaining
+   phase runs on the same model, one phase per session — never recommend a cheaper model. Still
+   say in the report whether a phase (or slice) is thesis-critical or routine: thesis-critical work
+   gets the full adversarial pass and measured evidence; routine work still meets the Definition
+   of Done but needs no extra depth beyond it.
 
 ## Simulator evidence (owner directive, 2026-08-26)
 
