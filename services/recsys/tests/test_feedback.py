@@ -214,3 +214,51 @@ def test_feedback_refuses_users_without_instantiated_cells() -> None:
     with pytest.raises(feedback.StateNotInstantiated):
         feedback.apply_feedback(_req(_tuple("r1", 1.0, "completed")), fresh)
     assert fresh.applied_keys(USER) == set()
+
+
+# --- P7: blend weights learn online and rebuild from the stored trajectory (ADR-0010) --------
+
+
+def test_blend_moves_and_persists_per_batch(repo: InMemoryRepo) -> None:
+    before = repo.load_blend(USER)
+    x = _x()
+    x[14] = 0.9  # the cell said 0.9 at plan time; the fresh bandit says xᵀθ̂ = 0
+    feedback.apply_feedback(_req(_tuple("r1", 1.0, "completed", features=x)), repo)
+    after = repo.load_blend(USER)
+    assert after.w_energy > before.w_energy
+    assert after.w_energy + after.w_bandit == pytest.approx(1.0)
+    assert after.state_version == repo.load_bandit(USER)["deep"].state_version
+
+
+def test_blend_step_uses_theta_before_the_tuple_and_rebuild_replays_it(
+    repo: InMemoryRepo,
+) -> None:
+    xs = [_x(), _x(Daypart.MO), _x(Daypart.EV)]
+    xs[0][14], xs[1][14], xs[2][14] = 0.8, 0.3, 0.6
+    rewards = [1.0, 0.0, 1.0]
+    online = InMemoryRepo()
+    online.seed_cells(USER, repo.load_cells(USER))
+    for i, (x, r) in enumerate(zip(xs, rewards, strict=True)):
+        t = _tuple(f"r{i}", r, "completed", features=x)
+        t["attributed_at"] = (T0 + timedelta(hours=i)).isoformat()
+        feedback.apply_feedback(_req(t), online)
+    # the same tuples stored → a correction-triggered rebuild reaches the same weights
+    rebuilt = InMemoryRepo()
+    rebuilt.seed_cells(USER, repo.load_cells(USER))
+    rebuilt.tuples[USER] = [
+        StoredTuple(f"r{i}", "outcome", r, "deep", np.asarray(x), T0 + timedelta(hours=i))
+        for i, (x, r) in enumerate(zip(xs, rewards, strict=True))
+    ]
+    corr = _tuple("r0", 1.0, "completed", features=xs[0], correction=True)
+    feedback.apply_feedback(_req(corr), rebuilt)
+    a, b = online.load_blend(USER), rebuilt.load_blend(USER)
+    assert (a.w_energy, a.w_bandit) == pytest.approx((b.w_energy, b.w_bandit), abs=1e-12)
+    assert (a.w_energy, a.w_bandit) != (0.7, 0.3)
+
+
+def test_excluded_tuples_never_touch_the_blend(repo: InMemoryRepo) -> None:
+    before = repo.load_blend(USER)
+    x = _x()
+    x[14] = 0.95
+    feedback.apply_feedback(_req(_tuple("r1", 1.0, "completed", features=x, excluded=True)), repo)
+    assert repo.load_blend(USER) == before
