@@ -56,7 +56,7 @@
    ssh oracle-recsys 'bash ~/hourwell/deploy/install.sh'      # timers + first pull/up
    ssh oracle-recsys 'bash ~/hourwell/deploy/verify.sh <YOUR_IP>'
    ```
-   The backend key is in `$CLAUDE_JOB_DIR/tmp/HOURWELL_SERVICE_KEY.txt` (one 64-hex line; same
+   The backend key is in `~/.hourwell/HOURWELL_SERVICE_KEY` (one 64-hex line; same
    value everywhere). The next session can run these itself once its environment resolves DNS.
 4. **GitHub** — merge PR "P7.1"; after the first `RecSys image → GHCR` run: Packages →
    `hourwell-recsys` → visibility **Public**; Settings → Variables → `RECSYS_HOST` =
@@ -64,7 +64,7 @@
 5. **Supabase function secrets** (repo root, `supabase login` once):
    `supabase secrets set HOURWELL_SERVICE_KEY=<key> RECSYS_URL=https://hourwell-recsys.duckdns.org`
    — set `RECSYS_URL` only after `curl https://hourwell-recsys.duckdns.org/healthz` answers.
-6. **Vault** — run `$CLAUDE_JOB_DIR/tmp/vault-secrets.sql` in the SQL editor (all three secrets
+6. **Vault** — run `~/.hourwell/vault-secrets.sql` in the SQL editor (all three secrets
    filled in; expect `attribution_sweep_tick()` → `posted`).
 7. **Oracle: Pay As You Go upgrade — recommended for support access only** (privacy G1: the
    sub-processor list is My-Oracle-Support-only; Always Free stays free; the 1 EUR alert guards).

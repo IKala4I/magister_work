@@ -113,7 +113,7 @@ ssh oracle-recsys 'bash ~/hourwell/deploy/verify.sh <YOUR_IP>'     # OK/FAIL per
 ## 4. Install the app
 
 1. **[owner]** Create the backend key once — it is already generated in
-   `$CLAUDE_JOB_DIR/tmp/HOURWELL_SERVICE_KEY.txt` on the Mac (64 hex); the same value goes to the
+   `~/.hourwell/HOURWELL_SERVICE_KEY` on the Mac (64 hex); the same value goes to the
    box `.env`, to `supabase secrets`, and to Vault (§6). Rotation: §9.
 2. On the box, `~/hourwell/deploy/install.sh` copies compose/Caddyfile, creates `.env` from
    `.env.example` on first run and exits so you can fill it:
@@ -159,7 +159,7 @@ the repo is public). Until then `docker compose pull` on the box answers "denied
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Box `~/hourwell/.env`         | `HOURWELL_SERVICE_KEY`, `DATABASE_URL`, `SUPABASE_URL`, `RECSYS_HOST` (§4)                                                                              |
 | Supabase function secrets     | from the repo root: `supabase secrets set HOURWELL_SERVICE_KEY=<key> RECSYS_URL=https://hourwell-recsys.duckdns.org` (needs `supabase login` once)      |
-| Supabase Vault (cron tick)    | run `$CLAUDE_JOB_DIR/tmp/vault-secrets.sql` in the SQL editor (`hourwell_functions_url`, `hourwell_service_key`, `hourwell_anon_key`) — HANDOFF ⛔ 2    |
+| Supabase Vault (cron tick)    | run `~/.hourwell/vault-secrets.sql` in the SQL editor (`hourwell_functions_url`, `hourwell_service_key`, `hourwell_anon_key`) — HANDOFF ⛔ 2            |
 | GitHub → Settings → Variables | **`RECSYS_HOST`** = `hourwell-recsys.duckdns.org` (enables the workflow's rollout check). **No GitHub secrets are needed** — CI never SSHes to the box. |
 
 Set `RECSYS_URL` only after `https://<host>/healthz` answers, so fallback telemetry stays clean.
