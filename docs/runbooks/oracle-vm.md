@@ -8,15 +8,15 @@
 
 ## 0. The box (as provisioned 2026-08-27)
 
-| Item     | Value                                                                                                        |
-| -------- | ------------------------------------------------------------------------------------------------------------ |
-| Tenancy  | Oracle Cloud Free Tier, home region **France South / Marseille (`eu-marseille-1`)**                          |
-| Instance | `recsys-oracle`, VM.Standard.A1.Flex, **2 OCPU / 12 GB**, Ubuntu 24.04 Minimal aarch64                       |
-| Network  | VCN `recsys-vcn`, public subnet, reserved public IPv4 **84.235.238.25**                                      |
-| Ingress  | Security List: 80, 443 from `0.0.0.0/0`; 22 — see §3.1                                                       |
-| Access   | `ssh oracle-recsys` (alias in `~/.ssh/config`, key `~/.ssh/oracle_recsys.key`, user `ubuntu`)                |
-| Runtime  | Docker 29.1 + Compose v2.40, `ubuntu` in the `docker` group (root-equivalent — the only user)                |
-| Budget   | 1 EUR budget alert; Always Free resources never bill unless the tenancy is upgraded and paid shapes are used |
+| Item     | Value                                                                                                       |
+| -------- | ----------------------------------------------------------------------------------------------------------- |
+| Tenancy  | Oracle Cloud Free Tier, home region **France South / Marseille (`eu-marseille-1`)**                         |
+| Instance | `recsys-oracle`, VM.Standard.A1.Flex, **2 OCPU / 12 GB**, Ubuntu 24.04 Minimal aarch64                      |
+| Network  | VCN `recsys-vcn`, public subnet, reserved public IPv4 **84.235.238.25**                                     |
+| Ingress  | Security List: 80, 443 from `0.0.0.0/0`; 22 — see §3.1                                                      |
+| Access   | `ssh oracle-recsys` (alias in `~/.ssh/config`, key `~/.ssh/oracle_recsys.key`, user `ubuntu`)               |
+| Runtime  | Docker 29.1 + Compose v2.40, `ubuntu` in the `docker` group (root-equivalent — the only user)               |
+| Budget   | 1 EUR budget alert; Always Free resources stay free on any plan; paid shapes only bill after a PAYG upgrade |
 
 ## 1. What runs where
 
