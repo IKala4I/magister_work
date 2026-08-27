@@ -7,7 +7,12 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { BetaCell } from '../_shared/energy.ts';
 import type { BusyInterval } from '../_shared/grid.ts';
-import { P7_EVENT_TYPES, type RecPatch, type StoredTuple, type Tuple } from '../_shared/rewards.ts';
+import {
+  type RecPatch,
+  REWARD_FACT_TYPES,
+  type StoredTuple,
+  type Tuple,
+} from '../_shared/rewards.ts';
 import type { Category } from '../_shared/types.ts';
 import type { WireTuple } from './feedback.ts';
 import type { Deps, Profile, RecRow, StoredDuration, TaskAttrs } from './handler.ts';
@@ -61,20 +66,22 @@ export function makeDbDeps(
       } satisfies Profile;
     },
     async loadFacts(userId, sinceIso) {
+      // reward-bearing facts only; newest first so a cap never drops the latest (adversarial #10)
       const { data, error } = await admin
         .from('events')
-        .select('type, task_id, recommendation_id, payload, client_ts, local_day')
+        .select('type, task_id, recommendation_id, payload, context, client_ts, local_day')
         .eq('user_id', userId)
-        .in('type', [...P7_EVENT_TYPES])
+        .in('type', [...REWARD_FACT_TYPES])
         .gte('client_ts', sinceIso)
-        .order('client_ts', { ascending: true })
+        .order('client_ts', { ascending: false })
         .limit(2000);
       if (error) fail('events', error);
-      return (data ?? []).map((e) => ({
+      return (data ?? []).reverse().map((e) => ({
         type: e.type,
         task_id: e.task_id ?? null,
         recommendation_id: e.recommendation_id ?? null,
         payload: (e.payload ?? {}) as Record<string, unknown>,
+        context: (e.context ?? {}) as Record<string, unknown>,
         client_ts: e.client_ts,
         local_day: e.local_day,
       }));
@@ -135,7 +142,9 @@ export function makeDbDeps(
       if (recIds.length === 0) return [];
       const { data, error } = await admin
         .from('feedback_rewards')
-        .select('recommendation_id, kind, reward, reason, excluded, attributed_at, corrected_at')
+        .select(
+          'recommendation_id, kind, reward, reason, excluded, attributed_at, corrected_at, source',
+        )
         .eq('user_id', userId)
         .in('recommendation_id', [...recIds]);
       if (error) fail('feedback_rewards', error);
@@ -148,6 +157,8 @@ export function makeDbDeps(
         .eq('user_id', userId)
         .is('delivered_at', null)
         .order('attributed_at', { ascending: true })
+        .order('recommendation_id', { ascending: true })
+        .order('kind', { ascending: true })
         .limit(500);
       if (error) fail('feedback_rewards undelivered', error);
       return (data ?? []).map((t) => ({

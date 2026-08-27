@@ -73,6 +73,8 @@ export interface Fact {
   client_ts: string;
   /** YYYY-MM-DD in the user's zone (attribution day). */
   local_day: string;
+  /** Client context; `tz` = the device zone when the fact was logged (P7 adversarial #11). */
+  context?: Record<string, unknown>;
 }
 // payload shapes (client → server, categorical/numeric only — NFR-S3):
 //   focus_end      { outcome: 'finished'|'abandoned', started_at, ended_at, focused_ms, planned_minutes, est_minutes, session_id }
@@ -107,6 +109,7 @@ export interface StoredTuple {
   excluded: boolean;
   attributed_at: string;
   corrected_at: string | null;
+  source?: Source | string;
 }
 
 export interface Tuple {
@@ -138,6 +141,8 @@ export interface OverrideTarget {
   to_end: string;
   context_bucket: string;
   features: number[];
+  /** Attribution day of the new slot (profile zone). */
+  local_day: string;
 }
 
 export interface MappingResult {
@@ -173,6 +178,8 @@ export function completionInWindow(
 }
 
 interface Observed {
+  /** A considered fact was logged under a device zone ≠ the profile zone (§3.4.2 ambiguity). */
+  tzMismatch: boolean;
   /** Any in-window finished session, or an in-window "marked done" (row 1). */
   completedInWindow: boolean;
   /** Σ focused / planned over in-window sessions (rows 2–3); null without an in-window session. */
@@ -183,7 +190,12 @@ interface Observed {
   completedSameDay: boolean;
 }
 
-function observe(rec: RewardRec, facts: readonly Fact[]): Observed {
+function factTz(f: Fact): string | null {
+  const tz = f.context?.tz;
+  return typeof tz === 'string' && tz.length > 0 ? tz : null;
+}
+
+function observe(rec: RewardRec, facts: readonly Fact[], timezone: string | null): Observed {
   const slotStart = Date.parse(rec.slot_start);
   const slotEnd = Date.parse(rec.slot_end);
   let completedInWindow = false;
@@ -192,9 +204,18 @@ function observe(rec: RewardRec, facts: readonly Fact[]): Observed {
   let focusedMs = 0;
   let plannedMinutes: number | null = null;
   let sawSession = false;
+  let tzMismatch = false;
+  const consider = (f: Fact) => {
+    const tz = factTz(f);
+    if (timezone !== null && tz !== null && tz !== timezone) tzMismatch = true;
+  };
   for (const f of facts) {
-    if (f.type === 'block_skipped' && f.recommendation_id === rec.id) skipped = true;
+    if (f.type === 'block_skipped' && f.recommendation_id === rec.id) {
+      skipped = true;
+      consider(f);
+    }
     if (f.type === 'focus_end' && f.recommendation_id === rec.id) {
+      consider(f);
       const started = ms(f.payload.started_at);
       const focused = num(f.payload.focused_ms) ?? 0;
       const planned = num(f.payload.planned_minutes);
@@ -208,6 +229,7 @@ function observe(rec: RewardRec, facts: readonly Fact[]): Observed {
       }
     }
     if (f.type === 'task_completed' && f.task_id === rec.task_id) {
+      consider(f);
       const done = ms(f.payload.done_at) ?? ms(f.client_ts);
       if (f.local_day === rec.local_day) completedSameDay = true;
       const fromThisBlock = f.recommendation_id === rec.id;
@@ -221,7 +243,7 @@ function observe(rec: RewardRec, facts: readonly Fact[]): Observed {
   }
   const planned = plannedMinutes ?? Math.max((slotEnd - slotStart) / MS_PER_MINUTE, 1);
   const fraction = sawSession ? Math.min(focusedMs / (planned * MS_PER_MINUTE), 1) : null;
-  return { completedInWindow, fraction, skipped, completedSameDay };
+  return { tzMismatch, completedInWindow, fraction, skipped, completedSameDay };
 }
 
 function tuple(
@@ -231,9 +253,11 @@ function tuple(
   nowIso: string,
   source: Source,
   over: Partial<Tuple> = {},
+  ambiguity: string | null = null,
 ): Tuple {
-  // M-02: a completion that raced an external displacement is ambiguous → excluded, never guessed
-  const excluded = rec.conflict_flag;
+  // M-02: a completion that raced an external displacement is ambiguous → excluded, never guessed;
+  // likewise a fact logged under another device zone (§3.4.2 "timezone change moving the day boundary")
+  const excludedReason = rec.conflict_flag ? 'concurrent_external_conflict' : ambiguity;
   return {
     recommendation_id: rec.id,
     kind: 'outcome',
@@ -241,8 +265,8 @@ function tuple(
     reason,
     category: rec.category,
     features: rec.features,
-    excluded,
-    excluded_reason: excluded ? 'concurrent_external_conflict' : null,
+    excluded: excludedReason !== null,
+    excluded_reason: excludedReason,
     attributed_at: nowIso,
     correction: false,
     source,
@@ -259,24 +283,31 @@ export function instantOutcome(
   rec: RewardRec,
   facts: readonly Fact[],
   nowIso: string,
+  timezone: string | null = null,
+  /** true once the slot can no longer be resumed (daily mode, or now > slot_end + grace). */
+  final = false,
 ): { tuple: Tuple; patch: RecPatch } | null {
-  const o = observe(rec, facts);
+  const o = observe(rec, facts, timezone);
+  const ambiguity = o.tzMismatch ? 'timezone_mismatch' : null;
   if (o.completedInWindow || (o.fraction !== null && o.fraction >= PAR_MIN_FRACTION)) {
     return {
-      tuple: tuple(rec, 1.0, 'completed', nowIso, 'instant'),
+      tuple: tuple(rec, 1.0, 'completed', nowIso, 'instant', {}, ambiguity),
       patch: { id: rec.id, status: 'completed', attributed_at: nowIso },
     };
   }
-  if (o.fraction !== null) {
-    // row 3: abandoned in-window below 50 % → r = f (linear, UC-06 A1); the block is not done
+  const resumable = !final && Date.parse(nowIso) <= Date.parse(rec.slot_end) + GRACE_MS;
+  if (o.fraction !== null && !resumable) {
+    // row 3: abandoned in-window below 50 % → r = f (linear, UC-06 A1); emitted only once the
+    // block can no longer be resumed, so a restart inside the slot still reaches row 1/2
+    // (adversarial #2); the block is not done
     return {
-      tuple: tuple(rec, o.fraction, 'partial', nowIso, 'instant'),
+      tuple: tuple(rec, o.fraction, 'partial', nowIso, 'instant', {}, ambiguity),
       patch: { id: rec.id, attributed_at: nowIso },
     };
   }
   if (o.skipped) {
     return {
-      tuple: tuple(rec, 0.0, 'skipped', nowIso, 'instant'),
+      tuple: tuple(rec, 0.0, 'skipped', nowIso, 'instant', {}, ambiguity),
       patch: { id: rec.id, status: 'rejected', attributed_at: nowIso },
     };
   }
@@ -288,18 +319,20 @@ export function dailyOutcome(
   rec: RewardRec,
   facts: readonly Fact[],
   nowIso: string,
+  timezone: string | null = null,
 ): { tuple: Tuple; patch: RecPatch } {
-  const instant = instantOutcome(rec, facts, nowIso);
+  const instant = instantOutcome(rec, facts, nowIso, timezone, true);
   if (instant !== null) return { ...instant, tuple: { ...instant.tuple, source: 'daily' } };
-  const o = observe(rec, facts);
+  const o = observe(rec, facts, timezone);
+  const ambiguity = o.tzMismatch ? 'timezone_mismatch' : null;
   if (o.completedSameDay) {
     return {
-      tuple: tuple(rec, REWARD_OFF_SLOT, 'off_slot', nowIso, 'daily'),
+      tuple: tuple(rec, REWARD_OFF_SLOT, 'off_slot', nowIso, 'daily', {}, ambiguity),
       patch: { id: rec.id, status: 'completed', attributed_at: nowIso },
     };
   }
   return {
-    tuple: tuple(rec, 0.0, 'lapsed', nowIso, 'daily'),
+    tuple: tuple(rec, 0.0, 'lapsed', nowIso, 'daily', {}, ambiguity),
     patch: { id: rec.id, status: 'lapsed', attributed_at: nowIso },
   };
 }
@@ -348,12 +381,49 @@ export function correction(
       patch: { id: rec.id, status: 'completed', attributed_at: nowIso },
     };
   }
-  if (stored.reason !== 'lapsed' || stored.excluded) return null;
-  const ageMs = Date.parse(nowIso) - Date.parse(stored.attributed_at);
-  if (ageMs > CORRECTION_WINDOW_DAYS * 86_400_000) return null;
+  if (!UPGRADABLE.has(stored.reason) || stored.excluded) return null;
+  if (!insideWindow(stored, nowIso)) return null;
   return {
     tuple: tuple(rec, 1.0, 'completed', stored.attributed_at, 'correction', { correction: true }),
     patch: { id: rec.id, status: 'completed' },
+  };
+}
+
+/** Stored outcomes that later facts may rewrite in place (adversarial #1/#2/#13). */
+const UPGRADABLE: ReadonlySet<Reason> = new Set<Reason>(['lapsed', 'off_slot', 'partial']);
+
+function insideWindow(stored: StoredTuple, nowIso: string): boolean {
+  const ageMs = Date.parse(nowIso) - Date.parse(stored.attributed_at);
+  return ageMs <= CORRECTION_WINDOW_DAYS * 86_400_000;
+}
+
+/**
+ * Facts that arrive AFTER the daily job (offline overnight — File 05 §2's common case) or after
+ * a row-3 partial: a strictly better instant outcome rewrites the stored tuple through the
+ * correction path (r, reason, `correction = true` → rebuild), keeping the original
+ * `attributed_at` for decay. Never downgrades; never touches excluded or corrected rows.
+ */
+export function upgrade(
+  rec: RewardRec,
+  stored: StoredTuple,
+  facts: readonly Fact[],
+  nowIso: string,
+  timezone: string | null,
+): { tuple: Tuple; patch: RecPatch } | null {
+  if (stored.excluded || stored.corrected_at !== null || !UPGRADABLE.has(stored.reason)) {
+    return null;
+  }
+  if (!insideWindow(stored, nowIso)) return null;
+  const fresh = instantOutcome(rec, facts, nowIso, timezone, true);
+  if (fresh === null || fresh.tuple.excluded || fresh.tuple.reward <= stored.reward) return null;
+  return {
+    tuple: {
+      ...fresh.tuple,
+      attributed_at: stored.attributed_at,
+      correction: true,
+      source: 'correction',
+    },
+    patch: fresh.patch.status ? { id: rec.id, status: fresh.patch.status } : { id: rec.id },
   };
 }
 
@@ -371,8 +441,14 @@ export function mapUser(input: {
   facts: readonly Fact[];
   stored: readonly StoredTuple[];
   nowIso: string;
-  targets: ReadonlyMap<string, OverrideTarget>;
+  /** Target context of each rec's LATEST `block_moved` fact (null when the slot has no bucket). */
+  targets: ReadonlyMap<string, OverrideTarget | null>;
+  /** Profile zone — facts logged under another device zone make the outcome ambiguous. */
+  timezone?: string | null;
+  /** Attribution day of an instant in the profile zone (for a bucket-less move). */
+  localDayOf?: (ms: number) => string;
 }): MappingResult {
+  const timezone = input.timezone ?? null;
   const tuples: Tuple[] = [];
   const patches: RecPatch[] = [];
   const storedBy = new Map<string, StoredTuple>();
@@ -388,26 +464,61 @@ export function mapUser(input: {
       factsByTaskDay.set(k, [...(factsByTaskDay.get(k) ?? []), f]);
     }
   }
-  for (const rec of input.recs) {
+  for (let rec of input.recs) {
     if (
       rec.status === 'displaced' || rec.status === 'displaced_pending' || rec.status === 'expired'
     ) {
       continue; // no reward, ever (File 05 §1; M-02)
     }
     const own = factsByRec.get(rec.id) ?? [];
-    const sameDay = factsByTaskDay.get(`${rec.task_id}|${rec.local_day}`) ?? [];
-    const facts = [...own, ...sameDay.filter((f) => !own.includes(f))];
 
-    // overrides first: a later outcome attaches to the moved placement's new context
-    const move = own.find((f) => f.type === 'block_moved');
-    if (move !== undefined && !storedBy.has(`${rec.id}|override_out`)) {
-      const target = input.targets.get(rec.id);
-      if (target !== undefined) {
-        const pair = overridePair(rec, target, input.nowIso);
-        tuples.push(...pair.tuples);
-        patches.push(pair.patch);
+    // overrides first: the LATEST move always moves the placement (adversarial #4/#5); the paired
+    // tuples are written once per placement; a later outcome attaches to the new context (#3)
+    const moves = own
+      .filter((f) => f.type === 'block_moved')
+      .sort((a, b) => a.client_ts.localeCompare(b.client_ts));
+    const move = moves[moves.length - 1];
+    if (move !== undefined) {
+      const toStartMs = ms(move.payload.to_start);
+      const toEndMs = ms(move.payload.to_end);
+      if (toStartMs !== null && toEndMs !== null && toEndMs > toStartMs) {
+        const toStart = new Date(toStartMs).toISOString();
+        const toEnd = new Date(toEndMs).toISOString();
+        const target: OverrideTarget | null = input.targets.get(rec.id) ?? null;
+        const hasPair = storedBy.has(`${rec.id}|override_out`);
+        const alreadyThere = Date.parse(rec.slot_start) === toStartMs &&
+          Date.parse(rec.slot_end) === toEndMs;
+        if (!hasPair && target !== null) {
+          const pair = overridePair(rec, target, input.nowIso);
+          tuples.push(...pair.tuples);
+          patches.push(pair.patch);
+        } else if (!alreadyThere) {
+          patches.push({
+            id: rec.id,
+            status: 'moved',
+            slot_start: toStart,
+            slot_end: toEnd,
+            ...(target === null
+              ? {}
+              : { context_bucket: target.context_bucket, features: target.features }),
+          });
+        }
+        if (!alreadyThere || (!hasPair && target !== null)) {
+          rec = {
+            ...rec,
+            status: 'moved',
+            slot_start: toStart,
+            slot_end: toEnd,
+            context_bucket: target?.context_bucket ?? rec.context_bucket,
+            features: target?.features ?? rec.features,
+            local_day: target?.local_day ?? input.localDayOf?.(toEndMs) ?? rec.local_day,
+          };
+        }
       }
     }
+
+    const sameDay = factsByTaskDay.get(`${rec.task_id}|${rec.local_day}`) ?? [];
+    const facts = [...own, ...sameDay.filter((f) => !own.includes(f))];
 
     const outcome = storedBy.get(`${rec.id}|outcome`);
     if (own.some((f) => f.type === 'lapse_corrected')) {
@@ -420,10 +531,18 @@ export function mapUser(input: {
       }
       continue;
     }
-    if (outcome !== undefined) continue; // already attributed (idempotent re-run)
+    if (outcome !== undefined) {
+      // already attributed: late-synced facts may still upgrade a lapse / off-slot / partial (#1, #2)
+      const u = upgrade(rec, outcome, facts, input.nowIso, timezone);
+      if (u !== null) {
+        tuples.push(u.tuple);
+        patches.push(u.patch);
+      }
+      continue;
+    }
     const result = input.mode === 'daily'
-      ? dailyOutcome(rec, facts, input.nowIso)
-      : instantOutcome(rec, facts, input.nowIso);
+      ? dailyOutcome(rec, facts, input.nowIso, timezone)
+      : instantOutcome(rec, facts, input.nowIso, timezone);
     if (result !== null) {
       tuples.push(result.tuple);
       patches.push(result.patch);

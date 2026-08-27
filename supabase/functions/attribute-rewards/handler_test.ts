@@ -436,3 +436,41 @@ Deno.test('duration estimator — only finished sessions, folded once (monotone 
   assertEquals(again.duration_updates, 0);
   assertEquals(state.durations.deep.n, 1);
 });
+
+Deno.test('#6 — a patch is dropped when a concurrent pass already stored a different tuple for the row', async () => {
+  const state = freshState({
+    facts: [fact('focus_end', {
+      outcome: 'finished',
+      started_at: '2026-09-02T11:05:00Z',
+      ended_at: '2026-09-02T12:20:00Z',
+      focused_ms: 75 * 60_000,
+      planned_minutes: 90,
+      est_minutes: 90,
+      session_id: 's1',
+    })],
+  });
+  const deps = makeDeps(state);
+  // simulate the daily sweep winning the (rec, outcome) insert between map and write
+  deps.writeTuples = (_u, _t) => {
+    state.stored.push({
+      recommendation_id: REC,
+      kind: 'outcome',
+      reward: 0,
+      reason: 'lapsed',
+      category: 'deep',
+      features: FEATURES,
+      excluded: false,
+      excluded_reason: null,
+      attributed_at: new Date(NOW).toISOString(),
+      correction: false,
+      source: 'daily',
+      delivered_at: null,
+      corrected_at: null,
+    });
+    return Promise.resolve();
+  };
+  const body = await (await handleAttributeRewards(post({ mode: 'instant' }, asUser), deps)).json();
+  assertEquals(body.patches, 1); // computed…
+  assertEquals(state.patches, []); // …but not applied: the stored tuple is not ours
+  assertEquals(state.recs[0].status, 'shown');
+});

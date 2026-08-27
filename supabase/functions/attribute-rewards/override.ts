@@ -94,10 +94,12 @@ export function targetContext(input: OverrideInput): OverrideTarget | null {
     cellSd: post?.sd ?? 0.22,
     precedingLoadMinutes: load * TICK_MINUTES,
   });
+  const end = wallClock(input.toEndMs, input.timezone);
   return {
     to_start: new Date(input.toStartMs).toISOString(),
     to_end: new Date(input.toEndMs).toISOString(),
     context_bucket: bucket.id,
     features,
+    local_day: `${end.year}-${pad(end.month)}-${pad(end.day)}`,
   };
 }

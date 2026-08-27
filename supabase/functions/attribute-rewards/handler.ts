@@ -153,20 +153,29 @@ async function overrideTargets(
   facts: readonly Fact[],
   stored: readonly StoredTuple[],
   nowMs: number,
-): Promise<Map<string, OverrideTarget>> {
-  const targets = new Map<string, OverrideTarget>();
+): Promise<Map<string, OverrideTarget | null>> {
+  const targets = new Map<string, OverrideTarget | null>();
   const hasPair = new Set(
     stored.filter((s) => s.kind === 'override_out').map((s) => s.recommendation_id),
   );
-  const moves = facts.filter((f) => f.type === 'block_moved' && f.recommendation_id !== null);
-  if (moves.length === 0) return targets;
+  // the LATEST move per rec decides the placement (adversarial #5); facts arrive sorted by client_ts
+  const latest = new Map<string, Fact>();
+  for (const f of facts) {
+    if (f.type === 'block_moved' && f.recommendation_id !== null) {
+      latest.set(f.recommendation_id, f);
+    }
+  }
+  if (latest.size === 0) return targets;
   const cells = await deps.loadCells(userId);
-  for (const move of moves) {
+  for (const move of latest.values()) {
     const rec = recs.find((r) => r.id === move.recommendation_id);
-    if (rec === undefined || hasPair.has(rec.id) || targets.has(rec.id)) continue;
+    if (rec === undefined) continue;
     const toStart = Date.parse(String(move.payload.to_start));
     const toEnd = Date.parse(String(move.payload.to_end));
     if (!Number.isFinite(toStart) || !Number.isFinite(toEnd) || toEnd <= toStart) continue;
+    const alreadyThere = Date.parse(rec.slot_start) === toStart &&
+      Date.parse(rec.slot_end) === toEnd;
+    if (alreadyThere && hasPair.has(rec.id)) continue; // nothing left to do for this move
     const task = await deps.loadTask(userId, rec.task_id);
     if (task === null) continue;
     const from = new Date(toStart - DAY_MS).toISOString();
@@ -180,8 +189,13 @@ async function overrideTargets(
       workingHours: profile.working_hours,
       sleepWindow: profile.sleep_window,
       busy,
+      // committed blocks only (ADR-0010 §6): open placements and completed ones; not lapsed,
+      // rejected, displaced or expired rows (adversarial #19)
       otherBlocks: dayRecs
-        .filter((r) => r.id !== rec.id && r.status !== 'expired' && r.status !== 'rejected')
+        .filter((r) =>
+          r.id !== rec.id &&
+          ['shown', 'accepted', 'pinned', 'moved', 'completed'].includes(r.status)
+        )
         .map((r) => ({ startMs: Date.parse(r.slot_start), endMs: Date.parse(r.slot_end) })),
       task,
       cells,
@@ -189,7 +203,7 @@ async function overrideTargets(
       toEndMs: toEnd,
       nowMs,
     });
-    if (target !== null) targets.set(rec.id, target);
+    targets.set(rec.id, target); // null = no bucket at the target (before 06:00): move only
   }
   return targets;
 }
@@ -243,6 +257,29 @@ async function deliverPending(deps: Deps, userId: string, nowIso: string): Promi
   if (call.kind !== 'ok') return { delivered: 0, delivery: call.kind };
   await deps.markDelivered(userId, wire.map((t) => [t.recommendation_id, t.kind] as const), nowIso);
   return { delivered: wire.length, delivery: 'ok' };
+}
+
+async function gatePatches(
+  deps: Deps,
+  userId: string,
+  result: { tuples: Tuple[]; patches: RecPatch[] },
+): Promise<RecPatch[]> {
+  if (result.patches.length === 0) return [];
+  const withTuples = new Set(result.tuples.map((t) => t.recommendation_id));
+  const needCheck = result.patches.filter((p) => withTuples.has(p.id));
+  if (needCheck.length === 0) return result.patches; // move-only patches carry no tuple
+  const stored = await deps.loadStored(userId, [...withTuples]);
+  const ok = new Set<string>();
+  for (const t of result.tuples) {
+    const row = stored.find((s) =>
+      s.recommendation_id === t.recommendation_id && s.kind === t.kind
+    );
+    if (row === undefined) continue;
+    const same = row.reason === t.reason && Math.abs(row.reward - t.reward) < 1e-9;
+    const corrected = !t.correction || row.corrected_at !== null;
+    if (same && corrected) ok.add(t.recommendation_id);
+  }
+  return result.patches.filter((p) => !withTuples.has(p.id) || ok.has(p.id));
 }
 
 /** One user's pass. `dueRecs` is set in daily mode (the `attribution_due` slice for the user). */
@@ -299,33 +336,34 @@ export async function processUser(
   const targets = await overrideTargets(deps, userId, profile, recs, facts, stored, nowMs);
   // in daily mode only the due slice is finalised; facts-referenced rows still get instant rows
   const dueIds = new Set((dueRecs ?? []).map((r) => r.id));
+  const common = {
+    facts,
+    stored,
+    nowIso,
+    targets,
+    timezone: tz,
+    localDayOf: (ms: number) => localDayOf(ms, tz),
+  };
   const result = mode === 'daily'
     ? (() => {
-      const due = mapUser({
-        mode: 'daily',
-        recs: recs.filter((r) => dueIds.has(r.id)),
-        facts,
-        stored,
-        nowIso,
-        targets,
-      });
+      const due = mapUser({ mode: 'daily', recs: recs.filter((r) => dueIds.has(r.id)), ...common });
       const rest = mapUser({
         mode: 'instant',
         recs: recs.filter((r) => !dueIds.has(r.id)),
-        facts,
-        stored,
-        nowIso,
-        targets,
+        ...common,
       });
       return {
         tuples: [...due.tuples, ...rest.tuples],
         patches: [...due.patches, ...rest.patches],
       };
     })()
-    : mapUser({ mode, recs, facts, stored, nowIso, targets });
+    : mapUser({ mode, recs, ...common });
 
   if (result.tuples.length > 0) await deps.writeTuples(userId, result.tuples);
-  const updatedRows = result.patches.length > 0 ? await deps.patchRecs(userId, result.patches) : [];
+  // A concurrent pass (the daily sweep vs an instant call) may have won the (rec, kind) insert:
+  // patch a row only when the tuple now stored is the one THIS pass computed (adversarial #6).
+  const allowed = await gatePatches(deps, userId, result);
+  const updatedRows = allowed.length > 0 ? await deps.patchRecs(userId, allowed) : [];
   const durationUpdates = mode === 'instant' ? await updateDurations(deps, userId, recs, facts) : 0;
   const d = await deliverPending(deps, userId, nowIso);
   return {

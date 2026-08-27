@@ -2,7 +2,7 @@
 -- profile timezone), the status/attributed filters (displaced rows never attribute — File 05 §1),
 -- service-only access to the helper, the duration_estimates RLS, the cron job and the no-op tick.
 begin;
-select plan(29);
+select plan(32);
 
 select has_extension('pg_net', 'pg_net is installed (cron → edge function HTTP)');
 select has_table('public', 'duration_estimates', 'duration_estimates exists');
@@ -51,6 +51,9 @@ values
   -- r7: expired by a re-plan — never attributes
   ('00000000-0000-4000-8000-00000000bd07', '00000000-0000-4000-8000-000000000b01', '00000000-0000-4000-8000-00000000bc01', '00000000-0000-4000-8000-00000000bb01',
    '2026-10-24 06:00+00', '2026-10-24 07:00+00', 'MO.wd.fresh', '[0]', 'best_available', 'learned', 'recsys-p5.0', 'expired', null),
+  -- r9: 23:30–23:50 local (+03) on 2026-10-24 = 20:30–20:50Z — the slot end + 15 min grace must have passed
+  ('00000000-0000-4000-8000-00000000bd09', '00000000-0000-4000-8000-000000000b01', '00000000-0000-4000-8000-00000000bc01', '00000000-0000-4000-8000-00000000bb01',
+   '2026-10-24 20:30+00', '2026-10-24 20:50+00', 'NT.wd.fresh', '[0]', 'best_available', 'learned', 'recsys-p5.0', 'shown', null),
   -- r8: user B in Los Angeles (−07 on 2026-10-24): 14:00–15:00 local = 21:00–22:00Z; due at 23:55 PDT = 06:55Z next day
   ('00000000-0000-4000-8000-00000000bd08', '00000000-0000-4000-8000-000000000b02', '00000000-0000-4000-8000-00000000bc02', '00000000-0000-4000-8000-00000000bb02',
    '2026-10-24 21:00+00', '2026-10-24 22:00+00', 'AF.wd.fresh', '[0]', 'best_available', 'learned', 'recsys-p5.0', 'shown', null);
@@ -76,6 +79,14 @@ select is((select count(*) from public.attribution_due('2027-01-01 00:00+00') wh
 select is((select count(*) from public.attribution_due('2026-10-25 06:54:59+00') where id = '00000000-0000-4000-8000-00000000bd08'), 0::bigint, 'LA row not due before 23:55 PDT');
 select is((select count(*) from public.attribution_due('2026-10-25 06:55:00+00') where id = '00000000-0000-4000-8000-00000000bd08'), 1::bigint, 'LA row due at 23:55 PDT (06:55Z)');
 select is((select category from public.attribution_due('2026-10-25 06:55:00+00') where id = '00000000-0000-4000-8000-00000000bd08'), 'admin', 'the task category rides along for the tuple');
+
+-- r9: the day closed at 20:55Z but slot_end + grace = 21:05Z — not due until then (adversarial #12)
+select is((select count(*) from public.attribution_due('2026-10-24 20:55:00+00') where id = '00000000-0000-4000-8000-00000000bd09'), 0::bigint, 'a block ending 23:50 is not due at 23:55 (grace not over)');
+select is((select count(*) from public.attribution_due('2026-10-24 21:05:00+00') where id = '00000000-0000-4000-8000-00000000bd09'), 1::bigint, 'it is due once slot_end + 15 min has passed');
+-- an unusable timezone is rejected on write (adversarial #20)
+select throws_ok(
+  $$ update public.profiles set timezone = 'Mars/Olympus' where user_id = '00000000-0000-4000-8000-000000000b02' $$,
+  '22023', null, 'profiles.timezone must be a known IANA zone');
 
 -- cron + tick
 select is((select count(*) from cron.job where jobname = 'attribute-rewards-sweep' and schedule = '*/15 * * * *'), 1::bigint, 'attribute-rewards-sweep is scheduled every 15 minutes');

@@ -38,6 +38,7 @@ Deno.test('a 14:00 weekday target with a free morning is AF.wd.fresh with a 17-d
   assertEquals(t.features[9], 1); // value 3 → (3-1)/2
   assertEquals(t.features[16], 0); // no preceding load
   assertEquals(t.to_start, new Date(kyiv(14)).toISOString());
+  assertEquals(t.local_day, '2026-09-02');
 });
 
 Deno.test('other committed blocks before the target make it fatigued and load feature 17', () => {

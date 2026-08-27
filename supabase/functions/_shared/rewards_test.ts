@@ -92,7 +92,14 @@ Deno.test('row 2 — abandoned in-window with f ≥ 0.5 → 1.0 completed', () =
   assertEquals([r.tuple.reward, r.tuple.reason], [1.0, 'completed']);
 });
 
-Deno.test('row 3 — abandoned in-window with f < 0.5 → r = f partial; block not completed', () => {
+Deno.test('row 3 — abandoned in-window with f < 0.5 → r = f partial once the slot cannot be resumed; block not completed', () => {
+  // while the slot (+ grace) is still open nothing instant is emitted — a restart can reach row 1/2
+  const early = instantOutcome(
+    rec(),
+    [session('2026-09-01T14:14:59+03:00', 'abandoned', 27)],
+    '2026-09-01T15:00:00+03:00',
+  );
+  assertStrictEquals(early, null);
   const r = instantOutcome(rec(), [session('2026-09-01T14:14:59+03:00', 'abandoned', 27)], NOW);
   assert(r !== null);
   assertEquals(r.tuple.reason, 'partial');
@@ -175,6 +182,7 @@ Deno.test('rows 8–9 — override pair: origin 0.1 with the stored features, ta
     to_end: '2026-09-01T19:30:00+03:00',
     context_bucket: 'EV.wd',
     features: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0.5, 0.6, 0, 0, 0, 0.55, 0.19, 0.1],
+    local_day: '2026-09-01',
   };
   const out = mapUser({
     mode: 'instant',
@@ -206,7 +214,7 @@ Deno.test('rows 8–9 — override pair: origin 0.1 with the stored features, ta
   });
 });
 
-Deno.test('one override pair per placement — a second move emits nothing', () => {
+Deno.test('one override pair per placement — a second move re-places the row without a second pair', () => {
   const stored: StoredTuple[] = [
     {
       recommendation_id: REC,
@@ -221,17 +229,30 @@ Deno.test('one override pair per placement — a second move emits nothing', () 
   const out = mapUser({
     mode: 'instant',
     recs: [rec({ status: 'moved' })],
-    facts: [fact('block_moved', { to_start: SLOT_START, to_end: SLOT_END })],
+    facts: [
+      fact('block_moved', { to_start: SLOT_START, to_end: SLOT_END }, {
+        client_ts: '2026-09-01T09:00:00+03:00',
+      }),
+      fact('block_moved', {
+        to_start: '2026-09-01T18:00:00+03:00',
+        to_end: '2026-09-01T19:30:00+03:00',
+      }, { client_ts: '2026-09-01T10:00:00+03:00' }),
+    ],
     stored,
     nowIso: NOW,
     targets: new Map([[REC, {
-      to_start: SLOT_START,
-      to_end: SLOT_END,
-      context_bucket: 'AF.wd.fresh',
+      to_start: '2026-09-01T18:00:00+03:00',
+      to_end: '2026-09-01T19:30:00+03:00',
+      context_bucket: 'EV.wd',
       features: FEATURES,
+      local_day: '2026-09-01',
     }]]),
   });
   assertEquals(out.tuples, []);
+  assertEquals(out.patches.length, 1);
+  assertEquals(out.patches[0].status, 'moved');
+  assertEquals(out.patches[0].slot_start, '2026-09-01T15:00:00.000Z');
+  assertEquals(out.patches[0].context_bucket, 'EV.wd');
 });
 
 Deno.test('row 10 / H3 — displaced rows never produce a tuple, even with facts', () => {
@@ -393,4 +414,167 @@ Deno.test('UC-06 A2 — EWMA α = 0.3, first sample seeds, samples clipped, appl
   assertEquals(effectiveEstMinutes(60, { ewma_ratio: 0.1, n: 5 }), 30); // clipped to 0.5
   assertEquals(effectiveEstMinutes(60, null), 60);
   assertEquals(updateDurationEstimate(e3, 0, 40), e3); // an empty session teaches nothing
+});
+
+// --- adversarial-pass additions (2026-08-27) -----------------------------------------------------
+
+const lapsedStored = (over: Partial<StoredTuple> = {}): StoredTuple => ({
+  recommendation_id: REC,
+  kind: 'outcome',
+  reward: 0,
+  reason: 'lapsed',
+  excluded: false,
+  attributed_at: '2026-09-01T20:55:00Z',
+  corrected_at: null,
+  source: 'daily',
+  ...over,
+});
+
+Deno.test('#1 — facts that sync AFTER the daily job upgrade the stored lapse (correction, original attributed_at)', () => {
+  const out = mapUser({
+    mode: 'instant',
+    recs: [rec({ status: 'lapsed', attributed_at: '2026-09-01T20:55:00Z' })],
+    facts: [session('2026-09-01T14:05:00+03:00', 'finished', 80)],
+    stored: [lapsedStored()],
+    nowIso: '2026-09-02T08:00:00+03:00',
+    targets: new Map(),
+  });
+  assertEquals(out.tuples.length, 1);
+  const t = out.tuples[0];
+  assertEquals([t.reward, t.reason, t.correction, t.source], [1, 'completed', true, 'correction']);
+  assertEquals(t.attributed_at, '2026-09-01T20:55:00Z');
+  assertEquals(out.patches[0], { id: REC, status: 'completed' });
+  // a late skip does not "upgrade" a lapse (0.0 is not better than 0.0)
+  const same = mapUser({
+    mode: 'instant',
+    recs: [rec({ status: 'lapsed' })],
+    facts: [fact('block_skipped', { at: '2026-09-01T14:02:00+03:00' })],
+    stored: [lapsedStored()],
+    nowIso: '2026-09-02T08:00:00+03:00',
+    targets: new Map(),
+  });
+  assertEquals(same.tuples, []);
+  // and never outside the window, never on an excluded or corrected row
+  for (
+    const [stored, now] of [
+      [lapsedStored(), '2026-09-09T08:00:00+03:00'],
+      [lapsedStored({ excluded: true }), '2026-09-02T08:00:00+03:00'],
+      [lapsedStored({ corrected_at: '2026-09-02T00:00:00Z' }), '2026-09-02T08:00:00+03:00'],
+    ] as const
+  ) {
+    const o = mapUser({
+      mode: 'instant',
+      recs: [rec({ status: 'lapsed' })],
+      facts: [session('2026-09-01T14:05:00+03:00', 'finished', 80)],
+      stored: [stored],
+      nowIso: now,
+      targets: new Map(),
+    });
+    assertEquals(o.tuples, []);
+  }
+});
+
+Deno.test('#2 — a stored partial is upgraded by a later in-window finish; the daily off-slot by a late in-window session', () => {
+  const partial = lapsedStored({ reward: 0.3, reason: 'partial', source: 'instant' });
+  const out = mapUser({
+    mode: 'instant',
+    recs: [rec()],
+    facts: [
+      session('2026-09-01T14:05:00+03:00', 'abandoned', 27),
+      session('2026-09-01T14:10:00+03:00', 'finished', 60),
+    ],
+    stored: [partial],
+    nowIso: NOW,
+    targets: new Map(),
+  });
+  assertEquals([out.tuples[0].reason, out.tuples[0].correction], ['completed', true]);
+  const offSlot = lapsedStored({ reward: 0.3, reason: 'off_slot' });
+  const up = mapUser({
+    mode: 'instant',
+    recs: [rec({ status: 'completed' })],
+    facts: [session('2026-09-01T14:00:00+03:00', 'finished', 90)],
+    stored: [offSlot],
+    nowIso: '2026-09-02T08:00:00+03:00',
+    targets: new Map(),
+  });
+  assertEquals([up.tuples[0].reward, up.tuples[0].reason], [1, 'completed']);
+});
+
+Deno.test('#3 — a move and a session at the NEW slot in one batch score completed on the target context', () => {
+  const target = {
+    to_start: '2026-09-01T16:00:00+03:00',
+    to_end: '2026-09-01T17:30:00+03:00',
+    context_bucket: 'AF.wd.fatigued',
+    features: [1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0.6, 0, 0, 0, 0.5, 0.2, 0.9],
+    local_day: '2026-09-01',
+  };
+  const out = mapUser({
+    mode: 'daily',
+    recs: [rec()],
+    facts: [
+      fact('block_moved', { to_start: target.to_start, to_end: target.to_end }, {
+        client_ts: '2026-09-01T13:00:00+03:00',
+      }),
+      session('2026-09-01T16:02:00+03:00', 'finished', 85),
+    ],
+    stored: [],
+    nowIso: NOW,
+    targets: new Map([[REC, target]]),
+  });
+  const outcome = out.tuples.find((t) => t.kind === 'outcome')!;
+  assertEquals([outcome.reward, outcome.reason], [1, 'completed']);
+  assertEquals(outcome.features, target.features);
+  assertEquals(out.tuples.length, 3); // pair + outcome
+});
+
+Deno.test('#4 — a target without a bucket still moves the row (no pair, old features kept)', () => {
+  const out = mapUser({
+    mode: 'instant',
+    recs: [rec()],
+    facts: [fact('block_moved', {
+      to_start: '2026-09-01T03:00:00+03:00',
+      to_end: '2026-09-01T04:30:00+03:00',
+    })],
+    stored: [],
+    nowIso: NOW,
+    targets: new Map([[REC, null]]),
+  });
+  assertEquals(out.tuples, []);
+  assertEquals(out.patches, [{
+    id: REC,
+    status: 'moved',
+    slot_start: '2026-09-01T00:00:00.000Z',
+    slot_end: '2026-09-01T01:30:00.000Z',
+  }]);
+});
+
+Deno.test('#11 — a fact logged under another device zone makes the outcome ambiguous (excluded, value kept)', () => {
+  const out = mapUser({
+    mode: 'instant',
+    recs: [rec()],
+    facts: [session('2026-09-01T14:05:00+03:00', 'finished', 80)].map((f) => ({
+      ...f,
+      context: { tz: 'America/New_York' },
+    })),
+    stored: [],
+    nowIso: NOW,
+    targets: new Map(),
+    timezone: 'Europe/Kyiv',
+  });
+  assertEquals(out.tuples[0].excluded, true);
+  assertEquals(out.tuples[0].excluded_reason, 'timezone_mismatch');
+  assertEquals(out.tuples[0].reward, 1);
+  const fine = mapUser({
+    mode: 'instant',
+    recs: [rec()],
+    facts: [session('2026-09-01T14:05:00+03:00', 'finished', 80)].map((f) => ({
+      ...f,
+      context: { tz: 'Europe/Kyiv' },
+    })),
+    stored: [],
+    nowIso: NOW,
+    targets: new Map(),
+    timezone: 'Europe/Kyiv',
+  });
+  assertEquals(fine.tuples[0].excluded, false);
 });
