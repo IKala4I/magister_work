@@ -241,3 +241,38 @@ decision rule (defensibility → consistency → measurability → pragmatics) a
   a 6·10⁻⁸ relative error that would ride into every 1/p weight and contradict "exact".
   Normative: the column is `double precision` (migration `20260827130000_p6_propensity_double`);
   `A_m(x)` is logged beside it, so p is also recoverable as ε/|A_m(x)| symbolically. ADR-0008 §4.
+
+## External changes (P7, 2026-08-27)
+
+### H4. The free Docker CPU tier File 03 §2.2 assumes no longer exists (provider change, 2026-07)
+
+File 03 §2.2 ("unchanged from v1.0") hosts the RecSys service on "Hugging Face Spaces free
+CPU" (Docker SDK, CPU Basic 2 vCPU / 16 GB, $0/h) and derives the NFR-Sc1 cost envelope "**$0
+through ~3k MAU**" from it; File 04 §1.5 calibrates the 1.5 s anytime cap "on 2 vCPU" (that
+box); UC-03 A1 / NFR-R2 describe the "free-tier sleep" cold start; `deploy-recsys.yml` pushes
+the `services/recsys` subtree to a Space. **Verified 2026-08-27 against the provider's own
+docs:** since ~2026-07-08 (UI) / 2026-07-21 (docs, hub-docs PR #2624, HF staff) _creating any
+Space that runs on compute — Gradio or Docker, CPU Basic included — requires a paid plan_:
+PRO ($9/mo) for personal accounts, Team ($20/user/mo) or Enterprise for organisations. Only
+Static Spaces (no compute) stay free, plus a Gradio-only ZeroGPU carve-out that cannot run a
+FastAPI container. No announcement/changelog entry exists; grandfathering of pre-existing free
+Spaces is unverified (conflicting user reports, no staff statement). Two further facts surfaced
+by the same verification: (a) **free and PRO Spaces run in the US only** — an EU runtime region
+exists solely on Team/Enterprise (docs "storage-regions"), so the P1 DPIA hedge in
+`docs/privacy/README.md` ("EU availability not guaranteed by free tier") was in fact a
+guaranteed _absence_: the architecture as written never satisfied NFR-S2 for the service tier;
+(b) CPU Basic keeps a fixed 48 h sleep with no configurable keep-alive and a community-reported
+2–5 min cold start.
+**What it invalidates:** the $0 cost envelope of NFR-Sc1 (as amended by M1) for the service
+tier; the deploy path (`deploy-recsys.yml`, the Space secrets in HANDOFF ⛔ 1); File 04 §1.5's
+"2 vCPU" as the named measurement box (device-checklist "Service environment"); the P5/P6
+verification items blocked on the Space (live learned-path smoke, warm NFR-P1 p95, container
+timing) — they stay on the backlog, never substituted by Mac numbers.
+**Status: OPEN — owner decision.** This changes a stated constraint of the thesis (free tier,
+EU hosting) rather than how something is built, so it is not an autonomous call. The options
+(another free-tier EU container host; HF PRO as a paid exception; Supabase-only restructuring
+without a Python container; a paid EU endpoint) are evaluated in **ADR-0009** (status
+_proposed_) against what the service needs — CP-SAT with 2 workers under the 1.5 s cap, warm
+availability during the study, EU residency (NFR-S2), $0 — with a recommendation. Until the
+owner decides, `deploy-recsys.yml` stays gated off (`vars.HF_SPACE` unset), no Space and no
+GitHub secrets are created, and P7 proceeds (its work is service-internal and local-testable).

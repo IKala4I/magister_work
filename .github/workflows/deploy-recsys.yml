@@ -1,4 +1,7 @@
-name: Deploy RecSys to Hugging Face Space
+# SUSPENDED (2026-08-27): Hugging Face withdrew free Docker Spaces in July 2026 (spec-conflicts H4).
+# The workflow is inert while `vars.HF_SPACE` is unset and stays so until the owner decides the
+# replacement host in docs/decisions/ADR-0009-recsys-hosting.md; it is rewritten for that host then.
+name: Deploy RecSys to Hugging Face Space (suspended — ADR-0009)
 
 on:
   push:

@@ -33,15 +33,18 @@
 
 ## ⛔ ACTION REQUIRED (owner)
 
-1. **Hugging Face Space** (unchanged from P5, now blocking the learned path live): create a Docker
-   Space (free CPU), set repo secret `HF_TOKEN` + repo variable `HF_SPACE`, and Space secrets
-   `DATABASE_URL` (Supabase **pooler** DSN), `SUPABASE_URL`, `HOURWELL_SERVICE_KEY`. Generate the
-   key locally (`openssl rand -hex 32`) and give the SAME value to the edge function:
-   `supabase secrets set HOURWELL_SERVICE_KEY=<value> RECSYS_URL=https://<user>-<space>.hf.space`
-   (from the repo root; the CLI is linked to `uapiuehjcntilwdmpojk`). Then: rerun
+1. **RecSys host — DECISION REQUIRED (replaces the P5/P6 "create a Hugging Face Space" item).**
+   Hugging Face withdrew free Docker Spaces in July 2026 (verified 2026-08-27; spec-conflicts H4,
+   thesis-corrections #26–#27). Read **`docs/decisions/ADR-0009-recsys-hosting.md`** and answer its
+   four questions (recommended: Oracle Cloud Always Free in an EU region, Cloud Run Tier-1 EU as the
+   bounded fallback). Nothing was created (no Space, no GitHub secrets). Once decided, the next
+   session rewrites `deploy-recsys.yml`, writes the runbook, and only THEN the blocked items run:
    `node docs/verification/p6-live-smoke.mjs 10` from `apps/mobile` (expect `reason = learned`),
-   record warm p50/p95 in `p6-manual-verification.md` §3, and run the P5 container timing
-   measurement (device-checklist "Service environment").
+   warm p50/p95 into `p6-manual-verification.md` §3, the P5 container timing (device-checklist
+   "Service environment"), and the P7 live `/feedback` delivery check. Secrets contract is
+   unchanged whatever the host: service gets `DATABASE_URL` (pooler DSN), `SUPABASE_URL`,
+   `HOURWELL_SERVICE_KEY`; edge functions get `RECSYS_URL` + the same `HOURWELL_SERVICE_KEY`
+   (`supabase secrets set …` from the repo root; CLI linked to `uapiuehjcntilwdmpojk`).
 2. **Google OAuth consent screen + credentials** (FR-01 Google path, code ready and inert) — as
    in the P4 handoff.
 3. **Magic-link + anonymous-conversion E2E with a real mailbox** — `p4-manual-verification.md` §3.
