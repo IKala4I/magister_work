@@ -1,0 +1,11 @@
+[Unit]
+Description=Run the Hourwell keep-busy benchmark hourly
+
+[Timer]
+OnBootSec=15min
+OnUnitActiveSec=1h
+RandomizedDelaySec=5min
+Unit=hourwell-keepbusy.service
+
+[Install]
+WantedBy=timers.target

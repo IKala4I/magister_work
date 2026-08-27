@@ -1,0 +1,11 @@
+[Unit]
+Description=Run the Hourwell RecSys rollout every 5 minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+RandomizedDelaySec=30s
+Unit=hourwell-rollout.service
+
+[Install]
+WantedBy=timers.target
