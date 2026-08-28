@@ -91,7 +91,8 @@ aarch64`, `build: <main sha>`; `verify.sh 193.0.218.70` → **ALL OK** (40); Git
    stress instance is presolve-bound at 3.6·10³ literals → threshold sweep →
    **`PRACTICAL_LITERAL_THRESHOLD` re-fitted 8 000 → 3 000** (PR #13), and a claim-level
    qualification for the thesis (≈ 40 % of week runs stay UNKNOWN on every rung on this box;
-   thesis-corrections #37; revisit: week-horizon budget before P9).
+   thesis-corrections #37; revisit: week-horizon budget before P9). Re-measured with the shipped
+   image (`b75d7c1`, §2.3): week FEASIBLE 13/20 at 1.35 s p50 / 1.92 s p90, day unchanged.
 5. **`supabase login`** — type `! supabase login` in the prompt (browser flow). _Session then
    runs:_ `supabase secrets set HOURWELL_SERVICE_KEY=<from ~/.hourwell> RECSYS_URL=https://hourwell-recsys.duckdns.org`
    (values piped, not printed) and checks `supabase secrets list`.
