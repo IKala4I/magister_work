@@ -8,6 +8,7 @@
  * Secrets: HOURWELL_SERVICE_KEY, GCAL_CLIENT_ID, GCAL_CLIENT_SECRET, GCAL_WEBHOOK_BASE.
  */
 import { createClient } from '@supabase/supabase-js';
+import { withLease } from '../_shared/lease.ts';
 import { loadConnected, loadStateByChannel, makeSyncDbDeps } from './db.ts';
 import { googleClient, googleConfigFromEnv } from './google.ts';
 import { handleGcalWebhook } from './handler.ts';
@@ -32,6 +33,7 @@ Deno.serve(async (req: Request) => {
       randomId: () => crypto.randomUUID(),
       loadStateByChannel: (channelId) => loadStateByChannel(admin, channelId),
       loadConnected: () => loadConnected(admin),
+      withLease: (userId, fn) => withLease(admin, userId, () => fn()),
     });
   } catch (err) {
     console.error('gcal-webhook failed', err); // details stay in the function logs

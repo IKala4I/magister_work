@@ -135,6 +135,8 @@ export interface GcalStatus {
 export type GcalConnectBody =
   | { action: 'status' }
   | { action: 'start'; scope?: GcalScope; return_to?: string }
+  /** The device that received the consent redirect activates the connection (adversarial #10). */
+  | { action: 'confirm'; token: string }
   | { action: 'disconnect' }
   | { action: 'set_write_back'; enabled: boolean };
 
@@ -142,6 +144,12 @@ export type GcalConnectResponse =
   | { status: GcalStatus }
   | { auth_url: string; expires_at: string }
   | {
-    error: 'unauthorized' | 'bad_request' | 'not_configured' | 'not_connected' | 'internal';
+    error:
+      | 'unauthorized'
+      | 'bad_request'
+      | 'not_configured'
+      | 'not_connected'
+      | 'invalid_confirm'
+      | 'internal';
     detail?: string;
   };

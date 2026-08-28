@@ -129,6 +129,12 @@ export interface Tuple {
 export interface RecPatch {
   id: string;
   status?: 'completed' | 'lapsed' | 'rejected' | 'moved' | 'displaced';
+  /**
+   * Compare-and-set guard (P8 adversarial #1): the status the mapping read (or the status the
+   * previous patch of this pass set). The adapter applies the patch only when the row still has
+   * it, so a concurrent writer that won the race is never overwritten. Set by `processUser`.
+   */
+  expected_status?: string;
   /** M-02: set with `completed` when the completion raced an external displacement (P8). */
   conflict_flag?: boolean;
   attributed_at?: string;

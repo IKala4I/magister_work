@@ -226,7 +226,8 @@ export async function listEvents(
     undefined,
     query,
   );
-  if (status === 410 || json === null) return 'gone';
+  if (status === 410) return 'gone';
+  if (json === null) throw new GoogleApiError(status, 'empty events.list body', 'events.list');
   return { ...json, items: json.items ?? [] };
 }
 

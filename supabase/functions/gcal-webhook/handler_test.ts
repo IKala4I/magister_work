@@ -36,6 +36,9 @@ function state(over: Partial<GcalState> = {}): GcalState {
     last_synced_at: new Date(NOW - 60_000).toISOString(),
     last_error: null,
     connected_at: new Date(NOW - 86_400_000).toISOString(),
+    confirmed_at: new Date(NOW - 86_400_000).toISOString(),
+    confirm_token: null,
+    confirm_token_expires_at: null,
     oauth_state: null,
     oauth_state_expires_at: null,
     timezone: 'Europe/Kyiv',
@@ -200,6 +203,8 @@ function deps(f: Fake, over: Partial<Deps> = {}): Deps {
       return Promise.resolve();
     },
     loadWriteBackRecs: () => Promise.resolve(f.recs as WriteBackRec[]),
+    loadWriteBackMirrored: () =>
+      Promise.resolve(f.recs.filter((r) => r.gcal_event_id !== null) as WriteBackRec[]),
     saveWriteBack: (_u, recId, patch) => {
       const r = f.recs.find((x) => x.id === recId);
       if (r) Object.assign(r, patch);
@@ -318,7 +323,9 @@ Deno.test('410 Gone → wipe the mirror and run a FULL sync (time window, no syn
   assertEquals(f.wiped, 1);
   assertEquals(f.listCalls[0].syncToken, 'tok1');
   assertEquals(f.listCalls[1].syncToken, undefined);
-  assert(typeof f.listCalls[1].timeMin === 'string' && typeof f.listCalls[1].timeMax === 'string');
+  assert(typeof f.listCalls[1].timeMin === 'string');
+  // no timeMax: Google's sync token carries the initial restrictions (adversarial #2)
+  assertEquals(f.listCalls[1].timeMax, undefined);
   assertEquals(f.listCalls[2].pageToken, 'p2');
   assertEquals(f.states[0].sync_token, 'tokFull');
 });

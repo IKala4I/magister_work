@@ -15,7 +15,7 @@ function fail(step: string, error: { message: string } | null): never {
 }
 
 const STATE_SELECT =
-  'user_id, calendar_id, refresh_token, access_token, access_token_expires_at, sync_token, channel_id, resource_id, channel_token, channel_expires_at, scope, write_back, last_synced_at, last_error, connected_at, oauth_state, oauth_state_expires_at';
+  'user_id, calendar_id, refresh_token, access_token, access_token_expires_at, sync_token, channel_id, resource_id, channel_token, channel_expires_at, scope, write_back, last_synced_at, last_error, connected_at, confirmed_at, confirm_token, confirm_token_expires_at, oauth_state, oauth_state_expires_at';
 
 // deno-lint-ignore no-explicit-any
 function toState(r: any, timezone: string): GcalState {
@@ -35,6 +35,9 @@ function toState(r: any, timezone: string): GcalState {
     last_synced_at: r.last_synced_at ?? null,
     last_error: r.last_error ?? null,
     connected_at: r.connected_at ?? null,
+    confirmed_at: r.confirmed_at ?? null,
+    confirm_token: r.confirm_token ?? null,
+    confirm_token_expires_at: r.confirm_token_expires_at ?? null,
     oauth_state: r.oauth_state ?? null,
     oauth_state_expires_at: r.oauth_state_expires_at ?? null,
     timezone,
@@ -94,12 +97,26 @@ export async function loadStateByNonce(
   return data === null ? null : (await withTimezones(admin, [data]))[0] ?? null;
 }
 
-/** Every connected calendar (a refresh token exists). */
+export async function loadStateByConfirmToken(
+  admin: AnyClient,
+  token: string,
+): Promise<GcalState | null> {
+  const { data, error } = await admin
+    .from('gcal_sync_state')
+    .select(STATE_SELECT)
+    .eq('confirm_token', token)
+    .maybeSingle();
+  if (error) fail('gcal_sync_state by confirm token', error);
+  return data === null ? null : (await withTimezones(admin, [data]))[0] ?? null;
+}
+
+/** Every connected calendar (a refresh token exists AND the device confirmed the consent). */
 export async function loadConnected(admin: AnyClient, limit = 500): Promise<GcalState[]> {
   const { data, error } = await admin
     .from('gcal_sync_state')
     .select(STATE_SELECT)
     .not('refresh_token', 'is', null)
+    .not('confirmed_at', 'is', null)
     .limit(limit);
   if (error) fail('gcal_sync_state connected', error);
   return withTimezones(admin, data ?? []);
@@ -232,6 +249,28 @@ export async function loadWriteBackRecs(
   }));
 }
 
+export async function loadWriteBackMirrored(
+  admin: AnyClient,
+  userId: string,
+): Promise<WriteBackRec[]> {
+  const { data, error } = await admin
+    .from('recommendations')
+    .select('id, slot_start, slot_end, status, gcal_event_id, gcal_synced_slot_start')
+    .eq('user_id', userId)
+    .not('gcal_event_id', 'is', null);
+  if (error) fail('recommendations mirrored', error);
+  // deno-lint-ignore no-explicit-any
+  return (data ?? []).map((r: any) => ({
+    id: r.id,
+    slot_start: r.slot_start,
+    slot_end: r.slot_end,
+    status: r.status,
+    gcal_event_id: r.gcal_event_id ?? null,
+    gcal_synced_slot_start: r.gcal_synced_slot_start ?? null,
+    title: '',
+  }));
+}
+
 export async function saveWriteBack(
   admin: AnyClient,
   userId: string,
@@ -257,6 +296,7 @@ export function makeSyncDbDeps(
   | 'loadOpenRecs'
   | 'markDisplaced'
   | 'loadWriteBackRecs'
+  | 'loadWriteBackMirrored'
   | 'saveWriteBack'
 > {
   return {
@@ -266,6 +306,7 @@ export function makeSyncDbDeps(
     loadOpenRecs: (userId, from, to) => loadOpenRecs(admin, userId, from, to),
     markDisplaced: (userId, ids) => markDisplaced(admin, userId, ids),
     loadWriteBackRecs: (userId, from, to) => loadWriteBackRecs(admin, userId, from, to),
+    loadWriteBackMirrored: (userId) => loadWriteBackMirrored(admin, userId),
     saveWriteBack: (userId, recId, patch) => saveWriteBack(admin, userId, recId, patch),
   };
 }

@@ -25,6 +25,12 @@ export interface Deps extends Omit<SyncDeps, 'config'> {
   serviceKey: string | null;
   loadStateByChannel(channelId: string): Promise<GcalState | null>;
   loadConnected(): Promise<GcalState[]>;
+  /** Runs a user's writes under the per-user lease (ADR-0012 §7); direct call when absent. */
+  withLease?<T>(userId: string, fn: () => Promise<T>): Promise<T>;
+}
+
+function leased<T>(deps: Deps, userId: string, fn: () => Promise<T>): Promise<T> {
+  return deps.withLease ? deps.withLease(userId, fn) : fn();
 }
 
 /** A user is re-synced by the sweep when the last sync is older than this (UC-09). */
@@ -67,8 +73,10 @@ async function sweepUser(deps: Deps, state: GcalState, nowMs: number): Promise<U
   try {
     out.renewed = await ensureChannel(sync, state);
     const last = state.last_synced_at === null ? 0 : Date.parse(state.last_synced_at);
-    if (nowMs - last >= SWEEP_STALE_MS) out.synced = await syncUser(sync, state);
-    out.write_back = await writeBack(sync, state);
+    await leased(deps, state.user_id, async () => {
+      if (nowMs - last >= SWEEP_STALE_MS) out.synced = await syncUser(sync, state);
+      out.write_back = await writeBack(sync, state);
+    });
   } catch (err) {
     out.error = errorText(err);
     await deps.saveState(state.user_id, { last_error: out.error }).catch(() => {});
@@ -96,8 +104,10 @@ export async function handleGcalWebhook(req: Request, deps: Deps): Promise<Respo
     if (resourceState === 'sync') return json(200, { ok: true, state: 'sync' });
     const sync = deps as SyncDeps;
     try {
-      const synced = await syncUser(sync, state);
-      const wb = await writeBack(sync, state);
+      const { synced, wb } = await leased(deps, state.user_id, async () => ({
+        synced: await syncUser(sync, state),
+        wb: await writeBack(sync, state),
+      }));
       return json(200, { ok: true, state: resourceState, synced, write_back: wb });
     } catch (err) {
       // never make Google retry-storm the function: record the error, answer 200

@@ -1,8 +1,8 @@
 /**
  * Supabase Edge Function `gcal-callback` (FR-03; ADR-0012 §10) — Google's OAuth redirect target.
- * Wiring only — logic in handler.ts (tested with fakes), sync core in `_shared/gcal_sync.ts`,
- * adapters in ../gcal-webhook/db.ts. No JWT: the one-shot state nonce authenticates the round
- * trip (`verify_jwt = false`).
+ * Wiring only — logic in handler.ts (tested with fakes), adapters in ../gcal-webhook/db.ts. No
+ * JWT: the one-shot state nonce authenticates the round trip (`verify_jwt = false`); the
+ * connection is activated by `gcal-connect {confirm}` from the redirected device.
  *
  * Env (auto-injected): SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY.
  * Secrets: GCAL_CLIENT_ID, GCAL_CLIENT_SECRET, GCAL_WEBHOOK_BASE; optional GCAL_APP_REDIRECT
@@ -10,9 +10,8 @@
  */
 import { createClient } from '@supabase/supabase-js';
 import { exchangeCode } from '../_shared/gcal.ts';
-import { ensureChannel, syncUser, writeBack } from '../_shared/gcal_sync.ts';
-import { loadStateByNonce, makeSyncDbDeps } from '../gcal-webhook/db.ts';
-import { googleClient, googleConfigFromEnv } from '../gcal-webhook/google.ts';
+import { loadStateByNonce, saveState } from '../gcal-webhook/db.ts';
+import { googleConfigFromEnv } from '../gcal-webhook/google.ts';
 import { handleGcalCallback } from './handler.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
@@ -22,24 +21,17 @@ const APP_REDIRECT = Deno.env.get('GCAL_APP_REDIRECT') ?? 'hourwell://gcal-callb
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
-const dbDeps = makeSyncDbDeps(admin);
 
 Deno.serve(async (req: Request) => {
   try {
     return await handleGcalCallback(req, {
-      ...dbDeps,
       now: () => Date.now(),
       config: googleConfigFromEnv(),
-      google: googleClient,
-      randomId: () => crypto.randomUUID(),
       appRedirect: APP_REDIRECT,
       loadStateByNonce: (nonce) => loadStateByNonce(admin, nonce),
+      saveState: (userId, patch) => saveState(admin, userId, patch),
       exchangeCode: (cfg, code) => exchangeCode(cfg, code),
-      initialSync: async (deps, state) => {
-        await syncUser(deps, state);
-        await ensureChannel(deps, state);
-        await writeBack(deps, state);
-      },
+      randomId: () => crypto.randomUUID(),
     });
   } catch (err) {
     console.error('gcal-callback failed', err); // details stay in the function logs

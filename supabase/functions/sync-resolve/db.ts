@@ -25,24 +25,6 @@ export async function replayOps(
   return data as OpAck[];
 }
 
-export async function acquireLease(
-  admin: AnyClient,
-  userId: string,
-  ttlSeconds: number,
-): Promise<string | null> {
-  const { data, error } = await admin.rpc('acquire_sync_lease', {
-    p_user_id: userId,
-    p_ttl_seconds: ttlSeconds,
-  });
-  if (error) fail('acquire_sync_lease', error);
-  return typeof data === 'string' && data.length > 0 ? data : null;
-}
-
-export async function releaseLease(admin: AnyClient, userId: string, token: string): Promise<void> {
-  const { error } = await admin.rpc('release_sync_lease', { p_user_id: userId, p_token: token });
-  if (error) console.error('release_sync_lease failed', error.message); // the TTL bounds it
-}
-
 export async function pullRows(
   userClient: AnyClient,
   cursor: number,

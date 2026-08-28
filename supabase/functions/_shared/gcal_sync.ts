@@ -34,6 +34,10 @@ export interface GcalState {
   last_synced_at: string | null;
   last_error: string | null;
   connected_at: string | null;
+  /** Set by `gcal-connect {confirm}` from the device that started the consent (adversarial #10). */
+  confirmed_at: string | null;
+  confirm_token: string | null;
+  confirm_token_expires_at: string | null;
   oauth_state: string | null;
   oauth_state_expires_at: string | null;
   /** Profile zone (all-day conversions, write-back window). */
@@ -91,6 +95,8 @@ export interface SyncDeps {
   markDisplaced(userId: string, ids: readonly string[]): Promise<void>;
   /** Placements of the write-back window with their task titles and mirror state. */
   loadWriteBackRecs(userId: string, fromIso: string, toIso: string): Promise<WriteBackRec[]>;
+  /** Every placement that still has a Google event id (cleanup on disconnect / write-back off). */
+  loadWriteBackMirrored(userId: string): Promise<WriteBackRec[]>;
   saveWriteBack(
     userId: string,
     recId: string,
@@ -100,9 +106,12 @@ export interface SyncDeps {
 }
 
 export const OPEN_STATUSES: ReadonlySet<string> = new Set(['shown', 'accepted', 'pinned', 'moved']);
-/** Initial full sync window [INFERRED]: yesterday … two weeks ahead. */
+/**
+ * Initial full sync: `timeMin` = yesterday and NO `timeMax` — Google's sync token carries the
+ * initial request's restrictions, so an upper bound would silently cut the incremental feed at
+ * that date (adversarial #2; Google's own sample restricts by timeMin only).
+ */
 export const FULL_SYNC_PAST_DAYS = 1;
-export const FULL_SYNC_FUTURE_DAYS = 14;
 /** Renew a push channel when less than this remains (the sweep runs every 5 min). */
 export const CHANNEL_RENEW_BEFORE_MS = 24 * 3_600_000;
 /** Refresh the access token when it expires within this margin. */
@@ -148,10 +157,7 @@ async function listAll(
   for (let guard = 0; guard < 50; guard++) {
     const page = await deps.google.listEvents(token, state.calendar_id, {
       ...(syncToken === null
-        ? {
-          timeMin: new Date(nowMs - FULL_SYNC_PAST_DAYS * DAY_MS).toISOString(),
-          timeMax: new Date(nowMs + FULL_SYNC_FUTURE_DAYS * DAY_MS).toISOString(),
-        }
+        ? { timeMin: new Date(nowMs - FULL_SYNC_PAST_DAYS * DAY_MS).toISOString() }
         : { syncToken }),
       ...(pageToken === undefined ? {} : { pageToken }),
     });
@@ -334,6 +340,32 @@ export async function writeBack(deps: SyncDeps, state: GcalState): Promise<Write
     }
   }
   return report;
+}
+
+/**
+ * Remove every mirrored `Hourwell ·` event from the user's calendar and forget the ids — on
+ * disconnect (BEFORE the token is revoked) and when the write-back is switched off (adversarial
+ * #11). Best effort per event: an already-deleted event counts as removed.
+ */
+export async function clearWriteBack(deps: SyncDeps, state: GcalState): Promise<number> {
+  const mirrored = await deps.loadWriteBackMirrored(state.user_id);
+  if (mirrored.length === 0) return 0;
+  const token = await ensureAccessToken(deps, state);
+  let removed = 0;
+  for (const r of mirrored) {
+    if (r.gcal_event_id === null) continue;
+    try {
+      await deps.google.deleteEvent(token, state.calendar_id, r.gcal_event_id);
+    } catch {
+      // keep going: a stale event is a cosmetic residue, a stuck disconnect is not
+    }
+    await deps.saveWriteBack(state.user_id, r.id, {
+      gcal_event_id: null,
+      gcal_synced_slot_start: null,
+    });
+    removed++;
+  }
+  return removed;
 }
 
 export { HOURWELL_MARKER };

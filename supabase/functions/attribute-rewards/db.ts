@@ -49,7 +49,10 @@ const TUPLE_SELECT =
 
 export function makeDbDeps(
   admin: AnyClient,
-): Omit<Deps, 'now' | 'verifyUser' | 'serviceKey' | 'postFeedback'> {
+): Omit<
+  Deps,
+  'now' | 'verifyUser' | 'serviceKey' | 'postFeedback' | 'acquireLease' | 'releaseLease'
+> {
   return {
     async loadProfile(userId) {
       const { data, error } = await admin
@@ -278,14 +281,16 @@ export function makeDbDeps(
     async patchRecs(userId, patches: readonly RecPatch[]) {
       const rows: RecRow[] = [];
       for (const p of patches) {
-        const { id, ...fields } = p;
-        const { data, error } = await admin
+        const { id, expected_status, ...fields } = p;
+        // compare-and-set on the status the mapping read (adversarial #1): a row another writer
+        // moved meanwhile matches zero rows — never an overwrite
+        let q = admin
           .from('recommendations')
           .update({ ...fields, updated_at: new Date().toISOString() })
           .eq('user_id', userId)
-          .eq('id', id)
-          .select(REC_SELECT)
-          .maybeSingle();
+          .eq('id', id);
+        if (expected_status !== undefined) q = q.eq('status', expected_status);
+        const { data, error } = await q.select(REC_SELECT).maybeSingle();
         if (error) fail('recommendations patch', error);
         if (data !== null) rows.push(toRecRow(data));
       }

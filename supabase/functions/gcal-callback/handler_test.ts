@@ -35,6 +35,9 @@ function pending(over: Partial<GcalState> = {}): GcalState {
     last_synced_at: null,
     last_error: null,
     connected_at: null,
+    confirmed_at: null,
+    confirm_token: null,
+    confirm_token_expires_at: null,
     oauth_state: 'nonce-1',
     oauth_state_expires_at: new Date(NOW + 60_000).toISOString(),
     timezone: 'Europe/Kyiv',
@@ -46,9 +49,7 @@ interface Fake {
   state: GcalState | null;
   saved: Array<Partial<GcalState>>;
   exchanged: string[];
-  synced: number;
   exchangeError: Error | null;
-  syncError: Error | null;
   tokens: { access_token: string; expires_in: number; refresh_token?: string; scope?: string };
 }
 
@@ -57,9 +58,7 @@ function fake(over: Partial<Fake> = {}): Fake {
     state: pending(),
     saved: [],
     exchanged: [],
-    synced: 0,
     exchangeError: null,
-    syncError: null,
     tokens: {
       access_token: 'at',
       expires_in: 3600,
@@ -75,36 +74,17 @@ function deps(f: Fake, over: Partial<Deps> = {}): Deps {
     now: () => NOW,
     config: CFG,
     appRedirect: APP,
-    randomId: () => 'id',
-    google: {
-      refreshAccessToken: () => Promise.resolve({ access_token: 'x', expires_in: 1 }),
-      listEvents: () => Promise.resolve({ items: [] }),
-      watchEvents: () => Promise.resolve({ resourceId: 'r', expiration: 0 }),
-      stopChannel: () => Promise.resolve(),
-      insertEvent: () => Promise.resolve('e'),
-      patchEvent: () => Promise.resolve(),
-      deleteEvent: () => Promise.resolve(),
-    },
+    randomId: () => 'confirm-1',
     saveState: (_u, patch) => {
       f.saved.push(patch);
       if (f.state) Object.assign(f.state, patch);
       return Promise.resolve();
     },
-    upsertEvents: () => Promise.resolve(),
-    wipeEvents: () => Promise.resolve(),
-    loadOpenRecs: () => Promise.resolve([]),
-    markDisplaced: () => Promise.resolve(),
-    loadWriteBackRecs: () => Promise.resolve([]),
-    saveWriteBack: () => Promise.resolve(),
     loadStateByNonce: (nonce) =>
       Promise.resolve(f.state !== null && f.state.oauth_state === nonce ? f.state : null),
     exchangeCode: (_cfg, code) => {
       f.exchanged.push(code);
       return f.exchangeError ? Promise.reject(f.exchangeError) : Promise.resolve(f.tokens);
-    },
-    initialSync: () => {
-      f.synced++;
-      return f.syncError ? Promise.reject(f.syncError) : Promise.resolve();
     },
     ...over,
   };
@@ -166,12 +146,13 @@ Deno.test('the user denied consent → denied (no exchange)', async () => {
   assertEquals(f.exchanged, []);
 });
 
-Deno.test('happy path: code exchanged server-side, tokens stored, initial sync run, redirect ok', async () => {
+Deno.test('happy path: code exchanged server-side, tokens stored UNCONFIRMED with a one-shot confirm token that only the redirect carries', async () => {
   const f = fake();
   const res = await handleGcalCallback(get({ code: 'the-code', state: 'nonce-1.read' }), deps(f));
   const l = landing(res);
   assertEquals(l.status, 'ok');
   assertEquals(l.params.get('scope'), 'read');
+  assertEquals(l.params.get('confirm'), 'confirm-1');
   assertEquals(f.exchanged, ['the-code']);
   const s = f.state!;
   assertEquals(s.refresh_token, 'rt');
@@ -179,9 +160,10 @@ Deno.test('happy path: code exchanged server-side, tokens stored, initial sync r
   assertEquals(s.access_token_expires_at, new Date(NOW + 3_600_000).toISOString());
   assertEquals(s.scope, 'read');
   assertEquals(s.write_back, false);
-  assertEquals(s.connected_at, new Date(NOW).toISOString());
+  assertEquals(s.confirmed_at, null, 'not connected until the device confirms (adversarial #10)');
+  assertEquals(s.confirm_token, 'confirm-1');
+  assertEquals(s.confirm_token_expires_at, new Date(NOW + 10 * 60_000).toISOString());
   assertEquals(s.oauth_state, null);
-  assertEquals(f.synced, 1);
 });
 
 Deno.test('asking for the write scope opts into the write-back; a later read-only consent never downgrades', async () => {
@@ -199,12 +181,19 @@ Deno.test('asking for the write scope opts into the write-back; a later read-onl
   assertEquals(f.state?.scope, 'write');
   assertEquals(f.state?.write_back, true);
   const g = fake({
-    state: pending({ scope: 'write', write_back: true, refresh_token: 'old', connected_at: 'c0' }),
+    state: pending({
+      scope: 'write',
+      write_back: true,
+      refresh_token: 'old',
+      connected_at: 'c0',
+      confirmed_at: 'c0',
+    }),
   });
   await handleGcalCallback(get({ code: 'c', state: 'nonce-1.read' }), deps(g));
   assertEquals(g.state?.scope, 'write', 'incremental authorization keeps the wider scope');
   assertEquals(g.state?.write_back, true);
   assertEquals(g.state?.connected_at, 'c0', 'first connection time kept');
+  assertEquals(g.state?.confirmed_at, 'c0', 'an already confirmed connection stays live meanwhile');
 });
 
 Deno.test('no refresh token in the exchange and none stored → no_refresh_token; an existing one is kept', async () => {
@@ -220,18 +209,13 @@ Deno.test('no refresh token in the exchange and none stored → no_refresh_token
   assertEquals(g.state?.refresh_token, 'kept');
 });
 
-Deno.test('exchange failure → exchange_failed; initial sync failure → ok with sync=failed and last_error', async () => {
+Deno.test('exchange failure → exchange_failed (nothing stored)', async () => {
   const f = fake({ exchangeError: new Error('token exchange: HTTP 400 invalid_grant') });
   assertEquals(
     landing(await handleGcalCallback(get({ code: 'c', state: 'nonce-1.read' }), deps(f))).status,
     'exchange_failed',
   );
-  const g = fake({ syncError: new Error('events.list: HTTP 403 quota') });
-  const l = landing(await handleGcalCallback(get({ code: 'c', state: 'nonce-1.read' }), deps(g)));
-  assertEquals(l.status, 'ok');
-  assertEquals(l.params.get('sync'), 'failed');
-  assertEquals(g.state?.last_error, 'events.list: HTTP 403 quota');
-  assertEquals(g.state?.refresh_token, 'rt', 'the connection itself is kept');
+  assertEquals(f.state?.refresh_token, null);
 });
 
 Deno.test('without Google credentials the callback bounces with not_configured', async () => {

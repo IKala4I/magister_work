@@ -8,10 +8,11 @@
  * Secrets: RECSYS_URL, HOURWELL_SERVICE_KEY (for the /feedback delivery inside the reward pass).
  */
 import { createClient } from '@supabase/supabase-js';
+import { acquireLease, releaseLease } from '../_shared/lease.ts';
 import { makeDbDeps } from '../attribute-rewards/db.ts';
 import { postFeedback, type ServiceConfig } from '../attribute-rewards/feedback.ts';
 import { processUser } from '../attribute-rewards/handler.ts';
-import { acquireLease, pullRows, releaseLease, replayOps } from './db.ts';
+import { pullRows, replayOps } from './db.ts';
 import { handleSyncResolve, LEASE_TTL_SECONDS } from './handler.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
@@ -51,6 +52,9 @@ Deno.serve(async (req: Request) => {
             ...rewardDbDeps,
             now: () => Date.now(),
             serviceKey: serviceConfig.serviceKey,
+            // sync-resolve already holds the user's lease around this call
+            acquireLease: () => Promise.resolve('held-by-sync-resolve'),
+            releaseLease: () => Promise.resolve(),
             verifyUser,
             postFeedback: (uid, tuples) => postFeedback(serviceConfig, uid, tuples),
           },

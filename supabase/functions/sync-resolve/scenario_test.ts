@@ -103,6 +103,9 @@ function server(): Server {
       last_synced_at: null,
       last_error: null,
       connected_at: '2026-08-30T00:00:00.000Z',
+      confirmed_at: '2026-08-30T00:00:00.000Z',
+      confirm_token: null,
+      confirm_token_expires_at: null,
       oauth_state: null,
       oauth_state_expires_at: null,
       timezone: 'Europe/Kyiv',
@@ -154,6 +157,7 @@ function webhookDeps(s: Server, page: EventsPage): WebhookDeps {
       return Promise.resolve();
     },
     loadWriteBackRecs: () => Promise.resolve([]),
+    loadWriteBackMirrored: () => Promise.resolve([]),
     saveWriteBack: () => Promise.resolve(),
     loadStateByChannel: (id) => Promise.resolve(id === 'ch1' ? s.gcal : null),
     loadConnected: () => Promise.resolve([s.gcal]),
@@ -166,6 +170,8 @@ function rewardDeps(s: Server): RewardDeps {
     now: () => s.clock,
     verifyUser: () => Promise.resolve(USER),
     serviceKey: 'k',
+    acquireLease: () => Promise.resolve('lease'),
+    releaseLease: () => Promise.resolve(),
     loadProfile: () =>
       Promise.resolve({
         timezone: 'Europe/Kyiv',

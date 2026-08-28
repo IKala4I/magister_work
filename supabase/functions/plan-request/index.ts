@@ -8,6 +8,7 @@
  * (asymmetric project keys via JWKS), so the gateway's legacy HS256 check is not relied on.
  */
 import { createClient } from '@supabase/supabase-js';
+import { withLease } from '../_shared/lease.ts';
 import { handlePlanRequest } from './handler.ts';
 import { countPlansLast24h, loadContext } from './context.ts';
 import { persist } from './persist.ts';
@@ -43,7 +44,9 @@ Deno.serve(async (req: Request) => {
         loadContext(userClient, userId, planDate, horizon, nowMs),
       countPlansLast24h: (userId, nowMs) => countPlansLast24h(userClient, userId, nowMs),
       callService: (body, budgetMs) => callService(serviceConfig, body, budgetMs),
-      persist: (input) => persist(admin, input),
+      // under the user's lease so a concurrent pull never straddles the plan's server_seq
+      // assignment and its commit (ADR-0012 §7; adversarial #14)
+      persist: (input) => withLease(admin, input.userId, () => persist(admin, input)),
       wakeService: () => {
         const probe = wakeService(serviceConfig);
         // deno-lint-ignore no-explicit-any
