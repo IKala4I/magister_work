@@ -113,7 +113,14 @@ case "${1:-}" in
     [ -n "$tag" ] || exit 0                       # no tag (or IMDS down): keep what we have
     mapfile -t want < <(parse_list "$tag")
     [ ${#want[@]} -gt 0 ] && [ -n "${want[0]}" ] || { log "tag '$TAG_KEY' has no valid entry — keeping the current list" >&2; exit 0; }
-    if [ "$(printf '%s\n' "${want[@]}")" = "$(current_list)" ] && [ "$(live_rules)" = "$(current_list)" ]; then exit 0; fi
+    if [ "$(printf '%s\n' "${want[@]}")" = "$(current_list)" ] && [ "$(live_rules)" = "$(current_list)" ]; then
+      # nothing to change — but record that the tag now governs the list (status stays truthful)
+      if ! grep -q '^# source=tag' "$STATE" 2>/dev/null; then
+        { echo "# source=tag confirmed=$(date -u +%FT%TZ)"; printf '%s\n' "${want[@]}"; } > "$STATE.tmp"
+        install -m 644 "$STATE.tmp" "$STATE"; rm -f "$STATE.tmp"; log "tag matches the applied list — tracking the tag from now on"
+      fi
+      exit 0
+    fi
     apply_list tag "${want[@]}" ;;
   apply)
     shift; mapfile -t want < <(parse_list "$@")
