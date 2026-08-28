@@ -320,8 +320,8 @@ File 03/04) a nightly `train.yml` on GitHub-hosted runners with an HF Hub push; 
 as the thesis states it: (1) the controller is in Ukraine (no adequacy decision), so every
 export from the EU processors to the researcher is a Chapter V transfer (EDPB 05/2021 Examples
 6/10); (2) GitHub-hosted runners and HF Hub are US processing; (3) a row-level dataset of 42
-people is not anonymous by relabelling. **Resolution (proposed, owner decision):**
-`docs/decisions/ADR-0011-cross-border-transfers.md` — recommended: analysis + training on the
-EU VM, `train.yml` on synthetic data only, `artifact_uri` = Supabase Storage (EU), public release
-as a synthetic dataset + replay harness and/or a restricted-access OSF deposit (Frankfurt
-storage). Text: thesis-corrections #34–36.
+people is not anonymous by relabelling. **Resolution (owner decision 2026-08-28, ADR-0011
+accepted — option A):** analysis + training on the EU VM, `train.yml` on synthetic data only,
+`artifact_uri` = Supabase Storage (EU), public release = synthetic dataset + replay harness, the
+real log as a restricted-access OSF deposit (Frankfurt storage). Text: thesis-corrections
+#34–36. PLAN P11 amended accordingly.

@@ -78,10 +78,12 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   the stronger answer. — P8: when sync-resolve shares the path, move map+write into one RPC.
 - [P7.1, 2026-08-27] File 06 §5 archive + P11 training on GitHub-hosted runners — EDPB 05/2021
   Example 10 makes exports from EU processors to the controller in Ukraine (and to US runners) a
-  Chapter V transfer; the specs assume none. — **Analysis written 2026-08-27: ADR-0011
-  (proposed).** Owner decision pending — needed before the consent text (P8/P9) and P11;
-  recommended default = option A (in-region analysis + training on the VM, aggregates only,
-  Art. 49(1)(a) clause). `docs/privacy/README.md` G2–G6; thesis-corrections #34–36.
+  Chapter V transfer; the specs assume none. — **Decided 2026-08-28: ADR-0011 accepted, option
+  A.** Open follow-ups: P8 — region pin on `functions.invoke` + consent clause + "EU/EEA
+  resident?" in enrollment; P10 — local notifications only; P11 — `training/` container on the
+  VM (check arm64 wheels for `implicit`/`scikit-learn`), `train.yml` on synthetic data, registry
+  in Supabase Storage, `erase_user`/`diagnose_user` RPCs (privacy README §7); OSF freeze —
+  synthetic dataset + restricted deposit (Frankfurt). `docs/privacy/README.md` G2–G6, §7.
 - [P7.1, 2026-08-27] Oracle sub-processor list is My-Oracle-Support-only and Always Free
   tenancies have no support access (privacy README G1). — **Owner 2026-08-27: PAYG deferred**
   (no reclamation exemption; keep-busy stays on); revisit before participant enrollment, when

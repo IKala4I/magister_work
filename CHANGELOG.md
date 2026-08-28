@@ -1,5 +1,46 @@
 # Changelog
 
+## P7.1b — SSH access model + ADR-0011 accepted (2026-08-28, phase/P7-hosting-ssh)
+
+**SSH access model reworked (owner request: laptop, changing networks, never "locked out and
+confused").** Runbook `docs/runbooks/oracle-vm.md` §0 states what is and is not address-bound:
+80/443 are open to the world (edge functions, phones, CI, monitoring — nothing in the running
+app depends on the owner's IP); only port 22 is locked, by **two independent lists that are both
+edited from any browser**: the OCI Security List (network layer) and the instance freeform tag
+`ssh-allow` (host layer — `hourwell-ssh-allow.timer` reads it from IMDS every minute and rewrites
+the `HOURWELL-SSH` iptables chain; fail-safe: missing/unreadable tag ⇒ keep the current list,
+never empty). `harden.sh apply <IP> [<IP>…]` takes a list and installs the chain + timer; the
+separate "persist" step is gone (`rules.v4` is regenerated from a host-only template — Docker
+chains are no longer persisted, a reboot hazard); GRUB shows a 3-second menu on the serial
+console; `harden.sh console-password` sets a **console-only** password for `ubuntu` (sshd keeps
+password auth off; root stays locked) — without it the serial console is a login prompt nobody
+can pass (both accounts were locked). Owner-side `deploy/ssh-allow.sh` (`me | init | list | add |
+remove | selftest`) edits both locks in one line once the OCI CLI is configured (optional;
+transforms self-tested, CLI calls exercised at first use). `verify.sh` re-checks the chain, its
+persistence, the timer, IMDS, the tag, the recovery path (GRUB, serial getty, console
+password). Runbook §5 is the **lockout recovery ladder** written for a stressed reader: A
+(address, with how to tell which lock from the ssh error), B (serial console via Cloud Shell,
+click by click, out-of-band — bypasses both locks), C (GRUB `init=/bin/bash` password reset), D
+(laptop gone). §0 states the trade-off: the box holds `DATABASE_URL`; an internet-open 22 is the
+wrong risk; the cost is list management.
+
+**ADR-0011 accepted (owner decisions 2026-08-28).** Population = recruited in Ukraine, EU
+residents possible and not designed against; **Art. 27 representative = conditional obligation**
+triggered by the first EU/EEA-resident participant (privacy README G6, enrollment checklist);
+**option A** — analysis + training on the EU VM, `train.yml` on synthetic data only, registry in
+Supabase Storage, aggregates only to the researcher, Art. 49(1)(a) clause in the consent form;
+release = synthetic dataset + replay harness (public) + restricted-access deposit on OSF
+Frankfurt; thesis-corrections #34–36 now carry the exact replacement wording (incl. the
+"anonymized" over-claim); **privacy README §7 = the operator access rule for path 4** (what may /
+may not be opened from the Mac once a real participant exists; RPCs for erasure/diagnosis;
+access log outside the repo); PAYG stays deferred. PLAN P11 amended; spec-conflicts H5 resolved;
+revisit follow-ups per phase.
+
+**Box state (2026-08-28):** deployed and applied from the owner's address; fresh-connection SSH
+re-check OK; console password set (stored in `~/.hourwell/console-password`, to be copied to the
+password manager); `verify.sh` — see HANDOFF for the exact remaining FAILs (app checks pending
+`DATABASE_URL` + install). DuckDNS `hourwell-recsys.duckdns.org → 84.235.238.25` verified.
+
 ## P7.1 — RecSys hosting on the Oracle VM (2026-08-27, phase/P7-hosting)
 
 **ADR-0009 accepted (option A).** The owner provisioned an Oracle Cloud Always Free Ampere A1 VM

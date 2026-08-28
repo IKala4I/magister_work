@@ -1,8 +1,9 @@
 # ADR-0011 — Cross-border data flows (GDPR Chapter V) for a controller established in Ukraine
 
 - **Date:** 2026-08-27
-- **Status:** proposed — **owner decision** (claim-level: it changes what the thesis says about
-  "EU hosting", not how the system is built; owner directive 2026-08-27: do not defer to P11)
+- **Status:** **accepted** (owner decision 2026-08-28 — see "Decision"); claim-level: it changes
+  what the thesis says about "EU hosting", not how the system is built (owner directive
+  2026-08-27: not deferred to P11)
 - **Phase:** P7.1 (applies to P8/P9 consent text, P10 notifications, P11 pipeline, P12 DPIA)
 - **Spec anchors:** NFR-S2 (EU region hosting), NFR-S3 (no raw text in cross-user training),
   File 06 §1.3 (participants), §5 (artefact statement: "anonymized event dataset (Parquet, HF
@@ -150,10 +151,38 @@ the keep-busy timer into useful work. B is the fallback if GitHub orchestration 
   only `console.error('<fn> failed', err)`; `apps/mobile/src` has no `expo-notifications` usage;
   `@supabase/supabase-js ^2.112.4` exports `FunctionRegion`.
 
+## Decision (owner, 2026-08-28)
+
+1. **Population.** Recruitment is in Ukraine (university lists, local productivity
+   communities); participants are treated as Ukraine-based, with EU/EEA residents possible and
+   **not designed against**. Nothing in the system depends on the answer (option A makes it
+   irrelevant to the lawful-basis question). The **Art. 27 representative** is recorded as a
+   **conditional obligation**: it triggers if any EU/EEA-resident participant enrolls, and the
+   enrollment checklist (File 06 §1.3, P11 study mode) asks the question so it cannot surprise
+   anyone (privacy README G6).
+2. **Option A — in-region by construction.** Analysis and training run on the EU VM
+   (`training/` container + systemd timer, replacing the synthetic keep-busy load); `train.yml`
+   runs in CI on **synthetic data only**; the model registry lives in **Supabase Storage** (EU) —
+   `model_registry.artifact_uri` is an EU storage URI, not an HF Hub reference; the researcher
+   receives **aggregates only**; the Art. 49(1)(a) clause goes into the consent form as the
+   backstop for incidental administrative access. Rationale in the owner's words: it makes the
+   thesis claim true rather than defensible-with-caveats, at no cost, and it survives both the
+   population question and the DPF appeal.
+3. **Release.** Public artefact = **synthetic dataset + the replay harness**; the real
+   pseudonymised event log goes to a **restricted-access deposit on EU storage** (OSF, Frankfurt
+   region, data-use agreement). File 06 §5's "anonymized" is an over-claim (42 × 8 weeks of
+   timestamps is pseudonymised at best) — the exact replacement wording is thesis-corrections
+   #35–36.
+4. **Path 4 discipline** (dashboard/CLI from the researcher's Mac) is written as a followable
+   rule in `docs/privacy/README.md` §7 — what may and may not be opened once real participant
+   data exists — not as a caveat.
+5. **PAYG** stays deferred (no reclamation exemption; keep-busy on) until before enrollment.
+
 ## Consequences (apply once the owner decides)
 
 - **P8:** pin `region` on both `functions.invoke` sites in the new sync engine; draft the consent
-  clause with the FR-42 texts. **P10:** notifications local-only or text-free. **P11:** training +
+  clause with the FR-42 texts; the onboarding/enrollment flow records country of residence for
+  the Art. 27 trigger (a yes/no in study mode, not free text). **P10:** notifications local-only or text-free. **P11:** training +
   analysis container on the VM (`training/` gains a `Dockerfile` and a systemd timer next to the
   keep-busy one; arm64 wheel check), model registry in Supabase Storage, `train.yml` on synthetic
   data only, anonymisation/synthetic-release procedure, the NFR-S3 export query test stays.

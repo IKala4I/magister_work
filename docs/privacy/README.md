@@ -2,8 +2,10 @@
 
 Working notes toward the DPIA (full document due P12; this file accumulates evidence per phase).
 Roles: **controller** = the researcher (thesis owner, established in Ukraine); **data subjects** =
-study participants (EU); **processors** = the table in §2. Updated 2026-08-27 for the self-hosted
-RecSys VM (ADR-0009) — a change in the data-protection picture, recorded like the HF EU finding.
+study participants — recruited in **Ukraine**, EU/EEA residents possible (ADR-0011 decision 1:
+the design meets the stricter EU regime either way); **processors** = the table in §2. Updated
+2026-08-27 for the self-hosted RecSys VM (ADR-0009) and 2026-08-28 for the cross-border
+decisions (ADR-0011) — both changes in the data-protection picture, recorded like the HF EU finding.
 
 ## 1. Hosting regions (NFR-S2: EU region hosting)
 
@@ -46,7 +48,7 @@ re-verifiable with `deploy/verify.sh`):
 | Personal data on the box  | **In transit / in memory only.** `/plan` requests carry the pseudonymous user id, task attributes (category, minutes, value, deadlines — never titles), calendar busy intervals (times only), the Beta-cell evidence; `/feedback` carries reward tuples with numeric feature snapshots; `/parse-preview` receives quick-add text and returns a parse without storing or logging it. Per-user model state is read/written in Postgres (eu-west-1), never stored on the VM. |
 | Data at rest on the box   | None that is personal: the container image, Caddy's TLS material, Caddy's access log (client IPs = Supabase egress + the operator; rotated 3 × 10 MB, ≤ 7 days), container stdout logs (3 × 10 MB; the service logs paths/status codes, not bodies). Erasure requests (FR-42) therefore have nothing to erase on the VM.                                                                                                                                                  |
 | Credentials on the box    | `DATABASE_URL` (pooler DSN — currently the `postgres` role: least-privilege `recsys_service` role is a P12 runbook item, revisit.md) and `HOURWELL_SERVICE_KEY`, in `~/hourwell/.env` (mode 600, owner-only user). Rotation procedure: runbook §9.                                                                                                                                                                                                                        |
-| Access control            | One user, key-only SSH from the owner's IP (Security List + iptables), no root login, no password auth, no forwarding; Docker daemon on the unix socket only; only Caddy exposes ports (80/443).                                                                                                                                                                                                                                                                          |
+| Access control            | One user, key-only SSH from the owner's addresses only — two independent locks, both browser-managed (Security List; host allow-list synced from the instance tag `ssh-allow`, runbook §0); no root login, no password auth over the network (a console-only password exists for the out-of-band serial console — lockout recovery, runbook §5); no forwarding; Docker daemon on the unix socket only; only Caddy exposes ports (80/443).                                 |
 | Patching                  | **Ours.** `unattended-upgrades` daily with automatic reboot at 04:15 UTC; Docker/Compose updates via apt; the image is rebuilt by CI on every service change (base image `python:3.12-slim`, refreshed on each build).                                                                                                                                                                                                                                                    |
 | Availability / resilience | Single instance, no SLA; the app degrades to the heuristic fallback (NFR-R2) and reward tuples wait for re-delivery — no data loss on outage (ADR-0010 §8). Oracle may reclaim idle Always Free instances only when CPU, network and memory are all below their 7-day thresholds (guard: the hourly keep-busy timer).                                                                                                                                                     |
 | Monitoring                | `/healthz` (build, arch, storage) polled by CI after each publish; Caddy/compose logs; no third-party monitoring receives data.                                                                                                                                                                                                                                                                                                                                           |
@@ -88,9 +90,15 @@ re-verifiable with `deploy/verify.sh`):
   by relabelling; publication is lawful only if genuinely anonymous. ADR-0011 §4: synthetic
   dataset + replay harness, and/or restricted-access OSF deposit (Frankfurt storage). ⛔ owner
   decision at the OSF freeze.
-- **G6 — Art. 27 representative.** If participants are in the EU, a controller in Ukraine
-  monitoring their behaviour for 8 weeks needs a representative in the Union unless Art. 27(2)
-  applies (it does not read as "occasional"). ADR-0011 §6.
+- **G6 — Art. 27 representative — conditional obligation (owner decision 2026-08-28).**
+  Recruitment is in Ukraine, so by default the GDPR does not bind the researcher and no
+  representative is needed. **Trigger:** the first EU/EEA-resident participant. From then on the
+  researcher is subject to the GDPR under Art. 3(2)(b) (8 weeks of behavioural monitoring is not
+  "occasional" — Art. 27(2) does not exempt) and must designate a representative in the Union
+  **before** that participant's enrollment (candidates: the supervising institution's EU partner;
+  otherwise a commercial representative — cost, needs owner approval under invariant 11). The
+  study-mode enrollment checklist (P11) asks "resident in the EU/EEA?" so the trigger cannot be
+  missed; the DPIA (P12) records the answer per cohort. ADR-0011 §1, §6.
 
 ## 5. Data-minimization commitments already enforced in schema (P1)
 
@@ -107,3 +115,44 @@ re-verifiable with `deploy/verify.sh`):
 Raw `events`: 24 months → pseudonymized Parquet archive (File 06 §5 — see G2 for where it may
 live). Unconverted anonymous accounts: purged after 30 days. Account deletion completes ≤30 days
 with email confirmation (UC-10). VM logs: ≤ 30 MB rotated, ≤ 7 days (Caddy).
+
+## 7. Operator access rule — path 4 (ADR-0011 decision 4; in force from the first real participant)
+
+Everything the researcher opens from a machine outside the EU is a Chapter V transfer the moment
+it shows a participant's row. Option A only holds if daily operations respect this. The rule:
+
+**MAY, any time (no participant rows are shown):**
+
+- Migrations, `supabase db push/diff/pull`, `supabase gen types`, function deploys, secrets,
+  Vault, `config.toml`, Edge Function **error** logs (`console.error('<fn> failed', err)` — paths
+  and errors only), `cron.job_run_details`, `net._http_response` (status + the functions' count
+  responses), `/healthz`, Caddy/compose logs on the VM (paths, status codes, Supabase egress IPs).
+- Tables with no per-user rows: `prior_cells`, `model_registry`, `deletion_audit` (user hash
+  only), the training pipeline's aggregate outputs.
+- **Aggregate queries** (`count`, `avg`, quantiles, histograms) over user-owned tables **with a
+  minimum group size of 5** and no free-text column in the output; PostHog dashboards
+  (aggregates); the File 06 analysis outputs (coefficients, tables, plots) produced **on the VM**.
+
+**MUST NOT (once a real participant exists):**
+
+- The dashboard **Table Editor** on `auth.users`, `profiles`, `tasks`, `events`, `plans`,
+  `recommendations`, `feedback_rewards`, `duration_estimates`, `calendar_events`, or any
+  `select *` / row-level `select` on them from the SQL editor or CLI; **Authentication → Users**
+  (e-mails); CSV/JSON export; `supabase db dump` with data; the Logs explorer at request/body
+  level; PostHog **person** profiles and per-person event streams.
+- Copying any per-user dataset (Parquet, CSV, `pg_dump`) to the laptop — the File 06 analysis
+  and OPE run on the VM (ADR-0011 option A) and hand back aggregates.
+
+**Row-level access that cannot be avoided** (a participant's own support request, an FR-42
+erasure, a bug that only reproduces on their data):
+
+1. Prefer a **purpose-built RPC** that acts without displaying rows (`erase_user(email)`,
+   `diagnose_user(email)` returning counts/timestamps — add them in P8/P9 as needed).
+2. If a row must be seen: minimum columns, that participant only, from the VM
+   (`docker compose exec recsys …` / `psql` inside the compose network) — the screen is still a
+   transfer, so this is the case the consent form's Art. 49(1)(a) clause covers.
+3. Log it in `~/.hourwell/access-log.md` (date, participant hash, purpose, tables) — outside the
+   repo; the DPIA (P12) summarises the log.
+
+**Before the first participant:** none of this applies — the hosted project holds only the
+researcher's own test accounts, and the P7/P8 verification scripts may read rows freely.
