@@ -61,8 +61,9 @@ op_id) DO NOTHING`; referenced `task_id` / `recommendation_id` must be the user'
      `version` must equal `base_version`; on mismatch the op returns **`conflict` + the server
      row** (the diagram's 409) and the client performs the **field-level merge** (decision 4),
      rewrites the op in place (same `op_id`, new payload, `base_version` = server version) and
-     replays it in the next round. Applied rows keep the client's `updated_at`; the trigger bumps
-     `version`.
+     replays it in the next round. Applied rows keep the client's `updated_at` (the migration
+     makes the touch trigger fire only when the writer did not set it — the merge needs edit
+     times on both sides, spec-conflicts L30); the trigger bumps `version`.
    - _Class 3 — semantic:_ `recommendation_status` ops (only `accepted` today, L11 vocabulary
      `{accepted, pinned, moved, rejected}`) are **state-checked, not version-checked**: applied
      when the row is still in the plan-review set and unattributed, `superseded` (acked, moot)
@@ -79,8 +80,10 @@ op_id) DO NOTHING`; referenced `task_id` / `recommendation_id` must be the user'
    `archived` beats the plan-mirror statuses, `postpone_count` = max; the plan-mirror statuses
    (`inbox`/`scheduled`) follow the LWW winner. Profiles: all fields are user-owned settings →
    row-level LWW by `updated_at`. The merged row is written locally **without a new op** (the
-   rewritten op carries it) so the outbox never grows from a conflict; a second conflict needs a
-   second concurrent server write, so the loop is bounded by construction (3 rounds per sync).
+   rewritten op carries it) so the outbox never grows from a conflict; every other unacked op of
+   the same entity **collapses** into the rewritten one (full-row payloads make the newest state
+   the whole history); a second conflict needs a second concurrent server write, so the loop is
+   bounded by construction (3 rounds per sync).
 
 5. **Pull — RPC `sync_pull(p_cursor, p_limit)`,** `security invoker` under the user's RLS (one
    more bug class made impossible: the pull cannot leak another user's row even with a broken
@@ -89,9 +92,10 @@ op_id) DO NOTHING`; referenced `task_id` / `recommendation_id` must be the user'
    MMKV — `src/sync/cursor.ts`), `has_more` when the page was full. The client applies a page in
    **one SQLite transaction**: upsert by primary key; rows whose entity has an **unacked local
    op are skipped** (the next push resolves them through decision 3/4 — pushing first is what
-   makes this safe); a pulled `displaced` recommendation mirrors its task back to the Inbox
-   (status only — a displacement is not the user's postponement, so `postpone_count` and the
-   local `skip_streak` stay; through the outbox like every task write); a pulled
+   makes this safe); a pulled `displaced_pending` or `displaced` recommendation mirrors its
+   task back to the Inbox (status only — a displacement is not the user's postponement, so
+   `postpone_count` and the local `skip_streak` stay; through the outbox like every task write —
+   the pending state already renders as displaced, only the reward path distinguishes them); a pulled
    `conflict_flag = true` row surfaces the File 05 §2 toast ("Meeting imported — your completed
    session is kept"). **`events` are not pulled** [INFERRED]: no screen reads another device's
    raw facts (the lapse scan reads local `focus_sessions`; P9's review reads server aggregates),
@@ -116,9 +120,9 @@ op_id) DO NOTHING`; referenced `task_id` / `recommendation_id` must be the user'
    "P8: move map+write into one RPC": the mapping stays in TypeScript (moving `rewards.ts` into
    plpgsql would fork the reward logic), but `sync-resolve` and the daily sweep serialise per
    user through a lease with a TTL (a crashed holder cannot wedge the user). `sync-resolve`
-   answers `409 busy` while another sync of the same user holds it (the client retries with
-   backoff); the daily sweep **skips** a leased user for that tick. `gatePatches` (ADR-0010 §3)
-   stays as defence in depth.
+   answers `409 busy` while another sync of the same user holds it (the client reports `busy`
+   and the next trigger retries). The daily sweep does **not** take the lease yet — `gatePatches`
+   (ADR-0010 §3) remains its guard; making the sweep lease-aware is a revisit item.
 
 8. **`persist_plan` RPC (revisit ADR-0008 §4):** plan row + recommendation rows + supersede in
    **one transaction**, `security definer`, service-only; `persist.ts` calls it and the
@@ -178,9 +182,11 @@ op_id) DO NOTHING`; referenced `task_id` / `recommendation_id` must be the user'
     signs in and the previous uid still has unacked ops, the mirror is **not** wiped: the cursor
     resets (the new account pulls from 0), rows stay namespaced by `user_id` (screens already
     filter by `currentUserId()`), the engine pushes only the signed-in uid's ops, and a calm
-    banner offers **Discard** (wipe now) or **Keep**. The previous account signing back in
-    cancels the pending wipe and pushes its ops. Without unacked ops the wipe stays immediate
-    (privacy default).
+    banner offers **Discard** (wipe that identity's rows and ops now) or **Keep** (rows stay
+    namespaced; the question is not asked again). The previous account signing back in cancels
+    the pending wipe and pushes its ops; if its ops were meanwhile all acked, the rows are
+    dropped silently at the next sign-in. Without unacked ops the wipe stays immediate (privacy
+    default).
 
 12. **ADR-0011 items for P8:** the region pin (decision 1); `profiles.eu_eea_resident boolean`
     (null = not asked; the yes/no question is asked by P11's study-mode enrollment, not by

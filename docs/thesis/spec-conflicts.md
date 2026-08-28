@@ -227,7 +227,8 @@ decision rule (defensibility → consistency → measurability → pragmatics) a
   File 05 §2 assumes push-then-pull sync — but sync is P8, so before P6 the server holds no
   task rows. Normative for P6–P7: a task-push bridge (same pattern as the P4 profile bridge,
   last-write-wins, own rows through RLS) runs before every plan request; P8 replaces it with
-  op replay. ADR-0008 §5.
+  op replay. ADR-0008 §5. **Closed in P8:** the three bridges are deleted; `sync-resolve`
+  replays the outbox (ADR-0012).
 - **L20.** UC-03 "System (06:00 local or first open)" reads as a scheduled trigger; invariant 7
   forbids correctness that depends on background execution. Normative: lazy triggers — first
   open/foreground on a plan day without a plan; 06:00 is the plan-day boundary; the 06:00
@@ -312,6 +313,38 @@ GitHub secrets are created, and P7 proceeds (its work is service-internal and lo
   keeps `DURATION_EWMA_ALPHA` pinned. ADR-0010 §9.
 
 ## Post-review additions (P7.1, 2026-08-27)
+
+## Post-review additions (P8, 2026-08-28)
+
+- **L28.** File 05 §2 "merge pull payload" names no table set. Normative [INFERRED]: the pull
+  streams `profiles`, `tasks`, `plans`, `recommendations`, `calendar_events` by `server_seq`
+  (one cursor); **`events` are not pulled** — no screen reads another device's raw facts and the
+  append-only log is the largest table; P9's review reads server aggregates. ADR-0012 §5.
+- **L29.** File 05 §2 shows the counterfactual branch (`displaced_pending` → `displaced`) "at
+  sync time" without saying when a pending displacement stops waiting for facts. Normative: the
+  reward mapping resolves it — completion evidence at any time → `completed` + `conflict_flag`
+  with an EXCLUDED tuple (H3); no evidence once the slot can no longer be resumed
+  (`slot_end + 15 min`) or at the daily job → `displaced`, no tuple; until then it stays
+  pending (the device may still hold facts). `attribution_due` therefore includes
+  `displaced_pending`. A cancelled meeting does not un-displace (File 05 §2: "replacement
+  suggested at next planning event"). ADR-0012 §9.
+- **L30.** File 05 §2 "user-owned fields LWW" needs an edit time on both sides; specs/07 §4's
+  `updated_at` is trigger-touched on every server update, which would make a device's second
+  offline edit lose to its own first edit's apply time. Normative: the touch trigger only fires
+  when the writer did not set `updated_at`; `sync_replay()` keeps the client's edit time;
+  clocks may differ across devices (documented, accepted). ADR-0012 §3–4.
+- **L31.** File 03 §1.1 "shared types compiled in CI" covers the FastAPI OpenAPI document and
+  the database; the edge functions have no OpenAPI document, so their wire types are
+  hand-written mirrors (`_shared/sync_types.ts` ↔ `apps/mobile/src/sync/types.ts`) pinned by
+  a Deno drift test against the client `OP_TYPES` and the SQL RPC. ADR-0012 §1.
+- **L32.** specs/07 §4.1 `calendar_events` has no tombstone; a cancelled meeting would need a
+  hard delete, which offline mirrors cannot observe. Normative: `deleted_at` (same reasoning
+  as `tasks.deleted_at`); busy reads filter it. ADR-0012 §5.
+- **L33.** specs/07 §4.4 lists `gcal_sync_state` as "webhook EF writes" only; P8 adds the
+  server-held OAuth state (refresh token, channel secret, one-shot consent nonce) to the same
+  server-only table and the write-back mirror columns to `recommendations`
+  (`gcal_event_id`, `gcal_synced_slot_start`). The client's UPDATE grant stays `status,
+version`. ADR-0012 §10/§13.
 
 ### H5. File 06 §5 and specs/07 `model_registry.artifact_uri` put participant-derived data and the training run outside the EU
 

@@ -11,7 +11,8 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   before a potentially different-account magic link is SENT, but the deep-link/OAuth arrival
   path still applies the wipe without confirmation (the session is already established when the
   transition runs). Pre-P8 blast radius = the previous account's unsynced tasks. — P8: hold the
-  wipe behind a deferred-transition confirm when unacked ops exist.
+  wipe behind a deferred-transition confirm when unacked ops exist. — **DONE P8** (ADR-0012
+  §11: deferred wipe, Today banner Keep/Discard, owner sign-back-in cancels).
 - [P4, 2026-08-26] ADR-0005 §6 (instantiate from max prior_cells version) — fine while only v0
   exists; once P11's empirical-Bayes refresh lands, "highest version" should probably become
   "highest PROMOTED version" via model_registry. — decide in P11 with the registry gate.
@@ -42,6 +43,7 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   horizon-specific budget by ADR; re-measure on the 2 vCPU Space first.
 - [P6, 2026-08-26] Task-push bridge (`apps/mobile/src/sync/taskPush.ts`) is last-write-wins by
   design (ADR-0008 §5). — P8: replace with op replay (base_version checks) and delete the bridge.
+  — **DONE P8** (bridges deleted; `sync_replay()` + `src/sync/engine.ts`).
 - [P6, 2026-08-26] Timeline as a row list (ADR-0008 §7) — reads fine but loses the "shape of
   the day" a proportional canvas gives. — P9 (Skia work): evaluate a proportional timeline that
   still passes the 200 % font-scale and screen-reader checks.
@@ -51,7 +53,8 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   distributions across arms; consider rendering learned rows in a compressed band.
 - [P6, 2026-08-26] `persist.ts` writes plans + recommendations + supersede as three PostgREST
   calls with a compensating delete (ADR-0008 §4). — P8 (sync-resolve needs transactional writes
-  anyway): one `security definer` RPC, service-role only, for plan persistence.
+  anyway): one `security definer` RPC, service-role only, for plan persistence. — **DONE P8**
+  (`persist_plan()`; pgTAP proves atomicity).
 - [P6, 2026-08-26] Drop rates on the randomized slice differ by arm by construction (the EF drops
   only on pinned occupancy; the service on any INFEASIBLE). — P11: report `experiment_dropped`
   per arm and condition the replay on the arm.
@@ -76,6 +79,9 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
 - [P7, 2026-08-27] `gatePatches` (adversarial #6) closes the daily/instant race by re-reading the
   stored tuple before patching; a per-user `pg_advisory_xact_lock` RPC around map+write would be
   the stronger answer. — P8: when sync-resolve shares the path, move map+write into one RPC.
+  — **DONE P8, differently** (ADR-0012 §7): a per-user lease (`sync_leases`, TTL 30 s)
+  serialises sync-resolve; the mapping stays in TypeScript (no plpgsql fork). Open: the daily
+  sweep does not take the lease — `gatePatches` remains its guard (see the P8 line below).
 - [P7.1, 2026-08-27] File 06 §5 archive + P11 training on GitHub-hosted runners — EDPB 05/2021
   Example 10 makes exports from EU processors to the controller in Ukraine (and to US runners) a
   Chapter V transfer; the specs assume none. — **Decided 2026-08-28: ADR-0011 accepted, option
@@ -93,3 +99,24 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   (`p5-manual-verification.md` §2.2). — **P9 (weekly plan UI), owner-visible:** a longer budget
   for week horizons (seven day-plans' worth?), fewer candidate starts per task, or an explicit
   partial-plan contract. Threshold itself re-fitted to 3·10³ (ADR-0007 §11 addendum).
+- [P8, 2026-08-28] ADR-0012 §7 lease — `sync-resolve` takes it, the daily `attribute-rewards`
+  sweep does not (it iterates users from `attribution_due`); the P7 `gatePatches` re-read is the
+  only guard between a sweep and a concurrent sync of the same user. — P9/P10: have the daily
+  sweep `acquire_sync_lease` per user and skip busy users for that tick (the ADR text already
+  promises it).
+- [P8, 2026-08-28] Write-back events stay in the user's Google Calendar after `disconnect`
+  (the token is revoked before they could be deleted). — P9: delete the mirrored events
+  best-effort BEFORE revoking; or document in the consent text.
+- [P8, 2026-08-28] `mapGoogleEvent` assumes Google returns `transparency: transparent` for
+  default all-day events (its UI default "Free"); if not, a birthday would block a whole day. —
+  Verify on the first live calendar (runbook §3); fall back to "all-day never busy" if wrong.
+- [P8, 2026-08-28] `sync_ops` has no retention (idempotency window = forever). Volume is tens
+  of rows per user-day. — P12 runbook: prune ledger rows older than 90 days if the table ever
+  matters; `events` keeps its own UNIQUE regardless.
+- [P8, 2026-08-28] A cancelled meeting never un-displaces a block (File 05 §2 says the
+  replacement comes with the next plan). Fine for the study; a product would revert
+  `displaced_pending` → previous status when the overlap disappears before the slot. — P9 UI
+  review.
+- [P8, 2026-08-28] UC-09 "≤ 5 min" is the server-side bound; the client's 60 s foreground poll
+  is the device half. — P10 notifications: a displacement could push a local notification
+  ("a meeting took 14:00 — Slides is back in your Inbox") without any background sync.

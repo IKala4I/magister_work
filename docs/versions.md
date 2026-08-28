@@ -167,6 +167,16 @@ Gotcha recorded: RNTL 14 on the universal renderer makes `render` and post-press
 asynchronous — assert after `await act(async () => { fireEvent.press(…) })` (the Inbox tests'
 pattern); `findBy*` / `waitFor` hung the suite in P7.
 
+## P8 additions (verified 2026-08-28)
+
+| Package / tool                         | Version          | Notes                                                                                                                                                                                                                                                                                                                                               |
+| -------------------------------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| expo-network                           | ~57.0.1          | `addNetworkStateListener` → reconnect trigger for the sync engine (`npx expo install expo-network` from apps/mobile; expo-doctor 21/21)                                                                                                                                                                                                             |
+| @supabase/supabase-js `FunctionRegion` | 2.112.4 (pinned) | `functions.invoke(name, { region: FunctionRegion.EuWest1 })` — enum members verified in `@supabase/functions-js` types (`EuWest1 = 'eu-west-1'`); the header `x-sb-edge-region` confirms the region live                                                                                                                                            |
+| Google Calendar API v3 (REST, fetch)   | —                | `events.list` (`syncToken`, `singleEvents`, `showDeleted`, 410 → full resync), `events.watch` (`web_hook`, `params.ttl` default 604 800 s, `expiration` ms), `channels.stop`, `events.insert/patch/delete`; OAuth 2.0 web-server flow (`accounts.google.com/o/oauth2/v2/auth`, `oauth2.googleapis.com/token` + `/revoke`) — ctx7 2026-08-28; no SDK |
+| drizzle-kit `generate`                 | 0.31.10          | `npx drizzle-kit generate --name p8_sync` from apps/mobile → `drizzle/0004_p8_sync.sql` + journal + `migrations.js` (expo driver)                                                                                                                                                                                                                   |
+| supabase CLI `db query --linked`       | 2.115.0          | Management-API SQL against the linked project; one script = one implicit transaction; only the LAST statement's rows come back — `scripts/pgtap-linked.sh` uses it for rolled-back pgTAP runs (no Docker on the dev Mac)                                                                                                                            |
+
 ## P7.1 hosting additions (verified 2026-08-27)
 
 | Component                                              | Version / value               | Notes                                                                                                 |
