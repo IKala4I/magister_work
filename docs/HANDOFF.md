@@ -54,60 +54,74 @@
   #34–36; spec-conflicts H5.
 - **Owner decisions recorded 2026-08-27:** PAYG deferred until before enrollment (keep-busy
   stays on — ADR-0009 §7); the transfer analysis is not deferred to P11 (this ADR).
+- **2026-08-28 — SSH access model reworked (PR #10, `phase/P7-hosting-ssh`) + ADR-0011
+  accepted.** Runbook §0 (what is address-bound: only port 22; two browser-editable locks —
+  Security List + instance tag `ssh-allow` synced by `hourwell-ssh-allow.timer` into the
+  `HOURWELL-SSH` chain), §4 (`harden.sh apply <IP list>`, console-only password, optional OCI
+  CLI one-liners `deploy/ssh-allow.sh`), §5 (lockout recovery ladder A–D). On the box:
+  applied from 193.0.218.70, fresh-connection re-check OK, console password set
+  (`~/.hourwell/console-password` — owner copies it to the password manager), `rules.v4` now
+  host-only, GRUB menu 3 s on serial, `verify.sh` green except the app checks that wait for
+  `DATABASE_URL` + install and the INFO that the tag is not yet set. ADR-0011 decisions and
+  their doc trail: CHANGELOG "P7.1b".
 
 ## ⛔ ACTION REQUIRED (owner) — one step at a time; the session verifies each before the next
 
-The order matters (each step is checked by the next). Current owner IP as seen from the Mac:
-`193.0.218.70` (re-check with `curl -s https://api.ipify.org` — if it changed, redo step 2 and
-`harden.sh apply <new-ip>` + `persist`).
+Owner IP as seen from the Mac on 2026-08-28: `193.0.218.70` (`curl -s https://api.ipify.org`).
+Both SSH locks (runbook §0) must contain it; the host lock already does (applied by the session).
 
-1. **DuckDNS hostname** — https://www.duckdns.org → sign in → add `hourwell-recsys` → current ip
-   `84.235.238.25` → update ip. If the name is taken, pick another and tell the session (it
-   changes `RECSYS_HOST` on the box + the GitHub variable + `RECSYS_URL`). _Session check:_
-   `dig +short hourwell-recsys.duckdns.org` → `84.235.238.25`.
-2. **Security List** — OCI Console → Networking → VCN `recsys-vcn` → Default Security List →
-   Ingress → edit the port-22 rule → Source CIDR `193.0.218.70/32`; keep 80/443 from `0.0.0.0/0`;
-   no other rule for 22. _Session check:_ `ssh oracle-recsys true` still works (the console
-   connection is the recovery path if not).
-3. **GHCR + variable** (needs PR #9 merged and the first `RecSys image → GHCR` run finished):
-   GitHub → repo → Packages → `hourwell-recsys` → Package settings → **Change visibility →
-   Public**; Settings → Secrets and variables → Actions → **Variables** → `RECSYS_HOST` =
-   `hourwell-recsys.duckdns.org`. _Session check:_ `docker manifest inspect
-ghcr.io/ikala4i/hourwell-recsys:latest` anonymously; `gh variable list`.
+1. ~~DuckDNS~~ — **done 2026-08-28**, `hourwell-recsys.duckdns.org → 84.235.238.25` verified.
+2. **Lock 1 + lock 2 in the OCI Console** (runbook §4.1–4.2):
+   (a) Networking → Virtual cloud networks → `recsys-vcn` → Security Lists → Default Security
+   List → Ingress Rules → edit the port-22 rule whose source is `0.0.0.0/0` → Source CIDR
+   `193.0.218.70/32` → Save (no other rule for 22; 80/443 stay `0.0.0.0/0`).
+   (b) Compute → Instances → `recsys-oracle` → **Tags** → Add tags → freeform key `ssh-allow`,
+   value `193.0.218.70/32` → Add.
+   _Session check:_ `ssh oracle-recsys true`; `sudo hourwell-ssh-allow status` shows
+   `tag ssh-allow = 193.0.218.70/32` and `source=tag` in the state file within a minute;
+   `journalctl -u hourwell-ssh-allow` shows the sync.
+3. **Serial console test + password manager** (runbook §4.3, §5 B): copy
+   `~/.hourwell/console-password` into the password manager; Console → the instance → Console
+   connection → **Launch Cloud Shell connection** → Enter until `recsys-oracle login:` → `ubuntu`
+   - that password → `exit` → close the connection. _Session check:_
+     `journalctl _COMM=login` shows a `ttyAMA0` login; the console password check in `verify.sh`.
 4. **`DATABASE_URL` on the box** — Supabase dashboard → Connect → Transaction pooler (6543) →
    copy the DSN with the DB password (URL-encode special characters) → `ssh oracle-recsys 'nano
-~/hourwell/.env'` → replace the `DATABASE_URL=` line (and `RECSYS_HOST=` if step 1 changed the
-   name). Never paste it into chat. _Session then runs:_ `install.sh` (second run: timers + pull +
-   up), `verify.sh` → `ALL OK`, `curl https://<host>/healthz` → `storage: postgres`, `arch:
-aarch64`, `build: <main sha>`.
+~/hourwell/.env'` → replace the `DATABASE_URL=` line. Never paste it into chat. _Session then
+   runs:_ `install.sh` (second run: timers + pull + up), `verify.sh` → `ALL OK`, `curl
+https://hourwell-recsys.duckdns.org/healthz` → `storage: postgres`, `arch: aarch64`, `build:
+
+<main sha>`; then `gh variable set RECSYS_HOST` (the GHCR package is already public — anonymous
+   manifest pull verified).
 5. **`supabase login`** — type `! supabase login` in the prompt (browser flow). _Session then
-   runs:_ `supabase secrets set HOURWELL_SERVICE_KEY=<from ~/.hourwell> RECSYS_URL=https://<host>`
+   runs:_ `supabase secrets set HOURWELL_SERVICE_KEY=<from ~/.hourwell> RECSYS_URL=https://hourwell-recsys.duckdns.org`
    (values piped, not printed) and checks `supabase secrets list`.
 6. **Vault SQL** — Supabase SQL editor → paste `~/.hourwell/vault-secrets.sql` (all three secrets
    filled) → run. _Session check:_ `select public.attribution_sweep_tick();` → `posted`, and
    `net._http_response` shows a 2xx.
-7. **Then the session does the measurements** (runbook §7): live learned-path smoke (`reason =
+7. **Then the session does the measurements** (runbook §9): live learned-path smoke (`reason =
 learned`), warm NFR-P1 p95, `bench_solve.py` inside the pinned container, live `/feedback`
    delivery (`delivered_at` null count → 0) → recorded in `p6-manual-verification.md` §3,
    `p5-manual-verification.md` §2, device-checklist "Service environment". Then P8.
 
-**Owner decisions pending (not blocking the steps above):**
+**Optional, any time:** OCI CLI for one-line lock edits (runbook §4.4: `brew install oci-cli`,
+`oci setup config`, API key upload; then `deploy/ssh-allow.sh init`).
 
-- **ADR-0011** — answer §6 (population; Art. 27 representative; consent clause; rMEQ note) and
-  pick option A/B/C/D + the release option. Needed before the consent text (P8/P9) and P11.
-- **PAYG** — deferred to before participant enrollment (support access, G1).
-- Later gates unchanged: Google OAuth consent screen (FR-01), magic-link E2E with a real
-  mailbox, Sentry slugs (P12), OSF-freeze text items (thesis-corrections #21, #8/#22, #17,
-  #23–36).
+**Owner decisions recorded 2026-08-28:** ADR-0011 accepted (option A; population Ukraine with
+EU residents possible; Art. 27 conditional; synthetic + restricted release; path-4 rule = privacy
+README §7); PAYG deferred to before enrollment. Later gates unchanged: Google OAuth consent
+screen (FR-01), magic-link E2E with a real mailbox, Sentry slugs (P12), OSF-freeze text items
+(thesis-corrections #21, #8/#22, #17, #23–36).
 
 ## Resume point for the next session
 
-1. `git status` clean on `main` after PR #9 (or on `phase/P7-hosting` if the merge did not
-   happen — then `gh pr checks 9`, merge with a merge commit like the earlier PRs).
+1. `git status` clean on `main` after PR #10 (P7.1b) — or on `phase/P7-hosting-ssh` if the merge
+   did not happen (`gh pr checks 10`, merge with a merge commit like the earlier PRs).
 2. Ask the owner for the next unchecked ⛔ step, verify it as listed, continue down the list;
    `verify.sh 193.0.218.70` after step 4 must print `ALL OK`.
 3. After ⛔ 6: the measurements (⛔ 7), then a docs commit on a small branch (measurements are
-   docs-only), then P8.
+   docs-only), then P8 (its reading list is below; add ADR-0011 §Decision + privacy README §7
+   for the consent clause, the region pin and the "EU/EEA resident?" enrollment field).
 
 ## What P8 needs to read (exact sections — read nothing else to orient)
 
@@ -216,7 +230,7 @@ old`): setting the same status is a silent no-op, not an error.
   `ssh`, `git push`/`gh`, `supabase`, `curl` are all unusable from it; jest/deno/pytest/uv (with
   `--no-sync`) work. It does NOT come back on its own — **restart the CLI session from a
   terminal** and resume ("Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue"). A
-  restarted session can run ⛔ 3–4 itself (scp/ssh/push/PR); ⛔ 1, 2, 5–8 stay owner steps.
+  restarted session runs every scp/ssh/push/PR step itself; console/browser steps stay the owner's.
 - **Remote deploy is pull-based**: CI never touches the box; if `/healthz.build` lags `main`,
   look at `journalctl -u hourwell-rollout` on the VM (image pull denied = package not public).
 - **Cron health:** pg_net never surfaces HTTP failures — check

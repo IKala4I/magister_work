@@ -252,16 +252,34 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     change depends on the owner's choice — under the recommended option A the sentence becomes
     "all participant data is stored and processed in EU regions; the researcher, located in
     Ukraine, receives anonymous aggregates; incidental administrative access is covered by
-    explicit consent under Art. 49(1)(a)".
+    explicit consent under Art. 49(1)(a)". **Decided 2026-08-28 (ADR-0011 accepted, option A):**
+    use that sentence; add "training and analysis run on the same EU virtual machine; the
+    continuous-integration pipeline sees synthetic data only".
 35. **§3.x (legal framing) — state the participant population and its consequence:** File 06
     §1.3 does not say where participants are. If in the EU/EEA, the GDPR applies to the
     researcher under Art. 3(2)(b) and **Art. 27 requires a representative in the Union** (the
     27(2) exemption needs "occasional" processing — an 8-week behavioural study is not); if in
     Ukraine only, the GDPR binds the EU processors, not the researcher, and Law 2297-VI Art. 29
-    governs transfers (EU/EEA adequate; the US is not a Convention 108 party). Say which case
-    holds, or that the design satisfies the stricter one. (ADR-0011 §1, §6.)
+    governs transfers (EU/EEA adequate; the US is not a Convention 108 party). **Decided
+    2026-08-28 — the draft should read:** "Participants are recruited in Ukraine (university
+    lists and local productivity communities); residents of the EU/EEA are not excluded. The
+    system is designed to the stricter EU regime regardless: all participant data is stored and
+    processed in EU regions — Supabase (eu-west-1) and an Oracle Cloud virtual machine in
+    France (eu-marseille-1) that also runs model training and the study analysis. The
+    researcher, established in Ukraine, receives anonymous aggregates only; incidental
+    administrative access to individual records is covered by the participant's explicit
+    consent (GDPR Art. 49(1)(a); under the Law of Ukraine No. 2297-VI, Art. 29, EU/EEA states are
+    adequate destinations). Should a participant resident in the EU/EEA enroll, the GDPR applies
+    to the researcher under Art. 3(2)(b) and a representative in the Union is designated under
+    Art. 27 before that enrollment." (ADR-0011 §1, §6, Decision 1.)
 36. **File 06 §5 / §3.x (artefact statement):** "anonymized event dataset (Parquet, HF
     datasets)" over-claims — a row-level dataset of 42 people with 8 weeks of timestamped
     behaviour is pseudonymised, not anonymous, and HF datasets is US-hosted. Replace with the
-    release option chosen at the OSF freeze (recommended: synthetic dataset + replay harness,
-    and a restricted-access OSF deposit on Frankfurt storage). spec-conflicts H5; ADR-0011 §4.
+    release option chosen at the OSF freeze. **Decided 2026-08-28 — replace the phrase with:**
+    "a synthetic event dataset generated from the fitted models, together with the one-command
+    replay harness that reproduces every offline-evaluation table from it (public, on OSF); the
+    real event log (Parquet) is pseudonymised, not anonymous — 42 participants × 8 weeks of
+    timestamped behaviour is re-identifiable by linkage — and is deposited with restricted
+    access on EU storage (OSF, Frankfurt region) under a data-use agreement". Also replace "HF
+    Hub" for the model registry with "Supabase Storage (EU)" wherever `artifact_uri` is
+    described. spec-conflicts H5; ADR-0011 §4, Decision 3.
