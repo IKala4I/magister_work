@@ -409,7 +409,7 @@ import_map = "./functions/deno.json"
 enabled = true
 verify_jwt = false
 import_map = "./functions/deno.json"
-entrypoint = "./functions/plan-request/index.ts"
+entrypoint = "./functions/attribute-rewards/index.ts"
 
 [analytics]
 enabled = true
