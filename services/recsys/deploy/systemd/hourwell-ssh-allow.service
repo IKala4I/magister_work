@@ -1,0 +1,8 @@
+[Unit]
+Description=Hourwell: sync the host SSH allow-list from the instance tag `ssh-allow` (IMDS)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/hourwell-ssh-allow sync

@@ -1,0 +1,11 @@
+[Unit]
+Description=Sync the Hourwell host SSH allow-list every minute
+
+[Timer]
+OnBootSec=45s
+OnUnitActiveSec=1min
+AccuracySec=10s
+Unit=hourwell-ssh-allow.service
+
+[Install]
+WantedBy=timers.target

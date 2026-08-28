@@ -1,15 +1,20 @@
 #!/usr/bin/env bash
 # Hardening for the ADR-0009 VM (Ubuntu 24.04 Minimal, OCI). Idempotent; run as ubuntu with sudo.
-#   sudo bash harden.sh apply <OWNER_IP>   # sshd drop-in, unattended-upgrades, docker daemon,
-#                                          # iptables: port 22 only from OWNER_IP (live, NOT persisted)
-#   sudo bash harden.sh persist            # after a NEW ssh session from OWNER_IP succeeded
+#   sudo bash harden.sh apply <IP> [<IP> ...]   # sshd drop-in, unattended-upgrades, docker daemon,
+#                                               # GRUB menu on the serial console, host SSH
+#                                               # allow-list (chain + tag-sync timer) = the given
+#                                               # addresses, persisted
+#   echo '<password>' | sudo bash harden.sh console-password   # ubuntu's SERIAL-CONSOLE-ONLY password
 # Every step is listed in docs/runbooks/oracle-vm.md §3 and re-checked by verify.sh.
 set -euo pipefail
-mode="${1:-}"; owner_ip="${2:-}"
+mode="${1:-}"; shift || true
+src="$(cd "$(dirname "$0")" && pwd)"
 
 sshd_dropin() {
   install -m 644 /dev/stdin /etc/ssh/sshd_config.d/60-hourwell.conf <<'CONF'
-# Hourwell (docs/runbooks/oracle-vm.md §3.3): key-only, no root, one user, no forwarding
+# Hourwell (docs/runbooks/oracle-vm.md §3.3): key-only, no root, one user, no forwarding.
+# PasswordAuthentication stays off even though `ubuntu` has a password — that password exists
+# for the serial console (lockout recovery, runbook §5) and is unusable over the network.
 PasswordAuthentication no
 KbdInteractiveAuthentication no
 PermitRootLogin no
@@ -58,27 +63,41 @@ CONF
   systemctl restart docker
 }
 
-firewall_live() {
-  [ -n "$owner_ip" ] || { echo "usage: harden.sh apply <OWNER_IP>" >&2; exit 2; }
-  # allow 22 from the owner only; keep 80/443 open (Caddy). Docker-published ports do not pass
-  # INPUT, so this chain governs host services (ssh) only.
-  iptables -C INPUT -p tcp -s "$owner_ip/32" --dport 22 -m conntrack --ctstate NEW -j ACCEPT 2>/dev/null \
-    || iptables -I INPUT 1 -p tcp -s "$owner_ip/32" --dport 22 -m conntrack --ctstate NEW -j ACCEPT
-  # drop every other "ssh from anywhere" accept rule (OCI images ship one)
-  while read -r rule; do
-    [ -n "$rule" ] && eval "iptables -D INPUT ${rule#-A INPUT }"
-  done < <(iptables -S INPUT | grep -E -- '--dport 22 ' | grep -v -- "-s $owner_ip/32")
-  echo "live rules now:"; iptables -S INPUT | grep -E -- '--dport (22|80|443) '
-  echo ">>> Open a NEW terminal, confirm 'ssh oracle-recsys true' works from $owner_ip, THEN run: sudo bash harden.sh persist"
+grub_serial_menu() {
+  # The cloud image hides GRUB (timeout 0). A 3-second menu on the serial console is the last-resort
+  # recovery path (runbook §5 ladder C: edit the kernel line → init=/bin/bash → reset the password).
+  install -m 644 /dev/stdin /etc/default/grub.d/60-hourwell.cfg <<'CONF'
+# Hourwell: make the GRUB menu catchable on the serial console (docs/runbooks/oracle-vm.md §5)
+GRUB_TIMEOUT=3
+GRUB_TIMEOUT_STYLE=menu
+GRUB_RECORDFAIL_TIMEOUT=3
+CONF
+  update-grub >/dev/null 2>&1
+  grep -qE '^ *set timeout=3' /boot/grub/grub.cfg
 }
 
-persist() {
-  netfilter-persistent save
-  echo "persisted to /etc/iptables/rules.v4:"; grep -E -- '--dport (22|80|443) ' /etc/iptables/rules.v4
+ssh_allow_list() {  # $@ = addresses
+  [ $# -gt 0 ] || { echo "usage: harden.sh apply <IP> [<IP> ...]" >&2; exit 2; }
+  install -m 755 "$src/hourwell-ssh-allow" /usr/local/bin/hourwell-ssh-allow
+  install -m 644 "$src/systemd/hourwell-ssh-allow.service" "$src/systemd/hourwell-ssh-allow.timer" /etc/systemd/system/
+  systemctl daemon-reload
+  systemctl enable --now hourwell-ssh-allow.timer >/dev/null
+  /usr/local/bin/hourwell-ssh-allow apply "$@"
+  echo ">>> Host list applied and persisted. From a NEW terminal confirm 'ssh oracle-recsys true' still works."
+  echo ">>> Then put the same addresses in the instance tag ssh-allow (Console → instance → Tags): the tag overrides this list within a minute."
+}
+
+console_password() {
+  # read one line from stdin, never from argv (argv is visible in `ps` and shell history)
+  IFS= read -r pw || true
+  [ ${#pw} -ge 16 ] || { echo "console-password: give ≥ 16 characters on stdin" >&2; exit 2; }
+  echo "ubuntu:$pw" | chpasswd
+  passwd -l root >/dev/null
+  passwd -S ubuntu | awk '{print "ubuntu password status: " $2 " (P = set; usable on the serial console only — sshd PasswordAuthentication no)"}'
 }
 
 case "$mode" in
-  apply) sshd_dropin; unattended; docker_daemon; firewall_live ;;
-  persist) persist ;;
-  *) echo "usage: sudo bash harden.sh apply <OWNER_IP> | persist" >&2; exit 2 ;;
+  apply) sshd_dropin; unattended; docker_daemon; grub_serial_menu; ssh_allow_list "$@" ;;
+  console-password) console_password ;;
+  *) echo "usage: sudo bash harden.sh apply <IP> [<IP> ...] | console-password (password on stdin)" >&2; exit 2 ;;
 esac
