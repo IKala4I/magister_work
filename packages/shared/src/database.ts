@@ -365,6 +365,9 @@ export type Database = {
           channel_expires_at: string | null
           channel_id: string | null
           channel_token: string | null
+          confirm_token: string | null
+          confirm_token_expires_at: string | null
+          confirmed_at: string | null
           connected_at: string | null
           last_error: string | null
           last_synced_at: string | null
@@ -386,6 +389,9 @@ export type Database = {
           channel_expires_at?: string | null
           channel_id?: string | null
           channel_token?: string | null
+          confirm_token?: string | null
+          confirm_token_expires_at?: string | null
+          confirmed_at?: string | null
           connected_at?: string | null
           last_error?: string | null
           last_synced_at?: string | null
@@ -407,6 +413,9 @@ export type Database = {
           channel_expires_at?: string | null
           channel_id?: string | null
           channel_token?: string | null
+          confirm_token?: string | null
+          confirm_token_expires_at?: string | null
+          confirmed_at?: string | null
           connected_at?: string | null
           last_error?: string | null
           last_synced_at?: string | null
