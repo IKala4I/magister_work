@@ -60,6 +60,31 @@ Two defects the live run found and P6 fixed: (1) the base schema already had `pl
 1/3 — under the new eligibility rule that is a legitimate value, so the column is now
 `double precision` (spec-conflicts L22).
 
+### 3.1 Learned path live (2026-08-28, service on the ADR-0009 VM)
+
+Same script, same Mac and Wi-Fi, after `RECSYS_URL` + `HOURWELL_SERVICE_KEY` were set as function
+secrets and the VM served build `b75d7c1` (threshold 3 000). **18/18 PASS** in both samples with
+`engine = learned`, `model_version = recsys-p5.0`, `telemetry.ef.reason = learned`, 4 blocks,
+0 unplaced.
+
+| Sample                        | Timings (ms, client → EF → VM → pooler → response)         | p50       | p95       | `ef.total_ms` on run 1 |
+| ----------------------------- | ---------------------------------------------------------- | --------- | --------- | ---------------------- |
+| 1 — first calls after secrets | 1430, 1362, 1507, 1535, 1398, 1532, 1488, 1502, 1426, 1333 | 1 430     | 1 535     | 1 124                  |
+| 2 — warm, minutes later       | 1064, 1506, 1205, 1202, 1176, 1186, 1389, 1310, 1293, 1197 | **1 202** | **1 506** | 889                    |
+
+What this establishes: **NFR-P1 (≤ 2.5 s p95 end-to-end, warm backend) is met on the learned
+path from the dev Mac — p95 1.5 s**, with ≈ 1 s left under the target; the EF's own share is
+≈ 0.9–1.1 s (context read + `/plan` round trip to Marseille + persist), the service's solve for a
+4-task day plan is tens of ms. The first sample is only ≈ 0.2 s slower (DB pool warm-up on the
+service; the VM itself is always on). What it does **not** establish: the number from a handset
+on a mobile network (device-checklist "NFR-P1 from the device"); behaviour under concurrent users
+(single-flight per client, one VM).
+
+### 3.2 UC-03 A1 — service down → heuristic fallback → service back → learned (2026-08-28)
+
+See `docs/verification/p7-manual-verification.md` §2c for the run (`docker compose stop recsys`
+on the VM, 3 runs, restart, 3 runs).
+
 ## 4. Experiment rate measurement (owner decision 1)
 
 `uv run python scripts/experiment_rate.py` (pure combinatorics on the service grid; not timing):

@@ -70,12 +70,48 @@ sends the publishable key as bearer (+ `apikey`) and the third Vault secret is r
 (HANDOFF ⛔ 2). Establishes: deploy + routing + the handler's own auth gate. Does not establish:
 a successful daily run (needs the Vault secrets) or delivery (needs the host).
 
+**Correction 2026-08-28 — the routing check above was wrong about what it saw.** The 401 it
+attributed to attribute-rewards' handler came from **plan-request's** handler: `config.toml` had
+`entrypoint = "./functions/plan-request/index.ts"` under `[functions.attribute-rewards]`
+(copy-paste), so every deploy of `attribute-rewards` shipped plan-request's bundle, and both
+handlers answer a bare `{"error":"unauthorized"}`. Found when the daily call kept returning 401
+with the correct key, env and header proven present via a throwaway diagnostic function; confirmed
+by `supabase functions download attribute-rewards` (plan-request's files came back). **Lesson for
+every future routing check: assert a handler-specific response (e.g. `POST {}` → 400 "mode must
+be instant or daily"), never a 401.** Fixed in `config.toml`, redeployed; `handler_test.ts` was
+always right — the code had simply never run on the hosted project.
+
+## 2c. Live delivery, cron path and outage behaviour on the hosted project (2026-08-28)
+
+With the VM serving (`https://hourwell-recsys.duckdns.org`), the two function secrets set and the
+three Vault secrets created (`hourwell_functions_url`, `hourwell_service_key`, `hourwell_anon_key`
+— applied from the box with `vault.create_secret`, not the SQL editor):
+
+- **Daily mode, direct call with the backend key:** 200 `{"mode":"daily","due":24,"users":6,
+"tuples_written":24,"delivered":24,…}` — every report `delivery: ok` (the 24 due rows were the
+  lapsed recommendations of the P6/P7 smoke users' plans).
+- **Cron path end to end:** `attribution_sweep_tick()` → `posted`; `net._http_response` → **200**
+  with the handler's JSON; `cron.job` `attribute-rewards-sweep` (`*/15 * * * *`, active) —
+  `cron.job_run_details` shows the 19:15 and **19:30 UTC runs `succeeded`**, i.e. pg_cron itself
+  delivered after the fix.
+- **Storage ↔ service agreement:** `feedback_rewards` 24 rows, `delivered_at` **null count = 0**,
+  all `source = daily`; the service's own `recsys_applied_tuples` = 24; VM log shows
+  `POST /feedback 200` from the Supabase egress IPs.
+- **Learned-path smoke** (P6 script) 18/18 PASS twice, p95 1.5 s — `p6-manual-verification.md` §3.1.
+- **UC-03 A1 — outage (19:31 UTC):** `docker compose stop recsys` on the VM (Caddy stays up and
+  answers 502) → P6 smoke, 3 runs: **18/18 PASS, `engine = heuristic`, `model_version =
+heuristic-p6.0`, `telemetry.ef.reason = fallback:http`**, `ef.total_ms` 1 550 on the first run,
+  client timings 1 733 / 1 113 / 1 010 ms — inside the 1.9 s fallback budget; `docker compose
+start recsys` → healthy after 15 s → 3 more runs **`learned`** (1 206 / 1 385 / 1 106 ms). The
+  reason code is `fallback:http` (a 502 from the reverse proxy), not `timeout|network` as the
+  checklist item guessed — a whole-VM outage or a Security-List mistake would produce those; all
+  three are the same NFR-R2 path.
+
 ## 3. What is NOT established (and where it is tracked)
 
-- **Live `/feedback` delivery and the learned-path smoke** — no service host (ADR-0009, owner
-  decision). Tuples will accumulate undelivered until then; HANDOFF ⛔ 1.
-- **The cron tick reaching the function on the hosted project** — Vault secrets are an owner
-  action (HANDOFF ⛔ 2); until then `attribution_sweep_tick()` returns `skipped: …` by design.
+- ~~Live `/feedback` delivery and the learned-path smoke~~ — **established 2026-08-28 (§2c)**.
+- ~~The cron tick reaching the function~~ — **established 2026-08-28 (§2c)**; what remains is a
+  real 23:55-local run against a participant's day (the test users' rows were already past due).
 - **Device behaviour** — timer under lock/kill, lapse scan after a real background stint,
   VoiceOver/TalkBack on the action row and rating chips, 200 % font on the card with actions,
   offline facts reaching the server once, the device clock across DST, the Android Move picker:
