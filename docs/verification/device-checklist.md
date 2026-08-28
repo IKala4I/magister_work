@@ -163,10 +163,12 @@ never substituted. Command: runbook `docs/runbooks/oracle-vm.md` §7.
   instance: UNKNOWN 19/20 under the Mac-fitted threshold, ≈ 2.0 s p50 — the threshold re-fit
   below. (The service-side number; the client-observed p95 through the edge function is the
   P6 smoke item, HANDOFF ⛔ 7.)
-- 🔄 **File 04 §1.5 practical literal threshold** (added P5). **Measured 2026-08-28:** 8·10³ is
-  wrong for the A1 (the 15-min week rung is presolve-bound at 3.6·10³ literals); re-fit sweep in
-  `p5-manual-verification.md` §2.2 (ADR-0007 §11 treatment); the adopted value ships through the
-  normal CI → GHCR → rollout path and is re-measured on the box.
+- ✅ **File 04 §1.5 practical literal threshold** (added P5). **Re-fitted 2026-08-28 on the
+  deployment box:** 8·10³ (Mac) → **3·10³** (the 15-min week rung is presolve-bound at 3.6·10³
+  literals on the A1); sweep in `p5-manual-verification.md` §2.2, shipped as PR #13 and
+  re-measured with the rolled-out image in §2.3 (week FEASIBLE 13/20, 1.35 s p50; day unchanged).
+  The residual ≈ 35–40 % UNKNOWN on 50-task week plans is a capacity limit of the box, recorded
+  for the thesis (corrections #37) and for P9 (revisit.md).
 - ⬜ **UC-03 A1 — kill the service, verify the fallback** (added P6; re-worded for the VM). Set
   `RECSYS_URL` to an unreachable host (or `docker compose stop recsys` on the box), request a
   plan: the response must be `engine = heuristic` with `telemetry.ef.reason =

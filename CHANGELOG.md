@@ -52,7 +52,8 @@ p90 end-to-end (NFR-P1 with margin); the 50-task week stress instance is presolv
 8000/4000/3000/2000/1000 → **`PRACTICAL_LITERAL_THRESHOLD` = 3 000** (ADR-0007 §11 addendum;
 FEASIBLE 12/20, 1.39 s p50). Claim-level: ≈ 40 % of 50-task week runs stay UNKNOWN on every
 rung on this box — thesis-corrections #37 qualifies File 04 §1.5; revisit.md (week-horizon
-budget before P9). `bench_solve.py`'s environment note now reports the actual box.
+budget before P9). `bench_solve.py`'s environment note now reports the actual box. Re-measured
+with the rolled-out image (§2.3): week FEASIBLE 13/20, 1.35 s p50 / 1.92 s p90; day unchanged.
 
 **Box state (2026-08-28, earlier):** deployed and applied from the owner's address; fresh-connection SSH
 re-check OK; console password set (stored in `~/.hourwell/console-password`, to be copied to the

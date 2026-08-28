@@ -100,8 +100,19 @@ starts per task, or accepting the partial anytime plan explicitly. Not decided h
 
 ### 2.3 Re-measurement with the shipped image
 
-_Pending the rollout of the commit that sets 3 000 — filled in the same session once
-`/healthz.build` shows it._
+Image `b75d7c117240` (PR #13, `PRACTICAL_LITERAL_THRESHOLD = 3 000` confirmed inside the
+container), same command, keep-busy idle, 2026-08-28 19:12 UTC:
+
+| Instance                                | Status (final)             | Solve p50 | Solve p90 | Solve max | End-to-end p50 | End-to-end p90 | Literals p50/max | Ladder                          |
+| --------------------------------------- | -------------------------- | --------- | --------- | --------- | -------------- | -------------- | ---------------- | ------------------------------- |
+| day: 12 tasks, 2 busy blocks, 1 pinned  | OPTIMAL 20/20              | 122 ms    | 460 ms    | 592 ms    | 139 ms         | 555 ms         | 238 / 375        | none 20                         |
+| week: 50 tasks, 5 busy blocks, 1 pinned | FEASIBLE 13/20 · UNKNOWN 7 | 1 086 ms  | 1 097 ms  | 1 103 ms  | 1 349 ms       | 1 920 ms       | 3 690 / 4 590    | day-by-day 19 · coarse 30-min 1 |
+
+Consistent with the sweep (§2.2): the day plan is unchanged (its 238 literals never reach any
+threshold), the week stress instance now spends its budget on rungs that can finish — FEASIBLE
+13/20 vs 1/20, end-to-end p50 1.35 s vs 2.08 s — and the ≈ 35–40 % UNKNOWN residue on this box
+stands as the capacity limit described above. These are the numbers the thesis reports for File
+04 §1.5 (thesis-corrections #37); the Mac table in §2 stays as the development-time reference.
 
 ## 3. End-to-end smoke (in-process, in-memory state)
 
