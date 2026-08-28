@@ -17,6 +17,7 @@
  *
  * Usage: node docs/verification/p8-live-smoke.mjs   (from apps/mobile so supabase-js resolves)
  */
+/* global fetch */
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
