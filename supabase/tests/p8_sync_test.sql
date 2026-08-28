@@ -3,7 +3,7 @@
 -- plan-review statuses are state-checked, the pull is RLS-filtered and cursor-ordered, the
 -- per-user lease, atomic plan persistence, displaced_pending in the daily slice, the sweep tick.
 begin;
-select plan(83);
+select plan(85);
 
 -- schema
 select has_table('public', 'sync_ops', 'sync_ops ledger exists');
@@ -14,6 +14,7 @@ select has_column('public', 'gcal_sync_state', 'write_back', 'gcal_sync_state.wr
 select has_column('public', 'profiles', 'eu_eea_resident', 'profiles.eu_eea_resident exists (ADR-0011 Art. 27 trigger)');
 select has_column('public', 'recommendations', 'gcal_event_id', 'recommendations.gcal_event_id exists (write-back mirror)');
 select has_column('public', 'recommendations', 'gcal_synced_slot_start', 'recommendations.gcal_synced_slot_start exists');
+select has_column('public', 'gcal_sync_state', 'confirmed_at', 'gcal_sync_state.confirmed_at exists (consent bound to the starting device — adversarial #10)');
 select has_function('public', 'sync_replay', array['uuid', 'jsonb'], 'sync_replay(user, ops) exists');
 select has_function('public', 'sync_pull', array['bigint', 'integer'], 'sync_pull(cursor, limit) exists');
 select has_function('public', 'persist_plan', array['uuid', 'jsonb', 'jsonb', 'uuid[]'], 'persist_plan() exists');
@@ -132,6 +133,8 @@ create temp table res4 as select public.sync_replay('00000000-0000-4000-8000-000
    "payload": {"id": "00000000-0000-4000-8000-00000000cd01", "status": "completed", "version": 2}},
   {"op_id": "dev-000000000011", "op_type": "recommendation_status", "entity_id": "00000000-0000-4000-8000-00000000cd02", "base_version": 1,
    "payload": {"id": "00000000-0000-4000-8000-00000000cd02", "status": "accepted", "version": 1}},
+  {"op_id": "dev-000000000018", "op_type": "recommendation_status", "entity_id": "00000000-0000-4000-8000-00000000cd01", "base_version": 2,
+   "payload": {"id": "00000000-0000-4000-8000-00000000cd01", "user_id": "00000000-0000-4000-8000-000000000c02", "status": "pinned", "version": 2}},
   {"op_id": "dev-000000000012", "op_type": "bogus", "entity_id": null, "base_version": null, "payload": {}},
   {"op_id": "dev-000000000013", "op_type": "task_upsert", "entity_id": null, "base_version": null}
 ]$$::jsonb) as r;
@@ -143,8 +146,9 @@ select is((select count(*) from public.tasks where id = '00000000-0000-4000-8000
 select is((select r->3->>'outcome' from res4), 'rejected', 'completed is not a client-writable status (L11)');
 select is((select r->4->>'outcome' from res4), 'superseded', 'a status op on a displaced_pending row is moot (server transition won)');
 select is((select status from public.recommendations where id = '00000000-0000-4000-8000-00000000cd02'), 'displaced_pending', 'displaced_pending row untouched by the client op');
-select is((select r->5->>'outcome' from res4), 'rejected', 'unknown op_type is rejected');
-select is((select r->6->>'outcome' from res4), 'rejected', 'malformed op (no payload) is rejected');
+select is((select r->5->>'outcome' from res4), 'rejected', 'a status op with a foreign user_id is rejected (adversarial #9)');
+select is((select r->6->>'outcome' from res4), 'rejected', 'unknown op_type is rejected');
+select is((select r->7->>'outcome' from res4), 'rejected', 'malformed op (no payload) is rejected');
 select is((select count(*) from public.sync_ops where op_id in ('dev-000000000007','dev-000000000008','dev-000000000009','dev-000000000010','dev-000000000012','dev-000000000013')), 0::bigint, 'rejected ops are not ledgered');
 select is((select count(*) from public.sync_ops where op_id = 'dev-000000000011'), 1::bigint, 'superseded ops are ledgered (acked)');
 
