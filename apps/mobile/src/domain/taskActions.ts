@@ -10,6 +10,7 @@ import { createTask, restoreTask, softDeleteTask, updateTask } from '../db/tasks
 import type { QuickAddMeta, TaskDraft, TaskRow } from '../db/tasks';
 import type { LocalDb } from '../db/writes';
 import { track } from '../observability/analytics';
+import { scheduleSync } from '../sync/engine';
 
 const localDb = db as unknown as LocalDb;
 
@@ -21,17 +22,24 @@ export function createTaskAction(draft: TaskDraft, meta: QuickAddMeta): TaskRow 
     has_deadline: draft.deadline !== null,
     has_duration: true, // estMinutes is required by FR-10; kept for catalog stability
   });
+  scheduleSync('write');
   return row;
 }
 
 export function updateTaskAction(id: string, draft: TaskDraft): TaskRow {
-  return updateTask(localDb, { id, draft });
+  const row = updateTask(localDb, { id, draft });
+  scheduleSync('write');
+  return row;
 }
 
 export function deleteTaskAction(id: string): TaskRow {
-  return softDeleteTask(localDb, { id });
+  const row = softDeleteTask(localDb, { id });
+  scheduleSync('write');
+  return row;
 }
 
 export function restoreTaskAction(id: string): TaskRow {
-  return restoreTask(localDb, { id });
+  const row = restoreTask(localDb, { id });
+  scheduleSync('write');
+  return row;
 }

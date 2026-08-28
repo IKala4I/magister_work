@@ -284,6 +284,59 @@ export const en = {
   'settings.account.signOutAnonymous.confirm': 'Sign out anyway',
   'settings.account.signOutAnonymous.cancel': 'Keep my data',
   'settings.account.signIn': 'Sign in',
+
+  'today.busy.a11y': 'Busy: {title}, {start} to {end}',
+  'today.busy.untitled': 'Busy',
+  'today.notice.meetingKept': 'Meeting imported — your completed session is kept.',
+  'today.notice.displaced':
+    'A meeting now overlaps a planned block — it returns to your Inbox for the next plan.',
+  'today.notice.displacedMany':
+    'Meetings now overlap {count} planned blocks — they return to your Inbox for the next plan.',
+  'today.notice.dismiss': 'Dismiss',
+  'today.wipe.body': 'Another account left {count} unsynced changes on this device.',
+  'today.wipe.discard': 'Discard them',
+  'today.wipe.keep': 'Keep for now',
+  'block.status.displaced': 'A meeting took this slot — back in your Inbox',
+
+  'settings.sync.title': 'Sync',
+  'settings.sync.now': 'Sync now',
+  'settings.sync.status.idle': 'Up to date',
+  'settings.sync.status.syncing': 'Syncing…',
+  'settings.sync.status.offline': 'Offline — changes are queued',
+  'settings.sync.status.no_session': 'Sign in to sync across devices',
+  'settings.sync.status.error': 'Sync failed — will retry',
+  'settings.sync.last': 'Last synced {when}',
+  'settings.sync.never': 'Not synced yet',
+  'settings.sync.pending': '{count} changes waiting',
+
+  'settings.gcal.title': 'Google Calendar',
+  'settings.gcal.body':
+    'Import busy times so plans route around meetings. Hourwell reads free/busy and titles; nothing is written unless you turn write-back on.',
+  'settings.gcal.connect': 'Connect Google Calendar',
+  'settings.gcal.disconnect': 'Disconnect',
+  'settings.gcal.connected': 'Connected',
+  'settings.gcal.lastSynced': 'Meetings synced {when}',
+  'settings.gcal.writeBack': 'Write my blocks to Google Calendar',
+  'settings.gcal.writeBackHint':
+    'Adds “Hourwell · task” events for today and tomorrow to your primary calendar.',
+  'settings.gcal.writeBackOn': 'Write-back is on',
+  'settings.gcal.writeBackOff': 'Turn write-back off',
+  'settings.gcal.notConfigured': 'Calendar sync is not available in this build yet.',
+  'settings.gcal.failed': 'Could not reach the calendar service. Try again in a moment.',
+  'settings.gcal.cancelled': 'Connection cancelled.',
+  'settings.gcal.disconnect.title': 'Disconnect Google Calendar?',
+  'settings.gcal.disconnect.body':
+    'Imported meetings are removed from this device and Hourwell stops reading your calendar.',
+  'settings.gcal.disconnect.confirm': 'Disconnect',
+  'settings.gcal.disconnect.cancel': 'Keep connected',
+
+  'gcal.callback.ok': 'Google Calendar connected. Importing your meetings…',
+  'gcal.callback.failed': 'Google Calendar could not be connected.',
+  'gcal.callback.back': 'Back to settings',
+
+  'common.justNow': 'just now',
+  'common.minutesAgo': '{count} min ago',
+  'common.hoursAgo': '{count} h ago',
 } as const;
 
 export type MessageKey = keyof typeof en;

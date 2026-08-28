@@ -84,6 +84,26 @@ export type AnalyticsEvents = {
   skip_diagnostic: {
     answer: 'too_big' | 'wrong_time' | 'not_important';
   };
+  /** NFR-R1 (P8): one per sync round trip — counts and timing only. */
+  sync_completed: {
+    reason: 'foreground' | 'write' | 'reconnect' | 'poll' | 'manual' | 'sign_in' | 'pre_plan';
+    outcome: 'synced' | 'skipped' | 'no-session' | 'offline' | 'busy' | 'failed';
+    pushed: number;
+    pulled: number;
+    conflicts: number;
+    duration_ms: number;
+  };
+  /** FR-03 (P8): calendar connection lifecycle — never calendar content. */
+  gcal_connection: {
+    event:
+      | 'connect_started'
+      | 'connected'
+      | 'write_back_started'
+      | 'write_back_on'
+      | 'write_back_off'
+      | 'disconnected'
+      | 'failed';
+  };
   /** FR-01 (P4). No identifiers — method and lifecycle only. */
   auth_event: {
     method: 'anonymous' | 'magic_link' | 'google';

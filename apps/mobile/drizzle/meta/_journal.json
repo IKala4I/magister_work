@@ -29,6 +29,13 @@
       "when": 1787817805982,
       "tag": "0003_p7_feedback",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1787948645712,
+      "tag": "0004_p8_sync",
+      "breakpoints": true
     }
   ]
 }

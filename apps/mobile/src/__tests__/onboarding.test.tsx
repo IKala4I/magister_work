@@ -15,8 +15,9 @@ jest.mock('../db/profile', () => ({
   getProfile: jest.fn(() => undefined),
   markProfileSynced: jest.fn(),
 }));
-jest.mock('../sync/profilePush', () => ({
-  pushProfileIfPossible: jest.fn(() => Promise.resolve('no-session')),
+jest.mock('../sync/engine', () => ({
+  scheduleSync: jest.fn(),
+  syncNow: jest.fn(() => Promise.resolve({ kind: 'no-session' })),
 }));
 jest.mock('../observability/analytics', () => ({
   track: jest.fn(),

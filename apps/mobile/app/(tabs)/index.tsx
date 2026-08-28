@@ -5,14 +5,18 @@
  * "I did it" on a lapsed block. Lazy lapse scan on open/foreground (File 05 §1). Reads the latest
  * plan for the plan day straight from SQLite (single source of truth), triggers UC-03 lazily,
  * shows the optimistic "Planning…" banner (NFR-P1), labels NFR-R2 fallback plans, and lists tasks
- * the plan could not place — calmly, they simply stay in the Inbox.
+ * the plan could not place — calmly, they simply stay in the Inbox. P8 adds the imported busy
+ * rows (FR-03), the File 05 §2 notices (meeting kept / block displaced) and the deferred-wipe
+ * banner (ADR-0012 §11).
  */
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
+import { discardPendingWipe, keepPendingWipe } from '../../src/auth/accountTransition';
 import { currentUserId } from '../../src/auth/identity';
 import { useSessionStore } from '../../src/auth/session';
+import { busyEventsQuery, type CalendarEventRow } from '../../src/db/calendar';
 import { db } from '../../src/db/client';
 import { activeFocusSessionQuery, type FocusSessionRow } from '../../src/db/feedback';
 import {
@@ -39,6 +43,7 @@ import {
 import { planDayOf, requestPlanDayOf } from '../../src/domain/planTrigger';
 import { t } from '../../src/i18n';
 import { usePlanStore } from '../../src/state/plan';
+import { useSyncStore } from '../../src/state/sync';
 import { useLapseScan } from '../../src/sync/useLapseScan';
 import { usePlanTrigger } from '../../src/sync/usePlanTrigger';
 import { type BlockAction, BlockActions } from '../../src/ui/plan/BlockActions';
@@ -53,6 +58,17 @@ const PLAN_TABLES = ['plans'] as const;
 const REC_TABLES = ['recommendations'] as const;
 const TASK_TABLES = ['tasks'] as const;
 const SESSION_TABLES = ['focus_sessions'] as const;
+const CALENDAR_TABLES = ['calendar_events'] as const;
+/** A sync notice is shown for a minute, then fades (never modal, never red). */
+const NOTICE_TTL_MS = 60_000;
+
+function dayBounds(planDate: string): { from: Date; to: Date } {
+  const [y, m, d] = planDate.split('-').map(Number);
+  const from = new Date(y ?? 1970, (m ?? 1) - 1, d ?? 1, 0, 0, 0, 0);
+  const to = new Date(from);
+  to.setDate(to.getDate() + 1);
+  return { from, to };
+}
 
 function useNow(): Date {
   const [now, setNow] = useState(() => new Date());
@@ -103,6 +119,17 @@ export default function TodayScreen() {
     [userId],
   );
   const activeSession = sessions[0] ?? null;
+  const shownDay = plan?.planDate ?? todayDay;
+  const busy = useLiveRows<CalendarEventRow>(
+    () => {
+      const { from, to } = dayBounds(shownDay);
+      return busyEventsQuery(localDb, userId, from, to);
+    },
+    CALENDAR_TABLES,
+    [userId, shownDay],
+  );
+  const notice = useSyncStore((s) => s.notice);
+  const pendingWipe = useSyncStore((s) => s.pendingWipe);
   const titles = useMemo(() => new Map(taskRows.map((task) => [task.id, task.title])), [taskRows]);
   const status = usePlanStore((s) => s.status);
   const emptyInbox = usePlanStore((s) => s.emptyInbox);
@@ -142,7 +169,8 @@ export default function TodayScreen() {
 
   const unplaced = unplacedOf(plan);
   const planning = status === 'planning';
-  const hasBlocks = plan !== undefined && recs.length > 0;
+  const hasBlocks = plan !== undefined && (recs.length > 0 || busy.length > 0);
+  const liveNotice = notice !== null && now.getTime() - notice.at < NOTICE_TTL_MS ? notice : null;
   const noticeKey =
     status === 'error'
       ? 'today.error'
@@ -180,6 +208,44 @@ export default function TodayScreen() {
         <ThemedText variant="caption" tone="secondary" style={styles.notice}>
           {t(noticeKey)}
         </ThemedText>
+      ) : null}
+      {pendingWipe ? (
+        <View
+          style={[styles.banner, { backgroundColor: theme.colors.primaryContainer }]}
+          accessibilityRole="summary"
+        >
+          <ThemedText variant="caption">
+            {t('today.wipe.body', { count: pendingWipe.ops })}
+          </ThemedText>
+          <View style={styles.bannerActions}>
+            <Button
+              kind="secondary"
+              label={t('today.wipe.keep')}
+              onPress={() => keepPendingWipe()}
+            />
+            <Button
+              kind="secondary"
+              label={t('today.wipe.discard')}
+              onPress={() => discardPendingWipe(localDb)}
+            />
+          </View>
+        </View>
+      ) : null}
+      {liveNotice ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('today.notice.dismiss')}
+          onPress={() => useSyncStore.setState({ notice: null })}
+          style={styles.notice}
+        >
+          <ThemedText variant="caption" tone="secondary">
+            {liveNotice.kind === 'meeting_kept'
+              ? t('today.notice.meetingKept')
+              : liveNotice.count === 1
+                ? t('today.notice.displaced')
+                : t('today.notice.displacedMany', { count: liveNotice.count })}
+          </ThemedText>
+        </Pressable>
       ) : null}
       {isFallbackPlan(plan) ? (
         <ThemedText
@@ -232,6 +298,7 @@ export default function TodayScreen() {
           recommendations={recs}
           titles={titles}
           now={now}
+          busy={busy}
           activeRecommendationId={activeSession?.recommendationId ?? null}
           renderActions={(rec, title) => (
             <BlockActions
@@ -271,6 +338,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   banner: { borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 12 },
+  bannerActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 },
   notice: { marginBottom: 12 },
   deferred: { paddingVertical: 12 },
 });

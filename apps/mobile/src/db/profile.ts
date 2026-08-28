@@ -1,8 +1,8 @@
 /**
  * Profile DAO (FR-02) — same write discipline as tasks (src/db/writes.ts): one transaction
  * = local row + `profile_update` outbox op with the server-shaped snake_case payload, so
- * P8's sync-resolve replays it unchanged. Until the sync engine exists, the op is also
- * pushed directly by src/sync/profilePush.ts (ADR-0006 bridge) and acked there.
+ * sync-resolve replays it (P8: the engine in src/sync/engine.ts; the P4 bridge is gone). The
+ * payload carries `version` and `updated_at` — the class-2 merge inputs (ADR-0012 §4).
  *
  * The server instantiates cold-start priors via trigger when onboarding_completed_at first
  * lands (invariant 1: nothing model-state-shaped happens on the client).
@@ -35,7 +35,11 @@ export function getProfile(db: LocalDb, userId: string): ProfileRow | undefined 
     ProfileRow | undefined;
 }
 
-function serverPayload(userId: string, draft: ProfileDraft): Record<string, unknown> {
+function serverPayload(
+  userId: string,
+  draft: ProfileDraft,
+  meta: { version: number; updatedAt: Date },
+): Record<string, unknown> {
   return {
     user_id: userId,
     timezone: draft.timezone,
@@ -47,6 +51,9 @@ function serverPayload(userId: string, draft: ProfileDraft): Record<string, unkn
     survey_skipped: draft.surveySkipped,
     top_categories: draft.topCategories,
     onboarding_completed_at: draft.onboardingCompletedAt?.toISOString() ?? null,
+    // P8 merge inputs (ADR-0012 §4): the version this edit produces and its edit time
+    version: meta.version,
+    updated_at: meta.updatedAt.getTime(),
   };
 }
 
@@ -70,6 +77,7 @@ export function saveProfile(
           surveySkipped: draft.surveySkipped,
           topCategories: draft.topCategories,
           onboardingCompletedAt: draft.onboardingCompletedAt,
+          version: existing.version + 1,
           updatedAt: now,
         })
         .where(eq(profiles.userId, userId))
@@ -94,7 +102,10 @@ export function saveProfile(
     enqueueOp(tx as LocalDb, {
       opType: 'profile_update',
       entityId: userId,
-      payload: serverPayload(userId, draft),
+      payload: serverPayload(userId, draft, {
+        version: existing ? existing.version + 1 : 1,
+        updatedAt: now,
+      }),
       baseVersion: existing?.version ?? null,
       now,
     });

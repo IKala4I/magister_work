@@ -1,20 +1,20 @@
 /**
- * The P6 plan bridge (UC-03 main path, NFR-P1): push pending task rows → invoke the
- * `plan-request` edge function with the user's session → mirror the response into SQLite in
- * one transaction (src/db/plans.ts) → PostHog `plan_requested` with the measured end-to-end
- * time. The client never computes a plan (invariant 1); offline it simply keeps showing the
- * last mirrored plan (NFR-R1) and reports `offline`.
+ * The plan request (UC-03 main path, NFR-P1): sync first so the server plans from the same day
+ * the device sees (tasks, plan-review statuses, facts — ADR-0010 §12; skipped when everything
+ * is fresh) → invoke the `plan-request` edge function with the user's session (EU region pinned)
+ * → mirror the response into SQLite in one transaction (src/db/plans.ts) → PostHog
+ * `plan_requested` with the measured end-to-end time. The client never computes a plan
+ * (invariant 1); offline it simply keeps showing the last mirrored plan (NFR-R1).
  */
-import type { FunctionsHttpError } from '@supabase/supabase-js';
-
 import { supabase } from '../auth/client';
 import { db } from '../db/client';
 import { applyPlanResponse, type PlanRow, type PlanTrigger } from '../db/plans';
 import type { LocalDb } from '../db/writes';
 import { track } from '../observability/analytics';
 
-import { pushFactsIfPossible } from './factsPush';
-import type { PlanRequestBody, PlanRequestResponse } from './planTypes';
+import { syncBeforePlan } from './engine';
+import { invokeFunction } from './invoke';
+import type { PlanRequestBody, PlanRequestResponse } from './types';
 
 export type PlanRequestOutcome =
   | { kind: 'planned'; plan: PlanRow; durationMs: number }
@@ -57,8 +57,8 @@ async function run(input: {
 
   // tasks + plan-review statuses + facts go up first so the server plans from the same day the
   // device sees (a block with a running session must not be expired by the re-plan — ADR-0010)
-  const pushed = await pushFactsIfPossible({ invoke: false });
-  if (pushed.kind === 'offline') return { kind: 'offline' }; // the push is the first network hop
+  const synced = await syncBeforePlan();
+  if (synced.kind === 'offline') return { kind: 'offline' }; // the sync is the first network hop
 
   const body: PlanRequestBody = {
     plan_date: input.planDate,
@@ -66,17 +66,13 @@ async function run(input: {
     now: now.toISOString(),
     trigger: input.trigger,
   };
-  const { data: response, error } = await supabase.functions.invoke<PlanRequestResponse>(
-    'plan-request',
-    { body },
-  );
+  const res = await invokeFunction<PlanRequestResponse>('plan-request', body);
   const durationMs = Date.now() - started;
-  if (error) {
-    // supabase-js: FunctionsFetchError = no response at all (network); FunctionsHttpError = non-2xx
-    if (error.name === 'FunctionsFetchError') return { kind: 'offline' };
-    const status = (error as FunctionsHttpError).context?.status as number | undefined;
-    if (status === 429) return { kind: 'rate_limited' };
-    if (status === 404) return { kind: 'profile_missing' };
+  if (res.kind !== 'ok') {
+    if (res.kind === 'offline') return { kind: 'offline' };
+    if (res.kind === 'no-session') return { kind: 'no-session' };
+    if (res.kind === 'http' && res.status === 429) return { kind: 'rate_limited' };
+    if (res.kind === 'http' && res.status === 404) return { kind: 'profile_missing' };
     track('plan_requested', {
       trigger: input.trigger,
       outcome: 'error',
@@ -84,9 +80,9 @@ async function run(input: {
       engine: null,
       model_version: null,
     });
-    return { kind: 'failed', detail: error.message };
+    return { kind: 'failed', detail: res.message };
   }
-  if (!response) return { kind: 'failed', detail: 'empty response' };
+  const response = res.data;
   if (response.status === 'empty_inbox') {
     track('plan_requested', {
       trigger: input.trigger,

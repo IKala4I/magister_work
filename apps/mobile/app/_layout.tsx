@@ -27,6 +27,7 @@ import { t } from '../src/i18n';
 import { initAnalytics } from '../src/observability/analytics';
 import { initSentry, Sentry } from '../src/observability/sentry';
 import { markFirstFrame } from '../src/observability/startup';
+import { wireSync } from '../src/sync/engine';
 import { EmptyState, Screen } from '../src/ui/primitives';
 import { useTheme } from '../src/ui/theme';
 
@@ -37,6 +38,7 @@ SplashScreen.preventAutoHideAsync().catch(() => {
 initSentry(); // env-gated: disabled without EXPO_PUBLIC_SENTRY_DSN
 initAnalytics(); // env-gated: disabled without EXPO_PUBLIC_POSTHOG_API_KEY + _HOST (EU)
 initAuth(); // env-gated: disabled without EXPO_PUBLIC_SUPABASE_URL + _ANON_KEY (local-only)
+wireSync(); // P8: foreground / reconnect / poll triggers (no-op without a Supabase client)
 
 function RootLayout() {
   const theme = useTheme();
@@ -92,6 +94,7 @@ function RootLayout() {
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="auth/sign-in" options={{ title: t('auth.signIn.title') }} />
         <Stack.Screen name="auth-callback" options={{ headerShown: false }} />
+        <Stack.Screen name="gcal-callback" options={{ headerShown: false }} />
         <Stack.Screen
           name="settings"
           options={{ presentation: 'modal', title: t('settings.title') }}

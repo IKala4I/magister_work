@@ -81,11 +81,26 @@ re-verifiable with `deploy/verify.sh`):
   status is unverified, and under Ukrainian law the US is not adequate regardless. ADR-0011
   option A keeps participant data off CI entirely (training on the VM; `train.yml` on synthetic
   data; registry in Supabase Storage).
-- **G4 — Edge Functions region.** Until pinned, functions run nearest the caller (deployed
-  globally); for callers in the EU or Ukraine that is an EU region, for a participant travelling
-  outside Europe it is not. Pin with `region: FunctionRegion.EuWest1` on `functions.invoke`
-  (verify: `x-sb-edge-region` response header) — **P8**, when the sync engine replaces both
-  call sites (`planRequest.ts`, `factsPush.ts`).
+- **G4 — Edge Functions region — closed in P8.** Every `functions.invoke` goes through
+  `apps/mobile/src/sync/invoke.ts`, pinned to `FunctionRegion.EuWest1` (`plan-request`,
+  `sync-resolve`, `gcal-connect`); verified live on the hosted project by the
+  `x-sb-edge-region` response header (`p8-manual-verification.md` §2). Server-to-server calls
+  (pg_cron → functions, functions → the VM) never leave the EU by construction.
+- **G7 — Google Calendar (FR-03, P8).** Google is an **independent controller** of the user's
+  calendar; Hourwell is an OAuth client acting on the user's instruction (Art. 6(1)(a)/(b) —
+  the user connects and can disconnect at any time; the consent-form text is
+  `consent-clause.md` §1). What crosses to Google: the OAuth code exchange, `events.list`
+  reads, `events.watch` channel registrations (the webhook URL), and — only with the opt-in
+  write-back — event titles of the user's own tasks written into their own calendar. What comes
+  back and is stored in the EU database: event ids, times, titles (display-only, never exported
+  or trained on — specs/07 §7), busy/free, and the server-held refresh token (`gcal_sync_state`,
+  no client grants). Google's servers may be outside the EU, but this leg is the user's own
+  service used at their request, not a transfer by the controller. **Gate for enrollment:** the
+  OAuth consent screen must be **in production** — in "Testing" status Google expires refresh
+  tokens after 7 days and would silently disconnect participants mid-study (ADR-0012
+  Consequences); the calendar scopes are "sensitive", so an unverified app shows a warning
+  screen and is capped at 100 users — enough for the study, but the verification review is
+  owner work if the warning is unacceptable.
 - **G5 — Public dataset (File 06 §5).** A row-level event dataset of 42 people is not anonymous
   by relabelling; publication is lawful only if genuinely anonymous. ADR-0011 §4: synthetic
   dataset + replay harness, and/or restricted-access OSF deposit (Frankfurt storage). ⛔ owner
@@ -109,6 +124,9 @@ re-verifiable with `deploy/verify.sh`):
   `deletion_audit` keeps proof-of-erasure with a user hash, no FK — survives the cascade.
 - `recommendations.features` snapshots are numeric arrays (no text) by contract (specs/07 §5).
 - P7: every client fact payload is categorical/numeric (tested, NFR-S3); ratings are labels.
+- P8: `gcal_sync_state` (refresh tokens, channel secrets) has no client grants and no policies;
+  the device only ever sees a consent URL and a yes/no status. Calendar-event tombstones
+  (`deleted_at`) make cancellations converge without hard deletes on the audit substrate.
 
 ## 6. Retention (defaults, fixed by ADR in P10)
 

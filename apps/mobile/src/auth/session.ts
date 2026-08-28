@@ -1,9 +1,10 @@
 /**
  * Auth session state (Zustand — ephemeral UI mirror of supabase-js's persisted session)
  * plus the transition orchestration:
- *   INITIAL_SESSION/SIGNED_IN → adopt (first uid ever), no-op (same uid), or
- *   wipe + server-profile rehydrate (different uid — the cursor contract), then
- *   record lastUserId and opportunistically push the profile bridge op.
+ *   INITIAL_SESSION/SIGNED_IN → adopt (first uid ever), no-op (same uid), or the account
+ *   change (different uid — wipe, or the deferred wipe when the previous account still has
+ *   unsynced changes, ADR-0012 §11), then record lastUserId and sync (the pull brings a
+ *   returning user's profile, tasks and plans — the P4 rehydrate bridge is gone).
  * Anonymous bootstrap (FR-01 "trial from first launch"): when there has never been a
  * session on this install, silently create an anonymous user as soon as the network
  * allows; until then the P3 local placeholder keeps everything working offline.
@@ -12,16 +13,14 @@
  * auth lock) — all follow-up work is deferred to a macrotask.
  */
 import type { Session } from '@supabase/supabase-js';
-import { AppState } from 'react-native';
 import { create } from 'zustand';
 
 import { db } from '../db/client';
-import { getProfile, upsertProfileFromServer } from '../db/profile';
 import type { LocalDb } from '../db/writes';
 import { track } from '../observability/analytics';
-import { pushProfileIfPossible } from '../sync/profilePush';
+import { syncNow } from '../sync/engine';
 
-import { adoptLocalData, wipeLocalMirror } from './accountTransition';
+import { adoptLocalData, reconcilePendingWipe, transitionToAccount } from './accountTransition';
 import { isAuthAvailable, supabase, wireAutoRefresh } from './client';
 import { getLastUserId, setLastUserId } from './identity';
 
@@ -53,35 +52,6 @@ function applySession(session: Session | null): void {
   );
 }
 
-/**
- * The account's profile may already be on the server; the P4 bridge can rehydrate it
- * (tasks and the rest arrive with real sync in P8). A pulled row is mirrored WITHOUT
- * enqueueing a push op (findings m2/m3). Failure is fine — the user just re-onboards and
- * the server keeps their beta_cells (ON CONFLICT DO NOTHING).
- */
-async function rehydrateProfile(localDb: LocalDb, userId: string): Promise<void> {
-  if (!supabase) return;
-  const { data } = await supabase.from('profiles').select().eq('user_id', userId).maybeSingle();
-  if (!data || !data.onboarding_completed_at) return;
-  upsertProfileFromServer(localDb, {
-    userId,
-    draft: {
-      timezone: data.timezone,
-      locale: data.locale,
-      workingHours: (data.working_hours ?? {}) as never,
-      sleepWindow: (data.sleep_window ?? [1380, 420]) as never,
-      rmeqScore: data.rmeq_score,
-      chronotypeClass: data.chronotype_class as never,
-      surveySkipped: data.survey_skipped,
-      topCategories: data.top_categories,
-      onboardingCompletedAt: new Date(data.onboarding_completed_at),
-    },
-    version: data.version,
-    serverSeq: data.server_seq == null ? null : Number(data.server_seq),
-    now: new Date(),
-  });
-}
-
 async function handleSignedIn(session: Session): Promise<void> {
   const uid = session.user.id;
   const lastUid = getLastUserId();
@@ -90,17 +60,14 @@ async function handleSignedIn(session: Session): Promise<void> {
     // Same account resuming — nothing to move.
   } else if (lastUid == null) {
     adoptLocalData(localDb, uid); // first sign-in ever on this install (contract, P3)
-    // A returning user on a fresh install has their profile server-side, not here
-    // (ADR-0006 §4; finding m2) — without this they would re-onboard and LWW-overwrite it.
-    if (!getProfile(localDb, uid)?.onboardingCompletedAt) {
-      await rehydrateProfile(localDb, uid);
-    }
   } else {
-    wipeLocalMirror(localDb); // different account — cursor contract (src/sync/cursor.ts)
-    await rehydrateProfile(localDb, uid);
+    transitionToAccount(localDb, lastUid); // wipe, or defer it (cursor contract, ADR-0012 §11)
   }
+  reconcilePendingWipe(localDb, uid);
   setLastUserId(uid);
-  await pushProfileIfPossible();
+  // The pull rehydrates a returning user (profile first — the onboarding gate re-renders on
+  // the profiles table); offline is fine, the next foreground retries.
+  await syncNow('sign_in');
 }
 
 let bootstrapAttempted = false;
@@ -117,10 +84,6 @@ async function bootstrapAnonymous(): Promise<void> {
 export function initAuth(): void {
   if (!supabase) return;
   wireAutoRefresh();
-  // Foreground = retry moment for the profile bridge op queued while offline (NFR-R1).
-  AppState.addEventListener('change', (state) => {
-    if (state === 'active') void pushProfileIfPossible();
-  });
   supabase.auth.onAuthStateChange((event, session) => {
     // Conversion completes when a formerly anonymous session stops being anonymous.
     const wasAnonymous = useSessionStore.getState().isAnonymous;
@@ -128,7 +91,7 @@ export function initAuth(): void {
     setTimeout(() => {
       if (session && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
         void handleSignedIn(session).catch(() => {
-          // Never crash auth wiring; the next foreground/push retries.
+          // Never crash auth wiring; the next foreground/sync retries.
         });
       }
       if (event === 'USER_UPDATED' && wasAnonymous && session?.user.is_anonymous === false) {

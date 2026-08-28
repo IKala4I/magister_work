@@ -194,6 +194,33 @@ export const events = sqliteTable(
   ],
 );
 
+/**
+ * Local mirror of the server `calendar_events` row (specs/07 §4.1; FR-03/UC-09): the busy
+ * intervals the webhook imported from the user's Google Calendar. Read-only on the client
+ * (pull only, never an op); `deleted_at` tombstones cancelled meetings so the mirror converges.
+ * `title` is display-only and never leaves the device again (specs/07 §7).
+ */
+export const calendarEvents = sqliteTable(
+  'calendar_events',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull(),
+    source: text('source').notNull().default('google'),
+    externalId: text('external_id').notNull(),
+    startAt: integer('start_at', { mode: 'timestamp_ms' }).notNull(),
+    endAt: integer('end_at', { mode: 'timestamp_ms' }).notNull(),
+    title: text('title'),
+    busy: integer('busy', { mode: 'boolean' }).notNull().default(true),
+    deletedAt: integer('deleted_at', { mode: 'timestamp_ms' }),
+    updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
+    serverSeq: integer('server_seq'),
+  },
+  (t) => [
+    index('calendar_events_user_start_idx').on(t.userId, t.startAt),
+    uniqueIndex('calendar_events_source_external_unique').on(t.userId, t.source, t.externalId),
+  ],
+);
+
 export const FOCUS_SESSION_STATES = ['running', 'paused', 'finished', 'abandoned'] as const;
 
 /**

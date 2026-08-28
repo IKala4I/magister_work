@@ -44,6 +44,11 @@ jest.mock('@react-native-community/datetimepicker', () => ({
 }));
 const mockNavigate = jest.fn();
 jest.mock('expo-router', () => ({ useRouter: () => ({ navigate: mockNavigate }) }));
+const mockWipe = { discard: jest.fn(), keep: jest.fn() };
+jest.mock('../auth/accountTransition', () => ({
+  discardPendingWipe: (...a: unknown[]) => mockWipe.discard(...a),
+  keepPendingWipe: () => mockWipe.keep(),
+}));
 
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import type { ReactElement } from 'react';
@@ -53,7 +58,9 @@ import TodayScreen from '../../app/(tabs)/index';
 import type { PlanRow, RecommendationRow } from '../db/plans';
 import type { TaskRow } from '../db/tasks';
 import { en } from '../i18n/en';
+import type { CalendarEventRow } from '../db/calendar';
 import { usePlanStore } from '../state/plan';
+import { useSyncStore } from '../state/sync';
 
 const initialMetrics = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
@@ -147,17 +154,47 @@ function rows(input: {
   recs?: RecommendationRow[];
   tasks?: TaskRow[];
   sessions?: Array<{ recommendationId: string }>;
+  busy?: CalendarEventRow[];
 }) {
   mockUseLiveRows.mockImplementation((_build: unknown, tables: readonly string[]) => {
     if (tables[0] === 'plans') return input.plans ?? [];
     if (tables[0] === 'recommendations') return input.recs ?? [];
     if (tables[0] === 'focus_sessions') return input.sessions ?? [];
+    if (tables[0] === 'calendar_events') return input.busy ?? [];
     return input.tasks ?? [];
   });
 }
 
+function busyEvent(over: Partial<CalendarEventRow> = {}): CalendarEventRow {
+  const start = new Date(today);
+  start.setHours(11, 0, 0, 0);
+  const end = new Date(start);
+  end.setHours(12, 0, 0, 0);
+  return {
+    id: 'cal-1',
+    userId: 'local:u',
+    source: 'google',
+    externalId: 'meet1',
+    startAt: start,
+    endAt: end,
+    title: 'Design review',
+    busy: true,
+    deletedAt: null,
+    updatedAt: new Date(),
+    serverSeq: 3,
+    ...over,
+  };
+}
+
 beforeEach(() => {
   jest.clearAllMocks();
+  useSyncStore.setState({
+    status: 'idle',
+    lastSyncAt: null,
+    pendingOps: 0,
+    notice: null,
+    pendingWipe: null,
+  });
   mockLapse.diagnosticTask = null;
   mockBlockActions.skipBlockAction.mockImplementation(() => ({ task: null, diagnosticDue: false }));
   usePlanStore.setState({ status: 'idle', lastRequestedDay: null, emptyInbox: false });
@@ -384,5 +421,67 @@ describe('Today', () => {
     });
     expect(mockLapse.dismissDiagnostic).toHaveBeenCalledTimes(1);
     expect(mockBlockActions.skipDiagnosticAction).not.toHaveBeenCalled();
+  });
+});
+
+describe('Today — P8 sync surfaces', () => {
+  it('renders imported busy rows between blocks with title and time (FR-03)', async () => {
+    rows({ plans: [plan()], recs: [rec()], tasks: [task()], busy: [busyEvent()] });
+    await render(withSafeArea(<TodayScreen />));
+    expect(screen.getByText('Design review')).toBeTruthy();
+    expect(screen.getByLabelText(/^Busy: Design review/)).toBeTruthy();
+    expect(screen.getByText('write report')).toBeTruthy();
+  });
+
+  it('an untitled busy row reads "Busy"; a plan with only meetings still renders the timeline', async () => {
+    rows({ plans: [plan()], recs: [], tasks: [], busy: [busyEvent({ title: null })] });
+    await render(withSafeArea(<TodayScreen />));
+    expect(screen.getByText(en['today.busy.untitled'])).toBeTruthy();
+    expect(screen.queryByText(en['today.empty.title'])).toBeNull();
+  });
+
+  it('shows the File 05 §2 notices from the sync store and dismisses on tap', async () => {
+    useSyncStore.setState({ notice: { kind: 'meeting_kept', at: Date.now() } });
+    await render(withSafeArea(<TodayScreen />));
+    expect(screen.getByText(en['today.notice.meetingKept'])).toBeTruthy();
+    await act(async () => {
+      fireEvent.press(screen.getByLabelText(en['today.notice.dismiss']));
+    });
+    expect(screen.queryByText(en['today.notice.meetingKept'])).toBeNull();
+    useSyncStore.setState({ notice: { kind: 'displaced', count: 2, at: Date.now() } });
+    await render(withSafeArea(<TodayScreen />));
+    expect(
+      screen.getByText(
+        'Meetings now overlap 2 planned blocks — they return to your Inbox for the next plan.',
+      ),
+    ).toBeTruthy();
+  });
+
+  it('a stale notice (older than a minute) is not shown', async () => {
+    useSyncStore.setState({ notice: { kind: 'meeting_kept', at: Date.now() - 120_000 } });
+    await render(withSafeArea(<TodayScreen />));
+    expect(screen.queryByText(en['today.notice.meetingKept'])).toBeNull();
+  });
+
+  it('the deferred-wipe banner offers Keep / Discard (ADR-0012 §11)', async () => {
+    useSyncStore.setState({ pendingWipe: { userId: 'prev', ops: 4 } });
+    await render(withSafeArea(<TodayScreen />));
+    expect(
+      screen.getByText('Another account left 4 unsynced changes on this device.'),
+    ).toBeTruthy();
+    await act(async () => {
+      fireEvent.press(screen.getByText(en['today.wipe.keep']));
+    });
+    expect(mockWipe.keep).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      fireEvent.press(screen.getByText(en['today.wipe.discard']));
+    });
+    expect(mockWipe.discard).toHaveBeenCalledTimes(1);
+  });
+
+  it('a displaced block shows the neutral caption, never an error state', async () => {
+    rows({ plans: [plan()], recs: [rec({ status: 'displaced' })], tasks: [task()] });
+    await render(withSafeArea(<TodayScreen />));
+    expect(screen.getByText(en['block.status.displaced'])).toBeTruthy();
   });
 });

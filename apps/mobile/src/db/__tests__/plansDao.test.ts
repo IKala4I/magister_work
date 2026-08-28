@@ -29,7 +29,7 @@ import {
 import { events, opOutbox, plans, recommendations, tasks } from '../schema';
 import { createTask } from '../tasks';
 import type { LocalDb } from '../writes';
-import type { PlanRequestResponse, RecommendationRow } from '../../sync/planTypes';
+import type { PlanRequestResponse, RecommendationRow } from '../../sync/types';
 
 const USER = 'local:test-user';
 const NOW = new Date(2026, 7, 26, 8, 0);

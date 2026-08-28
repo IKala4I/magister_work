@@ -1,7 +1,7 @@
 /**
  * Onboarding completion (FR-02, UC-01 postcondition "profile persisted; cold-start priors
  * selected"): score the survey, persist the profile locally through the outbox discipline,
- * then bridge-push so the server trigger instantiates priors (invariant 1 — selection
+ * then sync so the server trigger instantiates priors (invariant 1 — selection
  * happens entirely server-side; this module never computes a prior).
  */
 import { getCalendars } from 'expo-localization';
@@ -12,7 +12,7 @@ import { saveProfile } from '../db/profile';
 import type { ProfileRow } from '../db/profile';
 import type { LocalDb } from '../db/writes';
 import { track } from '../observability/analytics';
-import { pushProfileIfPossible } from '../sync/profilePush';
+import { scheduleSync } from '../sync/engine';
 
 import { scoreRmeq } from './rmeq';
 import type { RmeqAnswers } from './rmeq';
@@ -51,6 +51,6 @@ export function completeOnboardingAction(input: {
     top_categories_count: input.topCategories.length,
     seed_tasks_added: input.seedTasksAdded,
   });
-  void pushProfileIfPossible(); // offline is fine — the op waits, foreground retries
+  scheduleSync('write'); // offline is fine — the op waits, foreground retries
   return row;
 }

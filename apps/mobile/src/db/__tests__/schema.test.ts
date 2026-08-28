@@ -8,6 +8,7 @@ import { getTableColumns } from 'drizzle-orm';
 import { getTableConfig } from 'drizzle-orm/sqlite-core';
 
 import {
+  calendarEvents,
   tasks,
   plans,
   recommendations,
@@ -248,5 +249,33 @@ describe('invariant 1: the client never holds rewards or model state', () => {
         expect(name).not.toMatch(/reward|a_matrix|b_vector|alpha|beta|theta/);
       }
     }
+  });
+});
+
+describe('calendar_events mirror (specs/07 §4.1, P8)', () => {
+  it('carries the server row column-for-column plus the P8 tombstone', () => {
+    expect(columnNames(calendarEvents)).toEqual(
+      [
+        'id',
+        'user_id',
+        'source',
+        'external_id',
+        'start_at',
+        'end_at',
+        'title',
+        'busy',
+        'deleted_at',
+        'updated_at',
+        'server_seq',
+      ].sort(),
+    );
+  });
+
+  it('is unique per (user, source, external_id) like the server table', () => {
+    const cfg = getTableConfig(calendarEvents);
+    const unique = cfg.indexes.find(
+      (i) => i.config.name === 'calendar_events_source_external_unique',
+    );
+    expect(unique?.config.unique).toBe(true);
   });
 });

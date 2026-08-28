@@ -10,10 +10,7 @@
  */
 import { and, desc, eq, inArray, ne } from 'drizzle-orm';
 
-import type {
-  PlanRequestResponse,
-  RecommendationRow as ServerRecommendation,
-} from '../sync/planTypes';
+import type { PlanRequestResponse, RecommendationRow as ServerRecommendation } from '../sync/types';
 
 import { plans, recommendations, tasks } from './schema';
 import { taskOpPayload } from './tasks';

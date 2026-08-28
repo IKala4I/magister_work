@@ -21,12 +21,22 @@ import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 
 import { saveProfile } from '../../db/profile';
 import { createTask } from '../../db/tasks';
-import { events, opOutbox, profiles, tasks } from '../../db/schema';
+import { calendarEvents, events, opOutbox, plans, profiles, tasks } from '../../db/schema';
 import type { LocalDb } from '../../db/writes';
+import { useSyncStore } from '../../state/sync';
 import { appStorage, StorageKeys } from '../../storage/mmkv';
 import { advanceSyncCursor, getSyncCursor } from '../../sync/cursor';
 import { getLocalUserId } from '../../sync/localUser';
-import { adoptLocalData, wipeLocalMirror } from '../accountTransition';
+import {
+  adoptLocalData,
+  discardPendingWipe,
+  keepPendingWipe,
+  pendingWipeUserId,
+  reconcilePendingWipe,
+  transitionToAccount,
+  unackedOpsFor,
+  wipeLocalMirror,
+} from '../accountTransition';
 
 const UID = 'a0000000-0000-4000-8000-000000000001';
 const NOW = new Date('2026-08-26T10:00:00Z');
@@ -45,6 +55,7 @@ beforeEach(() => {
   handle = openDb();
   db = handle.db;
   appStorage.clearAll();
+  useSyncStore.setState({ pendingWipe: null });
 });
 afterEach(() => handle.close());
 
@@ -156,5 +167,112 @@ describe('wipeLocalMirror (account-change contract)', () => {
     expect(getSyncCursor()).toBe(0); // next pull starts from scratch for the new account
     expect(appStorage.getString(StorageKeys.deviceId)).toBe(deviceId);
     expect(appStorage.getNumber(StorageKeys.opCounter)).toBe(opCounter);
+  });
+});
+
+describe('P8 account change (ADR-0012 §11): wipe now, or defer while the previous account has unsynced ops', () => {
+  const OTHER = 'b0000000-0000-4000-8000-000000000002';
+
+  it('wipeLocalMirror clears every mirrored table (plans, focus sessions, calendar rows included) and resets the cursor', () => {
+    seedLocalData();
+    adoptLocalData(db, UID);
+    advanceSyncCursor(42);
+    db.insert(plans)
+      .values({
+        id: 'p1',
+        userId: UID,
+        planDate: '2026-09-01',
+        engine: 'learned',
+        telemetry: {},
+        generatedAt: NOW,
+      })
+      .run();
+    db.insert(calendarEvents)
+      .values({
+        id: 'c1',
+        userId: UID,
+        externalId: 'x',
+        startAt: NOW,
+        endAt: NOW,
+        updatedAt: NOW,
+      })
+      .run();
+    wipeLocalMirror(db);
+    expect(db.select().from(tasks).all()).toHaveLength(0);
+    expect(db.select().from(plans).all()).toHaveLength(0);
+    expect(db.select().from(calendarEvents).all()).toHaveLength(0);
+    expect(db.select().from(opOutbox).all()).toHaveLength(0);
+    expect(getSyncCursor()).toBe(0);
+  });
+
+  it('transitionToAccount wipes when nothing is unsynced', () => {
+    seedLocalData();
+    adoptLocalData(db, UID);
+    db.update(opOutbox).set({ ackedAt: NOW }).run(); // everything already pushed
+    advanceSyncCursor(7);
+    transitionToAccount(db, UID);
+    expect(db.select().from(tasks).all()).toHaveLength(0);
+    expect(getSyncCursor()).toBe(0);
+    expect(pendingWipeUserId()).toBeNull();
+    expect(useSyncStore.getState().pendingWipe).toBeNull();
+  });
+
+  it('transitionToAccount defers the wipe when unacked ops exist: cursor reset, rows kept, banner state set', () => {
+    seedLocalData();
+    adoptLocalData(db, UID);
+    advanceSyncCursor(7);
+    transitionToAccount(db, UID);
+    expect(db.select().from(tasks).all()).toHaveLength(1);
+    expect(unackedOpsFor(db, UID)).toBeGreaterThan(0);
+    expect(getSyncCursor()).toBe(0);
+    expect(pendingWipeUserId()).toBe(UID);
+    expect(useSyncStore.getState().pendingWipe?.userId).toBe(UID);
+  });
+
+  it('the previous owner signing back in cancels the pending wipe; discard removes only their rows', () => {
+    seedLocalData();
+    adoptLocalData(db, UID);
+    transitionToAccount(db, UID); // deferred
+    // the new account creates its own task meanwhile
+    createTask(db, {
+      userId: OTHER,
+      draft: {
+        title: 'other account task',
+        category: 'admin',
+        estMinutes: 30,
+        value: 1,
+        splittable: false,
+        deadline: null,
+        earliestStart: null,
+      },
+      meta: { source: 'form', nlParseUsed: false },
+    });
+    reconcilePendingWipe(db, OTHER);
+    expect(useSyncStore.getState().pendingWipe?.userId).toBe(UID);
+
+    discardPendingWipe(db);
+    expect(pendingWipeUserId()).toBeNull();
+    expect(useSyncStore.getState().pendingWipe).toBeNull();
+    const remaining = db.select().from(tasks).all();
+    expect(remaining).toHaveLength(1);
+    expect(remaining[0]?.userId).toBe(OTHER);
+    for (const op of db.select().from(opOutbox).all()) {
+      expect((op.payload as { user_id?: string }).user_id).toBe(OTHER);
+    }
+  });
+
+  it('keepPendingWipe leaves the rows and clears the question; reconcile for the owner clears it too', () => {
+    seedLocalData();
+    adoptLocalData(db, UID);
+    transitionToAccount(db, UID);
+    keepPendingWipe();
+    expect(pendingWipeUserId()).toBeNull();
+    expect(db.select().from(tasks).all()).toHaveLength(1);
+
+    transitionToAccount(db, UID);
+    reconcilePendingWipe(db, UID); // UID signs back in
+    expect(pendingWipeUserId()).toBeNull();
+    expect(useSyncStore.getState().pendingWipe).toBeNull();
+    expect(db.select().from(tasks).all()).toHaveLength(1);
   });
 });
