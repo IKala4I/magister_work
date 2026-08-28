@@ -151,16 +151,29 @@ class InMemoryRepo:
 
 
 class PostgresRepo:
-    """psycopg 3 pool against the Supabase pooler (transaction mode is fine: no session state)."""
+    """psycopg 3 pool against the Supabase pooler in transaction mode (port 6543).
+
+    Transaction mode is fine for this service (no session state), with one constraint: Supavisor
+    does not support server-side prepared statements, and psycopg prepares a statement after it
+    has run ``prepare_threshold`` times on a connection — so the default (5) would start failing
+    with "prepared statement does not exist" once a connection is reused by another transaction.
+    ``prepare_threshold=None`` disables that (Supabase docs, "Disabling prepared statements").
+    """
 
     storage = "postgres"
+    # kwargs passed to every connection the pool opens
+    CONNECTION_KWARGS: dict[str, object] = {"prepare_threshold": None}
 
     def __init__(self, conninfo: str, max_size: int = 4) -> None:
         from psycopg.rows import dict_row
         from psycopg_pool import ConnectionPool
 
         self._pool = ConnectionPool(
-            conninfo, min_size=0, max_size=max_size, open=False, kwargs={"row_factory": dict_row}
+            conninfo,
+            min_size=0,
+            max_size=max_size,
+            open=False,
+            kwargs={"row_factory": dict_row, **self.CONNECTION_KWARGS},
         )
 
     def open(self) -> None:

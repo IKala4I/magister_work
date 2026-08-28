@@ -36,7 +36,15 @@ may not be opened from the Mac once a real participant exists; RPCs for erasure/
 access log outside the repo); PAYG stays deferred. PLAN P11 amended; spec-conflicts H5 resolved;
 revisit follow-ups per phase.
 
-**Box state (2026-08-28):** deployed and applied from the owner's address; fresh-connection SSH
+**Steps 2–4 completed (2026-08-28, later).** Locks set and tag propagation proven; serial-console
+login proven; `DATABASE_URL` corrected from the Direct-connection DSN (IPv6-only) to the
+Transaction pooler `aws-1-eu-west-1:6543` + `sslmode=require`; stack up, certificate obtained,
+`/healthz` live with `storage: postgres` on the `main` build; `verify.sh` ALL OK; `RECSYS_HOST`
+variable set. **Fix:** `PostgresRepo` disables psycopg server-side prepared statements
+(`prepare_threshold=None`, DB-free test) — required by the transaction pooler; `.env.example` +
+runbook §6 corrected (pooler cluster is project-specific; never the Direct tab).
+
+**Box state (2026-08-28, earlier):** deployed and applied from the owner's address; fresh-connection SSH
 re-check OK; console password set (stored in `~/.hourwell/console-password`, to be copied to the
 password manager); `verify.sh` — see HANDOFF for the exact remaining FAILs (app checks pending
 `DATABASE_URL` + install). DuckDNS `hourwell-recsys.duckdns.org → 84.235.238.25` verified.

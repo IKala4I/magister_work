@@ -71,28 +71,19 @@ Owner IP as seen from the Mac on 2026-08-28: `193.0.218.70` (`curl -s https://ap
 Both SSH locks (runbook §0) must contain it; the host lock already does (applied by the session).
 
 1. ~~DuckDNS~~ — **done 2026-08-28**, `hourwell-recsys.duckdns.org → 84.235.238.25` verified.
-2. **Lock 1 + lock 2 in the OCI Console** (runbook §4.1–4.2):
-   (a) Networking → Virtual cloud networks → `recsys-vcn` → Security Lists → Default Security
-   List → Ingress Rules → edit the port-22 rule whose source is `0.0.0.0/0` → Source CIDR
-   `193.0.218.70/32` → Save (no other rule for 22; 80/443 stay `0.0.0.0/0`).
-   (b) Compute → Instances → `recsys-oracle` → **Tags** → Add tags → freeform key `ssh-allow`,
-   value `193.0.218.70/32` → Add.
-   _Session check:_ `ssh oracle-recsys true`; `sudo hourwell-ssh-allow status` shows
-   `tag ssh-allow = 193.0.218.70/32` and `source=tag` in the state file within a minute;
-   `journalctl -u hourwell-ssh-allow` shows the sync.
-3. **Serial console test + password manager** (runbook §4.3, §5 B): copy
-   `~/.hourwell/console-password` into the password manager; Console → the instance → Console
-   connection → **Launch Cloud Shell connection** → Enter until `recsys-oracle login:` → `ubuntu`
-   - that password → `exit` → close the connection. _Session check:_
-     `journalctl _COMM=login` shows a `ttyAMA0` login; the console password check in `verify.sh`.
-4. **`DATABASE_URL` on the box** — Supabase dashboard → Connect → Transaction pooler (6543) →
-   copy the DSN with the DB password (URL-encode special characters) → `ssh oracle-recsys 'nano
-~/hourwell/.env'` → replace the `DATABASE_URL=` line. Never paste it into chat. _Session then
-   runs:_ `install.sh` (second run: timers + pull + up), `verify.sh` → `ALL OK`, `curl
-https://hourwell-recsys.duckdns.org/healthz` → `storage: postgres`, `arch: aarch64`, `build:
-
-<main sha>`; then `gh variable set RECSYS_HOST` (the GHCR package is already public — anonymous
-   manifest pull verified).
+2. ~~Locks~~ — **done 2026-08-28**: Security List 22 from `193.0.218.70/32`; tag `ssh-allow` set;
+   tag propagation proven (a hand-added TEST-NET address was removed by the next sync).
+3. ~~Serial console~~ — **done 2026-08-28**: login on `ttyAMA0` + `sudo` seen in the journal;
+   console password in the owner's password manager (ladder B proven).
+4. ~~`DATABASE_URL`~~ — **done 2026-08-28** after one correction: the owner pasted the _Direct
+   connection_ DSN (IPv6-only host → `Network is unreachable`); rewritten in place to the
+   Transaction pooler **`aws-1-eu-west-1`** (`aws-0` = "tenant not found"), `?sslmode=require`
+   appended (TLS confirmed in-container). `install.sh` second run OK; Let's Encrypt certificate
+   obtained; `https://hourwell-recsys.duckdns.org/healthz` → `storage: postgres`, `arch:
+aarch64`, `build: <main sha>`; `verify.sh 193.0.218.70` → **ALL OK** (40); GitHub variable
+   `RECSYS_HOST` set (rollout job live from PR #12 on). Found and fixed on the way:
+   `PostgresRepo` now sets `prepare_threshold=None` (transaction pooler has no server-side
+   prepared statements — would have failed after a statement's 5th execution).
 5. **`supabase login`** — type `! supabase login` in the prompt (browser flow). _Session then
    runs:_ `supabase secrets set HOURWELL_SERVICE_KEY=<from ~/.hourwell> RECSYS_URL=https://hourwell-recsys.duckdns.org`
    (values piped, not printed) and checks `supabase secrets list`.
@@ -119,8 +110,8 @@ screen (FR-01), magic-link E2E with a real mailbox, Sentry slugs (P12), OSF-free
    did not happen (`gh pr checks 10`, merge with a merge commit like the earlier PRs).
 2. Ask the owner for the next unchecked ⛔ step, verify it as listed, continue down the list;
    `verify.sh 193.0.218.70` after step 4 must print `ALL OK`.
-3. After ⛔ 6: the measurements (⛔ 7), then a docs commit on a small branch (measurements are
-   docs-only), then P8 (its reading list is below; add ADR-0011 §Decision + privacy README §7
+3. After ⛔ 6: the measurements (⛔ 7; the container bench already ran on 2026-08-28 — see
+   `p5-manual-verification.md` §2 once recorded), then a docs commit on a small branch, then P8 (its reading list is below; add ADR-0011 §Decision + privacy README §7
    for the consent clause, the region pin and the "EU/EEA resident?" enrollment field).
 
 ## What P8 needs to read (exact sections — read nothing else to orient)
