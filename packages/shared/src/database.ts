@@ -133,6 +133,7 @@ export type Database = {
       calendar_events: {
         Row: {
           busy: boolean
+          deleted_at: string | null
           end_at: string
           external_id: string
           id: string
@@ -145,6 +146,7 @@ export type Database = {
         }
         Insert: {
           busy?: boolean
+          deleted_at?: string | null
           end_at: string
           external_id: string
           id?: string
@@ -157,6 +159,7 @@ export type Database = {
         }
         Update: {
           busy?: boolean
+          deleted_at?: string | null
           end_at?: string
           external_id?: string
           id?: string
@@ -356,28 +359,67 @@ export type Database = {
       }
       gcal_sync_state: {
         Row: {
+          access_token: string | null
+          access_token_expires_at: string | null
+          calendar_id: string
           channel_expires_at: string | null
           channel_id: string | null
+          channel_token: string | null
+          connected_at: string | null
+          last_error: string | null
+          last_synced_at: string | null
+          oauth_state: string | null
+          oauth_state_expires_at: string | null
+          refresh_token: string | null
           resource_id: string | null
+          scope: string
           sync_token: string | null
           updated_at: string
           user_id: string
+          write_back: boolean
+          write_back_calendar_id: string | null
         }
         Insert: {
+          access_token?: string | null
+          access_token_expires_at?: string | null
+          calendar_id?: string
           channel_expires_at?: string | null
           channel_id?: string | null
+          channel_token?: string | null
+          connected_at?: string | null
+          last_error?: string | null
+          last_synced_at?: string | null
+          oauth_state?: string | null
+          oauth_state_expires_at?: string | null
+          refresh_token?: string | null
           resource_id?: string | null
+          scope?: string
           sync_token?: string | null
           updated_at?: string
           user_id: string
+          write_back?: boolean
+          write_back_calendar_id?: string | null
         }
         Update: {
+          access_token?: string | null
+          access_token_expires_at?: string | null
+          calendar_id?: string
           channel_expires_at?: string | null
           channel_id?: string | null
+          channel_token?: string | null
+          connected_at?: string | null
+          last_error?: string | null
+          last_synced_at?: string | null
+          oauth_state?: string | null
+          oauth_state_expires_at?: string | null
+          refresh_token?: string | null
           resource_id?: string | null
+          scope?: string
           sync_token?: string | null
           updated_at?: string
           user_id?: string
+          write_back?: boolean
+          write_back_calendar_id?: string | null
         }
         Relationships: []
       }
@@ -486,6 +528,7 @@ export type Database = {
       profiles: {
         Row: {
           chronotype_class: string | null
+          eu_eea_resident: boolean | null
           locale: string
           onboarding_completed_at: string | null
           research_cohort: boolean
@@ -503,6 +546,7 @@ export type Database = {
         }
         Insert: {
           chronotype_class?: string | null
+          eu_eea_resident?: boolean | null
           locale?: string
           onboarding_completed_at?: string | null
           research_cohort?: boolean
@@ -520,6 +564,7 @@ export type Database = {
         }
         Update: {
           chronotype_class?: string | null
+          eu_eea_resident?: boolean | null
           locale?: string
           onboarding_completed_at?: string | null
           research_cohort?: boolean
@@ -547,6 +592,8 @@ export type Database = {
           created_at: string
           engine: string
           features: Json
+          gcal_event_id: string | null
+          gcal_synced_slot_start: string | null
           id: string
           is_experiment: boolean
           model_version: string | null
@@ -573,6 +620,8 @@ export type Database = {
           created_at?: string
           engine: string
           features: Json
+          gcal_event_id?: string | null
+          gcal_synced_slot_start?: string | null
           id?: string
           is_experiment?: boolean
           model_version?: string | null
@@ -599,6 +648,8 @@ export type Database = {
           created_at?: string
           engine?: string
           features?: Json
+          gcal_event_id?: string | null
+          gcal_synced_slot_start?: string | null
           id?: string
           is_experiment?: boolean
           model_version?: string | null
@@ -684,6 +735,51 @@ export type Database = {
         }
         Relationships: []
       }
+      sync_leases: {
+        Row: {
+          expires_at: string
+          token: string
+          user_id: string
+        }
+        Insert: {
+          expires_at: string
+          token: string
+          user_id: string
+        }
+        Update: {
+          expires_at?: string
+          token?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sync_ops: {
+        Row: {
+          applied_at: string
+          entity_id: string | null
+          op_id: string
+          op_type: string
+          outcome: string
+          user_id: string
+        }
+        Insert: {
+          applied_at?: string
+          entity_id?: string | null
+          op_id: string
+          op_type: string
+          outcome: string
+          user_id: string
+        }
+        Update: {
+          applied_at?: string
+          entity_id?: string | null
+          op_id?: string
+          op_type?: string
+          outcome?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           category: string
@@ -752,6 +848,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      acquire_sync_lease: {
+        Args: { p_ttl_seconds?: number; p_user_id: string }
+        Returns: string
+      }
       attribution_due: {
         Args: { p_limit?: number; p_now?: string }
         Returns: {
@@ -771,7 +871,54 @@ export type Database = {
       }
       attribution_sweep_tick: { Args: never; Returns: string }
       chronotype_seed_cluster: { Args: { p_class: string }; Returns: number }
+      gcal_sweep_tick: { Args: never; Returns: string }
       instantiate_user_priors: { Args: { p_user_id: string }; Returns: number }
+      persist_plan: {
+        Args: {
+          p_plan: Json
+          p_recs: Json
+          p_supersede: string[]
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      release_sync_lease: {
+        Args: { p_token: string; p_user_id: string }
+        Returns: boolean
+      }
+      sync_apply_event: {
+        Args: { p: Json; p_op_id: string; p_user_id: string }
+        Returns: Json
+      }
+      sync_apply_profile: {
+        Args: { p: Json; p_base: number; p_op_id: string; p_user_id: string }
+        Returns: Json
+      }
+      sync_apply_rec_status: {
+        Args: { p: Json; p_op_id: string; p_user_id: string }
+        Returns: Json
+      }
+      sync_apply_task: {
+        Args: {
+          p: Json
+          p_base: number
+          p_delete: boolean
+          p_op_id: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      sync_is_uuid: { Args: { p: string }; Returns: boolean }
+      sync_pull: {
+        Args: { p_cursor?: number; p_limit?: number }
+        Returns: {
+          payload: Json
+          server_seq: number
+          tbl: string
+        }[]
+      }
+      sync_replay: { Args: { p_ops: Json; p_user_id: string }; Returns: Json }
+      sync_ts: { Args: { p: Json }; Returns: string }
     }
     Enums: {
       [_ in never]: never
