@@ -169,12 +169,11 @@ never substituted. Command: runbook `docs/runbooks/oracle-vm.md` §7.
   re-measured with the rolled-out image in §2.3 (week FEASIBLE 13/20, 1.35 s p50; day unchanged).
   The residual ≈ 35–40 % UNKNOWN on 50-task week plans is a capacity limit of the box, recorded
   for the thesis (corrections #37) and for P9 (revisit.md).
-- ⬜ **UC-03 A1 — kill the service, verify the fallback** (added P6; re-worded for the VM). Set
-  `RECSYS_URL` to an unreachable host (or `docker compose stop recsys` on the box), request a
-  plan: the response must be `engine = heuristic` with `telemetry.ef.reason =
-fallback:timeout|network` within the 1.9 s budget; restore: the next request must come back
-  `learned`. Why: P6 verified the fallback only with `fallback:not_configured` and local fakes.
-  Needs `RECSYS_URL` in the Supabase secrets (HANDOFF ⛔ 5).
+- ✅ **UC-03 A1 — kill the service, verify the fallback** (added P6; **done 2026-08-28** on the
+  VM, `p7-manual-verification.md` §2c): `docker compose stop recsys` → `engine = heuristic`,
+  `reason = fallback:http` (Caddy 502), p95 1.73 s < 1.9 s budget; restart → `learned` within
+  15 s. Not covered: a whole-VM outage (`fallback:timeout|network` — same path, longer wait up
+  to the budget) — exercise once from the OCI Console (Stop instance) before enrollment.
 - ➖ **Cold start of the Space** (added P5, NFR-R2) — **not applicable since ADR-0009**: the VM
   is always on (no sleep, no wake probe); what remains is the warm p95 through the edge function
   (HANDOFF ⛔ 7, `p6-manual-verification.md` §3) and the DB pool's first connection, covered by

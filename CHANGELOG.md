@@ -55,6 +55,17 @@ rung on this box — thesis-corrections #37 qualifies File 04 §1.5; revisit.md 
 budget before P9). `bench_solve.py`'s environment note now reports the actual box. Re-measured
 with the rolled-out image (§2.3): week FEASIBLE 13/20, 1.35 s p50 / 1.92 s p90; day unchanged.
 
+**Steps 5–7 (2026-08-28, night) — service wired, all measurements done, P7.1 closed.** Function
+secrets set (CLI token still valid, no login needed); Vault secrets created from the box; learned
+path live — P6 smoke 18/18 twice, **NFR-P1 p95 1.5 s** from the Mac (`p6-manual-verification.md`
+§3.1). **Bug:** `config.toml` `[functions.attribute-rewards]` had `entrypoint = plan-request`
+(P7 copy-paste) — the function had never run on the hosted project and its 401s were
+plan-request's; found via a throwaway env/header diagnostic + `functions download`, fixed,
+redeployed. Then: daily mode 200 (24 due → 24 delivered, `delivery: ok`), cron tick → pg_net 200,
+pg_cron's own runs `succeeded`, `feedback_rewards` 0 undelivered, service `recsys_applied_tuples`
+= 24 (`p7-manual-verification.md` §2b correction + §2c). UC-03 A1 outage test (§2c). HANDOFF
+refreshed for P8.
+
 **Box state (2026-08-28, earlier):** deployed and applied from the owner's address; fresh-connection SSH
 re-check OK; console password set (stored in `~/.hourwell/console-password`, to be copied to the
 password manager); `verify.sh` — see HANDOFF for the exact remaining FAILs (app checks pending

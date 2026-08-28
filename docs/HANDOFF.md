@@ -93,15 +93,21 @@ aarch64`, `build: <main sha>`; `verify.sh 193.0.218.70` → **ALL OK** (40); Git
    qualification for the thesis (≈ 40 % of week runs stay UNKNOWN on every rung on this box;
    thesis-corrections #37; revisit: week-horizon budget before P9). Re-measured with the shipped
    image (`b75d7c1`, §2.3): week FEASIBLE 13/20 at 1.35 s p50 / 1.92 s p90, day unchanged.
-5. **`supabase login`** — type `! supabase login` in the prompt (browser flow). _Session then
-   runs:_ `supabase secrets set HOURWELL_SERVICE_KEY=<from ~/.hourwell> RECSYS_URL=https://hourwell-recsys.duckdns.org`
-   (values piped, not printed) and checks `supabase secrets list`.
-6. **Vault SQL** — Supabase SQL editor → paste `~/.hourwell/vault-secrets.sql` (all three secrets
-   filled) → run. _Session check:_ `select public.attribution_sweep_tick();` → `posted`, and
-   `net._http_response` shows a 2xx.
-7. **Then the session does the remaining measurements** (runbook §9): live learned-path smoke
-   (`reason = learned`), warm NFR-P1 p95, live `/feedback` delivery (`delivered_at` null count → 0) → `p6-manual-verification.md` §3, device-checklist. (The container bench is done —
-   `p5-manual-verification.md` §2.1–2.3.) Then P8.
+5. ~~`supabase login`~~ — **not needed**: the CLI token from an earlier phase is still valid
+   (`supabase projects list` works; project linked). Secrets `HOURWELL_SERVICE_KEY` + `RECSYS_URL`
+   set 2026-08-28 (`supabase secrets set --env-file`, values never printed).
+6. ~~Vault SQL~~ — **done 2026-08-28 from the box** (`vault.create_secret` ×3 through the recsys
+   container's DB connection; the file's create-or-update guard avoids duplicates). Tick →
+   `posted`; pg_net → 200; pg_cron's own 19:15/19:30 UTC runs `succeeded`.
+7. ~~Measurements~~ — **all four done 2026-08-28**: container bench (`p5-manual-verification.md`
+   §2.1–2.3), learned-path smoke + warm p95 (`p6-manual-verification.md` §3.1 — p95 **1.5 s**,
+   NFR-P1 met), live `/feedback` delivery + cron path (`p7-manual-verification.md` §2c — 24/24
+   delivered, 0 undelivered), UC-03 A1 outage/fallback (§2c). **Bug found on the way:**
+   `config.toml` had `attribute-rewards` pointing at plan-request's entrypoint — the function had
+   never actually run on the hosted project (fixed, redeployed, PR #15).
+
+**P7.1 is closed. Next: P8 — Sync** (new session; reading list below, plus ADR-0011 §Decision and
+privacy README §7 for the consent clause, the region pin and the "EU/EEA resident?" field).
 
 **Optional, any time:** OCI CLI for one-line lock edits (runbook §4.4: `brew install oci-cli`,
 `oci setup config`, API key upload; then `deploy/ssh-allow.sh init`).
@@ -230,6 +236,14 @@ old`): setting the same status is a silent no-op, not an error.
   `--no-sync`) work. It does NOT come back on its own — **restart the CLI session from a
   terminal** and resume ("Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue"). A
   restarted session runs every scp/ssh/push/PR step itself; console/browser steps stay the owner's.
+- **Routing checks on the hosted project must assert a handler-specific response** — a bare 401
+  proves nothing: P7's `attribute-rewards` had been deploying plan-request's code for a day
+  (`config.toml` entrypoint copy-paste) and every check "passed" on 401s. `POST {}` → 400 "mode
+  must be…" is the attribute-rewards fingerprint. `supabase functions download <slug>` shows what
+  is really deployed (restore the tree with `git checkout -- supabase/functions/<slug>` after).
+- **Edge-function secrets are read at module load** (`Deno.env.get` at top level in both
+  functions): after `supabase secrets set`, redeploy the function if a warm instance predates the
+  secret. `supabase secrets list` prints SHA-256 digests, not values — safe to paste.
 - **Remote deploy is pull-based**: CI never touches the box; if `/healthz.build` lags `main`,
   look at `journalctl -u hourwell-rollout` on the VM (image pull denied = package not public).
 - **Cron health:** pg_net never surfaces HTTP failures — check
