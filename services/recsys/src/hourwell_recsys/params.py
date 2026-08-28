@@ -60,11 +60,15 @@ LAMBDA_D = 1.0  # [A: M_τ carries the deferral scale; λ_d is the unit multipli
 RUN_LENGTH_CAPS: dict[str, int] = {"deep": RUN_LENGTH_CAP_TICKS}  # [A: H_g] deep only; others off
 OBJECTIVE_SCALE = 10_000  # integer scaling of float weights for CP-SAT (ADR-0007 §2)
 SOLVER_NUM_WORKERS = 2  # matches the 2 vCPU target (File 04 §1.5 "on 2 vCPU")
-# Measured 2026-08-26 (M-series Mac, ADR-0007 §11): 15-min week instances at 8–10k literals are
-# presolve-bound and return UNKNOWN inside the 1.5 s cap; 30-min at 3–4k return FEASIBLE. The
-# ladder therefore degrades at this practical threshold too, the spec's 4·10⁴ stays the outer bound,
-# and an UNKNOWN outcome escalates to the next rung ("still hot", File 04 §1.5).
-PRACTICAL_LITERAL_THRESHOLD = 8_000
+# Box-specific, measured (ADR-0007 §11 treatment; the spec's 4·10⁴ stays the outer bound; an UNKNOWN
+# outcome still escalates to the next rung — "still hot", File 04 §1.5).
+#   2026-08-26, M-series Mac: 15-min week instances at 8–10k literals presolve-bound → 8_000.
+#   2026-08-28, deployment box (Oracle A1, 2 pinned cores, ADR-0009): the 15-min week rung is
+#   already presolve-bound at 3.6k literals (UNKNOWN 19/20 under 8_000); sweep 8000/4000/3000/
+#   2000/1000 → FEASIBLE 1/5/12/12/11 of 20, end-to-end p50 2.08/1.79/1.39/1.37/1.36 s. 3_000 is
+#   the largest tested value that skips the presolve-bound rung on that box; lower values only
+#   remove the coarse rung for mid-size instances. p5-manual-verification.md §2.2.
+PRACTICAL_LITERAL_THRESHOLD = 3_000
 SOLVER_MIN_SLICE_S = 0.05  # smallest per-solve slice when the plan budget is split (ADR-0007 §11)
 SOLVER_LADDER_RESERVE_S = 0.5  # budget kept back for the next rung while one exists (ADR-0007 §11)
 CPSAT_PROBING_LEVEL = 0  # presolve probing dominates the cap on ~10⁴ value literals (ADR-0007 §11)

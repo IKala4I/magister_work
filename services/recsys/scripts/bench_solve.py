@@ -136,7 +136,10 @@ def main() -> None:
         "cpu_count": os.cpu_count(),
         "python": platform.python_version(),
         "platform": platform.platform(),
-        "note": "laptop-class CPU — NOT the 2 vCPU HF Spaces container; see docs/verification",
+        # The environment IS what the fields above say; docs/verification labels each run by box
+        # (dev Mac vs the ADR-0009 container pinned to 2 cores). The numbers are only evidence for
+        # the box they were measured on.
+        "note": f"{platform.machine()} with {os.cpu_count()} visible cores — see docs/verification",
     }
     results = [bench("day", args.runs), bench("week", args.runs)]
     out = {"environment": env, "results": results}

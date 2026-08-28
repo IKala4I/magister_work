@@ -157,18 +157,23 @@ pins the service to `cpus: 2` so `bench_solve.py` inside it measures the box Fil
 Every item below stays ⬜ until the first deploy completes (HANDOFF ⛔ 1–7) — Mac numbers are
 never substituted. Command: runbook `docs/runbooks/oracle-vm.md` §7.
 
-- ⬜ **NFR-P1 — /plan service budget on the real container** (added P5). Run
-  `services/recsys/scripts/bench_solve.py` inside the Space (or `curl` the deployed `/plan` with
-  the same instances) and record solve/total p50/p90 for the day and week instances next to the
-  Mac numbers in `p5-manual-verification.md`. The Mac can't settle it: 12-core M-series vs
-  2 shared vCPUs — presolve time (the measured bottleneck, spec-conflicts M8) scales with
-  single-thread speed, and `num_workers = 2` behaves differently under a CPU quota.
-- ⬜ **File 04 §1.5 practical literal threshold** (added P5). Re-fit
-  `PRACTICAL_LITERAL_THRESHOLD` from container measurements (ADR-0007 §11); revisit.md entry.
-- ⬜ **UC-03 A1 — kill the Space, verify the fallback and the wake probe** (added P6). Pause the
-  Space (or set `RECSYS_URL` to an unreachable host), request a plan: the response must be
-  `engine = heuristic` with `telemetry.ef.reason = fallback:timeout|network` within the 1.9 s
-  budget; resume the Space: the next request must come back `learned` (the probe woke it). Why:
-  P6 verified the fallback only with `fallback:not_configured` (no Space yet) and local fakes.
-- ⬜ **Cold start of the Space** (added P5, NFR-R2). Measure wake-up latency from sleep and
-  confirm the EF's 1.9 s fallback budget (P6) covers it.
+- ✅ **NFR-P1 — /plan service budget on the real container** (added P5; **measured 2026-08-28**
+  on `recsys-oracle`, container pinned to 2 cores — `p5-manual-verification.md` §2.1). Day
+  instance: OPTIMAL 20/20, end-to-end p50 135 ms / p90 487 ms — met with margin. Week stress
+  instance: UNKNOWN 19/20 under the Mac-fitted threshold, ≈ 2.0 s p50 — the threshold re-fit
+  below. (The service-side number; the client-observed p95 through the edge function is the
+  P6 smoke item, HANDOFF ⛔ 7.)
+- 🔄 **File 04 §1.5 practical literal threshold** (added P5). **Measured 2026-08-28:** 8·10³ is
+  wrong for the A1 (the 15-min week rung is presolve-bound at 3.6·10³ literals); re-fit sweep in
+  `p5-manual-verification.md` §2.2 (ADR-0007 §11 treatment); the adopted value ships through the
+  normal CI → GHCR → rollout path and is re-measured on the box.
+- ⬜ **UC-03 A1 — kill the service, verify the fallback** (added P6; re-worded for the VM). Set
+  `RECSYS_URL` to an unreachable host (or `docker compose stop recsys` on the box), request a
+  plan: the response must be `engine = heuristic` with `telemetry.ef.reason =
+fallback:timeout|network` within the 1.9 s budget; restore: the next request must come back
+  `learned`. Why: P6 verified the fallback only with `fallback:not_configured` and local fakes.
+  Needs `RECSYS_URL` in the Supabase secrets (HANDOFF ⛔ 5).
+- ➖ **Cold start of the Space** (added P5, NFR-R2) — **not applicable since ADR-0009**: the VM
+  is always on (no sleep, no wake probe); what remains is the warm p95 through the edge function
+  (HANDOFF ⛔ 7, `p6-manual-verification.md` §3) and the DB pool's first connection, covered by
+  the first-vs-second-run comparison there.

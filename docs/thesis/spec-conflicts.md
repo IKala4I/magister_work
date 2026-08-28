@@ -185,7 +185,8 @@ decision rule (defensibility → consistency → measurability → pragmatics) a
   P5 model, 15-min week instances with 8–10·10³ start literals were presolve-bound (probing over
   the value encoding) and returned UNKNOWN inside the cap on an M-series Mac; 30-min instances
   (3–4·10³) returned FEASIBLE. Normative: probing/symmetry presolve off (measured fix), the
-  ladder additionally degrades at a **measured practical threshold** (8·10³, ADR-0007 §11) and on
+  ladder additionally degrades at a **measured practical threshold** (8·10³ on the Mac; re-fitted
+  to 3·10³ on the deployment box 2026-08-28, ADR-0007 §11 addendum) and on
   an UNKNOWN outcome ("still hot"); the 4·10⁴ constant stays as the outer bound; the 1.5 s cap is
   a **plan-level** budget shared by rungs/days (anytime contract, NFR-P1). Thesis text should
   cite the measured behaviour, not the 4·10⁴ figure alone → thesis-corrections.

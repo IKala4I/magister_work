@@ -88,3 +88,8 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   tenancies have no support access (privacy README G1). — **Owner 2026-08-27: PAYG deferred**
   (no reclamation exemption; keep-busy stays on); revisit before participant enrollment, when
   support access may matter. Residual gap recorded in the DPIA until then.
+- [P7.1, 2026-08-28] Week-horizon capacity on the deployment box: 50-task/7-day plans end
+  UNKNOWN in ≈ 40 % of runs on every rung under the spec-fixed 1.5 s plan-level budget
+  (`p5-manual-verification.md` §2.2). — **P9 (weekly plan UI), owner-visible:** a longer budget
+  for week horizons (seven day-plans' worth?), fewer candidate starts per task, or an explicit
+  partial-plan contract. Threshold itself re-fitted to 3·10³ (ADR-0007 §11 addendum).
