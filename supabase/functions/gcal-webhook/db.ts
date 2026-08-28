@@ -15,11 +15,10 @@ function fail(step: string, error: { message: string } | null): never {
 }
 
 const STATE_SELECT =
-  'user_id, calendar_id, refresh_token, access_token, access_token_expires_at, sync_token, channel_id, resource_id, channel_token, channel_expires_at, scope, write_back, last_synced_at, last_error, connected_at, oauth_state, oauth_state_expires_at, profiles!inner(timezone)';
+  'user_id, calendar_id, refresh_token, access_token, access_token_expires_at, sync_token, channel_id, resource_id, channel_token, channel_expires_at, scope, write_back, last_synced_at, last_error, connected_at, oauth_state, oauth_state_expires_at';
 
 // deno-lint-ignore no-explicit-any
-function toState(r: any): GcalState {
-  const profile = Array.isArray(r.profiles) ? r.profiles[0] : r.profiles;
+function toState(r: any, timezone: string): GcalState {
   return {
     user_id: r.user_id,
     calendar_id: r.calendar_id ?? 'primary',
@@ -38,8 +37,25 @@ function toState(r: any): GcalState {
     connected_at: r.connected_at ?? null,
     oauth_state: r.oauth_state ?? null,
     oauth_state_expires_at: r.oauth_state_expires_at ?? null,
-    timezone: profile?.timezone ?? 'UTC',
+    timezone,
   };
+}
+
+/**
+ * gcal_sync_state has no FK to profiles (both hang off auth.users), so PostgREST cannot embed
+ * the zone: read the profiles of the rows' users in one query instead.
+ */
+// deno-lint-ignore no-explicit-any
+async function withTimezones(admin: AnyClient, rows: any[]): Promise<GcalState[]> {
+  if (rows.length === 0) return [];
+  const ids = [...new Set(rows.map((r) => r.user_id as string))];
+  const { data, error } = await admin.from('profiles').select('user_id, timezone').in(
+    'user_id',
+    ids,
+  );
+  if (error) fail('profiles for gcal state', error);
+  const tz = new Map((data ?? []).map((p) => [p.user_id as string, p.timezone as string]));
+  return rows.map((r) => toState(r, tz.get(r.user_id) ?? 'UTC'));
 }
 
 export async function loadState(admin: AnyClient, userId: string): Promise<GcalState | null> {
@@ -49,7 +65,7 @@ export async function loadState(admin: AnyClient, userId: string): Promise<GcalS
     .eq('user_id', userId)
     .maybeSingle();
   if (error) fail('gcal_sync_state', error);
-  return data === null ? null : toState(data);
+  return data === null ? null : (await withTimezones(admin, [data]))[0] ?? null;
 }
 
 export async function loadStateByChannel(
@@ -62,7 +78,7 @@ export async function loadStateByChannel(
     .eq('channel_id', channelId)
     .maybeSingle();
   if (error) fail('gcal_sync_state by channel', error);
-  return data === null ? null : toState(data);
+  return data === null ? null : (await withTimezones(admin, [data]))[0] ?? null;
 }
 
 export async function loadStateByNonce(
@@ -75,7 +91,7 @@ export async function loadStateByNonce(
     .eq('oauth_state', nonce)
     .maybeSingle();
   if (error) fail('gcal_sync_state by nonce', error);
-  return data === null ? null : toState(data);
+  return data === null ? null : (await withTimezones(admin, [data]))[0] ?? null;
 }
 
 /** Every connected calendar (a refresh token exists). */
@@ -86,7 +102,7 @@ export async function loadConnected(admin: AnyClient, limit = 500): Promise<Gcal
     .not('refresh_token', 'is', null)
     .limit(limit);
   if (error) fail('gcal_sync_state connected', error);
-  return (data ?? []).map(toState);
+  return withTimezones(admin, data ?? []);
 }
 
 export async function saveState(
