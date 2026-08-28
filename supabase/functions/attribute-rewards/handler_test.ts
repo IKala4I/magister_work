@@ -74,6 +74,8 @@ function makeDeps(state: State): Deps {
     loadRecsForTasks: (_u, taskIds) =>
       Promise.resolve(state.recs.filter((r) => taskIds.includes(r.task_id))),
     loadRecsInRange: () => Promise.resolve(state.recs),
+    loadDisplacedPending: () =>
+      Promise.resolve(state.recs.filter((r) => r.status === 'displaced_pending')),
     loadDue: () => Promise.resolve(state.due.map((r) => ({ ...r, timezone: 'Europe/Kyiv' }))),
     loadStored: (_u, ids) =>
       Promise.resolve(

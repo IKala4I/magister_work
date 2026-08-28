@@ -128,7 +128,9 @@ export interface Tuple {
 
 export interface RecPatch {
   id: string;
-  status?: 'completed' | 'lapsed' | 'rejected' | 'moved';
+  status?: 'completed' | 'lapsed' | 'rejected' | 'moved' | 'displaced';
+  /** M-02: set with `completed` when the completion raced an external displacement (P8). */
+  conflict_flag?: boolean;
   attributed_at?: string;
   slot_start?: string;
   slot_end?: string;
@@ -465,12 +467,39 @@ export function mapUser(input: {
     }
   }
   for (let rec of input.recs) {
-    if (
-      rec.status === 'displaced' || rec.status === 'displaced_pending' || rec.status === 'expired'
-    ) {
+    if (rec.status === 'displaced' || rec.status === 'expired') {
       continue; // no reward, ever (File 05 §1; M-02)
     }
     const own = factsByRec.get(rec.id) ?? [];
+
+    if (rec.status === 'displaced_pending') {
+      // P8 (File 05 §2, ADR-0012 §9): the webhook marked the placement while the device may still
+      // have held facts. FACTS BEAT PLANS: completion evidence → `completed` + conflict_flag, and
+      // the tuple is written EXCLUDED (ambiguous context, H3 — a row, never an update); no
+      // evidence once the slot can no longer be resumed → `displaced`, and NO tuple (H3 "no row").
+      // A move logged against a displaced placement is void (the placement itself is void).
+      if (storedBy.has(`${rec.id}|outcome`)) continue; // already resolved
+      const pendingSameDay = factsByTaskDay.get(`${rec.task_id}|${rec.local_day}`) ?? [];
+      const pendingFacts = [...own, ...pendingSameDay.filter((f) => !own.includes(f))];
+      const o = observe(rec, pendingFacts, timezone);
+      const source: Source = input.mode === 'daily' ? 'daily' : 'instant';
+      if (o.completedInWindow || (o.fraction !== null && o.fraction >= PAR_MIN_FRACTION)) {
+        const flagged: RewardRec = { ...rec, conflict_flag: true };
+        tuples.push(tuple(flagged, 1.0, 'completed', input.nowIso, source));
+        patches.push({
+          id: rec.id,
+          status: 'completed',
+          conflict_flag: true,
+          attributed_at: input.nowIso,
+        });
+      } else if (
+        input.mode === 'daily' ||
+        Date.parse(input.nowIso) > Date.parse(rec.slot_end) + GRACE_MS
+      ) {
+        patches.push({ id: rec.id, status: 'displaced', attributed_at: input.nowIso });
+      }
+      continue;
+    }
 
     // overrides first: the LATEST move always moves the placement (adversarial #4/#5); the paired
     // tuples are written once per placement; a later outcome attaches to the new context (#3)

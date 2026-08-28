@@ -119,6 +119,17 @@ export function makeDbDeps(
       if (error) fail('recommendations in range', error);
       return (data ?? []).map(toRecRow);
     },
+    async loadDisplacedPending(userId) {
+      const { data, error } = await admin
+        .from('recommendations')
+        .select(REC_SELECT)
+        .eq('user_id', userId)
+        .eq('status', 'displaced_pending')
+        .is('attributed_at', null)
+        .limit(200);
+      if (error) fail('recommendations displaced_pending', error);
+      return (data ?? []).map(toRecRow);
+    },
     async loadDue(nowIso, limit) {
       const { data, error } = await admin.rpc('attribution_due', { p_now: nowIso, p_limit: limit });
       if (error) fail('attribution_due', error);
@@ -217,6 +228,7 @@ export function makeDbDeps(
         .select('start_at, end_at')
         .eq('user_id', userId)
         .eq('busy', true)
+        .is('deleted_at', null)
         .lt('start_at', toIso)
         .gt('end_at', fromIso);
       if (error) fail('calendar_events', error);

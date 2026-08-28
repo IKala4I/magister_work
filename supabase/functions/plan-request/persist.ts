@@ -1,10 +1,10 @@
 /**
  * Persistence through the SERVICE-ROLE client: `plans` and `recommendations` are service-
  * authored rows (clients hold select + status/version update only — base migration RLS).
- * Every assignment field lands on the row (specs/07 §4.1 + M-01 `propensity`); per-plan
- * experiment data (`experiment_top_m`, drops, degradation, tick size, seed) lives in
- * `plans.telemetry` for P11 replay. A regenerated plan supersedes the still-`shown` rows of
- * earlier plans for the same date/horizon (`expired`, never deleted — audit substrate).
+ * Since P8 the three writes — plan row, recommendation rows, supersede of the still-`shown`
+ * rows of earlier plans for the date — are ONE transaction in the `persist_plan()` RPC
+ * (ADR-0012 §8; the P6 compensating delete is gone). Every assignment field lands on the row
+ * (specs/07 §4.1 + M-01 `propensity`); per-plan experiment data lives in `plans.telemetry`.
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { PlanRow, RecommendationRow } from '../_shared/types.ts';
@@ -17,14 +17,10 @@ function fail(step: string, error: { message: string } | null): never {
   throw new Error(`${step}: ${error?.message ?? 'unknown error'}`);
 }
 
-const REC_COLUMNS =
-  'id, user_id, plan_id, task_id, chunk_index, slot_start, slot_end, context_bucket, features, q_hat, confidence, rationale_key, rationale_params, is_experiment, engine, model_version, status, attributed_at, propensity, conflict_flag, version, created_at, updated_at, server_seq';
-
 export async function persist(client: AnyClient, input: PersistInput): Promise<PersistResult> {
-  const { data: plan, error: planErr } = await client
-    .from('plans')
-    .insert({
-      user_id: input.userId,
+  const { data, error } = await client.rpc('persist_plan', {
+    p_user_id: input.userId,
+    p_plan: {
       plan_date: input.planDate,
       horizon: input.horizon,
       engine: input.engine,
@@ -33,70 +29,33 @@ export async function persist(client: AnyClient, input: PersistInput): Promise<P
       solver_status: input.solverStatus,
       telemetry: input.telemetry,
       generated_at: new Date(input.nowMs).toISOString(),
-    })
-    .select(
-      'id, user_id, plan_date, horizon, engine, model_version, arm, solver_status, telemetry, generated_at, server_seq',
-    )
-    .single();
-  if (planErr || plan === null) fail('plans insert', planErr);
-
-  let recommendations: RecommendationRow[] = [];
-  if (input.assignments.length > 0) {
-    const { data, error } = await client
-      .from('recommendations')
-      .insert(
-        input.assignments.map((a) => ({
-          user_id: input.userId,
-          plan_id: plan.id,
-          task_id: a.task_id,
-          chunk_index: a.chunk_index,
-          slot_start: a.slot_start,
-          slot_end: a.slot_end,
-          context_bucket: a.context_bucket,
-          features: a.features,
-          q_hat: a.q_hat,
-          confidence: a.confidence,
-          rationale_key: a.rationale_key,
-          rationale_params: a.rationale_params,
-          is_experiment: a.is_experiment,
-          engine: input.engine,
-          model_version: input.modelVersion,
-          propensity: a.propensity,
-        })),
-      )
-      .select(REC_COLUMNS);
-    if (error) {
-      // Two PostgREST writes are not one transaction: never leave a plan row without its blocks
-      // (it would count against the rate limit and pose as the AddHint "previous plan").
-      await client.from('plans').delete().eq('id', plan.id);
-      fail('recommendations insert', error);
-    }
-    recommendations = (data ?? []) as RecommendationRow[];
-    recommendations.sort((
-      x,
-      y,
-    ) => (x.slot_start < y.slot_start
-      ? -1
-      : x.slot_start > y.slot_start
-      ? 1
-      : x.chunk_index - y.chunk_index)
-    );
-  }
-
-  // supersede: still-`shown` rows of the earlier plans the context read found (never this one)
-  let expired: string[] = [];
-  const olderIds = input.supersedePlanIds.filter((id) => id !== plan.id);
-  if (olderIds.length > 0) {
-    const { data, error } = await client
-      .from('recommendations')
-      .update({ status: 'expired' })
-      .eq('user_id', input.userId)
-      .in('plan_id', olderIds)
-      .eq('status', 'shown')
-      .select('id');
-    if (error) fail('recommendations expire', error);
-    expired = (data ?? []).map((r) => r.id as string);
-  }
-
-  return { plan: plan as PlanRow, recommendations, expiredRecommendationIds: expired };
+    },
+    p_recs: input.assignments.map((a) => ({
+      task_id: a.task_id,
+      chunk_index: a.chunk_index,
+      slot_start: a.slot_start,
+      slot_end: a.slot_end,
+      context_bucket: a.context_bucket,
+      features: a.features,
+      q_hat: a.q_hat,
+      confidence: a.confidence,
+      rationale_key: a.rationale_key,
+      rationale_params: a.rationale_params,
+      is_experiment: a.is_experiment,
+      propensity: a.propensity,
+    })),
+    p_supersede: input.supersedePlanIds,
+  });
+  if (error) fail('persist_plan', error);
+  const out = data as {
+    plan: PlanRow;
+    recommendations: RecommendationRow[];
+    expired_recommendation_ids: string[];
+  } | null;
+  if (out === null || typeof out !== 'object' || !out.plan) fail('persist_plan', null);
+  return {
+    plan: out.plan,
+    recommendations: out.recommendations ?? [],
+    expiredRecommendationIds: out.expired_recommendation_ids ?? [],
+  };
 }

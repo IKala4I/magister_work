@@ -85,6 +85,8 @@ export interface Deps {
   ): Promise<RecRow[]>;
   /** Every non-expired recommendation overlapping [fromIso, toIso] (override-target occupancy). */
   loadRecsInRange(userId: string, fromIso: string, toIso: string): Promise<RecRow[]>;
+  /** P8: the user's `displaced_pending` rows — instant-mode candidates even without facts. */
+  loadDisplacedPending(userId: string): Promise<RecRow[]>;
   loadDue(nowIso: string, limit: number): Promise<Array<RecRow & { timezone: string }>>;
   loadStored(userId: string, recIds: readonly string[]): Promise<StoredTuple[]>;
   loadUndelivered(userId: string): Promise<Array<WireTuple & { source: string }>>;
@@ -309,6 +311,14 @@ export async function processUser(
   ]
     .filter((id) => !byId.has(id));
   if (recIds.length > 0) { for (const r of await deps.loadRecs(userId, recIds)) byId.set(r.id, r); }
+  if (mode === 'instant') {
+    // P8 (File 05 §2): pending displacements resolve at sync time — facts beat plans, or, once
+    // the slot is past, `displaced` with no reward (ADR-0012 §9); daily mode gets them via
+    // attribution_due
+    for (const r of await deps.loadDisplacedPending(userId)) {
+      if (!byId.has(r.id)) byId.set(r.id, r);
+    }
+  }
   const completions = facts.filter((f) => f.type === 'task_completed' && f.task_id !== null);
   if (completions.length > 0) {
     const taskIds = [...new Set(completions.map((f) => f.task_id as string))];

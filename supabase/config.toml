@@ -411,6 +411,30 @@ verify_jwt = false
 import_map = "./functions/deno.json"
 entrypoint = "./functions/attribute-rewards/index.ts"
 
+[functions.sync-resolve]
+enabled = true
+verify_jwt = false
+import_map = "./functions/deno.json"
+entrypoint = "./functions/sync-resolve/index.ts"
+
+[functions.gcal-connect]
+enabled = true
+verify_jwt = false
+import_map = "./functions/deno.json"
+entrypoint = "./functions/gcal-connect/index.ts"
+
+[functions.gcal-callback]
+enabled = true
+verify_jwt = false
+import_map = "./functions/deno.json"
+entrypoint = "./functions/gcal-callback/index.ts"
+
+[functions.gcal-webhook]
+enabled = true
+verify_jwt = false
+import_map = "./functions/deno.json"
+entrypoint = "./functions/gcal-webhook/index.ts"
+
 [analytics]
 enabled = true
 port = 54327
