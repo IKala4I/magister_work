@@ -278,9 +278,16 @@ ssh oracle-recsys 'bash ~/hourwell/deploy/install.sh'      # first run: creates 
 ssh oracle-recsys 'nano ~/hourwell/.env'                   # RECSYS_HOST, DATABASE_URL, HOURWELL_SERVICE_KEY
 ```
 
-`DATABASE_URL`: Supabase dashboard → project `uapiuehjcntilwdmpojk` → **Connect** → _Transaction
-pooler_ (port 6543), role `postgres.uapiuehjcntilwdmpojk`, the database password (URL-encode
-special characters). `SUPABASE_URL` is the project URL. `RECSYS_HOST` from §3.
+`DATABASE_URL`: Supabase dashboard → project `uapiuehjcntilwdmpojk` → **Connect** → the
+**Transaction pooler** tab (port 6543, role `postgres.uapiuehjcntilwdmpojk`, host
+`aws-1-eu-west-1.pooler.supabase.com` for this project — the cluster number is project-specific;
+`aws-0` answers "tenant not found"), the database password URL-encoded. **Not the "Direct
+connection" tab**: `db.<ref>.supabase.co:5432` resolves to IPv6 only and the VM has no IPv6 —
+the symptom is `Network is unreachable` in `docker compose logs recsys` and an unhealthy
+container (happened 2026-08-28; fixed by rewriting host/user/port in place). Append
+`?sslmode=require` so the driver can never fall back to plaintext. The service disables psycopg's
+server-side prepared statements (`prepare_threshold=None`) because the transaction pooler does not
+support them. `SUPABASE_URL` is the project URL. `RECSYS_HOST` from §3.
 
 3. Second run installs the rollout binary + systemd timers, validates the compose file, pulls
    the image and starts the stack:
