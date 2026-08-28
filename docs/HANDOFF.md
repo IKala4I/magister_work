@@ -84,16 +84,23 @@ aarch64`, `build: <main sha>`; `verify.sh 193.0.218.70` → **ALL OK** (40); Git
    `RECSYS_HOST` set (rollout job live from PR #12 on). Found and fixed on the way:
    `PostgresRepo` now sets `prepare_threshold=None` (transaction pooler has no server-side
    prepared statements — would have failed after a statement's 5th execution).
+   **Rollout proven end to end (PR #12 → `86aeb12`):** CI's rollout job saw the VM switch builds
+   ~5 min after the push; keep-busy runs (its one failure was the container restart at 18:44).
+   **Measurement 3 done (container bench, `p5-manual-verification.md` §2.1–2.3):** day plan
+   OPTIMAL 20/20, 135 ms p50 / 487 ms p90 end-to-end — NFR-P1 with margin; the 50-task week
+   stress instance is presolve-bound at 3.6·10³ literals → threshold sweep →
+   **`PRACTICAL_LITERAL_THRESHOLD` re-fitted 8 000 → 3 000** (PR #13), and a claim-level
+   qualification for the thesis (≈ 40 % of week runs stay UNKNOWN on every rung on this box;
+   thesis-corrections #37; revisit: week-horizon budget before P9).
 5. **`supabase login`** — type `! supabase login` in the prompt (browser flow). _Session then
    runs:_ `supabase secrets set HOURWELL_SERVICE_KEY=<from ~/.hourwell> RECSYS_URL=https://hourwell-recsys.duckdns.org`
    (values piped, not printed) and checks `supabase secrets list`.
 6. **Vault SQL** — Supabase SQL editor → paste `~/.hourwell/vault-secrets.sql` (all three secrets
    filled) → run. _Session check:_ `select public.attribution_sweep_tick();` → `posted`, and
    `net._http_response` shows a 2xx.
-7. **Then the session does the measurements** (runbook §9): live learned-path smoke (`reason =
-learned`), warm NFR-P1 p95, `bench_solve.py` inside the pinned container, live `/feedback`
-   delivery (`delivered_at` null count → 0) → recorded in `p6-manual-verification.md` §3,
-   `p5-manual-verification.md` §2, device-checklist "Service environment". Then P8.
+7. **Then the session does the remaining measurements** (runbook §9): live learned-path smoke
+   (`reason = learned`), warm NFR-P1 p95, live `/feedback` delivery (`delivered_at` null count → 0) → `p6-manual-verification.md` §3, device-checklist. (The container bench is done —
+   `p5-manual-verification.md` §2.1–2.3.) Then P8.
 
 **Optional, any time:** OCI CLI for one-line lock edits (runbook §4.4: `brew install oci-cli`,
 `oci setup config`, API key upload; then `deploy/ssh-allow.sh init`).

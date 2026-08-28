@@ -81,6 +81,15 @@ not search — is the binding constraint. Each Appendix A row marked P5 also nee
     solve median 1.0 s, max 1.37 s, end-to-end p90 1.95 s. These numbers say nothing about the
     2 vCPU Space — that measurement is on the verification backlog (device-checklist "Service
     environment").
+    **Addendum 2026-08-28 (measured on the deployment box, Oracle A1 2 pinned cores, ADR-0009):**
+    day instance OPTIMAL 20/20, end-to-end p50 135 ms / p90 487 ms (NFR-P1 met with margin);
+    week 50-task instance presolve-bound already at 3.6·10³ literals on the 15-min rung
+    (UNKNOWN 19/20 under the Mac-fitted 8·10³). Sweep 8000/4000/3000/2000/1000 → FEASIBLE
+    1/5/12/12/11 of 20 → **practical threshold re-fitted to 3·10³** (the box-specific value this
+    item said to expect). Beyond the parameter: ≈ 40 % of 50-task week runs stay UNKNOWN on
+    every rung on that box — the anytime contract returns partial plans; the product requests
+    day horizons only. `p5-manual-verification.md` §2.1–2.3; thesis-corrections #37; revisit.md
+    (week-horizon budget before P9).
 12. **Auth, persistence, ownership.** Both credentials are accepted on every endpoint: a user JWT
     (ES256 via JWKS, aud `authenticated`, `sub` must equal `user_id` → 403 otherwise) or the
     `X-Service-Key` secret. Per-user state lives only in Postgres via the pooler; bandit state is

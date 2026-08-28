@@ -126,7 +126,8 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     FEASIBLE. Mechanism: probing is superlinear in the number of Boolean literals of the
     `AddElement` start encoding, so the practical threshold sits an order of magnitude below the
     spec's 4·10⁴. Consequences implemented and to be reported: probing/symmetry presolve off,
-    a **measured practical threshold of 8·10³ literals** in addition to the 4·10⁴ outer bound,
+    a **measured practical threshold of 8·10³ literals** (Mac; **3·10³ on the deployment box** —
+    item 37) in addition to the 4·10⁴ outer bound,
     escalation on an UNKNOWN outcome ("still hot"), and the cap as a plan-level budget shared
     across rungs. Write it as "the spec's size argument was tested and did not hold; here is the
     mechanism and the measurement" (spec-conflicts M8, ADR-0007 §11,
@@ -283,3 +284,13 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     access on EU storage (OSF, Frankfurt region) under a data-use agreement". Also replace "HF
     Hub" for the model registry with "Supabase Storage (EU)" wherever `artifact_uri` is
     described. spec-conflicts H5; ADR-0011 §4, Decision 3.
+37. **§3.x / File 04 §1.5 ("meeting NFR-P1 on 2 vCPU") and the reported ladder parameter —
+    measured on the deployment box 2026-08-28:** report the container numbers, not the Mac's
+    (item 11): day plan (12 tasks) OPTIMAL 20/20, end-to-end p50 135 ms / p90 487 ms on the
+    Oracle A1 (2 pinned cores) — NFR-P1 met with margin. The practical degradation threshold is
+    **3·10³ literals on that box** (the Mac fit was 8·10³; the 15-min week rung is already
+    presolve-bound at 3.6·10³ there). Qualify the claim: for the 50-task, 7-day stress instance
+    the 1.5 s plan-level budget yields a FEASIBLE plan in ≈ 60 % of runs even on the best rung
+    (≈ 40 % return the partial anytime plan with the ladder flagged) — the product path is the
+    day horizon; the weekly plan (FR-20) needs a budget decision before it ships (revisit.md).
+    `p5-manual-verification.md` §2.1–2.3, ADR-0007 §11 addendum.

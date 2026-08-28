@@ -44,6 +44,16 @@ variable set. **Fix:** `PostgresRepo` disables psycopg server-side prepared stat
 (`prepare_threshold=None`, DB-free test) — required by the transaction pooler; `.env.example` +
 runbook §6 corrected (pooler cluster is project-specific; never the Direct tab).
 
+**Rollout + measurement 3 (2026-08-28, evening).** First real run of the rollout job: the VM
+switched to the merged build ~5 min after the push (pull-based, no SSH from CI). Container bench
+on the box (`p5-manual-verification.md` §2.1–2.3): day plan OPTIMAL 20/20, 135 ms p50 / 487 ms
+p90 end-to-end (NFR-P1 with margin); the 50-task week stress instance is presolve-bound at
+3.6·10³ literals under the Mac-fitted threshold (UNKNOWN 19/20, 2.1 s p50) → sweep
+8000/4000/3000/2000/1000 → **`PRACTICAL_LITERAL_THRESHOLD` = 3 000** (ADR-0007 §11 addendum;
+FEASIBLE 12/20, 1.39 s p50). Claim-level: ≈ 40 % of 50-task week runs stay UNKNOWN on every
+rung on this box — thesis-corrections #37 qualifies File 04 §1.5; revisit.md (week-horizon
+budget before P9). `bench_solve.py`'s environment note now reports the actual box.
+
 **Box state (2026-08-28, earlier):** deployed and applied from the owner's address; fresh-connection SSH
 re-check OK; console password set (stored in `~/.hourwell/console-password`, to be copied to the
 password manager); `verify.sh` — see HANDOFF for the exact remaining FAILs (app checks pending

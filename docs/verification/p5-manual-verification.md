@@ -35,6 +35,74 @@ zero placements (presolve consumed the cap) — the ladder never engaged because
 (8–17·10³) sat below File 04's 4·10⁴ trigger. That measurement is why the practical threshold and
 the UNKNOWN escalation exist.
 
+### 2.1 The same bench on the deployed container (2026-08-28, ADR-0009 box) — the numbers that count
+
+`docker compose exec -T recsys /opt/venv/bin/python scripts/bench_solve.py --runs 20` on
+`recsys-oracle` (Oracle A1.Flex, 2 OCPU Ampere aarch64 / 12 GB, Ubuntu 24.04, kernel
+6.17.0-1020-oracle), container pinned to `cpus: 2`, Python 3.12.14, OR-Tools as in the image built
+from `103a238`, `num_workers = 2`, probing/symmetry presolve off. Keep-busy timer idle during the
+run (checked). Raw JSON: session log; the run is reproducible with the command above.
+
+| Instance                                | Status (final)                | Solve p50 | Solve p90 | Solve max | End-to-end p50 | End-to-end p90 | Literals p50/max | Ladder                          |
+| --------------------------------------- | ----------------------------- | --------- | --------- | --------- | -------------- | -------------- | ---------------- | ------------------------------- |
+| day: 12 tasks, 2 busy blocks, 1 pinned  | OPTIMAL 20/20                 | 118 ms    | 336 ms    | 574 ms    | 135 ms         | 487 ms         | 238 / 375        | none 20                         |
+| week: 50 tasks, 5 busy blocks, 1 pinned | **UNKNOWN 19/20**, FEASIBLE 1 | 366 ms    | 450 ms    | 1 464 ms  | **1 966 ms**   | **2 389 ms**   | 3 629 / 4 582    | day-by-day 18 · coarse 30-min 2 |
+
+What this establishes on the box File 04 §1.5 names:
+
+- **NFR-P1 for the product's plan (day horizon): met with margin.** 487 ms p90 end-to-end
+  inside the service, against the 1.5 s plan budget and the edge function's 1.9 s fallback budget
+  (NFR-P1 itself is ≤ 2.5 s p95 end-to-end, warm backend). The A1 core is ≈ 1.7× slower than the
+  M-series core on this instance (118 vs 70 ms solve p50), as expected.
+- **The 50-task week stress instance does not solve on this box under the Mac-fitted ladder.**
+  Its 15-min encoding has ≈ 3.6·10³ literals — _below_ the practical threshold of 8·10³ fitted on
+  the Mac (ADR-0007 §11) — so the plan starts at the 15-min rung, spends the whole 1.0 s slice
+  (1.5 s cap − 0.5 s reserve) and returns UNKNOWN (presolve-bound, the M8 regime); the coarse
+  rung then gets only the reserve, and day-by-day the leftovers (50 ms minimum slices) — "every
+  day still hot" → final status UNKNOWN in 19/20 runs, end-to-end ≈ 2.0 s p50 / 2.4 s p90 (three
+  Python model builds + the solves). On the Mac the same instance was FEASIBLE 20/20 at 1.0 s.
+  **This is the empirical result ADR-0007 §11 said to expect — the threshold is box-specific
+  and must be re-fitted on the deployment box**, not a defect of the ladder (it engaged exactly as
+  designed; the budget was spent on the wrong rung). The re-fit sweep and the value adopted are
+  in §2.2; the thesis reports the container numbers, never the Mac's (thesis-corrections #11).
+
+### 2.2 Threshold re-fit on the box (2026-08-28) and the value adopted
+
+Same container, keep-busy idle, `PRACTICAL_LITERAL_THRESHOLD` monkey-patched in-process
+(`hourwell_recsys.planner`), week instance, 20 runs per point (the 8 000 point repeats §2.1
+within noise):
+
+| Threshold | Rung the plan starts on | Final status (of 20)        | Solve p50 | End-to-end p50 | End-to-end p90 | Ladder                   |
+| --------- | ----------------------- | --------------------------- | --------- | -------------- | -------------- | ------------------------ |
+| 8 000     | 15-min                  | FEASIBLE 1 · UNKNOWN 19     | 369 ms    | 2 076 ms       | 2 532 ms       | day-by-day 18 · coarse 2 |
+| 4 000     | 15-min                  | FEASIBLE 5 · UNKNOWN 15     | 394 ms    | 1 795 ms       | 1 942 ms       | day-by-day 18 · coarse 2 |
+| **3 000** | coarse 30-min           | **FEASIBLE 12 · UNKNOWN 8** | 1 091 ms  | **1 387 ms**   | **1 895 ms**   | day-by-day 19 · coarse 1 |
+| 2 000     | day-by-day              | FEASIBLE 12 · UNKNOWN 8     | 1 084 ms  | 1 365 ms       | 1 892 ms       | day-by-day 20            |
+| 1 000     | day-by-day              | FEASIBLE 11 · UNKNOWN 9     | 1 087 ms  | 1 365 ms       | 1 890 ms       | day-by-day 20            |
+
+**Adopted: `PRACTICAL_LITERAL_THRESHOLD = 3 000`** (was 8 000, the Mac fit) — the largest tested
+value that skips the presolve-bound 15-min rung for this instance on this box; 2 000 and 1 000
+add nothing here and would only remove the coarse rung for mid-size instances that fit it. The
+change ships through CI → GHCR → the VM's pull-based rollout and is re-measured on the box with
+the shipped image (§2.3). ADR-0007 §11 addendum; thesis-corrections #37.
+
+**What the sweep says beyond the parameter — a claim-level result for the thesis.** On the
+2-core A1 the 50-task, 7-day stress instance ends UNKNOWN in ≈ 40 % of runs on _every_ rung: the
+coarse 30-min rung is presolve-bound too, and day-by-day's seven ≈ 200 ms slices are "hot" for
+some days. So File 04 §1.5's "meeting NFR-P1 on 2 vCPU" is **true for the product's plan (day
+horizon, ≤ 15 tasks: 487 ms p90 end-to-end, wide margin) and not true for week-horizon planning
+of 50 tasks under the 1.5 s plan-level budget** on the free box — there the anytime contract
+returns partial plans with the ladder flagged in telemetry. The client and the edge function
+request the day horizon only (`horizon ?? 'day'`); the weekly plan is FR-20's second half and a
+P9 UI question. Options when it is built (revisit.md): a longer plan-level budget for week
+horizons (the 1.5 s cap is spec-fixed for _a_ plan; a week plan is seven), fewer candidate
+starts per task, or accepting the partial anytime plan explicitly. Not decided here.
+
+### 2.3 Re-measurement with the shipped image
+
+_Pending the rollout of the commit that sets 3 000 — filled in the same session once
+`/healthz.build` shows it._
+
 ## 3. End-to-end smoke (in-process, in-memory state)
 
 `fastapi.testclient` against `create_app(repo=InMemoryRepo(), auth=AuthSettings("k", None))`,
