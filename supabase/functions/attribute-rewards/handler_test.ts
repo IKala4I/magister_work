@@ -659,3 +659,30 @@ Deno.test('labels — delivered on the facts path too, after the tuples', async 
   assertEquals(body.labels_delivered, 1);
   assertEquals(order, ['feedback', 'labels']);
 });
+
+Deno.test('labels — a ledger read failure never takes the pass down (tuples still flow, labels retried later)', async () => {
+  const state = freshState({
+    facts: [
+      fact('focus_end', {
+        outcome: 'finished',
+        started_at: '2026-09-02T11:05:00Z',
+        ended_at: '2026-09-02T12:20:00Z',
+        focused_ms: 75 * 60_000,
+        planned_minutes: 90,
+        est_minutes: 90,
+        session_id: 's1',
+      }),
+    ],
+  });
+  const deps: Deps = {
+    ...makeDeps(state),
+    loadUndeliveredLabels: () => Promise.reject(new Error('relation belief_labels does not exist')),
+  };
+  const res = await handleAttributeRewards(post({ mode: 'instant' }, asUser), deps);
+  assertEquals(res.status, 200);
+  const body = await res.json();
+  assertEquals(body.tuples_written, 1);
+  assertEquals(body.delivered, 1);
+  assertEquals(body.labels_delivered, 0);
+  assertEquals(body.labels_delivery, 'failed');
+});

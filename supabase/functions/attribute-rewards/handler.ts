@@ -276,7 +276,15 @@ async function deliverPending(deps: Deps, userId: string, nowIso: string): Promi
 async function deliverLabels(deps: Deps, userId: string, nowIso: string): Promise<
   { labels_delivered: number; labels_delivery: UserReport['labels_delivery'] }
 > {
-  const pending = await deps.loadUndeliveredLabels(userId);
+  let pending: WireLabel[];
+  try {
+    pending = await deps.loadUndeliveredLabels(userId);
+  } catch (err) {
+    // the least critical stage of the pass must never take the sync down: a ledger read failure
+    // (e.g. the P9 migration not yet applied on this project) is logged and retried next pass
+    console.error('belief_labels read failed; labels stay pending', err);
+    return { labels_delivered: 0, labels_delivery: 'failed' };
+  }
   if (pending.length === 0) return { labels_delivered: 0, labels_delivery: 'nothing_pending' };
   const call = await deps.postLabels(userId, pending);
   if (call.kind !== 'ok') return { labels_delivered: 0, labels_delivery: call.kind };
