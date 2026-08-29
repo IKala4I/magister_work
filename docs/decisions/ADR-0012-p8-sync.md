@@ -49,8 +49,10 @@ p_ops)`,** `security definer`, executable by `service_role` only; the user id co
    `duplicate`, `conflict` (+ server row), `superseded`, `rejected` (ownership / vocabulary),
    `error` (unexpected — the client retries, dead-letters after 5 attempts). Every statement is
    filtered by `p_user_id`: an op naming another user's row is `rejected`, never applied
-   (pgTAP). `applied` ops return the row's new `version` so the local mirror converges without a
-   pull.
+   (pgTAP). `applied` ops return the row's new `version`; today the local mirror converges
+   through the pull page of the same response (the engine acks before it applies the page, so
+   the entity is no longer skipped) — applying `ack.version` locally is a scheduled hardening
+   item (adversarial #13).
 
 3. **The three conflict classes (File 05 §2), mapped op by op.**
    - _Class 1 — `event_append`:_ append-only, never conflicts; insert `ON CONFLICT (user_id,
@@ -92,10 +94,11 @@ op_id) DO NOTHING`; referenced `task_id` / `recommendation_id` must be the user'
    MMKV — `src/sync/cursor.ts`), `has_more` when the page was full. The client applies a page in
    **one SQLite transaction**: upsert by primary key; rows whose entity has an **unacked local
    op are skipped** (the next push resolves them through decision 3/4 — pushing first is what
-   makes this safe); a pulled `displaced_pending` or `displaced` recommendation mirrors its
-   task back to the Inbox (status only — a displacement is not the user's postponement, so
-   `postpone_count` and the local `skip_streak` stay; through the outbox like every task write —
-   the pending state already renders as displaced, only the reward path distinguishes them); a pulled
+   makes this safe); a pulled **final** `displaced` recommendation mirrors its task back to the
+   Inbox (status only — a displacement is not the user's postponement, so `postpone_count` and
+   the local `skip_streak` stay; through the outbox like every task write); a pulled
+   `displaced_pending` leaves the task alone and renders as an overlap that "still counts if you
+   do it" — the block may be in a focus session (adversarial #4); a pulled
    `conflict_flag = true` row surfaces the File 05 §2 toast ("Meeting imported — your completed
    session is kept"). **`events` are not pulled** [INFERRED]: no screen reads another device's
    raw facts (the lapse scan reads local `focus_sessions`; P9's review reads server aggregates),
@@ -113,7 +116,12 @@ op_id) DO NOTHING`; referenced `task_id` / `recommendation_id` must be the user'
    return `error` count an attempt; after 5 the op is **dead-lettered** (acked with
    `last_error`, reported to Sentry) so one poison op cannot block the queue [INFERRED]; a
    `conflict` never counts. After a plan is mirrored, `applyPlanResponse` stays as it is — the
-   pull would bring the same rows and is idempotent on the plan id.
+   pull would bring the same rows and is idempotent on the plan id. Invocation budget (invariant
+   11): the 60 s poll is ≈ 60 calls per active hour per device; at study scale (< 100 users,
+   ~1 h/day) that is < 10 % of the free tier's 500 k invocations/month — P12 re-checks.
+   Scheduled hardening (adversarial #5–#8, #13): retry on `busy`, drain a > 200-op backlog
+   within one sync, an error boundary in `run()`, re-fetch an entity after a dead-letter, apply
+   `ack.version` locally.
 
 7. **Per-user lease around replay + mapping (`sync_leases`, RPCs `acquire_sync_lease` /
    `release_sync_lease`, TTL 30 s, service-only)** — the concrete answer to revisit
@@ -121,8 +129,13 @@ op_id) DO NOTHING`; referenced `task_id` / `recommendation_id` must be the user'
    plpgsql would fork the reward logic), but `sync-resolve` and the daily sweep serialise per
    user through a lease with a TTL (a crashed holder cannot wedge the user). `sync-resolve`
    answers `409 busy` while another sync of the same user holds it (the client reports `busy`
-   and the next trigger retries). The daily sweep does **not** take the lease yet — `gatePatches`
-   (ADR-0010 §3) remains its guard; making the sweep lease-aware is a revisit item.
+   and the next trigger retries). **Every server-side writer of a user's rows holds the lease**
+   (adversarial #1/#14): the daily sweep skips a leased user for that tick (`skipped_busy`),
+   `attribute-rewards` instant mode answers 409, plan persistence and the calendar sync run
+   under `withLease` (wait ≤ 3 s, then proceed and log — the residual for the `server_seq`
+   commit-order hole). Independently of the lease, every recommendation patch is a
+   **compare-and-set** on the status the mapping read (`expected_status`), so a lost race is a
+   no-op, never an overwrite; `gatePatches` (ADR-0010 §3) stays as defence in depth.
 
 8. **`persist_plan` RPC (revisit ADR-0008 §4):** plan row + recommendation rows + supersede in
    **one transaction**, `security definer`, service-only; `persist.ts` calls it and the
@@ -142,7 +155,10 @@ op_id) DO NOTHING`; referenced `task_id` / `recommendation_id` must be the user'
    row at all"); before that instant it stays pending. `attribution_due` therefore includes
    `displaced_pending`. A cancelled meeting does **not** un-displace [INFERRED — File 05 §2:
    "replacement suggested at next planning event"]; a displaced row is never displaced again.
-   Rows already past their slot are left alone (the past is facts, not plans).
+   Rows already past their slot are left alone (the past is facts, not plans). `pinned` blocks
+   are displaced like `shown` ones — an external meeting outranks the user's pin the same way it
+   outranks the planner's placement [INFERRED]. A single displaced chunk moves the whole task to
+   the Inbox (the P6 mirror is per task; revisit.md).
 
 10. **Google Calendar (FR-03, UC-09) — server-held OAuth, minimal scopes, push + sweep.**
     - _Connect:_ `gcal-connect` (user JWT) `start` returns Google's consent URL (authorization
@@ -154,8 +170,14 @@ op_id) DO NOTHING`; referenced `task_id` / `recommendation_id` must be the user'
       (timed events from now − 1 d to now + 14 d [INFERRED window]; the sync token then covers
       the calendar), opens the push channel, and redirects to `hourwell://gcal-callback`.
       Works for magic-link and anonymous users alike — connecting a calendar is not signing in
-      with Google. `disconnect` stops the channel, revokes the token, deletes the state and the
-      mirrored events.
+      with Google. **The consent is bound to the device that started it** (adversarial #10):
+      the callback stores the tokens unconfirmed and puts a one-shot confirm token only into
+      the redirect; `gcal-connect {confirm}` under the starting account's JWT activates the
+      connection and runs the initial sync, any mismatch purges the tokens. The initial full
+      sync restricts by `timeMin` (yesterday) only — the sync token inherits the initial
+      request's filters, so a `timeMax` would silently end the feed (adversarial #2).
+      `disconnect` deletes the mirrored `Hourwell ·` events while it still holds a token, stops
+      the channel, revokes the token, deletes the state and tombstones the imported events.
     - _Scopes:_ import = `calendar.events.readonly`; enabling write-back asks once more for
       `calendar.events` with `include_granted_scopes=true` (incremental authorization) — the
       write scope is never requested from users who did not opt in.
@@ -174,9 +196,10 @@ op_id) DO NOTHING`; referenced `task_id` / `recommendation_id` must be the user'
       correctness depends on background execution); "≤ 5 min" is a server-side statement.
     - _Write-back (opt-in):_ open blocks of the plan day and the next day are mirrored into the
       user's primary calendar as `Hourwell · <title>` events keyed by
-      `extendedProperties.private.hourwell = <recommendation_id>`; expired/rejected/displaced
-      blocks delete their event. The user's own calendar is the user's data — NFR-S3 governs the
-      ML boundary, not this mirror.
+      `extendedProperties.private.hourwell = <recommendation_id>`; every block that leaves the
+      open set (completed, lapsed, rejected, expired, displaced) deletes its event, and switching
+      the write-back off removes all of them. The user's own calendar is the user's data —
+      NFR-S3 governs the ML boundary, not this mirror.
 
 11. **Deferred wipe on account change (revisit P4, cursor contract).** When a _different_ uid
     signs in and the previous uid still has unacked ops, the mirror is **not** wiped: the cursor

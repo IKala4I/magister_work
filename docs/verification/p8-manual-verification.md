@@ -8,17 +8,17 @@
 
 ## 1. Gates (2026-08-28, `phase/P8-sync`)
 
-| Gate                                                    | Result                                                                                                                                                       |
-| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `pnpm typecheck` · `pnpm lint` · `pnpm format:check`    | clean                                                                                                                                                        |
-| `pnpm test` (apps/mobile jest)                          | **336 passed / 42 suites** (P7: 290) — +merge rule table, +pull applier, +engine round trips, +account transitions, +Today/Settings surfaces, +schema pins   |
-| `npx expo-doctor` (apps/mobile)                         | 21/21 (`expo-network` 57.0.1 added via `expo install`)                                                                                                       |
-| `deno fmt --check` · `deno lint` · `deno check` · tests | clean · clean · clean · **148 passed** (before P8: 110) — +sync-resolve, +scenario, +gcal mapping, +webhook/connect/callback handlers, +drift guard          |
-| pgTAP `p8_sync_test.sql`                                | **83 assertions, 83 ok** via `scripts/pgtap-linked.sh` (migration + suite inside one rolled-back transaction on the hosted database); CI's db job re-runs it |
-| `uv run pytest` (recsys, training)                      | untouched by P8 — CI runs it                                                                                                                                 |
-| `supabase db push`                                      | `20260828120000_p8_sync.sql` applied to the hosted project; `database.ts` regenerated (`--linked`) and committed as `chore(db)`                              |
-| `supabase functions deploy`                             | six functions deployed (`sync-resolve`, `gcal-connect`, `gcal-callback`, `gcal-webhook`, `plan-request`, `attribute-rewards`)                                |
-| Live smoke `docs/verification/p8-live-smoke.mjs`        | **25 PASS / 0 FAIL** on the hosted project (§2)                                                                                                              |
+| Gate                                                    | Result                                                                                                                                                          |
+| ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm typecheck` · `pnpm lint` · `pnpm format:check`    | clean                                                                                                                                                           |
+| `pnpm test` (apps/mobile jest)                          | **337 passed / 42 suites** (P7: 290) — +merge rule table, +pull applier, +engine round trips, +account transitions, +Today/Settings surfaces, +schema pins      |
+| `npx expo-doctor` (apps/mobile)                         | 21/21 (`expo-network` 57.0.1 added via `expo install`)                                                                                                          |
+| `deno fmt --check` · `deno lint` · `deno check` · tests | clean · clean · clean · **155 passed** (before P8: 110) — +sync-resolve, +scenario, +gcal mapping, +webhook/connect/callback handlers, +drift guard, +lease/CAS |
+| pgTAP `p8_sync_test.sql`                                | **85 assertions, 85 ok** via `scripts/pgtap-linked.sh` (migrations + suite inside one rolled-back transaction on the hosted database); CI's db job re-runs it   |
+| `uv run pytest` (recsys, training)                      | untouched by P8 — CI runs it                                                                                                                                    |
+| `supabase db push`                                      | `20260828120000_p8_sync.sql` + `20260828140000_p8_adversarial.sql` applied to the hosted project; `database.ts` regenerated (`--linked`) and committed          |
+| `supabase functions deploy`                             | six functions deployed (`sync-resolve`, `gcal-connect`, `gcal-callback`, `gcal-webhook`, `plan-request`, `attribute-rewards`)                                   |
+| Live smoke `docs/verification/p8-live-smoke.mjs`        | **27 PASS / 0 FAIL** on the hosted project after the adversarial fixes were deployed (§2; incl. the confirm-aware `gcal-connect` build fingerprint)             |
 
 ## 2. What is established
 
@@ -138,6 +138,33 @@ of the number. Not a handset measurement (§3).
 - **Write-back events are not removed from Google on disconnect** (revisit.md) and a cancelled
   meeting does not un-displace a block (ADR-0012 §9 [INFERRED]).
 
-## 4. Adversarial pass (fresh-context subagent, 2026-08-28)
+## 4. Adversarial pass (fresh-context subagent, 2026-08-28 → fixes 2026-08-29)
 
-_Filled in below once the pass completes._
+**3 MAJOR + 12 MINOR + 5 notes.** All three MAJORs and eight MINORs fixed before merge; the
+remaining four MINORs are engine hardening items scheduled in HANDOFF (next session) and one
+documented residual.
+
+| #   | Sev   | Finding (short)                                                                                                                          | Outcome                                                                                                                                                                                                                                          |
+| --- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | MAJOR | Daily sweep never took the lease; a plan-side `displaced` patch could overwrite a facts-side `completed` (invariant 2)                   | **Fixed** — daily/instant paths run under `acquire_sync_lease` (busy users skipped, `skipped_busy` reported; instant → 409); every patch carries `expected_status` and `patchRecs` is compare-and-set. Deno tests (4) incl. the stale-read race. |
+| 2   | MAJOR | Initial full sync bounded by `timeMax`; Google's sync token inherits the initial filters → the feed would end two weeks after connecting | **Fixed** — `timeMin` only (Google's own sample); runbook §3 adds the "event 20 days out" must-pass check before enrollment.                                                                                                                     |
+| 3   | MAJOR | "Discard them" destroyed another account's unsynced ops in one tap (invariant 14)                                                        | **Fixed** — `Alert` confirm with a destructive button; jest asserts nothing is discarded before the confirm.                                                                                                                                     |
+| 4   | MINOR | Task→Inbox mirror + notice fired on `displaced_pending` (a block possibly being worked)                                                  | **Fixed** — only the final `displaced` moves the task; pending renders "A meeting now overlaps this block — it still counts if you do it".                                                                                                       |
+| 5   | MINOR | 409 `busy` not retried                                                                                                                   | **Open → next session** (engine: `scheduleSync` on busy).                                                                                                                                                                                        |
+| 6   | MINOR | Backlog > 200 ops drains one batch per trigger                                                                                           | **Open → next session** (continue while unacked ops not yet sent this sync remain, bounded by `MAX_ROUNDS`).                                                                                                                                     |
+| 7   | MINOR | No error boundary in `run()` (status stuck `syncing`, unhandled rejection)                                                               | **Open → next session** (`try/catch` → `error` + `Sentry.captureException`).                                                                                                                                                                     |
+| 8   | MINOR | A dead-lettered op leaves its entity permanently stale locally                                                                           | **Open → next session** (re-fetch the entity through the user client after a dead-letter).                                                                                                                                                       |
+| 9   | MINOR | `recommendation_status` ops carried no `user_id` → after a deferred wipe pushed under the wrong account and rejected                     | **Fixed** — payload stamps `user_id`; the RPC rejects a foreign one (pgTAP).                                                                                                                                                                     |
+| 10  | MINOR | OAuth consent not bound to the starting device (a phished consent could link a victim's calendar to another account)                     | **Fixed** — tokens stored unconfirmed; a one-shot confirm token travels only in the redirect; `gcal-connect {confirm}` under the starting account's JWT activates, a mismatch purges (migration `confirmed_at`/`confirm_token`; 5 Deno tests).   |
+| 11  | MINOR | Write-back events outlived disconnect / write-back off                                                                                   | **Fixed** — `clearWriteBack` deletes every mirrored event before the revoke and on switch-off.                                                                                                                                                   |
+| 12  | MINOR | ADR §10 write-back vocabulary vs code                                                                                                    | **Fixed in the ADR** (every non-open status deletes its event).                                                                                                                                                                                  |
+| 13  | MINOR | ADR §2 "applied ops converge without a pull" vs the client ignoring `ack.version`                                                        | **Open → next session** (apply `ack.version`/`server_seq` locally when no other unacked op exists); ADR wording corrected meanwhile.                                                                                                             |
+| 14  | MINOR | `server_seq` assigned at statement time: a pull between a writer's seq assignment and commit could skip a row                            | **Mitigated** — plan persistence, the calendar sync and the reward sweep now run under the per-user lease that the pull also holds; residual: a writer that could not obtain the lease within 3 s proceeds (logged) — revisit.md.                |
+| 15  | MINOR | A 200 with an empty body treated as 410 → mirror wiped                                                                                   | **Fixed** — only HTTP 410 is `gone`; an empty body throws into `last_error`.                                                                                                                                                                     |
+
+Notes acted on: Expo Go's `exp://` scheme cannot receive the callback (device checklist + runbook); the
+60 s poll budget stated in ADR §6; `pinned` blocks are displaced like `shown` ones (ADR §9); the
+sweep's serial ceiling (runbook); chunk-level displacement coarseness (revisit.md).
+
+Re-verified after the fixes: Deno 155, jest 337, pgTAP 85, live smoke 27/27 on the redeployed
+functions (the `gcal-connect` build fingerprinted by its action list — P7.1 lesson).

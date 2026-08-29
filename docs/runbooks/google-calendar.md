@@ -53,14 +53,22 @@ Secrets are read at module load — redeploy after setting them (HANDOFF gotcha)
 
 1. `gcal-connect {action: start}` with a test user's JWT → 200 with `auth_url` (was 503).
 2. Open the URL in a browser signed in as a test user → consent → the browser lands on
-   `hourwell://gcal-callback?status=ok` (on a Mac without the app: the redirect shows as an
-   unopenable scheme — that is the success signal; on a phone it opens the app).
+   `hourwell://gcal-callback?status=ok&confirm=…` (on a Mac without the app: the redirect shows
+   as an unopenable scheme — copy the `confirm` value; on a phone the app opens and confirms by
+   itself). The connection is **not active yet**: `gcal-connect {action: confirm, token}` with
+   the SAME account's JWT activates it (a different account purges the tokens — adversarial
+   #10). Expo Go cannot receive the redirect (its scheme is `exp://`); use a dev-client or
+   release build with the `hourwell` scheme.
 3. `gcal-connect {action: status}` → `connected: true`, `last_synced_at` set,
    `channel_expires_at` ≈ 7 days ahead.
-4. Create a meeting in that Google Calendar over a planned block → within seconds the push
+4. **Must pass before enrollment (adversarial #2):** create a meeting **20 days out** in that
+   calendar → it appears in `calendar_events` on the next push/sweep. If it does not, the sync
+   token carried a time restriction and `syncUser` must be changed to force a periodic full
+   resync.
+5. Create a meeting in that Google Calendar over a planned block → within seconds the push
    arrives (`gcal-webhook` function logs show `synced`), the block is `displaced_pending`; the
    app shows the busy row and the "meeting" caption at its next foreground.
-5. `select jobname, status from cron.job_run_details where jobname = 'gcal-sweep' order by
+6. `select jobname, status from cron.job_run_details where jobname = 'gcal-sweep' order by
 start_time desc limit 3` → `succeeded`; `net._http_response` shows 200s from the sweep.
 
 ## 4. Before enrollment (ADR-0012 Consequences; privacy README G7)
@@ -70,5 +78,7 @@ start_time desc limit 3` → `succeeded`; `net._http_response` shows 200s from t
   Unverified production apps show a warning page and are capped at 100 users; that is enough
   for the study. The verification review (sensitive scopes) is optional and needs a privacy
   policy URL and a demo video; decide by the OSF freeze.
+- The sweep handles users serially in one invocation (`loadConnected` limit 500): fine below
+  ~50 connected calendars; beyond that split the sweep by user cohort (pg_net's 60 s timeout).
 - Keep the OAuth client secret out of every log, screenshot and chat.
 - Rotate the secret if it is ever pasted anywhere but the secrets command.

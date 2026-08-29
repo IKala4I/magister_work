@@ -158,8 +158,10 @@
   browser → consent → `hourwell://gcal-callback?status=ok` opens the app (cold and warm start)
   → Settings shows "Connected"; then a meeting created in Google over a planned block shows as
   a busy row and displaces the block within one foreground (server-side ≤ 5 min, UC-09). Needs
-  the owner's Google Cloud gate first. Simulator can't settle it: the custom-scheme redirect
-  from Safari/Chrome and the ASWebAuthenticationSession / Custom Tabs behaviour differ from the
+  the owner's Google Cloud gate first, and a build with the `hourwell` scheme (Expo Go's
+  `exp://` scheme never receives the redirect; the function always redirects to
+  `hourwell://gcal-callback`). Simulator can't settle it: the custom-scheme redirect from
+  Safari/Chrome and the ASWebAuthenticationSession / Custom Tabs behaviour differ from the
   simulator's browser.
 - ⬜ **Deferred-wipe banner (P8, ADR-0012 §11).** Sign in as account A, create a task offline,
   sign in as account B (magic link) → the banner offers Keep / Discard; Discard removes A's rows

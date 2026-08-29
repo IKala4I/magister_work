@@ -428,8 +428,8 @@ const cf = await fetch(`${URL_}/functions/v1/gcal-connect`, {
   body: JSON.stringify({ action: 'confirm', token: 'not-a-real-token' }),
 });
 check(
-  'gcal-connect confirm with an unknown token → 409 invalid_confirm (nothing activated)',
-  cf.status === 409,
+  'gcal-connect confirm with an unknown token → 409 invalid_confirm (or 503 while the Google gate is closed) — nothing activated',
+  cf.status === 409 || cf.status === 503,
   String(cf.status),
 );
 const wh = await fetch(`${URL_}/functions/v1/gcal-webhook`, {

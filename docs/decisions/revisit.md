@@ -101,12 +101,14 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   partial-plan contract. Threshold itself re-fitted to 3·10³ (ADR-0007 §11 addendum).
 - [P8, 2026-08-28] ADR-0012 §7 lease — `sync-resolve` takes it, the daily `attribute-rewards`
   sweep does not (it iterates users from `attribution_due`); the P7 `gatePatches` re-read is the
-  only guard between a sweep and a concurrent sync of the same user. — P9/P10: have the daily
-  sweep `acquire_sync_lease` per user and skip busy users for that tick (the ADR text already
-  promises it).
+  only guard between a sweep and a concurrent sync of the same user. — **DONE 2026-08-29**
+  (adversarial #1): the sweep skips leased users; every patch is a compare-and-set on the status
+  read. Residual: a writer that waits > 3 s for the lease proceeds without it (logged) — the
+  `server_seq` commit-order hole (adversarial #14) is then closed only by the CAS, not by
+  ordering. P12: measure lease wait times; consider a lagged re-scan in `sync_pull`.
 - [P8, 2026-08-28] Write-back events stay in the user's Google Calendar after `disconnect`
-  (the token is revoked before they could be deleted). — P9: delete the mirrored events
-  best-effort BEFORE revoking; or document in the consent text.
+  (the token is revoked before they could be deleted). — **DONE 2026-08-29** (adversarial #11:
+  `clearWriteBack` before the revoke and on write-back off).
 - [P8, 2026-08-28] `mapGoogleEvent` assumes Google returns `transparency: transparent` for
   default all-day events (its UI default "Free"); if not, a birthday would block a whole day. —
   Verify on the first live calendar (runbook §3); fall back to "all-day never busy" if wrong.
@@ -120,3 +122,11 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
 - [P8, 2026-08-28] UC-09 "≤ 5 min" is the server-side bound; the client's 60 s foreground poll
   is the device half. — P10 notifications: a displacement could push a local notification
   ("a meeting took 14:00 — Slides is back in your Inbox") without any background sync.
+- [P8, 2026-08-29] Engine hardening left open by the adversarial pass (#5–#8, #13): retry on
+  `busy`, drain a > 200-op backlog within one sync, an error boundary in `run()`, re-fetch an
+  entity after a dead-letter, apply `ack.version`/`server_seq` locally on `applied`. — **Next
+  session, before the P8 PR merges** (HANDOFF lists the exact specs).
+- [P8, 2026-08-29] A single displaced chunk moves the whole task to the Inbox (`pull.ts`), while
+  sibling chunks stay open and `persist_plan` supersedes only `shown` rows — the P6 per-task
+  mirror coarseness gains a new trigger. — P9 (timeline work): mirror per chunk or re-place only
+  the displaced chunk.
