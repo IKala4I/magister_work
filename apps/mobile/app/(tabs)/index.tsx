@@ -11,7 +11,7 @@
  */
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
 
 import { discardPendingWipe, keepPendingWipe } from '../../src/auth/accountTransition';
 import { currentUserId } from '../../src/auth/identity';
@@ -226,7 +226,17 @@ export default function TodayScreen() {
             <Button
               kind="secondary"
               label={t('today.wipe.discard')}
-              onPress={() => discardPendingWipe(localDb)}
+              onPress={() =>
+                // destructive and not undoable: confirm first (invariant 14; adversarial #3)
+                Alert.alert(t('today.wipe.confirm.title'), t('today.wipe.confirm.body'), [
+                  { text: t('today.wipe.confirm.cancel'), style: 'cancel' },
+                  {
+                    text: t('today.wipe.confirm.discard'),
+                    style: 'destructive',
+                    onPress: () => discardPendingWipe(localDb),
+                  },
+                ])
+              }
             />
           </View>
         </View>

@@ -216,11 +216,26 @@ describe('applyPull', () => {
     );
   });
 
-  it('a displaced placement returns its task to the Inbox through the outbox — status only, no postpone', () => {
+  it('a PENDING displacement leaves the task alone (facts beat plans — it may still be worked); the final displaced returns it to the Inbox through the outbox — status only, no postpone', () => {
     applyPull(db, { userId: USER, rows: [taskRow(), planRow, recRow()], now: NOW });
-    const r = applyPull(db, {
+    const pending = applyPull(db, {
       userId: USER,
       rows: [recRow({ status: 'displaced_pending', version: 3, server_seq: 20 })],
+      now: NOW,
+    });
+    expect(pending.displaced).toBe(0);
+    expect(db.select().from(tasks).where(eq(tasks.id, TASK)).get()).toMatchObject({
+      status: 'scheduled',
+      version: 7,
+    });
+    expect(db.select().from(opOutbox).all()).toHaveLength(0);
+    expect(db.select().from(recommendations).where(eq(recommendations.id, REC)).get()?.status).toBe(
+      'displaced_pending',
+    );
+
+    const r = applyPull(db, {
+      userId: USER,
+      rows: [recRow({ status: 'displaced', version: 4, server_seq: 21 })],
       now: NOW,
     });
     expect(r.displaced).toBe(1);
@@ -230,7 +245,7 @@ describe('applyPull', () => {
     expect(ops).toHaveLength(1);
     expect(ops[0]).toMatchObject({ opType: 'task_upsert', entityId: TASK, baseVersion: 7 });
     expect((ops[0]?.payload as { status: string }).status).toBe('inbox');
-    // the follow-up `displaced` row is not a second displacement
+    // re-applying the same displaced row is not a second displacement
     const r2 = applyPull(db, {
       userId: USER,
       rows: [recRow({ status: 'displaced', version: 4, server_seq: 21 })],

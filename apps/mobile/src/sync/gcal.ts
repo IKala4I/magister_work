@@ -2,8 +2,10 @@
  * Google Calendar connection from the device (FR-03; ADR-0012 §10): the app only ever asks the
  * `gcal-connect` function for a consent URL and opens it in the system browser; the code
  * exchange, the refresh token and the sync all live server-side. The browser returns through
- * `hourwell://gcal-callback` (app/gcal-callback.tsx), after which a sync pulls the imported
- * meetings.
+ * `hourwell://gcal-callback?confirm=…` (app/gcal-callback.tsx): the device that started the
+ * consent CONFIRMS it under its own session (ADR-0012 §10 — a consent obtained by someone
+ * else can never be activated here), after which the server runs the initial sync and a local
+ * sync pulls the imported meetings.
  */
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
@@ -59,14 +61,29 @@ export async function gcalConnect(scope: GcalScope): Promise<GcalResult> {
     Linking.createURL(GCAL_CALLBACK_PATH),
   );
   if (result.type !== 'success') return { ok: false, code: 'cancelled' };
-  const landed = new URL(result.url).searchParams.get('status');
-  if (landed !== 'ok') {
+  const params = new URL(result.url).searchParams;
+  const confirm = params.get('confirm');
+  if (params.get('status') !== 'ok' || confirm === null) {
     track('gcal_connection', { event: 'failed' });
     return { ok: false, code: 'failed' };
   }
-  track('gcal_connection', { event: scope === 'write' ? 'write_back_on' : 'connected' });
+  const confirmed = await gcalConfirm(confirm);
+  if (confirmed.ok) {
+    track('gcal_connection', { event: scope === 'write' ? 'write_back_on' : 'connected' });
+  } else {
+    track('gcal_connection', { event: 'failed' });
+  }
+  return confirmed;
+}
+
+/** Activate a consent this device received (the redirect's one-shot token), then pull. */
+export async function gcalConfirm(token: string): Promise<GcalResult> {
+  const r = await call({ action: 'confirm', token });
+  if (r.kind !== 'ok') return { ok: false, code: r.kind };
+  const status = statusOf(r.data);
+  if (!status || !status.connected) return { ok: false, code: 'failed' };
   void syncNow('manual');
-  return gcalStatus();
+  return { ok: true, status };
 }
 
 export async function gcalDisconnect(): Promise<GcalResult> {

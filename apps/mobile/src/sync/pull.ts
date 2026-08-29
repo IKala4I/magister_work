@@ -2,9 +2,10 @@
  * The pull half on the device (File 05 §2 "merge pull payload in one transaction, advance
  * cursor"; ADR-0012 §5): one SQLite transaction per page; rows upsert by primary key; an entity
  * with an UNACKED local op is skipped (the push resolves it — pushing first is what makes this
- * safe); a pulled displaced placement mirrors its task back to the Inbox (status only, through
- * the outbox); a completion that raced a meeting (`conflict_flag`) surfaces the File 05 §2
- * toast. Pure over `LocalDb`, so `pull.test.ts` runs it on real SQLite.
+ * safe); a pulled `displaced` placement (the final state — a pending one may still be worked,
+ * facts beat plans) mirrors its task back to the Inbox (status only, through the outbox); a
+ * completion that raced a meeting (`conflict_flag`) surfaces the File 05 §2 toast. Pure over
+ * `LocalDb`, so `pull.test.ts` runs it on real SQLite.
  */
 import { and, eq, inArray, isNull } from 'drizzle-orm';
 
@@ -25,7 +26,8 @@ export interface PullReport {
   displaced: number;
 }
 
-const DISPLACED = new Set(['displaced_pending', 'displaced']);
+/** Only the FINAL displacement moves the task (adversarial #4): pending may still be worked. */
+const DISPLACED = new Set(['displaced']);
 
 const date = (v: unknown): Date | null => {
   if (typeof v !== 'string') return null;

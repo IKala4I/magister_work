@@ -52,6 +52,7 @@ jest.mock('../auth/accountTransition', () => ({
 
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import type { ReactElement } from 'react';
+import { Alert } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import TodayScreen from '../../app/(tabs)/index';
@@ -463,7 +464,8 @@ describe('Today — P8 sync surfaces', () => {
     expect(screen.queryByText(en['today.notice.meetingKept'])).toBeNull();
   });
 
-  it('the deferred-wipe banner offers Keep / Discard (ADR-0012 §11)', async () => {
+  it('the deferred-wipe banner offers Keep / Discard; Discard confirms first (ADR-0012 §11, invariant 14)', async () => {
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
     useSyncStore.setState({ pendingWipe: { userId: 'prev', ops: 4 } });
     await render(withSafeArea(<TodayScreen />));
     expect(
@@ -476,7 +478,22 @@ describe('Today — P8 sync surfaces', () => {
     await act(async () => {
       fireEvent.press(screen.getByText(en['today.wipe.discard']));
     });
+    expect(mockWipe.discard).not.toHaveBeenCalled();
+    expect(alert).toHaveBeenCalledWith(
+      en['today.wipe.confirm.title'],
+      en['today.wipe.confirm.body'],
+      expect.any(Array),
+    );
+    const buttons = alert.mock.calls[0]?.[2] as Array<{ style?: string; onPress?: () => void }>;
+    buttons.find((b) => b.style === 'destructive')?.onPress?.();
     expect(mockWipe.discard).toHaveBeenCalledTimes(1);
+    alert.mockRestore();
+  });
+
+  it('a pending displacement reads as an overlap that still counts, not as a loss', async () => {
+    rows({ plans: [plan()], recs: [rec({ status: 'displaced_pending' })], tasks: [task()] });
+    await render(withSafeArea(<TodayScreen />));
+    expect(screen.getByText(en['block.status.displacedPending'])).toBeTruthy();
   });
 
   it('a displaced block shows the neutral caption, never an error state', async () => {

@@ -410,6 +410,28 @@ check(
   gs.status === 503,
   String(gs.status),
 );
+// handler-specific fingerprint (P7.1 lesson): the deployed build must know the confirm action
+const fp = await fetch(`${URL_}/functions/v1/gcal-connect`, {
+  method: 'POST',
+  headers: { 'content-type': 'application/json', apikey: ANON, authorization: `Bearer ${jwt}` },
+  body: JSON.stringify({ action: 'nope' }),
+});
+const fpBody = await fp.json().catch(() => null);
+check(
+  'gcal-connect deployed build is the confirm-aware one (action list names confirm)',
+  fp.status === 400 && String(fpBody?.detail ?? '').includes('confirm'),
+  `${fp.status} ${JSON.stringify(fpBody)}`,
+);
+const cf = await fetch(`${URL_}/functions/v1/gcal-connect`, {
+  method: 'POST',
+  headers: { 'content-type': 'application/json', apikey: ANON, authorization: `Bearer ${jwt}` },
+  body: JSON.stringify({ action: 'confirm', token: 'not-a-real-token' }),
+});
+check(
+  'gcal-connect confirm with an unknown token → 409 invalid_confirm (nothing activated)',
+  cf.status === 409,
+  String(cf.status),
+);
 const wh = await fetch(`${URL_}/functions/v1/gcal-webhook`, {
   method: 'POST',
   headers: { 'content-type': 'application/json', apikey: ANON, authorization: `Bearer ${ANON}` },

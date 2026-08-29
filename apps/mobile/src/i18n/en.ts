@@ -297,6 +297,13 @@ export const en = {
   'today.wipe.discard': 'Discard them',
   'today.wipe.keep': 'Keep for now',
   'block.status.displaced': 'A meeting took this slot — back in your Inbox',
+  'block.status.displacedPending':
+    'A meeting now overlaps this block — it still counts if you do it',
+  'today.wipe.confirm.title': 'Discard the other account’s unsynced changes?',
+  'today.wipe.confirm.body':
+    'They were never sent to the server and cannot be recovered afterwards.',
+  'today.wipe.confirm.discard': 'Discard',
+  'today.wipe.confirm.cancel': 'Keep them',
 
   'settings.sync.title': 'Sync',
   'settings.sync.now': 'Sync now',
