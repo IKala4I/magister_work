@@ -60,6 +60,12 @@ meeting and done task pulled / counterfactual → `displaced`, no tuple / lease 
 syncs / `x-sb-edge-region: eu-west-1` / Google function fingerprints without credentials.
 `p8-manual-verification.md`.
 
+**Verified against Google Calendar** (2026-08-29, the owner's account, `p8-manual-verification.md`
+§2.3): consent → server-side code exchange → device-bound confirm → initial sync; push delivery
+within seconds; an event 20 days out arrives (adversarial #2 closed); a meeting over a planned
+block → `displaced_pending` with no reward tuple; sweep with one connected calendar; default
+all-day events free, Busy ones block the local day; disconnect revokes + tombstones.
+
 **Docs.** ADR-0012; spec-conflicts L19 closed, L28–L33; thesis-corrections #38–39; revisit: five
 P4–P7 lines closed, six P8 lines; privacy README G4 closed + G7 (Google as an independent
 controller, production-status gate), `docs/privacy/consent-clause.md` (draft for the owner);

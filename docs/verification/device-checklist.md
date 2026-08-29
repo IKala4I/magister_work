@@ -162,7 +162,12 @@
   `exp://` scheme never receives the redirect; the function always redirects to
   `hourwell://gcal-callback`). Simulator can't settle it: the custom-scheme redirect from
   Safari/Chrome and the ASWebAuthenticationSession / Custom Tabs behaviour differ from the
-  simulator's browser.
+  simulator's browser. **Server side done 2026-08-29** from a headless user
+  (`p8-manual-verification.md` §2.3) — what remains is exactly the device part: the redirect
+  opening the app (a desktop browser silently stalls on the `hourwell://` 302), the confirm
+  firing from the app, the busy row + "meeting" caption at the next foreground; plus the
+  week-long items on a real account: push-channel renewal at day 7 and, while the consent
+  screen is in Testing, the refresh-token expiry at day 7.
 - ⬜ **Deferred-wipe banner (P8, ADR-0012 §11).** Sign in as account A, create a task offline,
   sign in as account B (magic link) → the banner offers Keep / Discard; Discard removes A's rows
   only; sign back in as A after Keep → A's task is still there and syncs. Simulator can't settle

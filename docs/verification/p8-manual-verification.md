@@ -2,9 +2,9 @@
 
 > Honesty rule (CLAUDE.md "Simulator evidence"): everything below ran on the development Mac
 > (jest / Deno / a rolled-back pgTAP run against the hosted database) or on the hosted Supabase
-> project itself (the live smoke). Nothing ran on a handset, and the Google Calendar half never
-> reached Google — the Google Cloud project is the owner's gate (⛔ in HANDOFF). Each section
-> says what it establishes and what it does not.
+> project itself (the live smoke). Nothing ran on a handset; the Google Calendar half ran against
+> the real Google Calendar on 2026-08-29 (§2.3) from a headless test user, not from the app. Each
+> section says what it establishes and what it does not.
 
 ## 1. Gates (2026-08-28, `phase/P8-sync`)
 
@@ -118,22 +118,49 @@ max 511 ms. The bare poll is one lease + one `sync_pull` round trip — comforta
 NFR-P3's 300 ms once the function is warm on the server side; the Mac-to-Ireland hop is most
 of the number. Not a handset measurement (§3).
 
+### 2.3 Live against Google Calendar (2026-08-29, runbook §3, the owner's own account)
+
+Setup: Google Cloud project with the Calendar API, an External consent screen in **Testing**
+status with both calendar scopes and the owner as test user, a Web OAuth client with the
+redirect `…/functions/v1/gcal-callback`; the three secrets set with
+`supabase secrets set --env-file` (file deleted afterwards, names confirmed with
+`supabase secrets list`), the three gcal functions redeployed (same code as `71caaa6`). Test
+subject: an anonymous Supabase user driven from the Mac with plain `fetch` (no app), the
+owner's real primary calendar (UTC+3 / Europe/Kyiv, as read back from stored rows vs the
+times shown in Google). Timestamps UTC, 2026-08-29.
+
+| §   | Check                                   | Result                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| --- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 3.1 | `start` with a user JWT                 | 200 + `auth_url` (accounts.google.com; `redirect_uri` = the callback; scope `calendar.events.readonly`; `access_type=offline&prompt=consent`) + `expires_at` (+10 min). Was 503 `not_configured` before the secrets.                                                                                                                                                                                                                                                                                                                                                                                              |
+| 3.2 | consent → callback → confirm            | Google's "unverified app" page (Testing) → consent at 05:25:08 → `gcal-callback` exchanged the code and stored refresh + access tokens **unconfirmed** (`scope=read`, `calendar_id=primary`, `oauth_state` cleared, confirm token +10 min) → 302 to `hourwell://gcal-callback?status=ok&confirm=…`. Chrome on the Mac shows a spinner and never navigates (no handler for the scheme). The confirm token was read from `gcal_sync_state` and `confirm` sent with the **same** user's JWT at 05:31:03 → 200 `connected: true`; initial sync + channel registration + write-back pass ran under the lease in 3.1 s. |
+| 3.3 | `status`                                | `connected: true`, `last_synced_at` 05:31:03, `channel_expires_at` 2026-09-05 05:31 (7 days), `sync_token` and `channel_id/resource_id/channel_token` set, `last_error: null`. The `timeMin`-only initial sync mirrored the calendar's two upcoming events.                                                                                                                                                                                                                                                                                                                                                       |
+| 3.4 | event 20 days out (adversarial #2)      | `Hourwell 20-day check` (Fri 2026-09-18, 08:00–09:00Z) in `calendar_events` at 05:33:46 — between the 05:30 and 05:35 sweep ticks, i.e. **by push**. The sync token carries no time restriction. Closed.                                                                                                                                                                                                                                                                                                                                                                                                          |
+| 3.5 | meeting over a planned block            | Profile (Europe/Kyiv) + one task via `sync-resolve` + `plan-request` (learned engine, 1 779 ms) → rec `5706937a` `shown`, 07:45–08:45Z on 2026-08-30. A first meeting at 07:00–07:30Z (instruction given in the wrong zone → no overlap) synced and displaced nothing — correct. The meeting **edited** to 07:00–08:15Z synced at 05:49:10 (push, between ticks) → rec **`displaced_pending`** at 05:49:11; `feedback_rewards`, `recsys_applied_tuples`, `bandit_state`: 0 rows (invariant 4). The app-side busy row + "meeting" caption stay on the device checklist (headless user).                            |
+| 3.6 | sweep                                   | `gcal-sweep` every 5 min `succeeded`, 200s in `net._http_response`; `users: 0` before the confirm, `users: 1` from 05:35; `synced: 1` at 05:40 (the first meeting), `renewed: 0`, `errors: 0` throughout.                                                                                                                                                                                                                                                                                                                                                                                                         |
+| +   | all-day events (the assumption from §3) | A default all-day event (`Hourwell all-day check`, Mon 2026-08-31) triggered a sync at 05:52:08 and produced **no row** — Google sent it `transparent` and `mapGoogleEvent` dropped it (a birthday never blocks a day). The same event marked Busy → row `busy = true`, 2026-08-30T21:00Z → 2026-08-31T21:00Z at 05:55:00 (push; the coinciding sweep reported `synced: 0`) — midnight to midnight in the calendar zone Google reports with the feed.                                                                                                                                                             |
+| +   | `disconnect`                            | 200 in 2.1 s: token revoked at Google, `gcal_sync_state` row gone, the 5 mirrored rows tombstoned (`deleted_at`, 0 live), the recommendation stays `displaced_pending` (plan state outlives the connection), task untouched. `status` → `connected: false`.                                                                                                                                                                                                                                                                                                                                                       |
+
+Not exercised live: write-back (the connection stayed read-only), push-channel renewal at
+day 7 and the Testing-status refresh-token expiry (both need a week on a real account), a
+cancelled meeting, the device redirect (§3). Lesson recorded in the runbook: state the slot to
+cover in the calendar's own zone, derived from a stored event (time shown in Google vs stored
+UTC) — a UTC+2 guess put the first meeting 15 min before the block.
+
 ## 3. What is NOT established (and where it is tracked)
 
-- **Google Calendar against Google.** Consent, code exchange, incremental sync, push channels,
-  renewal, write-back — all exercised only against a fake. Live verification waits for the
-  Google Cloud project (HANDOFF ⛔). Two assumptions to confirm on the first real calendar:
-  Google marks default all-day events `transparent` (otherwise a birthday would block a whole
-  day — `mapGoogleEvent` would need the availability rule tightened), and the browser → custom
-  scheme redirect from `gcal-callback` lands in the app on both platforms (device checklist).
+- **Google Calendar, what §2.3 leaves open.** Write-back against Google (the live connection
+  stayed read-only), push-channel renewal at day 7 and the Testing-status refresh-token expiry
+  (a week on a real account — the device pass), a cancelled meeting, and the browser →
+  `hourwell://` redirect landing in the app on both platforms (device checklist; a desktop
+  browser silently stalls on it, §2.3 row 3.2).
 - **Real radios.** Offline → reconnect with airplane mode, flaky handoffs, the `expo-network`
   reconnect trigger, background → foreground timing — device checklist (NFR-R1 entry, now the
   full obligation).
 - **Multi-device.** The conflict path is proven with a faked second device (tests + the stale
   `base_version` live check); two real installs of one account have not been run.
 - **UC-09 "≤ 5 min"** is a server-side statement (push channel + the 5-min sweep); the client
-  learns at its next foreground/poll (invariant 7). The sweep tick is scheduled and no-ops
-  without connected calendars (pgTAP); its first real run waits for the Google gate.
+  learns at its next foreground/poll (invariant 7). The sweep tick ran live with one connected
+  calendar (§2.3 row 3.6); pushes arrived within seconds of each change.
 - **NFR-P3** for the sync round trip is measured from a Mac (§2.2), not a handset.
 - **Write-back events are not removed from Google on disconnect** (revisit.md) and a cancelled
   meeting does not un-displace a block (ADR-0012 §9 [INFERRED]).

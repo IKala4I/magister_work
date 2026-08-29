@@ -2,8 +2,8 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-08-29 (morning), **P8 — Sync: code complete, adversarial pass done, PR #16
-> open and NOT yet merged.** This handoff was written on context pressure (858 k tokens): the
+> Last update: 2026-08-29 (mid-morning), **P8 — Sync: code complete, adversarial pass done,
+> FR-03 verified live against Google, PR #16 open and NOT yet merged.** This handoff was written on context pressure (858 k tokens): the
 > next session finishes five small engine items, re-runs the gates, updates the PR body and
 > merges. P8 turned out thesis-critical, not routine (File 05 §2 is a thesis claim).
 > Standing rules live in CLAUDE.md: "Working mode", "Context efficiency", "Simulator evidence".
@@ -13,7 +13,13 @@
 - **P0–P7.1 merged** (PRs #1–#15). **P8 = PR #16 (`phase/P8-sync`)** — every commit pushed
   (the head is the `docs(verification)` commit after `71caaa6`), working tree clean, hosted
   project = branch (both P8 migrations applied; all six functions deployed from the `71caaa6`
-  code and fingerprinted by handler-specific responses — `p8-live-smoke.mjs` **27/27**).
+  code and fingerprinted by handler-specific responses — `p8-live-smoke.mjs` **27/27**; the
+  three `GCAL_*` secrets set 2026-08-29 and the three gcal functions redeployed, same code).
+- **FR-03 verified live against Google (2026-08-29)** — `p8-manual-verification.md` §2.3:
+  consent → callback → device-bound confirm → initial sync, push within seconds, the 20-day
+  event (adversarial #2 closed), a meeting over a planned block → `displaced_pending` with no
+  reward row, sweep `users: 1`, all-day rule both ways, disconnect. The test connection is
+  disconnected; nothing of the owner's calendar remains live in the project.
 - **What P8 built** (ADR-0012; CHANGELOG "P8"): `sync-resolve` push-then-pull under a per-user
   lease (replay ledger `sync_ops` → duplicate op = no-op; class 1 append-only events with
   ownership checks; class 2 `base_version` → `conflict` + server row → client field-level merge
@@ -76,13 +82,11 @@ insights.tsx` (P2 shell) + `src/ui/plan/Timeline.tsx` (busy rows landed in P8).
 
 ## ⛔ ACTION REQUIRED (owner) — not blocking the merge
 
-- **Google Cloud project for FR-03** — `docs/runbooks/google-calendar.md`. **§1 done
-  2026-08-29** (owner): project created, Calendar API enabled, consent screen External /
-  **Testing** with both calendar scopes, owner account as test user, app domain filled, Web
-  OAuth client with redirect `https://uapiuehjcntilwdmpojk.supabase.co/functions/v1/gcal-callback`.
-  **§2 next:** owner writes the three values to `/tmp/gcal.env` (never in chat), session runs
-  `supabase secrets set --env-file` + redeploys the three gcal functions + `rm`; then §3 incl.
-  **3b** (an event 20 days out must arrive — adversarial #2).
+- **Google Cloud project for FR-03 — DONE 2026-08-29.** Runbook §1 (owner: project, Calendar
+  API, consent screen External/**Testing** with both scopes, owner as test user, Web OAuth
+  client with the callback redirect), §2 (secrets set, functions redeployed) and §3 (verified
+  live, `p8-manual-verification.md` §2.3). What remains is on the pre-enrollment list below and
+  the device checklist (redirect into the app, day-7 renewal / token expiry).
 - **Consent clause review** — `docs/privacy/consent-clause.md` (draft; contact block to fill).
 - Earlier gates unchanged: Google OAuth _sign-in_ consent screen (FR-01, P4), magic-link E2E with
   a real mailbox, OSF-freeze text items.
@@ -92,6 +96,13 @@ insights.tsx` (P2 shell) + `src/ui/plan/Timeline.tsx` (busy rows landed in P8).
   but would silently disconnect every participant in week 2 (runbook §4).
 
 ## Gotchas (P8 additions; earlier lists still apply)
+
+- **Desktop consent looks like a hang**: after the consent click Chrome spins forever (no
+  handler for `hourwell://`). Success shows in `gcal_sync_state` (tokens + `confirm_token`);
+  the session reads the token there and confirms within its 10-min TTL (runbook §3.2).
+- **The calendar zone is not the profile zone.** Derive it from a stored event (time shown in
+  Google vs `start_at`) before telling the owner which slot to cover — a UTC+2 guess put the
+  first §3.5 meeting 15 min beside the block.
 
 - **`scripts/pgtap-linked.sh <test.sql> [migrations…]`** runs a pgTAP file + not-yet-pushed
   migrations against the LINKED project inside one rolled-back transaction (Management-API SQL
