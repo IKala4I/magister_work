@@ -24,8 +24,8 @@
   beliefs with population/personal phrasing and toggles, weekly review), Today's FR-24 trade-off
   sheet (pick → task op + `tradeoff_decision` → manual re-plan; reject → `tradeoff_rejected`;
   once per plan).
-- **Gates at the close:** typecheck/lint/Prettier clean · jest **380** (47 suites) · Deno
-  **166** · pytest **146** (8 skipped) · pgTAP **21/21** (linked, rolled back) · expo-doctor
+- **Gates at the close:** typecheck/lint/Prettier clean · jest **382** (47 suites) · Deno
+  **166** · pytest **149** (8 skipped) · pgTAP **23/23** (linked, rolled back) · expo-doctor
   21/21 · live smoke **10/10 + 2 SKIP** (`p9-live-smoke.mjs`; FR-24 verified live).
 - **Deployed:** functions `insights`, `attribute-rewards`, `sync-resolve` (P9 versions); the
   service image built from the branch by `deploy-recsys.yml` (workflow_dispatch) and rolled out
@@ -42,8 +42,13 @@
 
 ## P9 status
 
-_(see the P9 report in the session transcript / PR #17; the adversarial pass outcome is in
-`p9-manual-verification.md` §4)_
+- **Adversarial pass done** (`p9-manual-verification.md` §4): 4 MAJOR + 10 MINOR, all MAJORs and
+  8 MINORs fixed in `7c7c238` (acked facts get `server_ts`; insights cache scoped to the account;
+  FR-24 drop no longer loops the sheet — `plan-request` filters tasks deferred past the horizon;
+  belief toggles reachable by VoiceOver; unpin/clamp/order/tie-break/fallback/today-only). Two
+  MINORs (#6 4xx label batch, #9 `error` vs `rejected`) and one note in revisit.md.
+- **PR #17** — merged once CI on `7c7c238` and the re-run smoke (fixed image + functions) are
+  green; see the transcript's final report for the merge state.
 
 ## Exact next actions (next session, in order)
 

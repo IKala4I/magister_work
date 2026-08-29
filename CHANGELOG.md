@@ -11,13 +11,13 @@ downdate; invariant 5 — the prior is untouched). Labels touch Beta cells only 
 vector → bandit and blend replay unchanged). `GET /insights` adds `beliefs` (one per category ×
 day type, the daypart the posterior favours, with the label in force), per-cell `personal`
 (rung 2; a labelled cell is personal by definition), `learning_mode`, `labels`. `api.ts`
-regenerated. 146 pytest.
+regenerated. 149 pytest.
 
 **Database.** Migration `20260829120000_p9_trust`: `belief_labels` (delivery ledger between the
 `belief_label` event and the service, id = the event's op_id, RLS select-own, no client writes)
 materialised by a trigger on `events` that enforces the closed `state_ref`/label vocabularies
-(a malformed label fails the op — nothing half-applied). pgTAP `p9_trust_test.sql`: 21
-assertions (run against the linked project inside a rolled-back transaction). **Not yet pushed
+(a malformed label fails the op — nothing half-applied). pgTAP `p9_trust_test.sql`: 23
+assertions (run against the linked project inside a rolled-back transaction; `labeled_at` clamped to `now()`). **Not yet pushed
 to the hosted project** — `supabase db push --linked` was refused by the session's permission
 classifier (⛔ owner, HANDOFF).
 
@@ -42,9 +42,18 @@ render with an "as of" line). Today: the FR-24/UC-05 trade-off sheet from
 matching task edit (drop → not today + postpone; shrink → est − Δ; move → deadline + slip;
 unpin → `recommendation_status`) + `tradeoff_decision`, then a manual re-plan; "keep as is" →
 `tradeoff_rejected`; once per plan. Analytics: `belief_labeled`, `tradeoff_decided`,
-`weekly_review_completed`, `insights_viewed` (categorical). 380 jest (47 suites).
+`weekly_review_completed`, `insights_viewed` (categorical). 382 jest (47 suites).
 
 **Live (2026-08-29, `p9-live-smoke.mjs` 10/10 + 2 SKIP).** Functions deployed, service image rolled out from the branch; FR-24 verified live (two pins → ranked `unpin` option in `plans.telemetry.infeasible`, decision fact synced); `insights` relays 503 while the service cannot read `belief_labels` (migration pending ⛔); the label round trip SKIPs until then.
+
+**Adversarial pass (fresh-context subagent → `7c7c238`).** 4 MAJOR + 10 MINOR: acked facts
+never got `server_ts` (the "pending" caption was permanent); the insights cache outlived an
+account switch; FR-24 `drop` looped the sheet (a deferred task stayed critical + unplaceable →
+`plan-request` now filters tasks deferred past the horizon and the planner marks them
+non-critical); the belief card's `accessible` wrapper hid the toggles from VoiceOver. Plus: unpin
+finds the live pin on the previous plan, `labeled_at` clamped, ordered PAR queries, label
+tie-break by delivery order, deleted-task fallback, today-only sheet, widths, copy. Two MINORs
+and one note in revisit.md. `p9-manual-verification.md` §4.
 
 **Docs.** ADR-0013; traceability (7 rows); device checklist (heatmap at 200 %, VoiceOver/
 TalkBack on the grid summary + text view, toggle targets, reduced motion); revisit (P9 lines
