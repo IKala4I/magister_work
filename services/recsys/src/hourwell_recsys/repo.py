@@ -33,6 +33,56 @@ class StoredTuple:
     attributed_at: datetime
 
 
+LABELS: tuple[str, ...] = ("correct", "incorrect", "none")
+
+
+@dataclass(frozen=True)
+class StoredLabel:
+    """One belief-label fact (P9, ADR-0013): the user's ✓/✗ on a Beta cell. `id` is the client
+    event's op_id (idempotent re-delivery); the LATEST label per cell is the one that counts."""
+
+    id: str
+    category: str
+    daypart: str
+    day_type: str
+    label: str
+    labeled_at: datetime
+
+    @property
+    def key(self) -> tuple[str, str, str]:
+        return (self.category, self.daypart, self.day_type)
+
+    @property
+    def state_ref(self) -> str:
+        return f"beta:{self.category}.{self.daypart}.{self.day_type}"
+
+
+def parse_state_ref(ref: str) -> tuple[str, str, str]:
+    """`beta:<category>.<daypart>.<day_type>` (specs/07 §5 `state_ref`) → cell key; raises
+    ValueError for anything outside the closed vocabularies."""
+    if not ref.startswith("beta:"):
+        raise ValueError(f"unsupported state_ref {ref!r}")
+    parts = ref.removeprefix("beta:").split(".")
+    if len(parts) != 3:
+        raise ValueError(f"malformed state_ref {ref!r}")
+    category, daypart, day_type = parts
+    if category not in CATEGORIES:
+        raise ValueError(f"unknown category in state_ref {ref!r}")
+    if daypart not in {dp.value for dp in DAYPART_ORDER}:
+        raise ValueError(f"unknown daypart in state_ref {ref!r}")
+    if day_type not in DAY_TYPES:
+        raise ValueError(f"unknown day_type in state_ref {ref!r}")
+    return (category, daypart, day_type)
+
+
+def latest_labels(labels: Iterable[StoredLabel]) -> dict[tuple[str, str, str], StoredLabel]:
+    """The label in force per cell: the latest `labeled_at` (ties → the larger id)."""
+    current: dict[tuple[str, str, str], StoredLabel] = {}
+    for lab in sorted(labels, key=lambda x: (x.labeled_at, x.id)):
+        current[lab.key] = lab
+    return current
+
+
 def fallback_cells(mu0: float = 0.5, n0: float = FALLBACK_PRIOR_N0) -> list[BetaCell]:
     """Flat pre-onboarding prior (μ₀ = 0.5 at half strength); never persisted."""
     return [
@@ -66,6 +116,8 @@ class Repo(Protocol):
         blend: Blend | None = None,
     ) -> None: ...
     def load_tuples(self, user_id: str) -> list[StoredTuple]: ...
+    def load_labels(self, user_id: str) -> list[StoredLabel]: ...
+    def save_labels(self, user_id: str, labels: Iterable[StoredLabel]) -> None: ...
     def healthy(self) -> bool: ...
 
 
@@ -92,6 +144,7 @@ class InMemoryRepo:
         self.blends: dict[str, Blend] = {}
         self.applied: dict[str, dict[tuple[str, str], int]] = {}
         self.tuples: dict[str, list[StoredTuple]] = {}
+        self.labels: dict[str, dict[str, StoredLabel]] = {}
 
     def seed_cells(self, user_id: str, cells: Iterable[BetaCell]) -> None:
         self.cells[user_id] = {c.key: c for c in cells}
@@ -145,6 +198,13 @@ class InMemoryRepo:
             self.tuples.get(user_id, []),
             key=lambda t: (t.attributed_at, t.recommendation_id, t.kind),
         )
+
+    def load_labels(self, user_id: str) -> list[StoredLabel]:
+        return sorted(self.labels.get(user_id, {}).values(), key=lambda x: (x.labeled_at, x.id))
+
+    def save_labels(self, user_id: str, labels: Iterable[StoredLabel]) -> None:
+        # upsert by id: a re-delivered label is the same fact (idempotent)
+        self.labels.setdefault(user_id, {}).update({lab.id: lab for lab in labels})
 
     def healthy(self) -> bool:
         return True
@@ -367,3 +427,48 @@ class PostgresRepo:
             )
             for r in rows
         ]
+
+    def load_labels(self, user_id: str) -> list[StoredLabel]:
+        with self._pool.connection() as conn:
+            rows = _dicts(
+                conn.execute(
+                    "select id, category, daypart, day_type, label, labeled_at "
+                    "from belief_labels where user_id = %s order by labeled_at, id",
+                    (user_id,),
+                ).fetchall()
+            )
+        return [
+            StoredLabel(
+                str(r["id"]),
+                r["category"],
+                r["daypart"],
+                r["day_type"],
+                r["label"],
+                r["labeled_at"],
+            )
+            for r in rows
+        ]
+
+    def save_labels(self, user_id: str, labels: Iterable[StoredLabel]) -> None:
+        """Upsert by id — the edge function inserted the row from the client event already
+        (P9 migration trigger); the service's write is the same fact, so a conflict is a no-op
+        except for the label value, which the later delivery may correct."""
+        with self._pool.connection() as conn, conn.transaction():
+            for lab in labels:
+                conn.execute(
+                    "insert into belief_labels (id, user_id, category, daypart, day_type, "
+                    "state_ref, label, labeled_at, source) "
+                    "values (%s, %s, %s, %s, %s, %s, %s, %s, 'service') "
+                    "on conflict (id) do update set label = excluded.label, "
+                    "labeled_at = excluded.labeled_at",
+                    (
+                        lab.id,
+                        user_id,
+                        lab.category,
+                        lab.daypart,
+                        lab.day_type,
+                        lab.state_ref,
+                        lab.label,
+                        lab.labeled_at,
+                    ),
+                )

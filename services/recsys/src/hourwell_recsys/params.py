@@ -39,6 +39,13 @@ RUNG2_ACTIVE_CELL_FRACTION = (
     0.5  # the learning-mode badge drops when ≥ 50 % of ACTIVE cells are personal
 )
 
+# --- P9 belief labels (FR-33/FR-41 "corrections as high-weight labels"; ADR-0013) ---
+# A correction toggle is one prior's worth of pseudo-observations on the named Beta cell:
+# weight = factor · (α₀ + β₀) — "as much as everything the model assumed before meeting you".
+# [INFERRED] the spec says "high-weight" without a number; expressing it in prior strength keeps
+# it parameter-free relative to File 04 §3.3 (n₀ = 8 h in-hours / 4 h out-of-hours).
+LABEL_WEIGHT_FACTOR = 1.0
+
 # --- exploration slice (File 04 §1.4; spec-conflicts M2) ---
 EPSILON = 1.0  # [A: ε] P5 — P(one experiment placement per plan)
 TOP_M = 4  # [A: m] SPEC-FIXED

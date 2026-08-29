@@ -15,7 +15,7 @@ from hourwell_recsys.contexts import Bucket
 from hourwell_recsys.dayparts import Daypart
 from hourwell_recsys.features import feature_vector
 from hourwell_recsys.repo import InMemoryRepo, StoredTuple
-from hourwell_recsys.schemas import FeedbackRequest, FeedbackTuple
+from hourwell_recsys.schemas import FeedbackRequest, FeedbackTuple, LabelsRequest
 from tests.conftest import USER
 
 T0 = datetime(2026, 9, 2, 12, tzinfo=UTC)
@@ -262,3 +262,81 @@ def test_excluded_tuples_never_touch_the_blend(repo: InMemoryRepo) -> None:
     x[14] = 0.95
     feedback.apply_feedback(_req(_tuple("r1", 1.0, "completed", features=x, excluded=True)), repo)
     assert repo.load_blend(USER) == before
+
+
+# --- P9 belief labels: store + rebuild, latest label wins, clearing is a rebuild (ADR-0013) ---
+
+
+def _labels(*labels: dict) -> LabelsRequest:  # type: ignore[type-arg]
+    return LabelsRequest.model_validate({"user_id": USER, "labels": list(labels)})
+
+
+def _label(id_: str, ref: str, label: str, at: datetime = T0) -> dict:  # type: ignore[type-arg]
+    return {"id": id_, "state_ref": ref, "label": label, "labeled_at": at.isoformat()}
+
+
+def test_label_is_stored_and_rebuilds_the_cell_as_pseudo_evidence(repo: InMemoryRepo) -> None:
+    resp = feedback.apply_labels(_labels(_label("l1", "beta:deep.MO.weekday", "correct")), repo)
+    assert resp.rebuilt and resp.applied == 1
+    mo = {c.key: c for c in repo.load_cells(USER)}[("deep", "MO", "weekday")]
+    assert mo.succ == pytest.approx(mo.alpha0 + mo.beta0)  # one prior's worth
+    assert mo.fail == 0.0 and mo.last_event_at == T0
+    # idempotent re-delivery: the same id → the same state, a new version
+    again = feedback.apply_labels(_labels(_label("l1", "beta:deep.MO.weekday", "correct")), repo)
+    mo2 = {c.key: c for c in repo.load_cells(USER)}[("deep", "MO", "weekday")]
+    assert mo2.succ == pytest.approx(mo.succ) and again.state_version == resp.state_version + 1
+
+
+def test_latest_label_wins_and_none_clears_without_a_downdate(repo: InMemoryRepo) -> None:
+    ref = "beta:deep.MO.weekday"
+    feedback.apply_labels(_labels(_label("l1", ref, "correct")), repo)
+    feedback.apply_labels(_labels(_label("l2", ref, "incorrect", T0 + timedelta(hours=1))), repo)
+    mo = {c.key: c for c in repo.load_cells(USER)}[("deep", "MO", "weekday")]
+    assert mo.succ == 0.0 and mo.fail == pytest.approx(mo.alpha0 + mo.beta0)
+    feedback.apply_labels(_labels(_label("l3", ref, "none", T0 + timedelta(hours=2))), repo)
+    cleared = {c.key: c for c in repo.load_cells(USER)}[("deep", "MO", "weekday")]
+    assert cleared.succ == 0.0 and cleared.fail == 0.0 and cleared.last_event_at is None
+    assert len(repo.load_labels(USER)) == 3  # history kept; only the label in force counts
+
+
+def test_labels_interleave_with_tuples_in_the_rebuild_timeline(repo: InMemoryRepo) -> None:
+    x = np.asarray(_x(Daypart.MO))
+    repo.tuples[USER] = [StoredTuple("r1", "outcome", 1.0, "deep", x, T0 + timedelta(days=28))]
+    feedback.apply_labels(_labels(_label("l1", "beta:deep.MO.weekday", "correct", T0)), repo)
+    mo = {c.key: c for c in repo.load_cells(USER)}[("deep", "MO", "weekday")]
+    w = mo.alpha0 + mo.beta0
+    # the label (T0) decayed by one half-life before the tuple at T0 + 28 d landed
+    assert mo.succ == pytest.approx(w / 2 + 1.0) and mo.last_event_at == T0 + timedelta(days=28)
+    # the bandit saw only the tuple: labels carry no feature vector (ADR-0013 §2)
+    state = repo.load_bandit(USER)["deep"]
+    expected = bandit.rebuild("deep", [(x, 1.0)])
+    assert np.allclose(state.A, expected.A) and np.allclose(state.b, expected.b)
+    # and a later /feedback rebuild (correction) keeps the label in force
+    feedback.apply_feedback(
+        _req(
+            _tuple(
+                "r1",
+                1.0,
+                "completed",
+                features=x.tolist(),
+                attributed_at=(T0 + timedelta(days=28)).isoformat(),
+                correction=True,
+            )
+        ),
+        repo,
+    )
+    mo2 = {c.key: c for c in repo.load_cells(USER)}[("deep", "MO", "weekday")]
+    assert mo2.succ == pytest.approx(mo.succ)
+
+
+def test_labels_reject_unknown_state_refs_and_uninstantiated_users(repo: InMemoryRepo) -> None:
+    with pytest.raises(ValueError):
+        feedback.apply_labels(_labels(_label("l1", "beta:deep.XX.weekday", "correct")), repo)
+    with pytest.raises(ValueError):
+        feedback.apply_labels(_labels(_label("l1", "bandit:deep", "correct")), repo)
+    with pytest.raises(ValidationError):
+        _labels(_label("l1", "beta:deep.MO.weekday", "maybe"))
+    with pytest.raises(feedback.StateNotInstantiated):
+        feedback.apply_labels(
+            _labels(_label("l1", "beta:deep.MO.weekday", "correct")), InMemoryRepo()
+        )

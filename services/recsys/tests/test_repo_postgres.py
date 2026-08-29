@@ -151,3 +151,16 @@ def test_blend_round_trip_and_save_all_with_blend(pg: PostgresRepo, user: str) -
     again = pg.load_blend(user)
     assert again.w_energy == pytest.approx(0.2, abs=1e-6)
     assert again.state_version == 4
+
+
+def test_labels_round_trip_and_upsert(pg: PostgresRepo, user: str) -> None:
+    from hourwell_recsys.repo import StoredLabel
+
+    at = datetime(2026, 9, 2, 9, tzinfo=UTC)
+    lab = StoredLabel("op-1", "deep", "MO", "weekday", "correct", at)
+    pg.save_labels(user, [lab])
+    pg.save_labels(user, [StoredLabel("op-1", "deep", "MO", "weekday", "incorrect", at)])
+    back = pg.load_labels(user)
+    assert len(back) == 1 and back[0].label == "incorrect" and back[0].labeled_at == at
+    assert back[0].state_ref == "beta:deep.MO.weekday"
+    assert pg.load_labels(str(uuid.uuid4())) == []
