@@ -24,8 +24,12 @@ jest.mock('../../db/client', () => {
 });
 /* eslint-enable @typescript-eslint/no-require-imports */
 const mockGetSession = jest.fn();
+const mockFrom = jest.fn();
 jest.mock('../../auth/client', () => ({
-  supabase: { auth: { getSession: () => mockGetSession() } },
+  supabase: {
+    auth: { getSession: () => mockGetSession() },
+    from: (...a: unknown[]) => mockFrom(...a),
+  },
   isAuthAvailable: () => true,
 }));
 const mockInvoke = jest.fn();
@@ -38,8 +42,12 @@ jest.mock('expo-network', () => ({
 }));
 jest.mock('../../observability/analytics', () => ({ track: jest.fn() }));
 const mockBreadcrumb = jest.fn();
+const mockCapture = jest.fn();
 jest.mock('../../observability/sentry', () => ({
-  Sentry: { addBreadcrumb: (...a: unknown[]) => mockBreadcrumb(...a) },
+  Sentry: {
+    addBreadcrumb: (...a: unknown[]) => mockBreadcrumb(...a),
+    captureException: (...a: unknown[]) => mockCapture(...a),
+  },
 }));
 
 import { eq } from 'drizzle-orm';
@@ -51,7 +59,14 @@ import type { LocalDb } from '../../db/writes';
 import { useSyncStore } from '../../state/sync';
 import { appStorage, StorageKeys } from '../../storage/mmkv';
 import { getSyncCursor } from '../cursor';
-import { MAX_ATTEMPTS, pendingOpCount, syncBeforePlan, syncNow } from '../engine';
+import {
+  MAX_ATTEMPTS,
+  MAX_OPS_PER_BATCH,
+  pendingOpCount,
+  syncBeforePlan,
+  syncNow,
+  WRITE_DEBOUNCE_MS,
+} from '../engine';
 import type { SyncRequestBody, SyncResponse } from '../types';
 
 const USER = 'a0000000-0000-4000-8000-000000000001';
@@ -93,6 +108,8 @@ beforeEach(() => {
   appStorage.clearAll();
   mockInvoke.mockReset();
   mockBreadcrumb.mockReset();
+  mockCapture.mockReset();
+  mockFrom.mockReset();
   mockGetSession.mockResolvedValue({ data: { session: { user: { id: USER } } } });
   useSyncStore.setState({ status: 'idle', lastSyncAt: null, pendingOps: 0, notice: null });
 });
@@ -440,5 +457,197 @@ describe('syncNow — pull, outcomes, pre-plan skip', () => {
     await new Promise((r) => setTimeout(r, 0));
     expect(mockInvoke).toHaveBeenCalledTimes(2);
     expect(sentBody(1).reason).toBe('foreground');
+  });
+});
+
+describe('syncNow — hardening (adversarial #5–#8, #13)', () => {
+  const busy = () => ({ kind: 'http', status: 409, body: { error: 'busy' }, message: 'busy' });
+  const flush = async () => {
+    for (let i = 0; i < 20; i++) await Promise.resolve();
+  };
+
+  it('#5 a busy lease schedules exactly one debounced retry, never a loop', async () => {
+    jest.useFakeTimers();
+    try {
+      mockInvoke.mockResolvedValueOnce(busy()).mockResolvedValueOnce(busy());
+      expect(await syncNow('write')).toEqual({ kind: 'busy' });
+      expect(mockInvoke).toHaveBeenCalledTimes(1);
+      expect(useSyncStore.getState().status).toBe('idle');
+      await jest.advanceTimersByTimeAsync(WRITE_DEBOUNCE_MS);
+      await flush();
+      expect(mockInvoke).toHaveBeenCalledTimes(2); // the one retry ran (and was busy again)
+      expect(sentBody(1).reason).toBe('write');
+      await jest.advanceTimersByTimeAsync(WRITE_DEBOUNCE_MS * 3);
+      await flush();
+      expect(mockInvoke).toHaveBeenCalledTimes(2); // no third attempt without a new trigger
+      mockInvoke.mockResolvedValueOnce(ok({}));
+      expect((await syncNow('foreground')).kind).toBe('synced'); // a new trigger starts afresh
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it(`#6 a backlog beyond ${MAX_OPS_PER_BATCH} ops drains within one sync`, async () => {
+    const n = MAX_OPS_PER_BATCH / 2 + 1; // 101 tasks → 202 ops (task_upsert + task_created)
+    for (let i = 0; i < n; i++) {
+      createTask(localDb, {
+        userId: USER,
+        draft: { ...DRAFT, title: `task ${i}` },
+        meta: { source: 'form', nlParseUsed: false },
+      });
+    }
+    expect(pendingOpCount(localDb, USER)).toBe(2 * n);
+    mockInvoke.mockImplementation(async (_name: unknown, body: SyncRequestBody) =>
+      ok({
+        acks: body.ops.map((o) => ({ op_id: o.op_id, outcome: 'applied' as const, version: 1 })),
+      }),
+    );
+    const out = await syncNow('foreground');
+    expect(out).toEqual({ kind: 'synced', pushed: 2 * n, pulled: 0, conflicts: 0, rounds: 2 });
+    expect(mockInvoke).toHaveBeenCalledTimes(2);
+    expect(sentBody(0).ops).toHaveLength(MAX_OPS_PER_BATCH);
+    expect(sentBody(1).ops).toHaveLength(2);
+    expect(pendingOpCount(localDb, USER)).toBe(0);
+  });
+
+  it('#7 a thrown error is captured, reported as failed, and the next sync runs normally', async () => {
+    createTask(localDb, {
+      userId: USER,
+      draft: DRAFT,
+      meta: { source: 'form', nlParseUsed: false },
+    });
+    const boom = new Error('kaboom');
+    mockInvoke.mockRejectedValueOnce(boom);
+    expect(await syncNow('manual')).toEqual({ kind: 'failed', detail: 'kaboom' });
+    expect(useSyncStore.getState()).toMatchObject({ status: 'error', pendingOps: 2 });
+    expect(mockCapture).toHaveBeenCalledWith(boom);
+    mockInvoke.mockResolvedValueOnce(ok({}));
+    expect((await syncNow('manual')).kind).toBe('synced'); // single-flight slot released
+  });
+
+  it('#8 a dead-lettered task is re-read from the server and applied locally', async () => {
+    const t = createTask(localDb, {
+      userId: USER,
+      draft: DRAFT,
+      meta: { source: 'form', nlParseUsed: false },
+    });
+    const ops = localDb.select().from(opOutbox).all();
+    const serverRow = {
+      id: t.id,
+      user_id: USER,
+      title: 'server truth',
+      category: 'admin',
+      est_minutes: 25,
+      deadline: null,
+      value: 1,
+      splittable: false,
+      earliest_start: null,
+      recurrence: null,
+      status: 'inbox',
+      done_at: null,
+      postpone_count: 0,
+      deleted_at: null,
+      version: 3,
+      created_at: '2026-09-01T06:00:00.000Z',
+      updated_at: '2026-09-01T06:30:00.000Z',
+      server_seq: 77,
+    };
+    mockFrom.mockReturnValue({
+      select: () => ({
+        eq: () => ({ maybeSingle: async () => ({ data: serverRow, error: null }) }),
+      }),
+    });
+    mockInvoke.mockResolvedValueOnce(
+      ok({
+        acks: [
+          { op_id: ops[0]!.opId, outcome: 'rejected', detail: 'check violation' },
+          { op_id: ops[1]!.opId, outcome: 'applied' },
+        ],
+      }),
+    );
+    const out = await syncNow('manual');
+    expect(out).toMatchObject({ kind: 'synced', pushed: 1, pulled: 1 });
+    expect(mockFrom).toHaveBeenCalledWith('tasks');
+    const row = localDb.select().from(tasks).where(eq(tasks.id, t.id)).get();
+    expect(row).toMatchObject({ title: 'server truth', version: 3, serverSeq: 77 });
+    expect(pendingOpCount(localDb, USER)).toBe(0);
+  });
+
+  it('#8 no refetch while a later unacked op still owns the entity', async () => {
+    const t = createTask(localDb, {
+      userId: USER,
+      draft: DRAFT,
+      meta: { source: 'form', nlParseUsed: false },
+    });
+    updateTask(localDb, { id: t.id, draft: { ...DRAFT, title: 'edited' } });
+    const ops = localDb.select().from(opOutbox).all(); // upsert, event, upsert
+    mockInvoke.mockResolvedValueOnce(
+      ok({
+        acks: [
+          { op_id: ops[0]!.opId, outcome: 'rejected', detail: 'check violation' },
+          { op_id: ops[1]!.opId, outcome: 'applied' },
+          { op_id: ops[2]!.opId, outcome: 'error', detail: 'transient' },
+        ],
+      }),
+    );
+    await syncNow('manual');
+    expect(mockFrom).not.toHaveBeenCalled();
+    expect(pendingOpCount(localDb, USER)).toBe(1);
+    expect(localDb.select().from(tasks).where(eq(tasks.id, t.id)).get()?.title).toBe('edited');
+  });
+
+  it('#13 an applied ack adopts the server version and server_seq locally', async () => {
+    const t = createTask(localDb, {
+      userId: USER,
+      draft: DRAFT,
+      meta: { source: 'form', nlParseUsed: false },
+    });
+    const ops = localDb.select().from(opOutbox).all();
+    mockInvoke.mockResolvedValueOnce(
+      ok({
+        acks: [
+          { op_id: ops[0]!.opId, outcome: 'applied', version: 3, server_seq: 42 },
+          { op_id: ops[1]!.opId, outcome: 'applied' },
+        ],
+      }),
+    );
+    await syncNow('manual');
+    expect(localDb.select().from(tasks).where(eq(tasks.id, t.id)).get()).toMatchObject({
+      version: 3,
+      serverSeq: 42,
+    });
+  });
+
+  it('#13 the version is left to the later unacked op of the same entity', async () => {
+    const t = createTask(localDb, {
+      userId: USER,
+      draft: DRAFT,
+      meta: { source: 'form', nlParseUsed: false },
+    });
+    updateTask(localDb, { id: t.id, draft: { ...DRAFT, title: 'edited' } });
+    const before = localDb.select().from(tasks).where(eq(tasks.id, t.id)).get()?.version;
+    const ops = localDb.select().from(opOutbox).all(); // upsert(v1), event, upsert(v2)
+    mockInvoke
+      .mockResolvedValueOnce(
+        ok({
+          acks: [
+            { op_id: ops[0]!.opId, outcome: 'applied', version: 1, server_seq: 10 },
+            { op_id: ops[1]!.opId, outcome: 'applied' },
+            { op_id: ops[2]!.opId, outcome: 'error', detail: 'transient' },
+          ],
+        }),
+      )
+      .mockResolvedValueOnce(
+        ok({ acks: [{ op_id: ops[2]!.opId, outcome: 'applied', version: 2, server_seq: 11 }] }),
+      );
+    await syncNow('manual');
+    const mid = localDb.select().from(tasks).where(eq(tasks.id, t.id)).get();
+    expect(mid?.version).toBe(before); // not clobbered by the earlier ack
+    expect(mid?.serverSeq).toBeNull();
+    await syncNow('manual');
+    expect(localDb.select().from(tasks).where(eq(tasks.id, t.id)).get()).toMatchObject({
+      version: 2,
+      serverSeq: 11,
+    });
   });
 });

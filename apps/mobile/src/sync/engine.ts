@@ -13,6 +13,12 @@
  * Single-flight with one coalesced follow-up; triggers (wireSync): foreground, 2 s after any
  * local write, network reconnect, a 60 s poll while active, and before every plan request.
  * Offline is simply "nothing pushed" — the outbox waits (NFR-R1).
+ *
+ * Hardening from the P8 adversarial pass: a `busy` lease (409) schedules ONE debounced retry
+ * (#5); a backlog larger than one batch drains within the same sync, bounded by MAX_ROUNDS (#6);
+ * `run()` has an error boundary — the store never sticks in `syncing` (#7); a dead-lettered
+ * entity is re-read from the server so the device is not left stale (#8); `applied` acks adopt
+ * the server's `version`/`server_seq` locally when no later op owns the entity (#13).
  */
 import { and, eq, inArray, isNull } from 'drizzle-orm';
 import * as Network from 'expo-network';
@@ -39,7 +45,7 @@ import {
 } from './merge';
 import { getDeviceId } from './opId';
 import { applyPull, type PullReport } from './pull';
-import type { OpAck, SyncOp, SyncReason, SyncRequestBody, SyncResponse } from './types';
+import type { OpAck, PullRow, SyncOp, SyncReason, SyncRequestBody, SyncResponse } from './types';
 
 export const MAX_OPS_PER_BATCH = 200;
 export const MAX_ROUNDS = 3;
@@ -63,6 +69,8 @@ type OpType = OutboxRow['opType'];
 let inFlight: Promise<SyncOutcome> | null = null;
 let followUp: SyncReason | null = null;
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+/** The current run is the one debounced retry after a `busy` lease (adversarial #5). */
+let retryingBusy = false;
 
 export function isSyncInFlight(): boolean {
   return inFlight !== null;
@@ -160,34 +168,47 @@ async function run(reason: SyncReason): Promise<SyncOutcome> {
   let conflicts = 0;
   let rounds = 0;
   let outcome: SyncOutcome | null = null;
-  for (;;) {
-    rounds++;
-    const ops = pendingOpsFor(localDb, uid);
-    const body: SyncRequestBody = {
-      ops: ops.map(toWire),
-      cursor: getSyncCursor(),
-      reason,
-      device_id: getDeviceId(),
-      now: new Date().toISOString(),
-    };
-    const res = await invokeFunction<SyncResponse>('sync-resolve', body);
-    if (res.kind !== 'ok') {
-      if (res.kind === 'no-session') outcome = { kind: 'no-session' };
-      else if (res.kind === 'offline') outcome = { kind: 'offline' };
-      else if (res.kind === 'http' && res.status === 409) outcome = { kind: 'busy' };
-      else if (res.kind === 'http') {
-        outcome = { kind: 'failed', detail: `${res.status} ${res.message}` };
-      } else outcome = { kind: 'failed', detail: res.message };
-      break;
+  const sent = new Set<string>(); // op ids pushed in this sync (adversarial #6)
+  try {
+    for (;;) {
+      rounds++;
+      const ops = pendingOpsFor(localDb, uid);
+      for (const op of ops) sent.add(op.opId);
+      const body: SyncRequestBody = {
+        ops: ops.map(toWire),
+        cursor: getSyncCursor(),
+        reason,
+        device_id: getDeviceId(),
+        now: new Date().toISOString(),
+      };
+      const res = await invokeFunction<SyncResponse>('sync-resolve', body);
+      if (res.kind !== 'ok') {
+        if (res.kind === 'no-session') outcome = { kind: 'no-session' };
+        else if (res.kind === 'offline') outcome = { kind: 'offline' };
+        else if (res.kind === 'http' && res.status === 409) outcome = { kind: 'busy' };
+        else if (res.kind === 'http') {
+          outcome = { kind: 'failed', detail: `${res.status} ${res.message}` };
+        } else outcome = { kind: 'failed', detail: res.message };
+        break;
+      }
+      const acked = applyAcks(localDb, uid, ops, res.data.acks);
+      pushed += acked.acked;
+      conflicts += acked.conflicts;
+      const pull = applyPullPage(localDb, uid, res.data);
+      pulled += pull.applied;
+      advanceSyncCursor(res.data.cursor);
+      if (acked.deadLetteredOps.length > 0) {
+        pulled += await refetchDeadLettered(localDb, uid, acked.deadLetteredOps);
+      }
+      // another round for a full page, a merged conflict to replay, or a backlog beyond one
+      // batch that has not been sent yet (bounded — ADR-0012 §4)
+      const backlog = pendingOpsFor(localDb, uid).some((op) => !sent.has(op.opId));
+      if (!(res.data.has_more || acked.conflicts > 0 || backlog) || rounds >= MAX_ROUNDS) break;
     }
-    const acked = applyAcks(localDb, uid, ops, res.data.acks);
-    pushed += acked.acked;
-    conflicts += acked.conflicts;
-    const pull = applyPullPage(localDb, uid, res.data);
-    pulled += pull.applied;
-    advanceSyncCursor(res.data.cursor);
-    // another round only for a full page or a merged conflict to replay (bounded — ADR-0012 §4)
-    if (!(res.data.has_more || acked.conflicts > 0) || rounds >= MAX_ROUNDS) break;
+  } catch (err) {
+    // adversarial #7: never leave the store in `syncing` or the rejection unhandled
+    Sentry.captureException(err);
+    outcome = { kind: 'failed', detail: err instanceof Error ? err.message : String(err) };
   }
 
   const pending = pendingOpCount(localDb, uid);
@@ -217,7 +238,77 @@ async function run(reason: SyncReason): Promise<SyncOutcome> {
     conflicts,
     duration_ms: Date.now() - started,
   });
+  // adversarial #5: the lease is held by another device / the sweep — one debounced retry, then
+  // wait for the next trigger (the 2 s debounce is the backoff; never a tight loop)
+  if (outcome.kind === 'busy' && !retryingBusy) {
+    retryingBusy = true;
+    scheduleSync(reason);
+  } else {
+    retryingBusy = false;
+  }
   return outcome;
+}
+
+/**
+ * Adversarial #8: a dead-lettered op is acked with its reason, but the device's row may now
+ * differ from the server's for good. Re-read the entity through the user client (RLS) and
+ * apply it as a one-row pull page — unless a later unacked op still owns the entity (the pull
+ * applier would skip it anyway; the check avoids the round trip).
+ */
+async function refetchDeadLettered(
+  localDb: LocalDb,
+  uid: string,
+  ops: readonly OutboxRow[],
+): Promise<number> {
+  if (!supabase) return 0;
+  const rows: PullRow[] = [];
+  const seen = new Set<string>();
+  for (const op of ops) {
+    if (op.opType === 'task_upsert' || op.opType === 'task_delete') {
+      const id = entityIdOf(op);
+      if (id === null || seen.has(`tasks:${id}`)) continue;
+      seen.add(`tasks:${id}`);
+      if (unackedOpsOf(localDb, ['task_upsert', 'task_delete'], id).length > 0) continue;
+      const { data, error } = await supabase.from('tasks').select('*').eq('id', id).maybeSingle();
+      if (error || data === null) {
+        Sentry.addBreadcrumb({
+          category: 'sync',
+          level: 'warning',
+          message: `dead-letter refetch (tasks): ${error?.message ?? 'no server row'}`,
+        });
+        continue;
+      }
+      rows.push({
+        server_seq: data.server_seq ?? 0,
+        tbl: 'tasks',
+        row: data as unknown as Record<string, unknown>,
+      });
+    } else if (op.opType === 'profile_update') {
+      if (seen.has('profiles')) continue;
+      seen.add('profiles');
+      if (unackedOpsOf(localDb, ['profile_update'], uid).length > 0) continue;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', uid)
+        .maybeSingle();
+      if (error || data === null) {
+        Sentry.addBreadcrumb({
+          category: 'sync',
+          level: 'warning',
+          message: `dead-letter refetch (profiles): ${error?.message ?? 'no server row'}`,
+        });
+        continue;
+      }
+      rows.push({
+        server_seq: data.server_seq ?? 0,
+        tbl: 'profiles',
+        row: data as unknown as Record<string, unknown>,
+      });
+    }
+  }
+  if (rows.length === 0) return 0;
+  return applyPull(localDb, { userId: uid, rows }).applied;
 }
 
 function applyPullPage(localDb: LocalDb, uid: string, res: SyncResponse): PullReport {
@@ -236,6 +327,8 @@ interface AckReport {
   acked: number;
   conflicts: number;
   deadLettered: number;
+  /** The dead-lettered ops of this pass — their entities are re-read afterwards (#8). */
+  deadLetteredOps: OutboxRow[];
 }
 
 /** Ack handling (ADR-0012 §2/§3/§4/§6); conflicts rewrite ops in place for the next round. */
@@ -246,7 +339,7 @@ export function applyAcks(
   acks: readonly OpAck[],
   now = new Date(),
 ): AckReport {
-  const report: AckReport = { acked: 0, conflicts: 0, deadLettered: 0 };
+  const report: AckReport = { acked: 0, conflicts: 0, deadLettered: 0, deadLetteredOps: [] };
   const byId = new Map(ops.map((op) => [op.opId, op] as const));
   localDb.transaction((tx) => {
     for (const ack of acks) {
@@ -268,6 +361,9 @@ export function applyAcks(
             .where(eq(opOutbox.seq, op.seq))
             .run();
           report.acked++;
+          if (ack.outcome === 'applied' && typeof ack.version === 'number') {
+            adoptServerVersion(tx, uid, op, ack.version, ack.server_seq ?? null);
+          }
           break;
         case 'conflict':
           if (ack.row !== undefined && resolveConflict(tx, uid, op, ack.row, now)) {
@@ -275,11 +371,13 @@ export function applyAcks(
           } else {
             deadLetter(tx, op, 'conflict without a server row', now);
             report.deadLettered++;
+            report.deadLetteredOps.push(op);
           }
           break;
         case 'rejected':
           deadLetter(tx, op, ack.detail ?? 'rejected', now);
           report.deadLettered++;
+          report.deadLetteredOps.push(op);
           break;
         case 'error':
         default: {
@@ -287,6 +385,7 @@ export function applyAcks(
           if (attempts >= MAX_ATTEMPTS) {
             deadLetter(tx, op, ack.detail ?? 'error', now);
             report.deadLettered++;
+            report.deadLetteredOps.push(op);
           } else {
             tx.update(opOutbox)
               .set({ sentAt: now, attempts, lastError: ack.detail ?? 'error' })
@@ -298,6 +397,60 @@ export function applyAcks(
     }
   });
   return report;
+}
+
+/**
+ * Adversarial #13 (ADR-0012 §2 "applied ops converge without a pull"): the server's row version
+ * after an `applied` class-2 op becomes the device's, so the next edit carries the right
+ * `base_version` — only when no later unacked op still owns the entity (its ack will).
+ */
+function adoptServerVersion(
+  tx: LocalDb,
+  uid: string,
+  op: OutboxRow,
+  version: number,
+  serverSeq: number | null,
+): void {
+  const seqPatch = serverSeq === null ? {} : { serverSeq };
+  if (op.opType === 'task_upsert' || op.opType === 'task_delete') {
+    const id = entityIdOf(op);
+    if (id === null || unackedOpsOf(tx, ['task_upsert', 'task_delete'], id).length > 0) return;
+    tx.update(tasks)
+      .set({ version, ...seqPatch })
+      .where(eq(tasks.id, id))
+      .run();
+  } else if (op.opType === 'profile_update') {
+    if (unackedOpsOf(tx, ['profile_update'], uid).length > 0) return;
+    tx.update(profiles)
+      .set({ version, ...seqPatch })
+      .where(eq(profiles.userId, uid))
+      .run();
+  }
+}
+
+function entityIdOf(op: OutboxRow): string | null {
+  if (op.entityId !== null) return op.entityId;
+  const id = (op.payload as { id?: unknown } | null)?.id;
+  return typeof id === 'string' ? id : null;
+}
+
+/** Unacked ops of the given types for one entity (the entity's "owner" until they are acked). */
+function unackedOpsOf(
+  tx: LocalDb,
+  opTypes: readonly OpType[],
+  entityId: string,
+): Array<{ seq: number }> {
+  return tx
+    .select({ seq: opOutbox.seq })
+    .from(opOutbox)
+    .where(
+      and(
+        inArray(opOutbox.opType, [...opTypes]),
+        eq(opOutbox.entityId, entityId),
+        isNull(opOutbox.ackedAt),
+      ),
+    )
+    .all() as Array<{ seq: number }>;
 }
 
 /** A poison op must not block the queue: acked with the reason, reported, never retried. */
@@ -413,18 +566,7 @@ function collapseOps(
   keep: OutboxRow,
   now: Date,
 ): void {
-  const others = tx
-    .select({ seq: opOutbox.seq })
-    .from(opOutbox)
-    .where(
-      and(
-        inArray(opOutbox.opType, [...opTypes]),
-        eq(opOutbox.entityId, entityId),
-        isNull(opOutbox.ackedAt),
-      ),
-    )
-    .all() as Array<{ seq: number }>;
-  for (const o of others) {
+  for (const o of unackedOpsOf(tx, opTypes, entityId)) {
     if (o.seq === keep.seq) continue;
     tx.update(opOutbox)
       .set({ sentAt: now, ackedAt: now, lastError: `collapsed into ${keep.opId}` })
