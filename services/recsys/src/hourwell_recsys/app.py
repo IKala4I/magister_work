@@ -23,7 +23,7 @@ from hourwell_recsys.auth import (
     authorize_user,
 )
 from hourwell_recsys.auth import authenticate as _authenticate
-from hourwell_recsys.feedback import StateNotInstantiated, apply_feedback
+from hourwell_recsys.feedback import StateNotInstantiated, apply_feedback, apply_labels
 from hourwell_recsys.insights import insights as _insights
 from hourwell_recsys.params import MODEL_VERSION, PLAN_RATE_LIMIT_PER_DAY
 from hourwell_recsys.parse_preview import parse_preview as _parse_preview
@@ -35,6 +35,8 @@ from hourwell_recsys.schemas import (
     FeedbackResponse,
     HealthzResponse,
     InsightsResponse,
+    LabelsRequest,
+    LabelsResponse,
     ParsePreviewRequest,
     ParsePreviewResponse,
     PlanRequest,
@@ -142,6 +144,15 @@ def create_app(
     def feedback(req: FeedbackRequest, p: Principal = Depends(principal)) -> FeedbackResponse:  # noqa: B008
         guard(p, str(req.user_id))
         return apply_feedback(req, repo)
+
+    @app.post("/labels", response_model=LabelsResponse, operation_id="labels")
+    def labels(req: LabelsRequest, p: Principal = Depends(principal)) -> LabelsResponse:  # noqa: B008
+        """P9 belief labels (FR-33/FR-41, ADR-0013): store + full rebuild (invariant 6)."""
+        guard(p, str(req.user_id))
+        try:
+            return apply_labels(req, repo)
+        except ValueError as exc:  # unknown state_ref vocabulary
+            raise HTTPException(422, str(exc)) from exc
 
     @app.get("/insights", response_model=InsightsResponse, operation_id="insights")
     def insights(

@@ -14,7 +14,7 @@ import {
   type Tuple,
 } from '../_shared/rewards.ts';
 import type { Category } from '../_shared/types.ts';
-import type { WireTuple } from './feedback.ts';
+import type { WireLabel, WireTuple } from './feedback.ts';
 import type { Deps, Profile, RecRow, StoredDuration, TaskAttrs } from './handler.ts';
 
 // deno-lint-ignore no-explicit-any
@@ -51,7 +51,13 @@ export function makeDbDeps(
   admin: AnyClient,
 ): Omit<
   Deps,
-  'now' | 'verifyUser' | 'serviceKey' | 'postFeedback' | 'acquireLease' | 'releaseLease'
+  | 'now'
+  | 'verifyUser'
+  | 'serviceKey'
+  | 'postFeedback'
+  | 'postLabels'
+  | 'acquireLease'
+  | 'releaseLease'
 > {
   return {
     async loadProfile(userId) {
@@ -337,7 +343,34 @@ export function makeDbDeps(
       }, { onConflict: 'user_id,category' });
       if (error) fail('duration_estimates upsert', error);
     },
+    async loadUndeliveredLabels(userId) {
+      const { data, error } = await admin
+        .from('belief_labels')
+        .select('id, state_ref, label, labeled_at')
+        .eq('user_id', userId)
+        .is('delivered_at', null)
+        .order('labeled_at', { ascending: true })
+        .order('id', { ascending: true })
+        .limit(200);
+      if (error) fail('belief_labels undelivered', error);
+      return (data ?? []).map((l) => ({
+        id: l.id as string,
+        state_ref: l.state_ref as string,
+        label: l.label as WireLabel['label'],
+        labeled_at: l.labeled_at as string,
+      }));
+    },
+    async markLabelsDelivered(userId, ids, atIso) {
+      if (ids.length === 0) return;
+      const { error } = await admin
+        .from('belief_labels')
+        .update({ delivered_at: atIso })
+        .eq('user_id', userId)
+        .in('id', [...ids])
+        .is('delivered_at', null);
+      if (error) fail('belief_labels delivered', error);
+    },
   };
 }
 
-export type { WireTuple };
+export type { WireLabel, WireTuple };

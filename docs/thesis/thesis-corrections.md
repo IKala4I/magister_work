@@ -310,3 +310,23 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     is bounded by construction. Also state that replaying a duplicate `op_id` is a no-op at the
     constraint level (ledger `sync_ops`), verified by pgTAP, a Deno scenario and the live
     smoke. ADR-0012 §2–§4; `p8-manual-verification.md` §2.
+40. **§3.x (weekly review / "high-weight labels", FR-33/FR-41):** the draft says corrections are
+    "applied as high-weight labels" without a definition. The system defines a label as one
+    prior's worth of pseudo-observations on the named Beta cell (weight α₀ + β₀ — File 04 §3.3's
+    n₀: 8 h in-hours, 4 h out-of-hours), `correct` → successes, `incorrect` → failures, decaying
+    with the same 28-day half-life as evidence; only the latest label per cell is in force and
+    every label delivery triggers the full rebuild from stored tuples + labels (invariant 6 now
+    covers labels, not only "actually did it"). Say so, and say that labels touch the energy
+    model only — the bandit's (A, b) never sees a label (no feature vector). ADR-0013 §2.
+41. **§2.x / §4 (stack table "Skia heatmap", FR-40):** the heatmap is NOT a Skia canvas: 126
+    native Views coloured by OKLCH interpolation between the two spec tokens, composited at an
+    alpha that grows with effective evidence (confidence = solidity), one screen-reader summary
+    plus a text view. Change the text because a canvas is a single opaque element to a screen
+    reader and cannot scale per-cell labels with the font (NFR-A1/A2); Skia remains for the
+    focus ring/timeline if ever needed. Also state the resolution honestly: the grid repeats a
+    daypart across its hours and a day type across its weekdays. ADR-0013 §5.
+42. **§3.x (adherence in the app, FR-33):** the "adherence stats" the weekly review shows are the
+    File 06 §1.4 PAR per ISO week (session started within ±15 min AND finished or ≥ 50 %
+    focused; displaced and superseded blocks out of the denominator), computed from
+    recommendations + facts only — never from the reward table (spec-conflicts H2, guarded by a
+    source-level test). The draft should not describe it as "completion rate". ADR-0013 §3.

@@ -104,6 +104,33 @@ export type AnalyticsEvents = {
       | 'disconnected'
       | 'failed';
   };
+  /** FR-41/FR-33 (P9): a belief toggle — the cell it names is categorical (NFR-S3). */
+  belief_labeled: {
+    label: 'correct' | 'incorrect' | 'none';
+    category: 'deep' | 'admin' | 'physical' | 'learning';
+    daypart: 'EM' | 'MO' | 'MD' | 'AF' | 'EV' | 'NT';
+    day_type: 'weekday' | 'weekend';
+    surface: 'beliefs' | 'review' | 'picker';
+  };
+  /** FR-24/UC-05 (P9): the trade-off sheet decision; `rank` = position of the chosen option. */
+  tradeoff_decided: {
+    outcome: 'chosen' | 'rejected_all';
+    kind: 'drop' | 'shrink' | 'move_past_deadline' | 'unpin' | null;
+    rank: number | null;
+    options: number;
+  };
+  /** UC-08 (P9): the weekly review was closed with N learnings shown. */
+  weekly_review_completed: {
+    week: string;
+    learnings: number;
+    labels_set: number;
+    trend: 'up' | 'down' | 'flat' | null;
+  };
+  /** FR-40/41 (P9): the tab rendered — from the network or from the MMKV cache. */
+  insights_viewed: {
+    source: 'network' | 'cache' | 'empty';
+    learning_mode: boolean | null;
+  };
   /** FR-01 (P4). No identifiers — method and lifecycle only. */
   auth_event: {
     method: 'anonymous' | 'magic_link' | 'google';

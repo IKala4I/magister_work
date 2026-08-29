@@ -9,9 +9,16 @@ from hourwell_recsys.openapi import document
 
 def test_openapi_paths_and_operations() -> None:
     doc = json.loads(document())
-    assert set(doc["paths"]) == {"/healthz", "/plan", "/feedback", "/insights", "/parse-preview"}
+    assert set(doc["paths"]) == {
+        "/healthz",
+        "/plan",
+        "/feedback",
+        "/labels",
+        "/insights",
+        "/parse-preview",
+    }
     ops = {op["operationId"] for p in doc["paths"].values() for op in p.values()}
-    assert ops == {"healthz", "plan", "feedback", "insights", "parsePreview"}
+    assert ops == {"healthz", "plan", "feedback", "labels", "insights", "parsePreview"}
     schemas = doc["components"]["schemas"]
     assert set(schemas["FeedbackTuple"]["properties"]["reason"]["enum"]) == {
         "completed",

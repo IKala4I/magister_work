@@ -55,6 +55,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/labels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Labels
+         * @description P9 belief labels (FR-33/FR-41, ADR-0013): store + full rebuild (invariant 6).
+         */
+        post: operations["labels"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/parse-preview": {
         parameters: {
             query?: never;
@@ -106,10 +126,17 @@ export interface components {
             confidence: number;
             /** Key */
             key: string;
+            /** Label */
+            label?: ("correct" | "incorrect" | "none") | null;
             /** Params */
             params: {
                 [key: string]: unknown;
             };
+            /**
+             * Personal
+             * @default false
+             */
+            personal: boolean;
             /** State Ref */
             state_ref: string;
         };
@@ -149,6 +176,62 @@ export interface components {
             slot_start: string;
             /** Task Id */
             task_id: string;
+        };
+        /**
+         * Belief
+         * @description FR-41 "What Hourwell believes about you": per (category, day_type) the daypart the
+         *     posterior currently favours — present even below the affinity threshold, so the user always
+         *     has something to confirm or correct (FR-33 "actually, I am a morning person").
+         */
+        Belief: {
+            /** Affinity */
+            affinity: boolean;
+            /**
+             * Category
+             * @enum {string}
+             */
+            category: "deep" | "admin" | "physical" | "learning";
+            /** Confidence */
+            confidence: number;
+            /**
+             * Day Type
+             * @enum {string}
+             */
+            day_type: "weekday" | "weekend";
+            /** Daypart */
+            daypart: string;
+            /** Factor */
+            factor: number;
+            /** Label */
+            label?: ("correct" | "incorrect" | "none") | null;
+            /** Mean */
+            mean: number;
+            /** N Effective */
+            n_effective: number;
+            /** Personal */
+            personal: boolean;
+            /** State Ref */
+            state_ref: string;
+        };
+        /**
+         * BeliefLabel
+         * @description One client `belief_label` fact (P9, ADR-0013); `id` = the event op_id.
+         */
+        BeliefLabel: {
+            /** Id */
+            id: string;
+            /**
+             * Label
+             * @enum {string}
+             */
+            label: "correct" | "incorrect" | "none";
+            /**
+             * Labeled At
+             * Format: date-time
+             */
+            labeled_at: string;
+            /** State Ref */
+            state_ref: string;
         };
         /** BusyInterval */
         BusyInterval: {
@@ -272,6 +355,11 @@ export interface components {
             mean: number;
             /** N Effective */
             n_effective: number;
+            /**
+             * Personal
+             * @default false
+             */
+            personal: boolean;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -289,8 +377,51 @@ export interface components {
             adherence: components["schemas"]["AdherenceWeek"][];
             /** Affinities */
             affinities: components["schemas"]["Affinity"][];
+            /** Beliefs */
+            beliefs?: components["schemas"]["Belief"][];
             /** Heatmap */
             heatmap: components["schemas"]["HeatmapCell"][];
+            /** Labels */
+            labels?: components["schemas"]["LabelState"][];
+            /**
+             * Learning Mode
+             * @default true
+             */
+            learning_mode: boolean;
+        };
+        /** LabelsRequest */
+        LabelsRequest: {
+            /** Labels */
+            labels: components["schemas"]["BeliefLabel"][];
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+        };
+        /** LabelsResponse */
+        LabelsResponse: {
+            /** Applied */
+            applied: number;
+            /** Rebuilt */
+            rebuilt: boolean;
+            /** State Version */
+            state_version: number;
+        };
+        /** LabelState */
+        LabelState: {
+            /**
+             * Label
+             * @enum {string}
+             */
+            label: "correct" | "incorrect" | "none";
+            /**
+             * Labeled At
+             * Format: date-time
+             */
+            labeled_at: string;
+            /** State Ref */
+            state_ref: string;
         };
         /** ParsePreviewRequest */
         ParsePreviewRequest: {
@@ -533,6 +664,8 @@ export interface components {
 export type SchemaAdherenceWeek = components['schemas']['AdherenceWeek'];
 export type SchemaAffinity = components['schemas']['Affinity'];
 export type SchemaAssignment = components['schemas']['Assignment'];
+export type SchemaBelief = components['schemas']['Belief'];
+export type SchemaBeliefLabel = components['schemas']['BeliefLabel'];
 export type SchemaBusyInterval = components['schemas']['BusyInterval'];
 export type SchemaFeedbackRequest = components['schemas']['FeedbackRequest'];
 export type SchemaFeedbackResponse = components['schemas']['FeedbackResponse'];
@@ -542,6 +675,9 @@ export type SchemaHeatmapCell = components['schemas']['HeatmapCell'];
 export type SchemaHttpValidationError = components['schemas']['HTTPValidationError'];
 export type SchemaInfeasible = components['schemas']['Infeasible'];
 export type SchemaInsightsResponse = components['schemas']['InsightsResponse'];
+export type SchemaLabelsRequest = components['schemas']['LabelsRequest'];
+export type SchemaLabelsResponse = components['schemas']['LabelsResponse'];
+export type SchemaLabelState = components['schemas']['LabelState'];
 export type SchemaParsePreviewRequest = components['schemas']['ParsePreviewRequest'];
 export type SchemaParsePreviewResponse = components['schemas']['ParsePreviewResponse'];
 export type SchemaPlanRequest = components['schemas']['PlanRequest'];
@@ -626,6 +762,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["InsightsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    labels: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LabelsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LabelsResponse"];
                 };
             };
             /** @description Validation Error */

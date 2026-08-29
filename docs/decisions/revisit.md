@@ -40,17 +40,23 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
 - [P6, 2026-08-26] Appendix A "/plan EF fallback budget 1.9 s" — calibrated for the DAY horizon
   (P5 day p90 170 ms on a Mac); the week horizon takes 1.5–2 s in the service (M8) and would
   fall back most of the time. — P9/P10: if a week view is built, add an async plan path or a
-  horizon-specific budget by ADR; re-measure on the 2 vCPU Space first.
+  horizon-specific budget by ADR; re-measure on the 2 vCPU Space first. — **P9: no week view
+  was built** (the trust surfaces render the model, not a week plan); stays open for P10/P12.
 - [P6, 2026-08-26] Task-push bridge (`apps/mobile/src/sync/taskPush.ts`) is last-write-wins by
   design (ADR-0008 §5). — P8: replace with op replay (base_version checks) and delete the bridge.
   — **DONE P8** (bridges deleted; `sync_replay()` + `src/sync/engine.ts`).
 - [P6, 2026-08-26] Timeline as a row list (ADR-0008 §7) — reads fine but loses the "shape of
   the day" a proportional canvas gives. — P9 (Skia work): evaluate a proportional timeline that
-  still passes the 200 % font-scale and screen-reader checks.
+  still passes the 200 % font-scale and screen-reader checks. — **P9: not built.** The heatmap
+  (the phase's only canvas candidate) went to native Views for per-cell font scaling and a
+  one-element screen-reader summary (ADR-0013 §5), so Skia still has no consumer; re-evaluate
+  in P12 with the focus ring, or drop the proportional timeline as a product-only nicety.
 - [P6, 2026-08-26] `NULL_CONFIDENCE_RENDER = 0.7` — chosen to match day-0 learned confidence
   under the flat prior; once real confidence distributions exist, arm-A blocks may look
   systematically different (a residual blinding cue). — P9/P11: compare rendered solidity
-  distributions across arms; consider rendering learned rows in a compressed band.
+  distributions across arms; consider rendering learned rows in a compressed band. — P9: the
+  Insights beliefs render solidity from the belief's own confidence (both arms see the same
+  model document — the tab is not arm-specific), so no new cue; the Today comparison stays P11.
 - [P6, 2026-08-26] `persist.ts` writes plans + recommendations + supersede as three PostgREST
   calls with a compensating delete (ADR-0008 §4). — P8 (sync-resolve needs transactional writes
   anyway): one `security definer` RPC, service-role only, for plan persistence. — **DONE P8**
@@ -65,6 +71,7 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
 - [P7, 2026-08-27] ADR-0010 §6 one override pair per placement — a user who moves a block twice
   teaches only the first move; the second is logged but unrewarded. — P9/P11: decide whether a
   second move should replace the pair (correction semantics) once override frequency is known.
+  — P9: unchanged (no override data yet); P11 first data review.
 - [P7, 2026-08-27] ADR-0010 §9 duration multiplier applied to est_minutes for both engines — this
   changes the task's feature 11 (log duration) and its feasibility, i.e. the planner's inputs
   drift with learning even for arm A. Symmetric by design, but the pre-registration should say
@@ -134,4 +141,37 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
 - [P8, 2026-08-29] A single displaced chunk moves the whole task to the Inbox (`pull.ts`), while
   sibling chunks stay open and `persist_plan` supersedes only `shown` rows — the P6 per-task
   mirror coarseness gains a new trigger. — P9 (timeline work): mirror per chunk or re-place only
-  the displaced chunk.
+  the displaced chunk. — **P9: not built** (no timeline rework this phase); P10 with the
+  displacement notification, or P12.
+- [P9, 2026-08-29] ADR-0013 §2 label weight = one prior's worth (α₀ + β₀), decaying like
+  evidence, and a labelled cell counts as personal for the rung-2 badge. With few outcomes a
+  user who labels many cells drops the learning-mode badge on labels alone. — P11 first data
+  review: report the share of "personal" cells that are personal by label only; if labels
+  dominate, count them at half weight for the badge (not for the posterior) by ADR.
+- [P9, 2026-08-29] A trade-off decision is a fact on the deciding device; `events` are not
+  pulled, so a second device of the same account shows the sheet again for the same plan until
+  its own decision (or the re-plan replaces the plan — the usual case within seconds). — P10
+  notifications / P12: if two-device use matters for the study, pull `tradeoff_*` events or
+  mark the plan row.
+- [P9, 2026-08-29] `drop` = "not today" (earliest_start = tomorrow 00:00 local, +1 postpone);
+  a task with a deadline today that is dropped will be reported past its deadline tomorrow —
+  the sheet's consequence line says "skips a task worth …", not "misses its deadline". — P10
+  copy review: add a deadline warning to the drop option when `deadline < tomorrow`.
+- [P9, 2026-08-29] The P9 migration (`belief_labels` + trigger) is on the branch and pgTAP-
+  verified against the linked project in a rolled-back transaction, but **not applied** to the
+  hosted project: `supabase db push --linked` was refused by the session's permission
+  classifier. — ⛔ owner (HANDOFF): push it, then run `p9-live-smoke.mjs` for the label round
+  trip (the smoke SKIPs those checks while the table is absent).
+- [P9, 2026-08-29] Adversarial #6 — the label delivery re-POSTs the oldest ≤ 200 undelivered
+  rows every pass; a batch the service refuses permanently (e.g. 409 for a user whose cells were
+  never instantiated) blocks later labels — the same contract as `/feedback` tuples. — P12
+  runbook: on a 4xx answer, mark the batch with the reason and skip it next pass (keep 5xx
+  retrying).
+- [P9, 2026-08-29] Adversarial #9 — a `belief_label` with a bad vocabulary fails the event
+  insert → op outcome `error` (retried 5× then dead-lettered), not `rejected`; only a tampered
+  client can reach it (the client validates the same regex). — P12: map errcode 22023 →
+  `rejected` in `sync_replay` when the next sync migration is written anyway.
+- [P9, 2026-08-29] Adversarial note — ✗ on the favoured cell lowers it, the belief moves to the
+  next daypart and the ✗ leaves the list (still in force on the cell, visible on the heatmap).
+  — P10 copy review: show the cell's label state on the heatmap text view; consider listing the
+  labelled cell under the belief it displaced.

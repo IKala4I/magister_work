@@ -186,7 +186,15 @@ def test_insights(client: TestClient) -> None:
     body = r.json()
     assert len(body["heatmap"]) == 48
     cell = body["heatmap"][0]
-    assert set(cell) == {"category", "daypart", "day_type", "mean", "ci", "n_effective"}
+    assert set(cell) == {
+        "category",
+        "daypart",
+        "day_type",
+        "mean",
+        "ci",
+        "n_effective",
+        "personal",  # P9 rung-2 flag (additive)
+    }
     assert body["adherence"] == []
     assert client.get("/insights", headers=SVC).status_code == 422  # service key needs user_id
     assert client.get("/insights", params={"user_id": USER}, headers=SVC).status_code == 200
@@ -251,3 +259,43 @@ def test_rate_limiter_evicts_by_wall_clock_not_request_date() -> None:
     lim.hit("b", today + timedelta(days=18), today=today)  # far-future request date
     assert not lim.hit("a", today, today=today)  # a's counter survived
     assert lim.hit("a", today, today=today + timedelta(days=9))  # …until the wall clock moves on
+
+
+def test_labels_endpoint_auth_and_validation(client: TestClient) -> None:
+    body = {
+        "user_id": USER,
+        "labels": [
+            {
+                "id": "op-1",
+                "state_ref": "beta:deep.MO.weekday",
+                "label": "correct",
+                "labeled_at": "2026-09-02T09:00:00+00:00",
+            }
+        ],
+    }
+    assert client.post("/labels", json=body).status_code == 401
+    assert (
+        client.post(
+            "/labels", json=body, headers={"Authorization": f"Bearer {_token(OTHER_USER)}"}
+        ).status_code
+        == 403
+    )
+    r = client.post("/labels", json=body, headers=SVC)
+    assert r.status_code == 200 and r.json()["rebuilt"] is True and r.json()["applied"] == 1
+    r2 = client.get("/insights", headers={"Authorization": f"Bearer {_token()}"})
+    assert r2.status_code == 200
+    assert r2.json()["labels"] == [
+        {
+            "state_ref": "beta:deep.MO.weekday",
+            "label": "correct",
+            "labeled_at": "2026-09-02T09:00:00Z",
+        }
+    ]
+    assert any(b["label"] == "correct" for b in r2.json()["beliefs"])
+    first: dict[str, Any] = dict(body["labels"][0])  # type: ignore[arg-type]
+    bad = {**body, "labels": [{**first, "state_ref": "beta:deep.MO.someday"}]}
+    assert client.post("/labels", json=bad, headers=SVC).status_code == 422
+    assert client.post("/labels", json={**body, "labels": []}, headers=SVC).status_code == 422
+    # a user whose cells were never instantiated → 409 like /feedback
+    other = {**body, "user_id": OTHER_USER}
+    assert client.post("/labels", json=other, headers=SVC).status_code == 409

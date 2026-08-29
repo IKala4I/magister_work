@@ -78,3 +78,56 @@ def test_rung2_cell_is_personal_once_decayed_evidence_exceeds_prior_strength() -
     assert learning_mode([prior, prior], now)
     assert learning_mode([weak, strong, prior], now) is False  # 1/2 active personal ≥ 0.5
     assert learning_mode([weak, weak, strong], now) is True  # 1/3 < 0.5
+
+
+# --- P9 belief labels (FR-33/FR-41; ADR-0013 §2) ---------------------------------------------
+
+
+def test_label_is_one_priors_worth_of_pseudo_observations() -> None:
+    from hourwell_recsys.energy import apply_label, label_weight
+    from hourwell_recsys.params import LABEL_WEIGHT_FACTOR
+
+    cell = BetaCell("deep", "MO", "weekday", alpha0=5.6, beta0=2.4)
+    assert label_weight(cell) == pytest.approx(LABEL_WEIGHT_FACTOR * 8.0)
+    yes = apply_label(cell, "correct", T0)
+    assert yes.succ == pytest.approx(8.0) and yes.fail == 0.0 and yes.last_event_at == T0
+    no = apply_label(cell, "incorrect", T0)
+    assert no.fail == pytest.approx(8.0) and no.succ == 0.0
+    assert apply_label(cell, "none", T0) == cell  # a cleared toggle adds nothing
+    with pytest.raises(ValueError):
+        apply_label(cell, "maybe", T0)
+    # the prior is untouched (invariant 5): only the evidence counters moved
+    assert (yes.alpha0, yes.beta0) == (cell.alpha0, cell.beta0)
+
+
+def test_label_decays_like_evidence_and_respects_delivery_order() -> None:
+    from hourwell_recsys.energy import apply_label
+
+    cell = BetaCell("deep", "MO", "weekday", alpha0=4.0, beta0=4.0)
+    labelled = apply_label(cell, "correct", T0)
+    later = posterior(labelled, T0 + timedelta(days=28))
+    assert later.n_effective == pytest.approx(4.0)  # half of the 8 pseudo-observations remain
+    # a label older than the last event is added already decayed (same rule as rewards)
+    cell2 = apply_reward(cell, 1.0, T0 + timedelta(days=28))
+    out_of_order = apply_label(cell2, "correct", T0)
+    in_order = apply_reward(apply_label(cell, "correct", T0), 1.0, T0 + timedelta(days=28))
+    assert out_of_order.succ == pytest.approx(in_order.succ)
+    assert out_of_order.fail == pytest.approx(in_order.fail)
+
+
+def test_labelled_cell_is_personal_by_definition() -> None:
+    from hourwell_recsys.energy import is_personal, learning_mode
+
+    cell = BetaCell("deep", "MO", "weekday", alpha0=4.0, beta0=4.0, succ=1.0, last_event_at=T0)
+    assert not is_personal(cell, T0)  # 1 < 8
+    assert is_personal(cell, T0, labeled=True)
+    assert learning_mode([cell], T0) is True
+    assert learning_mode([cell], T0, frozenset({cell.key})) is False
+
+
+def test_label_weight_follows_the_cell_prior_out_of_hours_too() -> None:
+    from hourwell_recsys.energy import apply_label, label_weight
+
+    out_of_hours = BetaCell("deep", "NT", "weekday", alpha0=1.2, beta0=2.8)  # n₀ = 4 h
+    assert label_weight(out_of_hours) == pytest.approx(4.0)
+    assert apply_label(out_of_hours, "incorrect", T0).fail == pytest.approx(4.0)

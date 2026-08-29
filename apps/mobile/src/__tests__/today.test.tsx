@@ -44,6 +44,11 @@ jest.mock('@react-native-community/datetimepicker', () => ({
 }));
 const mockNavigate = jest.fn();
 jest.mock('expo-router', () => ({ useRouter: () => ({ navigate: mockNavigate }) }));
+const mockTradeoff = { apply: jest.fn(), reject: jest.fn() };
+jest.mock('../domain/insightsActions', () => ({
+  applyTradeoffAction: (...a: unknown[]) => mockTradeoff.apply(...a),
+  rejectTradeoffsAction: (...a: unknown[]) => mockTradeoff.reject(...a),
+}));
 const mockWipe = { discard: jest.fn(), keep: jest.fn() };
 jest.mock('../auth/accountTransition', () => ({
   discardPendingWipe: (...a: unknown[]) => mockWipe.discard(...a),
@@ -156,12 +161,14 @@ function rows(input: {
   tasks?: TaskRow[];
   sessions?: Array<{ recommendationId: string }>;
   busy?: CalendarEventRow[];
+  events?: Array<{ payload: Record<string, unknown> }>;
 }) {
   mockUseLiveRows.mockImplementation((_build: unknown, tables: readonly string[]) => {
     if (tables[0] === 'plans') return input.plans ?? [];
     if (tables[0] === 'recommendations') return input.recs ?? [];
     if (tables[0] === 'focus_sessions') return input.sessions ?? [];
     if (tables[0] === 'calendar_events') return input.busy ?? [];
+    if (tables[0] === 'events') return input.events ?? [];
     return input.tasks ?? [];
   });
 }
@@ -500,5 +507,77 @@ describe('Today — P8 sync surfaces', () => {
     rows({ plans: [plan()], recs: [rec({ status: 'displaced' })], tasks: [task()] });
     await render(withSafeArea(<TodayScreen />));
     expect(screen.getByText(en['block.status.displaced'])).toBeTruthy();
+  });
+});
+
+// --- P9: FR-24 / UC-05 trade-off sheet ---------------------------------------------------------
+
+const INFEASIBLE = {
+  ef: { reason: 'learned' },
+  unplaced: [{ task_id: 't-1', reason: 'infeasible' }],
+  infeasible: {
+    options: [
+      {
+        kind: 'shrink',
+        task_id: 't-1',
+        delta_minutes: 30,
+        consequence: { metric: 'est_completion_drop', value: 0.18 },
+      },
+      {
+        kind: 'drop',
+        task_id: 't-1',
+        delta_minutes: null,
+        consequence: { metric: 'value_forfeited', value: 1.2 },
+      },
+    ],
+  },
+};
+
+describe('trade-off sheet (FR-24 / UC-05)', () => {
+  it('renders the ranked options with consequences; choosing applies the option and re-plans', async () => {
+    const p = plan({ telemetry: INFEASIBLE, solverStatus: 'INFEASIBLE' });
+    rows({ plans: [p], recs: [rec()], tasks: [task()] });
+    await render(withSafeArea(<TodayScreen />));
+    expect(screen.getByText(en['tradeoff.title'])).toBeTruthy();
+    expect(screen.getByText('Shorten "write report" by 30 min')).toBeTruthy();
+    expect(screen.getByText('about 18% lower chance of finishing')).toBeTruthy();
+    expect(screen.getByText('Leave "write report" for another day')).toBeTruthy();
+    expect(screen.getByTestId('tradeoff-option-1').props.accessibilityLabel).toMatch(
+      /^Option 1: Shorten/,
+    );
+    await fireEvent.press(screen.getByTestId('tradeoff-option-2'));
+    expect(mockTradeoff.apply).toHaveBeenCalledWith(
+      expect.objectContaining({
+        plan: expect.objectContaining({ id: 'plan-1' }),
+        option: expect.objectContaining({ kind: 'drop' }),
+        rank: 2,
+        options: expect.arrayContaining([expect.objectContaining({ kind: 'shrink' })]),
+      }),
+    );
+  });
+
+  it('"keep it as is" logs the rejection (UC-05 A1); an answered plan never shows the sheet again', async () => {
+    const p = plan({ telemetry: INFEASIBLE, solverStatus: 'INFEASIBLE' });
+    rows({ plans: [p], recs: [rec()], tasks: [task()] });
+    await render(withSafeArea(<TodayScreen />));
+    await fireEvent.press(screen.getByText(en['tradeoff.reject']));
+    expect(mockTradeoff.reject).toHaveBeenCalledWith(
+      expect.objectContaining({ plan: expect.objectContaining({ id: 'plan-1' }) }),
+    );
+    screen.unmount();
+    rows({
+      plans: [p],
+      recs: [rec()],
+      tasks: [task()],
+      events: [{ payload: { plan_id: 'plan-1' } }],
+    });
+    await render(withSafeArea(<TodayScreen />));
+    expect(screen.queryByText(en['tradeoff.title'])).toBeNull();
+  });
+
+  it('a feasible plan shows no sheet', async () => {
+    rows({ plans: [plan()], recs: [rec()], tasks: [task()] });
+    await render(withSafeArea(<TodayScreen />));
+    expect(screen.queryByText(en['tradeoff.title'])).toBeNull();
   });
 });

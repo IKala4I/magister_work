@@ -196,6 +196,9 @@ class FeedbackResponse(_Strict):
     state_version: int
 
 
+Label = Literal["correct", "incorrect", "none"]
+
+
 class HeatmapCell(_Strict):
     category: Category
     daypart: str
@@ -203,6 +206,8 @@ class HeatmapCell(_Strict):
     mean: float
     ci: tuple[float, float]
     n_effective: float
+    # P9 (specs/07 §3.6 rung 2): the cell's evidence exceeds its prior, or it carries a label
+    personal: bool = False
 
 
 class Affinity(_Strict):
@@ -210,6 +215,33 @@ class Affinity(_Strict):
     params: dict[str, Any]
     confidence: float
     state_ref: str
+    # P9: the label in force on the referenced cell (FR-41 toggle state) and rung-2 phrasing
+    label: Label | None = None
+    personal: bool = False
+
+
+class Belief(_Strict):
+    """FR-41 "What Hourwell believes about you": per (category, day_type) the daypart the
+    posterior currently favours — present even below the affinity threshold, so the user always
+    has something to confirm or correct (FR-33 "actually, I am a morning person")."""
+
+    category: Category
+    day_type: Literal["weekday", "weekend"]
+    daypart: str
+    mean: float
+    factor: float
+    confidence: float
+    n_effective: float
+    personal: bool
+    affinity: bool
+    state_ref: str
+    label: Label | None = None
+
+
+class LabelState(_Strict):
+    state_ref: str
+    label: Label
+    labeled_at: datetime
 
 
 class AdherenceWeek(_Strict):
@@ -221,6 +253,30 @@ class InsightsResponse(_Strict):
     heatmap: list[HeatmapCell]
     affinities: list[Affinity]
     adherence: list[AdherenceWeek]
+    # P9 additions (additive — the P5 contract shape above is unchanged)
+    beliefs: list[Belief] = Field(default_factory=list)
+    learning_mode: bool = True
+    labels: list[LabelState] = Field(default_factory=list)
+
+
+class BeliefLabel(_Strict):
+    """One client `belief_label` fact (P9, ADR-0013); `id` = the event op_id."""
+
+    id: str = Field(min_length=1, max_length=128)
+    state_ref: str = Field(min_length=6, max_length=64)
+    label: Label
+    labeled_at: AwareDatetime
+
+
+class LabelsRequest(_Strict):
+    user_id: uuid.UUID
+    labels: list[BeliefLabel] = Field(min_length=1, max_length=200)
+
+
+class LabelsResponse(_Strict):
+    applied: int
+    rebuilt: bool
+    state_version: int
 
 
 class ParsePreviewRequest(_Strict):

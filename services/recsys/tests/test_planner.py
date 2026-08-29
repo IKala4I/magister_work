@@ -287,3 +287,28 @@ def test_coarse_rung_uses_a_30_minute_d_min(repo: InMemoryRepo) -> None:
     )
     (t,) = prep.solver_tasks
     assert t.duration == 3 and t.d_min == 1 and t.n_chunks == 3
+
+
+def test_task_deferred_past_the_horizon_is_not_critical_and_raises_no_options(
+    repo: InMemoryRepo,
+) -> None:
+    """FR-24 'drop' sets earliest_start = tomorrow; re-sending that task must not reopen the
+    trade-off sheet (P9 adversarial #3): it is an explicit deferral, not a failed constraint."""
+    from datetime import datetime
+
+    tomorrow = (datetime.fromisoformat(kyiv(9)) + timedelta(days=1)).isoformat()
+    tasks = [
+        task(
+            "dropped",
+            category="deep",
+            est_minutes=60,
+            value=3,
+            deadline=kyiv(18),
+            earliest_start=tomorrow,
+        ),
+        task("small", category="admin", est_minutes=30, value=1),
+    ]
+    resp = plan(PlanRequest.model_validate(plan_body(tasks)), repo)
+    assert resp.infeasible is None
+    assert any(u.task_id == "dropped" for u in resp.unplaced)
+    assert {a.task_id for a in resp.assignments} == {"small"}

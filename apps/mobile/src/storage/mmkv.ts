@@ -19,6 +19,8 @@ export const StorageKeys = {
   lastSyncAt: 'sync.lastSyncAt',
   /** A previous account's uid whose unacked changes are still on this device (ADR-0012 §11). */
   pendingWipeUserId: 'sync.pendingWipeUserId',
+  /** Last `insights` document (JSON, with fetched_at) so the tab renders offline (P9). */
+  insightsCache: 'insights.cache',
   /**
    * Prefix for supabase session ciphertext (AES-256-CTR; key material lives in
    * expo-secure-store, never here — src/auth/largeSecureStore.ts).

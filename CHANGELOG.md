@@ -1,5 +1,65 @@
 # Changelog
 
+## P9 — Trust surfaces (2026-08-29, phase/P9-trust)
+
+**Service (ADR-0013).** `POST /labels`: a belief label (FR-41 ✓/✗, FR-33 correction) is one
+prior's worth of pseudo-observations on the named Beta cell (`correct` → S, `incorrect` → F,
+`none` clears; weight = α₀ + β₀ — File 04 §3.3's n₀ — decaying like evidence); every delivery
+stores the labels (upsert by id) and runs the **full rebuild** from stored tuples + the label in
+force per cell, interleaved by timestamp (invariant 6 — a flipped or cleared toggle is never a
+downdate; invariant 5 — the prior is untouched). Labels touch Beta cells only (no feature
+vector → bandit and blend replay unchanged). `GET /insights` adds `beliefs` (one per category ×
+day type, the daypart the posterior favours, with the label in force), per-cell `personal`
+(rung 2; a labelled cell is personal by definition), `learning_mode`, `labels`. `api.ts`
+regenerated. 149 pytest.
+
+**Database.** Migration `20260829120000_p9_trust`: `belief_labels` (delivery ledger between the
+`belief_label` event and the service, id = the event's op_id, RLS select-own, no client writes)
+materialised by a trigger on `events` that enforces the closed `state_ref`/label vocabularies
+(a malformed label fails the op — nothing half-applied). pgTAP `p9_trust_test.sql`: 23
+assertions (run against the linked project inside a rolled-back transaction; `labeled_at` clamped to `now()`). **Not yet pushed
+to the hosted project** — `supabase db push --linked` was refused by the session's permission
+classifier (⛔ owner, HANDOFF).
+
+**Edge functions.** New `insights` (user JWT): the service document with the backend key +
+weekly PAR (File 06 §1.4 per block; `_shared/par.ts` reads `recommendations` + `focus_end`
+facts only — a source-level test guards H2; displaced/`expired`/open blocks out of the
+denominator; ISO weeks in the profile zone) + the chronotype class the priors assume; 503 when
+the service is unreachable. `attribute-rewards`/`sync-resolve` reward pass: undelivered
+`belief_labels` rows are POSTed to `/labels` after the tuples and marked delivered (re-sent on
+failure). A ledger read failure (e.g. the migration not yet applied) never takes the sync down: logged, `labels_delivery: failed`, retried next pass (found by the live smoke). 166 Deno.
+
+**Mobile.** Insights tab: learning-mode badge + prior provenance; the FR-40 hour × weekday
+heatmap (native Views, OKLCH interpolation between `energyLow`/`energyHigh`, cell alpha =
+evidence solidity n/(n+8), one accessible summary + a full text view, category chips);
+"What Hourwell believes about you" (population vs personal phrasing, ✓/✗ toggles, evidence
+line; a toggle is a `belief_label` fact through the outbox, shown immediately and marked
+pending until acked; the device's newer fact wins over the server label); weekly review (PAR
+bars per ISO week + trend, top-3 learnings with toggles, "tell Hourwell" daypart picker = a ✓ on
+the chosen cell, done → `weekly_review_completed`). Document cached in MMKV (offline/outage
+render with an "as of" line). Today: the FR-24/UC-05 trade-off sheet from
+`plans.telemetry.infeasible` — ranked options with consequence sentences; the pick becomes the
+matching task edit (drop → not today + postpone; shrink → est − Δ; move → deadline + slip;
+unpin → `recommendation_status`) + `tradeoff_decision`, then a manual re-plan; "keep as is" →
+`tradeoff_rejected`; once per plan. Analytics: `belief_labeled`, `tradeoff_decided`,
+`weekly_review_completed`, `insights_viewed` (categorical). 382 jest (47 suites).
+
+**Live (2026-08-29, `p9-live-smoke.mjs` 10/10 + 2 SKIP).** Functions deployed, service image rolled out from the branch; FR-24 verified live (two pins → ranked `unpin` option in `plans.telemetry.infeasible`, decision fact synced); `insights` relays 503 while the service cannot read `belief_labels` (migration pending ⛔); the label round trip SKIPs until then.
+
+**Adversarial pass (fresh-context subagent → `7c7c238`).** 4 MAJOR + 10 MINOR: acked facts
+never got `server_ts` (the "pending" caption was permanent); the insights cache outlived an
+account switch; FR-24 `drop` looped the sheet (a deferred task stayed critical + unplaceable →
+`plan-request` now filters tasks deferred past the horizon and the planner marks them
+non-critical); the belief card's `accessible` wrapper hid the toggles from VoiceOver. Plus: unpin
+finds the live pin on the previous plan, `labeled_at` clamped, ordered PAR queries, label
+tie-break by delivery order, deleted-task fallback, today-only sheet, widths, copy. Two MINORs
+and one note in revisit.md. `p9-manual-verification.md` §4.
+
+**Docs.** ADR-0013; traceability (7 rows); device checklist (heatmap at 200 %, VoiceOver/
+TalkBack on the grid summary + text view, toggle targets, reduced motion); revisit (P9 lines
+closed or re-scheduled: proportional timeline / chunk-level displacement / week horizon not
+built — no Skia consumer, no week view); thesis-corrections #40–#42; explainer P9 section.
+
 ## P8 — Sync (2026-08-28, phase/P8-sync)
 
 **Server (ADR-0012).** Migration `20260828120000_p8_sync`: `sync_ops` replay ledger (PK

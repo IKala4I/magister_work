@@ -64,6 +64,48 @@ export type Database = {
         }
         Relationships: []
       }
+      belief_labels: {
+        Row: {
+          category: string
+          created_at: string
+          day_type: string
+          daypart: string
+          delivered_at: string | null
+          id: string
+          label: string
+          labeled_at: string
+          source: string
+          state_ref: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          day_type: string
+          daypart: string
+          delivered_at?: string | null
+          id: string
+          label: string
+          labeled_at: string
+          source?: string
+          state_ref: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          day_type?: string
+          daypart?: string
+          delivered_at?: string | null
+          id?: string
+          label?: string
+          labeled_at?: string
+          source?: string
+          state_ref?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       beta_cells: {
         Row: {
           alpha0: number

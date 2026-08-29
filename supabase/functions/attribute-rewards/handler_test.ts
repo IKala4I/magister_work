@@ -6,7 +6,7 @@
  */
 import { assert, assertEquals } from '@std/assert';
 import type { Fact, RecPatch, StoredTuple, Tuple } from '../_shared/rewards.ts';
-import type { FeedbackCall, WireTuple } from './feedback.ts';
+import type { FeedbackCall, WireLabel, WireTuple } from './feedback.ts';
 import { type Deps, handleAttributeRewards, type RecRow } from './handler.ts';
 
 const USER = '00000000-0000-4000-8000-000000000001';
@@ -57,6 +57,10 @@ interface State {
   profile: boolean;
   due: RecRow[];
   leaseBusy?: boolean;
+  /** P9: belief_labels rows (materialised from events by the trigger). */
+  labels: Array<WireLabel & { delivered_at: string | null }>;
+  postedLabels: Array<{ userId: string; labels: WireLabel[] }>;
+  labelsCall?: FeedbackCall;
 }
 
 function makeDeps(state: State): Deps {
@@ -179,6 +183,20 @@ function makeDeps(state: State): Deps {
       state.durations[category] = { ...est, last_session_at: last };
       return Promise.resolve();
     },
+    loadUndeliveredLabels: () =>
+      Promise.resolve(
+        state.labels.filter((l) => l.delivered_at === null).map(
+          ({ delivered_at: _d, ...l }) => l,
+        ),
+      ),
+    postLabels: (userId, labels) => {
+      state.postedLabels.push({ userId, labels: [...labels] });
+      return Promise.resolve(state.labelsCall ?? state.feedback);
+    },
+    markLabelsDelivered: (_u, ids, at) => {
+      for (const l of state.labels) if (ids.includes(l.id)) l.delivered_at = at;
+      return Promise.resolve();
+    },
   };
 }
 
@@ -193,6 +211,8 @@ function freshState(over: Partial<State> = {}): State {
     patches: [],
     profile: true,
     due: [],
+    labels: [],
+    postedLabels: [],
     ...over,
   };
 }
@@ -548,4 +568,121 @@ Deno.test('a move followed by an outcome in one pass chains the expected statuse
   const forRec = state.patches.filter((p) => p.id === REC);
   assertEquals(forRec.map((p) => p.expected_status), ['accepted', 'moved']);
   assertEquals(state.recs[0].status, 'completed');
+});
+
+// --- P9 belief labels: store-then-deliver through the reward pass (ADR-0013) -------------------
+
+const label = (id: string, over: Partial<WireLabel> = {}): WireLabel & { delivered_at: null } => ({
+  id,
+  state_ref: 'beta:deep.MO.weekday',
+  label: 'correct',
+  labeled_at: '2026-09-02T09:00:00Z',
+  delivered_at: null,
+  ...over,
+});
+
+Deno.test('labels — undelivered rows are POSTed to /labels after the tuples and marked delivered', async () => {
+  const state = freshState({
+    recs: [],
+    labels: [label('op-1'), label('op-2', { label: 'none', labeled_at: '2026-09-02T10:00:00Z' })],
+  });
+  const res = await handleAttributeRewards(post({ mode: 'instant' }, asUser), makeDeps(state));
+  assertEquals(res.status, 200);
+  const body = await res.json();
+  assertEquals(body.labels_delivered, 2);
+  assertEquals(body.labels_delivery, 'ok');
+  assertEquals(state.postedLabels.length, 1);
+  assertEquals(state.postedLabels[0].labels.map((l) => l.id), ['op-1', 'op-2']);
+  assertEquals(state.postedLabels[0].labels[0].state_ref, 'beta:deep.MO.weekday');
+  assert(state.labels.every((l) => l.delivered_at !== null));
+  // a second pass has nothing pending and never re-posts
+  const again = await handleAttributeRewards(post({ mode: 'instant' }, asUser), makeDeps(state));
+  assertEquals((await again.json()).labels_delivery, 'nothing_pending');
+  assertEquals(state.postedLabels.length, 1);
+});
+
+Deno.test('labels — a failed /labels call leaves the rows undelivered for the next pass', async () => {
+  const state = freshState({
+    recs: [],
+    labels: [label('op-1')],
+    labelsCall: { kind: 'failed', status: 503, detail: 'down', ms: 3 },
+  });
+  const body =
+    await (await handleAttributeRewards(post({ mode: 'instant' }, asUser), makeDeps(state)))
+      .json();
+  assertEquals(body.labels_delivered, 0);
+  assertEquals(body.labels_delivery, 'failed');
+  assertEquals(state.labels[0].delivered_at, null);
+  state.labelsCall = { kind: 'ok', state_version: 9, updated: 1, rebuilt: true, ms: 4 };
+  const retry =
+    await (await handleAttributeRewards(post({ mode: 'instant' }, asUser), makeDeps(state)))
+      .json();
+  assertEquals(retry.labels_delivered, 1);
+  assertEquals(
+    state.postedLabels.length,
+    2,
+    'the same row was re-sent (the service upserts by id)',
+  );
+});
+
+Deno.test('labels — delivered on the facts path too, after the tuples', async () => {
+  const state = freshState({
+    facts: [
+      fact('focus_end', {
+        outcome: 'finished',
+        started_at: '2026-09-02T11:05:00Z',
+        ended_at: '2026-09-02T12:20:00Z',
+        focused_ms: 75 * 60_000,
+        planned_minutes: 90,
+        est_minutes: 90,
+        session_id: 's1',
+      }),
+    ],
+    labels: [label('op-1')],
+  });
+  const order: string[] = [];
+  const deps = makeDeps(state);
+  const wrapped: Deps = {
+    ...deps,
+    postFeedback: (u, t) => {
+      order.push('feedback');
+      return deps.postFeedback(u, t);
+    },
+    postLabels: (u, l) => {
+      order.push('labels');
+      return deps.postLabels(u, l);
+    },
+  };
+  const body = await (await handleAttributeRewards(post({ mode: 'instant' }, asUser), wrapped))
+    .json();
+  assertEquals(body.tuples_written, 1);
+  assertEquals(body.labels_delivered, 1);
+  assertEquals(order, ['feedback', 'labels']);
+});
+
+Deno.test('labels — a ledger read failure never takes the pass down (tuples still flow, labels retried later)', async () => {
+  const state = freshState({
+    facts: [
+      fact('focus_end', {
+        outcome: 'finished',
+        started_at: '2026-09-02T11:05:00Z',
+        ended_at: '2026-09-02T12:20:00Z',
+        focused_ms: 75 * 60_000,
+        planned_minutes: 90,
+        est_minutes: 90,
+        session_id: 's1',
+      }),
+    ],
+  });
+  const deps: Deps = {
+    ...makeDeps(state),
+    loadUndeliveredLabels: () => Promise.reject(new Error('relation belief_labels does not exist')),
+  };
+  const res = await handleAttributeRewards(post({ mode: 'instant' }, asUser), deps);
+  assertEquals(res.status, 200);
+  const body = await res.json();
+  assertEquals(body.tuples_written, 1);
+  assertEquals(body.delivered, 1);
+  assertEquals(body.labels_delivered, 0);
+  assertEquals(body.labels_delivery, 'failed');
 });
