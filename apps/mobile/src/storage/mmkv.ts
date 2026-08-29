@@ -15,6 +15,10 @@ export const StorageKeys = {
   schemePreference: 'ui.schemePreference',
   /** Last authenticated uid — drives the account-change wipe contract (src/auth). */
   lastUserId: 'auth.lastUserId',
+  /** Epoch ms of the last completed sync round trip (P8). */
+  lastSyncAt: 'sync.lastSyncAt',
+  /** A previous account's uid whose unacked changes are still on this device (ADR-0012 §11). */
+  pendingWipeUserId: 'sync.pendingWipeUserId',
   /**
    * Prefix for supabase session ciphertext (AES-256-CTR; key material lives in
    * expo-secure-store, never here — src/auth/largeSecureStore.ts).

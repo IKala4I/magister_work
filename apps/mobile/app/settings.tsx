@@ -1,22 +1,29 @@
 /**
  * Settings (modal). P2 shipped the appearance preference; P4 adds the account section
- * (FR-01: trial status, anonymous→email conversion, sign-in/out). Notification and
- * working-hours controls land with their phases (P10).
+ * (FR-01: trial status, anonymous→email conversion, sign-in/out); P8 adds the sync status
+ * (NFR-R1: last sync, queued changes, "Sync now") and the Google Calendar connection (FR-03:
+ * busy import, opt-in write-back). Notification and working-hours controls land with their
+ * phases (P10).
  */
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Alert, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { isAuthAvailable } from '../src/auth/client';
 import { convertAnonymousToEmail, signOut } from '../src/auth/flows';
 import { useSessionStore } from '../src/auth/session';
+import { formatRelative } from '../src/domain/relativeTime';
 import { t, type MessageKey } from '../src/i18n';
 import {
   SCHEME_PREFERENCES,
   useAppearanceStore,
   type SchemePreference,
 } from '../src/state/appearance';
+import { useSyncStore, type SyncUiStatus } from '../src/state/sync';
+import { syncNow } from '../src/sync/engine';
+import { gcalConnect, gcalDisconnect, gcalSetWriteBack, gcalStatus } from '../src/sync/gcal';
+import type { GcalStatus } from '../src/sync/types';
 import { Button, Screen, ThemedText } from '../src/ui/primitives';
 import { useTheme } from '../src/ui/theme';
 
@@ -54,7 +61,7 @@ function AccountSection() {
   };
 
   return (
-    <View style={styles.accountBlock}>
+    <View style={styles.block}>
       {session.isAnonymous ? (
         <>
           <ThemedText>{t('settings.account.anonymous')}</ThemedText>
@@ -127,6 +134,147 @@ function AccountSection() {
   );
 }
 
+const SYNC_STATUS_KEYS: Record<SyncUiStatus, MessageKey> = {
+  idle: 'settings.sync.status.idle',
+  syncing: 'settings.sync.status.syncing',
+  offline: 'settings.sync.status.offline',
+  no_session: 'settings.sync.status.no_session',
+  error: 'settings.sync.status.error',
+};
+
+function SyncSection() {
+  const status = useSyncStore((s) => s.status);
+  const lastSyncAt = useSyncStore((s) => s.lastSyncAt);
+  const pendingOps = useSyncStore((s) => s.pendingOps);
+  if (!isAuthAvailable()) return null;
+  return (
+    <View style={styles.block} accessibilityRole="summary">
+      <ThemedText>{t(SYNC_STATUS_KEYS[status])}</ThemedText>
+      <ThemedText variant="caption" tone="secondary">
+        {lastSyncAt === null
+          ? t('settings.sync.never')
+          : t('settings.sync.last', { when: formatRelative(lastSyncAt) })}
+      </ThemedText>
+      {pendingOps > 0 ? (
+        <ThemedText variant="caption" tone="secondary">
+          {t('settings.sync.pending', { count: pendingOps })}
+        </ThemedText>
+      ) : null}
+      <Button
+        kind="secondary"
+        label={t('settings.sync.now')}
+        disabled={status === 'syncing'}
+        onPress={() => void syncNow('manual')}
+      />
+    </View>
+  );
+}
+
+function CalendarSection() {
+  const theme = useTheme();
+  const signedIn = useSessionStore((s) => s.status === 'signed_in');
+  const [gcal, setGcal] = useState<GcalStatus | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<MessageKey | null>(null);
+
+  const refresh = useCallback(async () => {
+    const r = await gcalStatus();
+    if (r.ok) setGcal(r.status);
+    else if (r.code === 'not_configured') setMessage('settings.gcal.notConfigured');
+  }, []);
+
+  useEffect(() => {
+    if (signedIn) void refresh();
+  }, [signedIn, refresh]);
+
+  if (!isAuthAvailable() || !signedIn) return null;
+
+  const run = async (action: () => Promise<Awaited<ReturnType<typeof gcalConnect>>>) => {
+    setBusy(true);
+    setMessage(null);
+    const r = await action();
+    setBusy(false);
+    if (r.ok) setGcal(r.status);
+    else if (r.code === 'not_configured') setMessage('settings.gcal.notConfigured');
+    else if (r.code === 'cancelled') setMessage('settings.gcal.cancelled');
+    else setMessage('settings.gcal.failed');
+  };
+
+  const connected = gcal?.connected === true;
+  return (
+    <View style={styles.block}>
+      <ThemedText variant="caption" tone="secondary">
+        {t('settings.gcal.body')}
+      </ThemedText>
+      {message ? (
+        <ThemedText variant="caption" style={{ color: theme.colors.warning }}>
+          {t(message)}
+        </ThemedText>
+      ) : null}
+      {connected ? (
+        <>
+          <ThemedText>{t('settings.gcal.connected')}</ThemedText>
+          {gcal?.last_synced_at ? (
+            <ThemedText variant="caption" tone="secondary">
+              {t('settings.gcal.lastSynced', {
+                when: formatRelative(Date.parse(gcal.last_synced_at)),
+              })}
+            </ThemedText>
+          ) : null}
+          {gcal?.write_back ? (
+            <>
+              <ThemedText variant="caption">{t('settings.gcal.writeBackOn')}</ThemedText>
+              <Button
+                kind="secondary"
+                label={t('settings.gcal.writeBackOff')}
+                disabled={busy}
+                onPress={() => void run(() => gcalSetWriteBack(false))}
+              />
+            </>
+          ) : (
+            <>
+              <ThemedText variant="caption" tone="secondary">
+                {t('settings.gcal.writeBackHint')}
+              </ThemedText>
+              <Button
+                kind="secondary"
+                label={t('settings.gcal.writeBack')}
+                disabled={busy}
+                onPress={() =>
+                  void run(() =>
+                    gcal?.scope === 'write' ? gcalSetWriteBack(true) : gcalConnect('write'),
+                  )
+                }
+              />
+            </>
+          )}
+          <Button
+            kind="secondary"
+            label={t('settings.gcal.disconnect')}
+            disabled={busy}
+            onPress={() =>
+              Alert.alert(t('settings.gcal.disconnect.title'), t('settings.gcal.disconnect.body'), [
+                { text: t('settings.gcal.disconnect.cancel'), style: 'cancel' },
+                {
+                  text: t('settings.gcal.disconnect.confirm'),
+                  style: 'destructive',
+                  onPress: () => void run(() => gcalDisconnect()),
+                },
+              ])
+            }
+          />
+        </>
+      ) : (
+        <Button
+          label={t('settings.gcal.connect')}
+          disabled={busy}
+          onPress={() => void run(() => gcalConnect('read'))}
+        />
+      )}
+    </View>
+  );
+}
+
 const PREFERENCE_LABELS: Record<SchemePreference, MessageKey> = {
   system: 'settings.appearance.system',
   light: 'settings.appearance.light',
@@ -144,6 +292,18 @@ export default function SettingsScreen() {
         {t('settings.account.title')}
       </ThemedText>
       <AccountSection />
+      {isAuthAvailable() ? (
+        <>
+          <ThemedText variant="h2" style={styles.sectionTitle}>
+            {t('settings.sync.title')}
+          </ThemedText>
+          <SyncSection />
+          <ThemedText variant="h2" style={styles.sectionTitle}>
+            {t('settings.gcal.title')}
+          </ThemedText>
+          <CalendarSection />
+        </>
+      ) : null}
       <ThemedText variant="h2" style={styles.sectionTitle}>
         {t('settings.appearance.title')}
       </ThemedText>
@@ -170,7 +330,7 @@ export default function SettingsScreen() {
 
 const styles = StyleSheet.create({
   sectionTitle: { marginTop: 8, marginBottom: 12 },
-  accountBlock: { gap: 10, marginBottom: 12 },
+  block: { gap: 10, marginBottom: 12 },
   emailInput: {
     minHeight: 48,
     borderWidth: 1,

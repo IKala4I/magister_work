@@ -1,5 +1,86 @@
 # Changelog
 
+## P8 — Sync (2026-08-28, phase/P8-sync)
+
+**Server (ADR-0012).** Migration `20260828120000_p8_sync`: `sync_ops` replay ledger (PK
+`(user_id, op_id)` — a duplicate op is a no-op by constraint), `sync_replay(p_user_id, p_ops)`
+(one transaction per batch, one subtransaction per op; class 1 events append-only with
+ownership checks, class 2 tasks/profile `base_version` checks answering `conflict` + the server
+row, class 3 plan-review statuses state-checked; outcomes `applied | duplicate | conflict |
+superseded | rejected | error`), `sync_pull(cursor, limit)` (security INVOKER — RLS is the
+filter — one `server_seq`-ordered stream over profiles/tasks/plans/recommendations/
+calendar_events), `persist_plan()` (atomic plan + rows + supersede; the P6 compensating delete
+is gone), per-user `sync_leases` with a 30 s TTL, `calendar_events.deleted_at`,
+`gcal_sync_state` OAuth/channel columns (server-only), `recommendations.gcal_event_id` /
+`gcal_synced_slot_start`, `profiles.eu_eea_resident`, `attribution_due` incl.
+`displaced_pending`, `gcal_sweep_tick()` on pg_cron every 5 min (no-op without connected
+calendars). The `updated_at` touch trigger now fires only when the writer did not set it (the
+merge needs edit times). pgTAP `p8_sync_test.sql`: 83 assertions; `scripts/pgtap-linked.sh` runs
+a pgTAP file + pending migrations against the linked project inside a rolled-back transaction
+(no Docker on the dev Mac).
+
+**Edge functions.** `sync-resolve`: replay → the P7 instant reward pass (`processUser`, same
+module) → pull, under the lease (409 `busy`), bare polls skip the reward pass. `rewards.ts`:
+a `displaced_pending` row with completion evidence becomes `completed` + `conflict_flag` and its
+tuple is written **EXCLUDED** (`concurrent_external_conflict`, value kept — H3); without
+evidence, once the slot cannot be resumed or at the daily job, `displaced` with **no tuple**.
+Google Calendar (FR-03/UC-09): fetch-based API + OAuth client (`_shared/gcal.ts`), sync core
+(`_shared/gcal_sync.ts`: token refresh, incremental sync with 410 full resync, busy import —
+timed events, opaque all-day, transparent/declined/working-location never busy, cancellations as
+tombstones, our own marker skipped — displacement of open FUTURE blocks only, channel renewal
+< 24 h, opt-in write-back insert/patch/delete), `gcal-connect` (status / start → consent URL
+with a one-shot 10-min nonce / disconnect stops-revokes-drops-wipes / set_write_back needs the
+write scope), `gcal-callback` (server-side code exchange, refresh token never on the device,
+initial sync, redirect to `hourwell://gcal-callback`), `gcal-webhook` (push with a constant-time
+channel token check; sweep renews channels and re-syncs users not synced in 5 min). 148 Deno
+tests (before: 110) incl. the File 05 §2 scenario end to end with the counterfactual branch and
+a wire-vocabulary drift guard (client `OP_TYPES` ↔ wire ↔ SQL dispatch ↔ pull tables).
+
+**Client.** `src/sync/engine.ts` replaces the P4/P6/P7 bridges (deleted): single-flight push of
+≤ 200 ops of the signed-in identity → `sync-resolve` pinned to `FunctionRegion.EuWest1`
+(`src/sync/invoke.ts`, every function call — ADR-0011 G4 closed) → acks (conflict → field-level
+merge `merge.ts`: user-owned fields LWW by edit time, done/archived monotone, `postpone_count`
+max; the entity's queued ops collapse into one rewritten op replayed in the same sync; rejected
+dead-lettered at once, error after 5 attempts with a Sentry breadcrumb) → `pull.ts` (one
+transaction per page; entities with unacked ops skipped; displaced placements send the task back
+to the Inbox through the outbox; `conflict_flag` completions raise the File 05 §2 notice) →
+cursor (MMKV, max-semantics). Triggers: foreground, 2 s after any write, `expo-network`
+reconnect, 60 s poll while active, before every plan request (skipped when fresh). Local
+migration `0004_p8_sync` (`calendar_events` mirror); busy rows on the Timeline; Today notices +
+the deferred-wipe banner (ADR-0012 §11 — an account change with unsynced ops of the previous
+account keeps its rows namespaced and asks Keep/Discard; the owner signing back in cancels it);
+Settings sync section (status, last synced, queued changes, Sync now) + Google Calendar section
+(connect, write-back opt-in via incremental consent, disconnect with confirm);
+`app/gcal-callback.tsx`. Analytics `sync_completed`, `gcal_connection`. 336 jest (P7: 290).
+
+**Verified live** (`docs/verification/p8-live-smoke.mjs`, 25/25 on the hosted project): push /
+duplicate no-op / stale `base_version` → conflict / `persist_plan` / File 05 §2 with the
+displacement injected as the webhook writes it → `completed` + `conflict_flag` + EXCLUDED tuple,
+meeting and done task pulled / counterfactual → `displaced`, no tuple / lease under concurrent
+syncs / `x-sb-edge-region: eu-west-1` / Google function fingerprints without credentials.
+`p8-manual-verification.md`.
+
+**Verified against Google Calendar** (2026-08-29, the owner's account, `p8-manual-verification.md`
+§2.3): consent → server-side code exchange → device-bound confirm → initial sync; push delivery
+within seconds; an event 20 days out arrives (adversarial #2 closed); a meeting over a planned
+block → `displaced_pending` with no reward tuple; sweep with one connected calendar; default
+all-day events free, Busy ones block the local day; disconnect revokes + tombstones.
+
+**Adversarial fixes (fresh-context pass, 2026-08-28 → 29).** 3 MAJOR + 12 MINOR; all MAJORs and
+eleven MINORs fixed with regression tests (`p8-manual-verification.md` §4): lease for every
+reward writer + compare-and-set patches, `timeMin`-only initial calendar sync, device-bound
+consent confirm, write-back cleanup, 410-only resync, status ops carrying `user_id`, and the
+engine hardening — one debounced retry on `busy`, backlog drain within a sync, an error boundary
+in `run()`, dead-letter refetch, `ack.version`/`server_seq` adoption. 344 jest / 155 Deno / 85
+pgTAP.
+
+**Docs.** ADR-0012; spec-conflicts L19 closed, L28–L33; thesis-corrections #38–39; revisit: five
+P4–P7 lines closed, six P8 lines; privacy README G4 closed + G7 (Google as an independent
+controller, production-status gate), `docs/privacy/consent-clause.md` (draft for the owner);
+`docs/runbooks/google-calendar.md` (the ⛔ owner steps); device checklist: NFR-R1 full
+obligation, two-device merge, background→foreground timing, Google consent on device,
+deferred-wipe banner; versions.md P8 pins.
+
 ## P7.1b — SSH access model + ADR-0011 accepted (2026-08-28, phase/P7-hosting-ssh)
 
 **SSH access model reworked (owner request: laptop, changing networks, never "locked out and

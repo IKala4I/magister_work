@@ -1,7 +1,7 @@
 /**
  * UI-facing feedback actions: the DAO write (SQLite + outbox + fact) plus the PostHog mirror
- * (NFR-O1; categorical only, NFR-S3) plus a fire-and-forget facts push so the instant phase runs
- * while the device is online. Imports the device database, so component tests mock this module
+ * (NFR-O1; categorical only, NFR-S3) plus a debounced sync so the instant phase runs while the
+ * device is online. Imports the device database, so component tests mock this module
  * and the DAO is covered in src/db/__tests__/feedbackDao.test.ts.
  */
 import { currentUserId } from '../auth/identity';
@@ -24,7 +24,7 @@ import type { RecommendationRow } from '../db/plans';
 import type { TaskRow } from '../db/tasks';
 import type { LocalDb } from '../db/writes';
 import { track } from '../observability/analytics';
-import { pushFactsIfPossible } from '../sync/factsPush';
+import { scheduleSync } from '../sync/engine';
 
 const localDb = db as unknown as LocalDb;
 
@@ -33,7 +33,7 @@ function tagOf(rec: RecommendationRow) {
 }
 
 function afterFact(): void {
-  void pushFactsIfPossible();
+  scheduleSync('write');
 }
 
 export function startFocusAction(rec: RecommendationRow): FocusSessionRow {

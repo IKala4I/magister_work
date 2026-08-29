@@ -184,7 +184,8 @@ export function startFocusSession(
       enqueueOp(tx, {
         opType: 'recommendation_status',
         entityId: rec.id,
-        payload: { id: rec.id, status: 'accepted', version: rec.version },
+        // user_id so the engine can attribute the op to an identity after a deferred wipe (P8)
+        payload: { id: rec.id, user_id: rec.userId, status: 'accepted', version: rec.version },
         baseVersion: rec.version,
         now,
       });

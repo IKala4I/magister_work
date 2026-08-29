@@ -136,12 +136,42 @@
 
 ## Sync & notifications
 
-- ⬜ **NFR-R1 — offline→reconnect with real radios** (local half added P3; full obligation at
-  P8). Airplane mode mid-write, radio-dead zones, flaky LTE→wifi handoff; then reconnect and
-  verify outbox replay (dup-op no-op, base_version behaviour). The P3 physical-device
-  airplane-mode spot check was explicitly deferred to P8 (`p3-manual-verification.md`).
-  Simulator can't settle it: simulated network loss is a clean socket cut on a stable host —
-  no radio renegotiation, captive portals, or partial connectivity.
+- ⬜ **NFR-R1 — offline→reconnect with real radios** (local half P3; **full obligation from
+  P8** — the engine exists now). Airplane mode mid-write, radio-dead zones, flaky LTE→wifi
+  handoff; then reconnect and verify: the `expo-network` reconnect trigger fires
+  (`sync_completed` with reason `reconnect`), outbox replay acks everything, a replayed batch
+  is `duplicate`, a stale `base_version` merges and replays (Settings shows "Up to date", 0
+  changes waiting). Simulator can't settle it: simulated network loss is a clean socket cut on a
+  stable host — no radio renegotiation, captive portals, or partial connectivity; `isConnected`
+  semantics differ per platform (Android needs a validated network).
+- ⬜ **File 05 §2 on two real devices (P8).** Same account on the iPhone and the Android: edit
+  one task on both while one is offline → on reconnect the field-level merge (newest edit per
+  user-owned field, `done` never regresses) and no duplicate rows; complete a block on one while
+  the other shows it displaced → both converge to `completed` with the "meeting kept" notice.
+  Simulator can't settle it: one simulator is one install; the P8 tests fake the second device.
+- ⬜ **Background → foreground sync timing (P8, invariant 7).** Put the app in the background
+  for > 10 min, change a task on the other device, foreground → the pull lands before the Today
+  list re-renders (no stale block actions); iOS may have suspended the JS timer — the foreground
+  trigger, not the 60 s poll, must carry it. Simulator can't settle it: iOS background
+  suspension and Android Doze exist only on hardware.
+- ⬜ **Google Calendar consent round trip on device (P8, FR-03).** Settings → Connect → system
+  browser → consent → `hourwell://gcal-callback?status=ok` opens the app (cold and warm start)
+  → Settings shows "Connected"; then a meeting created in Google over a planned block shows as
+  a busy row and displaces the block within one foreground (server-side ≤ 5 min, UC-09). Needs
+  the owner's Google Cloud gate first, and a build with the `hourwell` scheme (Expo Go's
+  `exp://` scheme never receives the redirect; the function always redirects to
+  `hourwell://gcal-callback`). Simulator can't settle it: the custom-scheme redirect from
+  Safari/Chrome and the ASWebAuthenticationSession / Custom Tabs behaviour differ from the
+  simulator's browser. **Server side done 2026-08-29** from a headless user
+  (`p8-manual-verification.md` §2.3) — what remains is exactly the device part: the redirect
+  opening the app (a desktop browser silently stalls on the `hourwell://` 302), the confirm
+  firing from the app, the busy row + "meeting" caption at the next foreground; plus the
+  week-long items on a real account: push-channel renewal at day 7 and, while the consent
+  screen is in Testing, the refresh-token expiry at day 7.
+- ⬜ **Deferred-wipe banner (P8, ADR-0012 §11).** Sign in as account A, create a task offline,
+  sign in as account B (magic link) → the banner offers Keep / Discard; Discard removes A's rows
+  only; sign back in as A after Keep → A's task is still there and syncs. Simulator can't settle
+  it: needs two real mailboxes for the magic links (P4 gate).
 - ⬜ **FR-50 — notification delivery + hard ≤5/day cap** (obligation lands at P10). Real APNs
   and FCM delivery, lead times, per-category mute, and the cap under a storm, with the app in
   every lifecycle state; Android channel behaviour and OEM battery-optimization interference.

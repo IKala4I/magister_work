@@ -65,6 +65,7 @@ export async function loadContext(
       .select('start_at, end_at')
       .eq('user_id', userId)
       .eq('busy', true)
+      .is('deleted_at', null)
       .lt('start_at', new Date(endMs).toISOString())
       .gt('end_at', new Date(startMs).toISOString()),
     client

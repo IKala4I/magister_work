@@ -75,6 +75,9 @@ describe('saveProfile', () => {
       survey_skipped: false,
       top_categories: ['deep', 'learning'],
       onboarding_completed_at: NOW.toISOString(),
+      // P8 merge inputs: the version this write produces and its edit time (ADR-0012 §4)
+      version: 1,
+      updated_at: NOW.getTime(),
     });
   });
 
@@ -102,7 +105,7 @@ describe('saveProfile', () => {
 
     const row = getProfile(db, USER);
     expect(row?.workingHours).toEqual({ wed: [600, 900] });
-    expect(row?.version).toBe(3); // local version reflects the server's last accepted one
+    expect(row?.version).toBe(4); // P8: the edit this device made on top of the server's 3
 
     const ops = db.select().from(opOutbox).all();
     expect(ops).toHaveLength(2);

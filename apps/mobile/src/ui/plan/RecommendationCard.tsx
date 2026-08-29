@@ -40,9 +40,15 @@ export function statusCaptionKey(
   | 'block.status.lapsed'
   | 'block.status.skipped'
   | 'block.status.moved'
+  | 'block.status.displaced'
+  | 'block.status.displacedPending'
   | null {
   if (active) return 'block.status.active';
   switch (status) {
+    case 'displaced_pending':
+      return 'block.status.displacedPending';
+    case 'displaced':
+      return 'block.status.displaced';
     case 'completed':
       return 'block.status.completed';
     case 'lapsed':

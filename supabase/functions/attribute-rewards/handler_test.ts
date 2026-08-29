@@ -56,6 +56,7 @@ interface State {
   patches: RecPatch[];
   profile: boolean;
   due: RecRow[];
+  leaseBusy?: boolean;
 }
 
 function makeDeps(state: State): Deps {
@@ -63,6 +64,8 @@ function makeDeps(state: State): Deps {
     now: () => NOW,
     verifyUser: (token) => Promise.resolve(token === 'good' ? USER : null),
     serviceKey: KEY,
+    acquireLease: () => Promise.resolve(state.leaseBusy ? null : 'lease'),
+    releaseLease: () => Promise.resolve(),
     loadProfile: () =>
       Promise.resolve(
         state.profile
@@ -74,6 +77,8 @@ function makeDeps(state: State): Deps {
     loadRecsForTasks: (_u, taskIds) =>
       Promise.resolve(state.recs.filter((r) => taskIds.includes(r.task_id))),
     loadRecsInRange: () => Promise.resolve(state.recs),
+    loadDisplacedPending: () =>
+      Promise.resolve(state.recs.filter((r) => r.status === 'displaced_pending')),
     loadDue: () => Promise.resolve(state.due.map((r) => ({ ...r, timezone: 'Europe/Kyiv' }))),
     loadStored: (_u, ids) =>
       Promise.resolve(
@@ -144,8 +149,11 @@ function makeDeps(state: State): Deps {
       const rows: RecRow[] = [];
       for (const p of patches) {
         const r = state.recs.find((x) => x.id === p.id);
-        if (r) {
-          Object.assign(r, p);
+        // the adapter's compare-and-set (adversarial #1): a row whose status moved meanwhile
+        // matches nothing
+        if (r && (p.expected_status === undefined || r.status === p.expected_status)) {
+          const { expected_status: _e, ...fields } = p;
+          Object.assign(r, fields);
           rows.push({ ...r });
         }
       }
@@ -473,4 +481,71 @@ Deno.test('#6 — a patch is dropped when a concurrent pass already stored a dif
   assertEquals(body.patches, 1); // computed…
   assertEquals(state.patches, []); // …but not applied: the stored tuple is not ours
   assertEquals(state.recs[0].status, 'shown');
+});
+
+// --- P8 adversarial #1: lease + compare-and-set ------------------------------------------------
+
+Deno.test('daily mode skips a user whose lease is held (a sync is in flight) and reports it', async () => {
+  const state = freshState({ due: [rec()], leaseBusy: true });
+  const res = await handleAttributeRewards(post({ mode: 'daily' }, asBackend), makeDeps(state));
+  assertEquals(res.status, 200);
+  const body = await res.json();
+  assertEquals(body.skipped_busy, 1);
+  assertEquals(body.users, 0);
+  assertEquals(state.patches, []);
+  assertEquals(state.stored, []);
+});
+
+Deno.test('instant mode answers 409 busy while the lease is held', async () => {
+  const state = freshState({ leaseBusy: true });
+  const res = await handleAttributeRewards(post({ mode: 'instant' }, asUser), makeDeps(state));
+  assertEquals(res.status, 409);
+});
+
+Deno.test('patches carry the status the mapping read; a row another writer moved meanwhile is never overwritten', async () => {
+  // the due slice was read as displaced_pending, but a concurrent sync-resolve already turned the
+  // row into completed + conflict_flag (facts beat plans) before the sweep's patch lands
+  const stale = rec({ status: 'displaced_pending' });
+  const live = rec({
+    status: 'completed',
+    conflict_flag: true,
+    attributed_at: '2026-09-02T20:50:00Z',
+  });
+  const state = freshState({ due: [stale], recs: [live] });
+  const res = await handleAttributeRewards(post({ mode: 'daily' }, asBackend), makeDeps(state));
+  assertEquals(res.status, 200);
+  const displacedPatch = state.patches.find((p) => p.id === REC && p.status === 'displaced');
+  assert(displacedPatch !== undefined, 'the sweep computed a displaced patch from its stale read');
+  assertEquals(displacedPatch.expected_status, 'displaced_pending');
+  assertEquals(state.recs[0].status, 'completed', 'compare-and-set left the facts-side row alone');
+  assertEquals(state.recs[0].conflict_flag, true);
+});
+
+Deno.test('a move followed by an outcome in one pass chains the expected statuses', async () => {
+  const state = freshState({
+    recs: [rec({ status: 'accepted' })],
+    facts: [
+      fact('block_moved', {
+        from_start: '2026-09-02T11:00:00Z',
+        from_end: '2026-09-02T12:30:00Z',
+        to_start: '2026-09-02T07:00:00Z', // 10:00 Kyiv
+        to_end: '2026-09-02T08:30:00Z',
+        at: '2026-09-02T06:00:00Z',
+      }, { client_ts: '2026-09-02T06:00:00Z' }),
+      fact('focus_end', {
+        session_id: 's',
+        outcome: 'finished',
+        started_at: '2026-09-02T07:00:00Z',
+        ended_at: '2026-09-02T08:20:00Z',
+        focused_ms: 80 * 60_000,
+        planned_minutes: 90,
+        est_minutes: 90,
+      }, { client_ts: '2026-09-02T08:20:00Z' }),
+    ],
+  });
+  const res = await handleAttributeRewards(post({ mode: 'instant' }, asUser), makeDeps(state));
+  assertEquals(res.status, 200);
+  const forRec = state.patches.filter((p) => p.id === REC);
+  assertEquals(forRec.map((p) => p.expected_status), ['accepted', 'moved']);
+  assertEquals(state.recs[0].status, 'completed');
 });

@@ -2,264 +2,128 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-08-27 (evening), **P7 closed** (PR #8) + **P7.1 RecSys hosting on the Oracle
-> VM** (PR #9 — `phase/P7-hosting`; ADR-0009 accepted; box hardened + verified; **ADR-0011**
-> cross-border transfers proposed for the owner). Next: the owner steps **one at a time** (below),
-> the three measurements + the live `/feedback` check, then **P8 — Sync.**
-> Standing rules live in CLAUDE.md: "Working mode", "Context efficiency", "Simulator evidence"
-> (also applied to service timing and to the edge functions: Node-on-a-Mac → hosted function is
-> not a handset), and invariant 16 (never run expo / package-manager commands from the root).
+> Last update: 2026-08-29 (late morning), **P8 — Sync: complete; PR #16 merged; P9 — Trust
+> surfaces opens next.** Standing rules live in CLAUDE.md: "Working mode", "Context efficiency",
+> "Simulator evidence".
 
 ## Where we are
 
-- **P0–P7 merged** (PRs #1–#8). **P7.1 = PR #9** (CI green; merged by the session once the
-  gates passed — if you read this on `main`, it is in).
-- **P7 — Feedback loop: COMPLETE, minus anything that needs a live RecSys service.** Server:
-  migration `20260827150000_p7_feedback` (pg_net, `duration_estimates`,
-  `feedback_rewards.delivered_at/source`, `attribution_due(p_now)` — the 23:55-local boundary in
-  SQL, pgTAP-tested across DST —, `attribution_sweep_tick()` on pg_cron every 15 min, Vault-held
-  URL/key, no-op until set). Edge function **`attribute-rewards`**: pure facts→tuples mapping
-  (`_shared/rewards.ts`, rows 1–9, M-02 exclusion, 7-day corrections), **instant** mode (user JWT
-  after the client pushes facts; backend key + `user_id` for P8's sync-resolve) and **daily** mode
-  (rows 4–5 over `attribution_due` + re-delivery of undelivered tuples); override target context
-  from the shared grid/φ/features; UC-06 A2 duration estimator applied by `plan-request` to both
-  engines (n ≥ 3). Service: blend weights learn by projected SGD (River = CI oracle), rebuild
-  replays them, `blend_state` persisted; rung-2 helpers. Client: Focus tab (FR-30/31), block
-  actions (Start/Done/Skip/Move…/"I did it"), lazy lapse scan on foreground, third-skip diagnostic,
-  facts bridge (`src/sync/factsPush.ts`), local migration `0003_p7_feedback`. Verified: 290 jest +
-  98 Deno + 135 pytest (92 %) + 32 pgTAP (CI) — `docs/verification/p7-manual-verification.md`.
-  Decisions: **ADR-0010**. Adversarial pass: same file §4 — 7 MAJOR + 14 MINOR, all MAJORs fixed.
-- **Hosting (ADR-0009 option A, accepted 2026-08-27):** `recsys-oracle` (Oracle Always Free A1,
-  2 OCPU / 12 GB, Ubuntu 24.04 arm64, `eu-marseille-1`, public IP 84.235.238.25). **P7.1 built
-  and partly deployed:** arm64 Dockerfile + `/healthz` build/arch; `services/recsys/deploy/`
-  (compose `cpus: 2`, Caddyfile, `.env.example`, `hourwell-rollout` + systemd timers, `harden.sh`
-  / `install.sh` / `verify.sh`); `deploy-recsys.yml` = build on `ubuntu-24.04-arm` → CP-SAT solve
-  inside the image → push GHCR → confirm the VM's pull-based rollout (skipped until
-  `vars.RECSYS_HOST`); `docs/runbooks/oracle-vm.md`; privacy README (processors, VM section, gaps
-  G1–G6). **Done on the box (2026-08-27 evening, from the owner IP 193.0.218.70):** deploy bundle
-  copied; `harden.sh apply` → fresh-connection SSH re-check → `persist`; sshd effective
-  `PermitRootLogin no` / `PasswordAuthentication no` / `AllowUsers ubuntu` / `MaxAuthTries 3`;
-  iptables 22 only from 193.0.218.70/32, persisted to `rules.v4`; security updates applied (no
-  reboot required); `install.sh` first run created `~/hourwell/.env` with `HOURWELL_SERVICE_KEY`
-  filled (never printed). `verify.sh 193.0.218.70` → every check OK except the four app checks
-  that need DuckDNS + `DATABASE_URL` + the second `install.sh` run.
-- **ADR-0011 (proposed, owner decision, claim-level):** cross-border data flows path by path —
-  who the participants are decides the regime (EDPB 05/2021 Example 10 vs 6), what actually
-  moves on each of ten paths (today: nothing — only the researcher's test accounts exist; CI has
-  no hosted-project secret), lawful bases (no adequacy for Ukraine; no Art. 46 instrument yet for
-  an Art. 3(2) importer; Art. 49(1)(a) consent; anonymous aggregates), options A–D + public-release
-  options. Recommended default **A**: analysis + training on the EU VM, participant data never on
-  CI, aggregates only to the researcher, consent-form clause. Owner questions: population, Art.
-  27 representative, consent clause, rMEQ note. Privacy README G2–G6; thesis-corrections
-  #34–36; spec-conflicts H5.
-- **Owner decisions recorded 2026-08-27:** PAYG deferred until before enrollment (keep-busy
-  stays on — ADR-0009 §7); the transfer analysis is not deferred to P11 (this ADR).
-- **2026-08-28 — SSH access model reworked (PR #10, `phase/P7-hosting-ssh`) + ADR-0011
-  accepted.** Runbook §0 (what is address-bound: only port 22; two browser-editable locks —
-  Security List + instance tag `ssh-allow` synced by `hourwell-ssh-allow.timer` into the
-  `HOURWELL-SSH` chain), §4 (`harden.sh apply <IP list>`, console-only password, optional OCI
-  CLI one-liners `deploy/ssh-allow.sh`), §5 (lockout recovery ladder A–D). On the box:
-  applied from 193.0.218.70, fresh-connection re-check OK, console password set
-  (`~/.hourwell/console-password` — owner copies it to the password manager), `rules.v4` now
-  host-only, GRUB menu 3 s on serial, `verify.sh` green except the app checks that wait for
-  `DATABASE_URL` + install and the INFO that the tag is not yet set. ADR-0011 decisions and
-  their doc trail: CHANGELOG "P7.1b".
+- **P0–P8 merged** (PRs #1–#16). `main` = hosted project (both P8 migrations applied; all six
+  functions deployed; the three `GCAL_*` secrets set 2026-08-29; `p8-live-smoke.mjs` **27/27**
+  on 2026-08-29 with the secrets in place — its `start` check now expects 200 + `auth_url`).
+- **What P8 built** (ADR-0012; CHANGELOG "P8"): `sync-resolve` push-then-pull under a per-user
+  lease (replay ledger `sync_ops` → duplicate op = no-op; class 1 append-only events with
+  ownership checks; class 2 `base_version` → `conflict` + server row → client field-level merge
+  → collapse → replay; class 3 state-checked statuses; RLS-invoker `sync_pull`; `persist_plan`
+  RPC), `displaced_pending` resolved by the reward mapping (completed + `conflict_flag` with an
+  EXCLUDED tuple, or `displaced` with no tuple), Google Calendar (server-held OAuth with a
+  device-bound confirm step, push channels + 5-min sweep, opt-in write-back with cleanup)
+  **verified live against the owner's Google Calendar on 2026-08-29** (consent → callback →
+  confirm → initial sync; push within seconds; the 20-day event; a meeting over a planned block
+  → `displaced_pending` with no reward row; sweep `users: 1`; all-day rule both ways;
+  disconnect — `p8-manual-verification.md` §2.3), client engine replacing the three bridges
+  (+ the adversarial hardening #5–#8/#13: one debounced retry on `busy`, backlog drain, error
+  boundary, dead-letter refetch, `ack.version` adoption), calendar mirror + busy rows, Today
+  notices, deferred wipe with a confirm, Settings sync/calendar sections.
+- **Gates at the merge:** typecheck/lint/Prettier clean · jest **344** (42 suites) · Deno
+  **155** · pgTAP **85/85** (linked, rolled back) · expo-doctor 21/21 · smoke 27/27.
+- **Adversarial pass** (`p8-manual-verification.md` §4): 3 MAJOR + 12 MINOR + 5 notes; all
+  MAJORs and eleven MINORs fixed and re-verified; one residual documented (revisit.md: a
+  cancelled meeting does not un-displace a block — ADR-0012 §9 [INFERRED]).
+- **What FR-03 still lacks** (device checklist + pre-enrollment list): the `hourwell://`
+  redirect opening the app and the confirm firing from the device; the busy row + "meeting"
+  caption at foreground; write-back against live Google; push-channel renewal at day 7 and the
+  Testing-status refresh-token expiry (a week on a real account); consent screen **Testing → In
+  production** before any participant connects a calendar.
+- **Docs current:** ADR-0012, `p8-manual-verification.md` (§2.3 live Google, §4 all rows
+  closed), traceability (FR-03 live ✅), CHANGELOG (P8: live Google + adversarial fixes), PLAN
+  status board (P8 ✅ merged), spec-conflicts L19 closed + L28–L33, thesis-corrections #38–39,
+  revisit (engine hardening DONE; Testing→production pre-enrollment line), device checklist,
+  versions, privacy README G4 closed + G7, `consent-clause.md` (owner review),
+  `runbooks/google-calendar.md` (§3 done 2026-08-29, corrected wording), explainer (P8 section
+  rewritten for the live verification, counts 344/155/85/27).
 
-## ⛔ ACTION REQUIRED (owner) — one step at a time; the session verifies each before the next
+## Exact next actions (next session, in order)
 
-Owner IP as seen from the Mac on 2026-08-28: `193.0.218.70` (`curl -s https://api.ipify.org`).
-Both SSH locks (runbook §0) must contain it; the host lock already does (applied by the session).
+1. `git checkout main && git pull`; `gh run list --branch main -L 1` green; then
+   `git checkout -b phase/P9-trust` and open PR #17 "P9 — Trust surfaces" early (draft body:
+   requirement IDs; gate output added at the close).
+2. **P9 — Trust surfaces** reading list (read nothing else to orient): PLAN §3 P9; specs/02
+   FR-24, FR-33, FR-40, FR-41, UC-05, UC-08; specs/07 §5 `GET /insights` (lines ~400–414) and
+   §3.6 rungs; File 04 §3.2 (dayparts) for the heatmap grid; ADR-0010 §11 (rung-2 helpers);
+   revisit lines tagged P9 (proportional timeline, second-move semantics, NULL_CONFIDENCE_RENDER,
+   chunk-level displacement, week-horizon capacity); `services/recsys` `/insights` handler +
+   `apps/mobile/app/(tabs)/insights.tsx` (P2 shell) + `src/ui/plan/Timeline.tsx` (busy rows
+   landed in P8); `docs/thesis/spec-conflicts.md` before implementing anything File 02/07 says.
+3. Scope (PLAN §3): energy heatmap hour×weekday with OKLCH interpolation + screen-reader
+   alternative (FR-40); weekly review with adherence trend + 2–3 learnings + correction toggles
+   as high-weight labels (FR-33, UC-08); "What Hourwell believes about you" (FR-41); conflict
+   trade-off sheet with ranked consequences, decision logged (FR-24, UC-05). _Accept:_ heatmap
+   renders from `/insights`; corrections round-trip to model state; infeasible day produces the
+   sheet, choice logged.
+4. **Verification depth:** corrections (FR-33) are thesis-critical — invariant 6 (a correction
+   triggers a full rebuild from stored tuples, never a rank-one downdate) and the "high-weight
+   label" semantics must be measured (recsys tests + a live round trip); the FR-24 decision log
+   is the UC-05 evidence. Heatmap/belief rendering is routine (Definition of Done, no extra
+   depth) but needs device-checklist entries (200 % font, reduced motion, VoiceOver table).
+5. Keep `docs/thesis/pojasnennia.uk.md` in the same commits; add device-checklist entries
+   during the phase; refresh this file at the end and close with `HANDOFF WRITTEN — safe to
+/clear`.
 
-1. ~~DuckDNS~~ — **done 2026-08-28**, `hourwell-recsys.duckdns.org → 84.235.238.25` verified.
-2. ~~Locks~~ — **done 2026-08-28**: Security List 22 from `193.0.218.70/32`; tag `ssh-allow` set;
-   tag propagation proven (a hand-added TEST-NET address was removed by the next sync).
-3. ~~Serial console~~ — **done 2026-08-28**: login on `ttyAMA0` + `sudo` seen in the journal;
-   console password in the owner's password manager (ladder B proven).
-4. ~~`DATABASE_URL`~~ — **done 2026-08-28** after one correction: the owner pasted the _Direct
-   connection_ DSN (IPv6-only host → `Network is unreachable`); rewritten in place to the
-   Transaction pooler **`aws-1-eu-west-1`** (`aws-0` = "tenant not found"), `?sslmode=require`
-   appended (TLS confirmed in-container). `install.sh` second run OK; Let's Encrypt certificate
-   obtained; `https://hourwell-recsys.duckdns.org/healthz` → `storage: postgres`, `arch:
-aarch64`, `build: <main sha>`; `verify.sh 193.0.218.70` → **ALL OK** (40); GitHub variable
-   `RECSYS_HOST` set (rollout job live from PR #12 on). Found and fixed on the way:
-   `PostgresRepo` now sets `prepare_threshold=None` (transaction pooler has no server-side
-   prepared statements — would have failed after a statement's 5th execution).
-   **Rollout proven end to end (PR #12 → `86aeb12`):** CI's rollout job saw the VM switch builds
-   ~5 min after the push; keep-busy runs (its one failure was the container restart at 18:44).
-   **Measurement 3 done (container bench, `p5-manual-verification.md` §2.1–2.3):** day plan
-   OPTIMAL 20/20, 135 ms p50 / 487 ms p90 end-to-end — NFR-P1 with margin; the 50-task week
-   stress instance is presolve-bound at 3.6·10³ literals → threshold sweep →
-   **`PRACTICAL_LITERAL_THRESHOLD` re-fitted 8 000 → 3 000** (PR #13), and a claim-level
-   qualification for the thesis (≈ 40 % of week runs stay UNKNOWN on every rung on this box;
-   thesis-corrections #37; revisit: week-horizon budget before P9). Re-measured with the shipped
-   image (`b75d7c1`, §2.3): week FEASIBLE 13/20 at 1.35 s p50 / 1.92 s p90, day unchanged.
-5. ~~`supabase login`~~ — **not needed**: the CLI token from an earlier phase is still valid
-   (`supabase projects list` works; project linked). Secrets `HOURWELL_SERVICE_KEY` + `RECSYS_URL`
-   set 2026-08-28 (`supabase secrets set --env-file`, values never printed).
-6. ~~Vault SQL~~ — **done 2026-08-28 from the box** (`vault.create_secret` ×3 through the recsys
-   container's DB connection; the file's create-or-update guard avoids duplicates). Tick →
-   `posted`; pg_net → 200; pg_cron's own 19:15/19:30 UTC runs `succeeded`.
-7. ~~Measurements~~ — **all four done 2026-08-28**: container bench (`p5-manual-verification.md`
-   §2.1–2.3), learned-path smoke + warm p95 (`p6-manual-verification.md` §3.1 — p95 **1.5 s**,
-   NFR-P1 met), live `/feedback` delivery + cron path (`p7-manual-verification.md` §2c — 24/24
-   delivered, 0 undelivered), UC-03 A1 outage/fallback (§2c). **Bug found on the way:**
-   `config.toml` had `attribute-rewards` pointing at plan-request's entrypoint — the function had
-   never actually run on the hosted project (fixed, redeployed, PR #15).
+## ⛔ ACTION REQUIRED (owner) — none blocks P9
 
-**P7.1 is closed. Next: P8 — Sync** (new session; reading list below, plus ADR-0011 §Decision and
-privacy README §7 for the consent clause, the region pin and the "EU/EEA resident?" field).
+- **Consent clause review** — `docs/privacy/consent-clause.md` (draft; contact block to fill).
+- **Google OAuth _sign-in_ (FR-01, P4 leftover) is now cheap:** the Google Cloud project and
+  consent screen exist. Create a second Web OAuth client with redirect
+  `https://uapiuehjcntilwdmpojk.supabase.co/auth/v1/callback`, paste its id + secret into
+  Supabase Dashboard → Authentication → Providers → Google; the session then runs the P4 smoke.
+- Earlier gates unchanged: magic-link E2E with a real mailbox, OSF-freeze text items.
+- **Pre-enrollment list** (revisit together; `docs/decisions/revisit.md`): (1) Oracle **PAYG**
+  (owner 2026-08-27: deferred); (2) Google consent screen **Testing → In production** — in
+  Testing, refresh tokens expire after 7 days, which was fine for the 2026-08-29 verification
+  but would silently disconnect every participant in week 2 (runbook §4); (3) the device
+  verification pass before P12 (device checklist).
 
-**Optional, any time:** OCI CLI for one-line lock edits (runbook §4.4: `brew install oci-cli`,
-`oci setup config`, API key upload; then `deploy/ssh-allow.sh init`).
+## Gotchas (P8 additions; earlier lists still apply)
 
-**Owner decisions recorded 2026-08-28:** ADR-0011 accepted (option A; population Ukraine with
-EU residents possible; Art. 27 conditional; synthetic + restricted release; path-4 rule = privacy
-README §7); PAYG deferred to before enrollment. Later gates unchanged: Google OAuth consent
-screen (FR-01), magic-link E2E with a real mailbox, Sentry slugs (P12), OSF-freeze text items
-(thesis-corrections #21, #8/#22, #17, #23–36).
+- **Run jest from `apps/mobile`** (`cd apps/mobile && npx jest`) or `pnpm test` at the root — a
+  bare `npx jest` at the repo root fails all 42 suites with a Babel "Unexpected token" (no
+  config there). The shell cwd persists across tool calls, so check it first.
 
-## Resume point for the next session
+- **Desktop consent looks like a hang**: after the consent click Chrome spins forever (no
+  handler for `hourwell://`). Success shows in `gcal_sync_state` (tokens + `confirm_token`);
+  the session reads the token there and confirms within its 10-min TTL (runbook §3.2).
+- **The calendar zone is not the profile zone.** Derive it from a stored event (time shown in
+  Google vs `start_at`) before telling the owner which slot to cover — a UTC+2 guess put the
+  first §3.5 meeting 15 min beside the block.
 
-1. `git status` clean on `main` after PR #10 (P7.1b) — or on `phase/P7-hosting-ssh` if the merge
-   did not happen (`gh pr checks 10`, merge with a merge commit like the earlier PRs).
-2. Ask the owner for the next unchecked ⛔ step, verify it as listed, continue down the list;
-   `verify.sh 193.0.218.70` after step 4 must print `ALL OK`.
-3. After ⛔ 6: the measurements (⛔ 7; the container bench already ran on 2026-08-28 — see
-   `p5-manual-verification.md` §2 once recorded), then a docs commit on a small branch, then P8 (its reading list is below; add ADR-0011 §Decision + privacy README §7
-   for the consent clause, the region pin and the "EU/EEA resident?" enrollment field).
-
-## What P8 needs to read (exact sections — read nothing else to orient)
-
-- `PLAN.md` §3 "P8 — Sync" (scope + acceptance) and decision row 5 (GCal in P8).
-- `specs/05_sequence_diagrams.md` §2 (push-then-pull, three conflict classes, `sync-resolve`
-  domain rule "facts beat plans", `displaced_pending` → `completed` + `conflict_flag`, the 409
-  field-level merge) and File 03 §1.2 / File 05 §1 for the outbox contract.
-- `specs/07_engine_internals_and_schema.md` §4.1 `events`/`recommendations`/`calendar_events`/
-  `gcal_sync_state`, §4.3 M-02, §5 (sync endpoints if listed), §7 (webhook secrets).
-- `docs/thesis/spec-conflicts.md` **L11** (client-writable statuses), **L19** (task-push bridge —
-  P8 deletes it), **L24** (skip = `rejected` + event), **L26** (`lapse_observed` ≠ skip); H3.
-- `docs/decisions/ADR-0010-p7-feedback-loop.md` §2 (facts vocabulary), §3 (instant mode is
-  callable with the backend key + `user_id` — `sync-resolve` calls `processUser(deps, userId,
-'instant', null)` from `supabase/functions/attribute-rewards/handler.ts` after replaying ops),
-  §8 (delivery marker), §12 (which local statuses are fact-derived and never pushed as status ops;
-  `accepted` IS pushed as a `recommendation_status` op).
-- `docs/decisions/revisit.md` — P8 lines: task-push bridge removal, facts-bridge removal
-  (`src/sync/factsPush.ts`, `src/sync/taskPush.ts`), cursor-wipe confirm, transactional persist
-  RPC for plans (ADR-0008 §4 → one `security definer` RPC).
-- `apps/mobile/src/db/writes.ts` (`OP_TYPES`, `enqueueOp`, `appendEvent`; op payloads are
-  server-shaped), `src/db/schema.ts` (`opOutbox`, local-only tables `focus_sessions` and
-  `tasks.skip_streak` — never in payloads), `src/sync/cursor.ts` (MMKV cursor),
-  `src/sync/planTypes.ts` (to be replaced by generated sync types).
-- `supabase/functions/plan-request/context.ts` (reads that a pull must keep consistent),
-  `supabase/functions/_shared/types.ts`.
-
-## New in P7 that later phases build on
-
-- **`supabase/functions/attribute-rewards/`** — `handler.ts` exports `processUser` (P8 calls it
-  from sync-resolve), `db.ts` (`makeDbDeps(admin)` — reuse the adapters), `feedback.ts`
-  (`postFeedback`), `override.ts` (`targetContext`). `_shared/rewards.ts` is the mapping and the
-  payload contract (documented at the top). Add new fact types there AND in
-  `apps/mobile/src/db/writes.ts` `CLIENT_EVENT_TYPES`.
-- **Migration helpers:** `public.attribution_due(p_now, p_limit)` (service-only),
-  `public.attribution_sweep_tick()`; the cron job name is `attribute-rewards-sweep`.
-- **Client:** `src/db/feedback.ts` (all fact writes; `applyServerRecommendations` for mirrored
-  server rows), `src/domain/blockActions.ts` (UI layer → DAO + analytics + facts push),
-  `src/sync/factsPush.ts` + `src/sync/useLapseScan.ts` (both replaced/absorbed by P8's sync
-  engine — the lapse scan itself stays), `src/ui/plan/{BlockActions,MovePicker,SkipDiagnosticCard}.tsx`.
-- **Params:** `PAR_GRACE_MINUTES`, `PAR_MIN_FRACTION`, `REWARD_*`, `CORRECTION_WINDOW_DAYS`,
-  `DURATION_*` exist on both TS sides and are pinned by `params_test.ts`; `params.py` has
-  `DURATION_EWMA_ALPHA`, `RUNG2_*`.
-
-## New in P6 that later phases build on
-
-- **Edge-function toolchain:** `supabase/functions/deno.json` (imports, tasks), `deno.lock`;
-  root ESLint/Prettier ignore `supabase/functions/**` — `deno fmt` / `deno lint` own it (CI job
-  `edge`). Deploy: `supabase functions deploy <name>` from the repo root (API bundling, no
-  Docker). Secrets: `supabase secrets set KEY=value`. Config per function in `config.toml`
-  (`import_map = "./functions/deno.json"`).
-- **Shared Deno modules** (`_shared/`): `grid.ts`, `contexts.ts`, `features.ts`, `energy.ts`,
-  `exploration.ts`, `heuristic.ts`, `rng.ts`, `params.ts`, `types.ts` — P7's `attribute-rewards`
-  and P8's `sync-resolve` reuse `types.ts`/`params.ts`; **regenerate the parity fixture**
-  (`cd services/recsys && uv run python scripts/gen_grid_parity.py`) after ANY change to
-  grid/φ/eligibility on either side, and add new Appendix A constants to `params.ts` +
-  `params_test.ts`.
-- **Client plan flow:** `src/sync/planRequest.ts` (`requestPlan`, single-flight),
-  `src/sync/usePlanTrigger.ts`, `src/db/plans.ts` (`applyPlanResponse`, `latestPlanQuery`,
-  `planRecommendationsQuery`, `unplacedOf`, `isFallbackPlan`), `src/sync/taskPush.ts` (bridge —
-  P8 deletes it), `src/sync/planTypes.ts` (hand-written EF wire types — P8's generated sync
-  types replace it). `CLIENT_EVENT_TYPES` now includes `recommendation_shown`.
-- **DB:** `plans_user_generated_idx`; `plans.telemetry` key contract in the migration comment;
-  `recommendations.propensity double precision`.
-- **Measurement scripts:** `services/recsys/scripts/experiment_rate.py` (eligibility rate),
-  `docs/verification/p6-live-smoke.mjs` (E2E + timings; plans TOMORROW so late-day runs still
-  place blocks).
-
-## Gotchas (carry forward; earlier lists still apply)
-
-- The shell `cd` persists between tool calls — use absolute paths; never run expo / pnpm add /
-  npx installers from the root.
-- **Prettier reformats `.mjs` and `.md`** — apply text patches AFTER `pnpm format`, or edits
-  silently miss (bit P6 twice).
-- `supabase db push` needs `--yes` non-interactively; the base schema already has
-  `plans_user_date_idx` and `recommendations_*` indexes — check before adding.
-- PostgREST bulk inserts null-fill missing keys across rows — send every column.
-- `recommendations_status_guard` fires only when `status` changes (`WHEN new IS DISTINCT FROM
-old`): setting the same status is a silent no-op, not an error.
-- The smoke plans TOMORROW: a plan for today late in the evening legitimately places nothing.
-- Before 06:00 the app never auto-requests (yesterday's plan stays); manual requests always plan
-  the current calendar day (`requestPlanDayOf`), the display uses `planDayOf` as a fallback.
-- The EF's rate-limit count and supersede snapshot are read-then-act: only the client's
-  single-flight guard keeps concurrent requests apart (ADR-0008 §4; RPC persist is a P8 item).
-- The arm-A feature snapshot is evaluated at the bucket's representative tick k\* (as the
-  service does) — never "at the placed tick"; the parity fixture pins it, regenerate on change.
-- No Docker on the dev Mac: pgTAP and the PostgresRepo tests run in CI's db job only.
-- Deno tests need `--allow-read --allow-env --allow-net` (`deno task test` adds read/env; the
-  service tests bind a local port → `--allow-net`).
-- **`deno lint` prints its errors BEFORE the final "Checked N files" line** — never judge it by
-  `tail -1` (P6 shipped unused imports to CI that way). Read the full output, or grep `error\[`.
-- Text patches must be applied AFTER formatting (Prettier for md/mjs/ts, `deno fmt` for the Deno
-  tree) — a patch whose anchor no longer matches silently does nothing; verify with grep.
-- **RNTL 14 / universal renderer:** `render` and post-press re-renders are async — assert after
-  `await act(async () => { fireEvent.press(…) })` (Inbox pattern). `findBy*`/`waitFor` HUNG the
-  suite in P7 (jest never returned; had to be killed). jest-expo 57.0.5 also enforces that a
-  `jest.mock` factory may only reference `mock`-prefixed variables — and the factory runs when
-  the module is first required, so return lazy wrappers (`(...a) => mockX.fn(...a)`), never the
-  object itself.
-- The Expo SDK line drifts in patch versions between phases (`expo-doctor` fails the version
-  check): run `npx expo install --fix` **from apps/mobile**, then check the "overridden
-  dependencies" check — a transitive `@expo/metro-runtime` had to be pinned directly.
-- **Session process context can lose the Mach bootstrap** (2026-08-27, after a `/login` in the
-  running session): `launchctl managername` → "Could not get manager name", `getpwuid(501)`
-  fails, `scutil --dns` empty, keychain unreachable, system resolver dead — while `dig` (reads
-  `/etc/resolv.conf` itself) and `ping 1.1.1.1` work. So the Mac is fine; the session is not.
-  `ssh`, `git push`/`gh`, `supabase`, `curl` are all unusable from it; jest/deno/pytest/uv (with
-  `--no-sync`) work. It does NOT come back on its own — **restart the CLI session from a
-  terminal** and resume ("Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue"). A
-  restarted session runs every scp/ssh/push/PR step itself; console/browser steps stay the owner's.
-- **Routing checks on the hosted project must assert a handler-specific response** — a bare 401
-  proves nothing: P7's `attribute-rewards` had been deploying plan-request's code for a day
-  (`config.toml` entrypoint copy-paste) and every check "passed" on 401s. `POST {}` → 400 "mode
-  must be…" is the attribute-rewards fingerprint. `supabase functions download <slug>` shows what
-  is really deployed (restore the tree with `git checkout -- supabase/functions/<slug>` after).
-- **Edge-function secrets are read at module load** (`Deno.env.get` at top level in both
-  functions): after `supabase secrets set`, redeploy the function if a warm instance predates the
-  secret. `supabase secrets list` prints SHA-256 digests, not values — safe to paste.
-- **Remote deploy is pull-based**: CI never touches the box; if `/healthz.build` lags `main`,
-  look at `journalctl -u hourwell-rollout` on the VM (image pull denied = package not public).
-- **Cron health:** pg_net never surfaces HTTP failures — check
-  `select id, status_code, left(content, 120), created from net._http_response order by created desc limit 5;`
-  in the SQL editor when the sweep seems silent; a 401 there means the Vault secrets are wrong.
-- `attribution_sweep_tick()` reads Vault inside an exception block — if it ever returns
-  `skipped: vault unavailable` on the hosted project, the `supabase_vault` extension or the
-  function owner's privileges changed.
-- The `feedback_rewards` unique key is `(recommendation_id, kind)` — a second `block_moved` for
-  the same row is intentionally NOT a second pair (ADR-0010 §6); do not "fix" that in P8.
-- `docs/decisions/revisit.md` has 13 open entries (2 from P4, 2 from P5, 4 from P6) — surface them
-  in the phases named (P8: task-push + facts bridge removal, cursor wipe confirm, transactional persist RPC; P9: second-move semantics, drag; P11: λ_f retune with real q̂ scales, duration-scaling report; P12: key rotation).
+- **`scripts/pgtap-linked.sh <test.sql> [migrations…]`** runs a pgTAP file + not-yet-pushed
+  migrations against the LINKED project inside one rolled-back transaction (Management-API SQL
+  = one implicit transaction; only the last statement's rows return, so the TAP text comes back
+  through a deliberate `raise exception`). Pass only migrations NOT yet applied remotely.
+- **`supabase db query --linked -f <abs path>`** — the path resolves against the workdir; the
+  shell cwd persists across tool calls (a `cd apps/mobile` earlier bit twice).
+- **PostgREST embeds need a FK path**: `gcal_sync_state` and `profiles` both hang off
+  `auth.users`, so `profiles!inner(timezone)` fails at runtime (500) while `deno check` is happy
+  — the loader reads profiles separately. Fingerprint deployed functions with a handler-specific
+  body, not a status code (the smoke does: `gcal-connect {action:'nope'}` must list `confirm`).
+- **Google secrets read at module load** — redeploy after `supabase secrets set`.
+- **`sync-resolve`/`gcal-connect` verify the user JWT before parsing** — an anon-key bearer gets
+  `unauthorized` before any fingerprint; use a session (the smoke signs in anonymously).
+- Prettier reformats `.mjs`/`.md`: run `pnpm format` before committing, or CI's TS job fails on
+  `format:check` (bit P8 once) and ESLint needs `/* global fetch */` in Node scripts.
+- jest-expo factory rule: build the real SQLite DB INSIDE the `jest.mock('../../db/client')`
+  factory (requires are allowed there; wrap with `/* eslint-disable
+@typescript-eslint/no-require-imports */`).
+- The client's `updated_at` is the LWW edit time on both sides: `tg_touch_updated_at` only fires
+  when the writer did not set it — never "fix" the trigger back.
+- `attribute-rewards` instant mode now answers **409 busy** while the user's lease is held; the
+  daily sweep reports `skipped_busy`. `sync-resolve` supplies a no-op lease to `processUser`
+  because it already holds the user.
+- Local profile `version` bumps on every edit (op `base_version` = previous); the old bridge
+  semantics ("local version = server's last accepted") are gone — tests were updated.
 
 ## Open questions (owner)
 
-- **P7.1 owner steps ⛔ 1–7** gate the live learned path, the warm NFR-P1 p95, the container
-  timing, the live `/feedback` delivery and the cron tick end-to-end. Not blocking P8's code.
-- **DPIA G2/G3** (transfers to Ukraine / US runners) — decision before P11.
-- OSF-freeze text items are listed under ⛔ 13.
+- None new. ADR-0011 items for P8 are done (region pin verified live; consent clause drafted;
+  `profiles.eu_eea_resident` column — the question itself is P11's enrollment).

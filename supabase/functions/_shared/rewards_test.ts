@@ -255,8 +255,8 @@ Deno.test('one override pair per placement — a second move re-places the row w
   assertEquals(out.patches[0].context_bucket, 'EV.wd');
 });
 
-Deno.test('row 10 / H3 — displaced rows never produce a tuple, even with facts', () => {
-  for (const status of ['displaced', 'displaced_pending', 'expired']) {
+Deno.test('row 10 / H3 — displaced and expired rows never produce a tuple, even with facts', () => {
+  for (const status of ['displaced', 'expired']) {
     const out = mapUser({
       mode: 'daily',
       recs: [rec({ status })],
@@ -267,6 +267,18 @@ Deno.test('row 10 / H3 — displaced rows never produce a tuple, even with facts
     });
     assertEquals(out.tuples, [], status);
   }
+  // P8: a PENDING displacement with completion evidence is the ambiguous case — a tuple exists
+  // for audit but is excluded from updates (File 05 §2; ADR-0012 §9)
+  const pending = mapUser({
+    mode: 'daily',
+    recs: [rec({ status: 'displaced_pending' })],
+    facts: [session('2026-09-01T14:00:00+03:00', 'finished', 90)],
+    stored: [],
+    nowIso: NOW,
+    targets: new Map(),
+  });
+  assertEquals(pending.tuples.length, 1);
+  assertEquals(pending.tuples[0].excluded, true);
 });
 
 Deno.test('M-02 conflict_flag — the outcome is written EXCLUDED with its value for audit', () => {
@@ -577,4 +589,110 @@ Deno.test('#11 — a fact logged under another device zone makes the outcome amb
     timezone: 'Europe/Kyiv',
   });
   assertEquals(fine.tuples[0].excluded, false);
+});
+
+// --- P8: pending displacement resolution (File 05 §2; ADR-0012 §9) ---------------------------
+
+Deno.test('P8 displaced_pending — completion evidence → completed + conflict_flag, tuple EXCLUDED (H3 ambiguous)', () => {
+  const r = mapUser({
+    mode: 'instant',
+    recs: [rec({ status: 'displaced_pending' })],
+    facts: [session('2026-09-01T14:00:00+03:00', 'finished', 55)],
+    stored: [],
+    nowIso: '2026-09-01T16:10:00+03:00',
+    targets: new Map(),
+  });
+  assertEquals(r.tuples.length, 1);
+  assertEquals(r.tuples[0].reason, 'completed');
+  assertEquals(r.tuples[0].reward, 1.0);
+  assertEquals(r.tuples[0].excluded, true);
+  assertEquals(r.tuples[0].excluded_reason, 'concurrent_external_conflict');
+  assertEquals(r.patches, [
+    {
+      id: REC,
+      status: 'completed',
+      conflict_flag: true,
+      attributed_at: '2026-09-01T16:10:00+03:00',
+    },
+  ]);
+});
+
+Deno.test('P8 displaced_pending — no evidence after the slot → displaced, NO tuple (H3 no row)', () => {
+  const r = mapUser({
+    mode: 'instant',
+    recs: [rec({ status: 'displaced_pending' })],
+    facts: [],
+    stored: [],
+    nowIso: '2026-09-01T16:10:00+03:00',
+    targets: new Map(),
+  });
+  assertEquals(r.tuples, []);
+  assertEquals(r.patches, [
+    { id: REC, status: 'displaced', attributed_at: '2026-09-01T16:10:00+03:00' },
+  ]);
+});
+
+Deno.test('P8 displaced_pending — before the slot can no longer be resumed it stays pending (instant); daily mode finalises', () => {
+  const early = mapUser({
+    mode: 'instant',
+    recs: [rec({ status: 'displaced_pending' })],
+    facts: [],
+    stored: [],
+    nowIso: '2026-09-01T15:40:00+03:00', // slot_end 15:30 + 15 min grace = 15:45
+    targets: new Map(),
+  });
+  assertEquals(early.tuples, []);
+  assertEquals(early.patches, []);
+  const daily = mapUser({
+    mode: 'daily',
+    recs: [rec({ status: 'displaced_pending' })],
+    facts: [],
+    stored: [],
+    nowIso: NOW,
+    targets: new Map(),
+  });
+  assertEquals(daily.tuples, []);
+  assertEquals(daily.patches, [{ id: REC, status: 'displaced', attributed_at: NOW }]);
+});
+
+Deno.test('P8 displaced_pending — a move on a void placement is ignored; an already-resolved row is skipped', () => {
+  const moved = mapUser({
+    mode: 'instant',
+    recs: [rec({ status: 'displaced_pending' })],
+    facts: [
+      fact('block_moved', {
+        from_start: SLOT_START,
+        from_end: SLOT_END,
+        to_start: '2026-09-02T10:00:00+03:00',
+        to_end: '2026-09-02T11:30:00+03:00',
+        at: '2026-09-01T13:00:00+03:00',
+      }),
+    ],
+    stored: [],
+    nowIso: '2026-09-01T16:10:00+03:00',
+    targets: new Map(),
+  });
+  assertEquals(moved.tuples, []);
+  assertEquals(moved.patches, [
+    { id: REC, status: 'displaced', attributed_at: '2026-09-01T16:10:00+03:00' },
+  ]);
+  const stored: StoredTuple = {
+    recommendation_id: REC,
+    kind: 'outcome',
+    reward: 1.0,
+    reason: 'completed',
+    excluded: true,
+    attributed_at: '2026-09-01T16:10:00+03:00',
+    corrected_at: null,
+  };
+  const resolved = mapUser({
+    mode: 'daily',
+    recs: [rec({ status: 'displaced_pending', conflict_flag: true })],
+    facts: [session('2026-09-01T14:00:00+03:00', 'finished', 55)],
+    stored: [stored],
+    nowIso: NOW,
+    targets: new Map(),
+  });
+  assertEquals(resolved.tuples, []);
+  assertEquals(resolved.patches, []);
 });

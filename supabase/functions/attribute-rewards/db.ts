@@ -49,7 +49,10 @@ const TUPLE_SELECT =
 
 export function makeDbDeps(
   admin: AnyClient,
-): Omit<Deps, 'now' | 'verifyUser' | 'serviceKey' | 'postFeedback'> {
+): Omit<
+  Deps,
+  'now' | 'verifyUser' | 'serviceKey' | 'postFeedback' | 'acquireLease' | 'releaseLease'
+> {
   return {
     async loadProfile(userId) {
       const { data, error } = await admin
@@ -117,6 +120,17 @@ export function makeDbDeps(
         .gte('slot_end', fromIso)
         .lte('slot_start', toIso);
       if (error) fail('recommendations in range', error);
+      return (data ?? []).map(toRecRow);
+    },
+    async loadDisplacedPending(userId) {
+      const { data, error } = await admin
+        .from('recommendations')
+        .select(REC_SELECT)
+        .eq('user_id', userId)
+        .eq('status', 'displaced_pending')
+        .is('attributed_at', null)
+        .limit(200);
+      if (error) fail('recommendations displaced_pending', error);
       return (data ?? []).map(toRecRow);
     },
     async loadDue(nowIso, limit) {
@@ -217,6 +231,7 @@ export function makeDbDeps(
         .select('start_at, end_at')
         .eq('user_id', userId)
         .eq('busy', true)
+        .is('deleted_at', null)
         .lt('start_at', toIso)
         .gt('end_at', fromIso);
       if (error) fail('calendar_events', error);
@@ -266,14 +281,16 @@ export function makeDbDeps(
     async patchRecs(userId, patches: readonly RecPatch[]) {
       const rows: RecRow[] = [];
       for (const p of patches) {
-        const { id, ...fields } = p;
-        const { data, error } = await admin
+        const { id, expected_status, ...fields } = p;
+        // compare-and-set on the status the mapping read (adversarial #1): a row another writer
+        // moved meanwhile matches zero rows — never an overwrite
+        let q = admin
           .from('recommendations')
           .update({ ...fields, updated_at: new Date().toISOString() })
           .eq('user_id', userId)
-          .eq('id', id)
-          .select(REC_SELECT)
-          .maybeSingle();
+          .eq('id', id);
+        if (expected_status !== undefined) q = q.eq('status', expected_status);
+        const { data, error } = await q.select(REC_SELECT).maybeSingle();
         if (error) fail('recommendations patch', error);
         if (data !== null) rows.push(toRecRow(data));
       }

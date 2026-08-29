@@ -10,6 +10,7 @@
  * the same value the cron tick reads from Vault and the service checks on /feedback).
  */
 import { createClient } from '@supabase/supabase-js';
+import { acquireLease, releaseLease } from '../_shared/lease.ts';
 import { makeDbDeps } from './db.ts';
 import { postFeedback, type ServiceConfig } from './feedback.ts';
 import { handleAttributeRewards } from './handler.ts';
@@ -38,6 +39,8 @@ Deno.serve(async (req: Request) => {
       ...dbDeps,
       now: () => Date.now(),
       serviceKey: serviceConfig.serviceKey,
+      acquireLease: (userId) => acquireLease(admin, userId),
+      releaseLease: (userId, token) => releaseLease(admin, userId, token),
       verifyUser: async (jwt) => {
         const { data, error } = await userClient.auth.getClaims(jwt);
         if (error || !data?.claims?.sub) return null;

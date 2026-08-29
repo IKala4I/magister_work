@@ -1,6 +1,6 @@
 /**
  * Lazy lapse detection on open/foreground (File 05 §1; invariant 7: no correctness depends on
- * background execution). Runs the local scan, then the facts bridge so the server learns about
+ * background execution). Runs the local scan, then a sync so the server learns about
  * the day so far; the 23:55 job stays the authority. Surfaces the UC-04 A2 diagnostic when a task
  * reaches its third consecutive skip/lapse.
  */
@@ -13,14 +13,14 @@ import { abandonStaleSessions, lapseScan } from '../db/feedback';
 import type { TaskRow } from '../db/tasks';
 import type { LocalDb } from '../db/writes';
 
-import { pushFactsIfPossible } from './factsPush';
+import { syncNow } from './engine';
 
 export function runLapseScan(now: Date = new Date()): TaskRow[] {
   const localDb = db as unknown as LocalDb;
   const userId = currentUserId();
   abandonStaleSessions(localDb, { userId, now });
   const result = lapseScan(localDb, { userId, now });
-  void pushFactsIfPossible();
+  void syncNow('foreground');
   return result.diagnosticDue;
 }
 

@@ -71,6 +71,9 @@ export type TupleKey = readonly [recommendationId: string, kind: Kind];
 export interface Deps {
   now(): number;
   verifyUser(token: string): Promise<string | null>;
+  /** Per-user lease (ADR-0012 §7): null while sync-resolve or another sweep holds the user. */
+  acquireLease(userId: string): Promise<string | null>;
+  releaseLease(userId: string, token: string): Promise<void>;
   /** The shared backend key (HOURWELL_SERVICE_KEY); null = backend calls are refused. */
   serviceKey: string | null;
   loadProfile(userId: string): Promise<Profile | null>;
@@ -85,6 +88,8 @@ export interface Deps {
   ): Promise<RecRow[]>;
   /** Every non-expired recommendation overlapping [fromIso, toIso] (override-target occupancy). */
   loadRecsInRange(userId: string, fromIso: string, toIso: string): Promise<RecRow[]>;
+  /** P8: the user's `displaced_pending` rows — instant-mode candidates even without facts. */
+  loadDisplacedPending(userId: string): Promise<RecRow[]>;
   loadDue(nowIso: string, limit: number): Promise<Array<RecRow & { timezone: string }>>;
   loadStored(userId: string, recIds: readonly string[]): Promise<StoredTuple[]>;
   loadUndelivered(userId: string): Promise<Array<WireTuple & { source: string }>>;
@@ -309,6 +314,14 @@ export async function processUser(
   ]
     .filter((id) => !byId.has(id));
   if (recIds.length > 0) { for (const r of await deps.loadRecs(userId, recIds)) byId.set(r.id, r); }
+  if (mode === 'instant') {
+    // P8 (File 05 §2): pending displacements resolve at sync time — facts beat plans, or, once
+    // the slot is past, `displaced` with no reward (ADR-0012 §9); daily mode gets them via
+    // attribution_due
+    for (const r of await deps.loadDisplacedPending(userId)) {
+      if (!byId.has(r.id)) byId.set(r.id, r);
+    }
+  }
   const completions = facts.filter((f) => f.type === 'task_completed' && f.task_id !== null);
   if (completions.length > 0) {
     const taskIds = [...new Set(completions.map((f) => f.task_id as string))];
@@ -362,7 +375,7 @@ export async function processUser(
   if (result.tuples.length > 0) await deps.writeTuples(userId, result.tuples);
   // A concurrent pass (the daily sweep vs an instant call) may have won the (rec, kind) insert:
   // patch a row only when the tuple now stored is the one THIS pass computed (adversarial #6).
-  const allowed = await gatePatches(deps, userId, result);
+  const allowed = withExpectedStatus(await gatePatches(deps, userId, result), byId);
   const updatedRows = allowed.length > 0 ? await deps.patchRecs(userId, allowed) : [];
   const durationUpdates = mode === 'instant' ? await updateDurations(deps, userId, recs, facts) : 0;
   const d = await deliverPending(deps, userId, nowIso);
@@ -375,6 +388,39 @@ export async function processUser(
     duration_updates: durationUpdates,
     recommendations: updatedRows,
   };
+}
+
+/**
+ * Compare-and-set annotation (adversarial #1): each patch carries the status the row must still
+ * have — the status as READ for the first patch of a rec, the status the previous patch of this
+ * pass set for the next (a move followed by an outcome). The adapter's `.eq('status', …)` then
+ * makes a lost race a no-op instead of an overwrite (a plan-side `displaced` can never land on a
+ * facts-side `completed`).
+ */
+function withExpectedStatus(patches: readonly RecPatch[], read: Map<string, RecRow>): RecPatch[] {
+  const expected = new Map<string, string>();
+  for (const [id, r] of read) expected.set(id, r.status);
+  return patches.map((p) => {
+    const out: RecPatch = { ...p, expected_status: expected.get(p.id) };
+    if (p.status !== undefined) expected.set(p.id, p.status);
+    return out;
+  });
+}
+
+/** Run one user's pass under the lease; null when another writer holds the user right now. */
+async function processUserLeased(
+  deps: Deps,
+  userId: string,
+  mode: Mode,
+  dueRecs: readonly RecRow[] | null,
+): Promise<UserReport | null | 'busy'> {
+  const lease = await deps.acquireLease(userId);
+  if (lease === null) return 'busy';
+  try {
+    return await processUser(deps, userId, mode, dueRecs);
+  } finally {
+    await deps.releaseLease(userId, lease);
+  }
 }
 
 function bearer(req: Request): string | null {
@@ -411,14 +457,18 @@ export async function handleAttributeRewards(req: Request, deps: Deps): Promise<
       if (!byUser.has(u)) byUser.set(u, []);
     }
     const reports: UserReport[] = [];
+    let busy = 0;
     for (const [userId, recs] of byUser) {
-      const r = await processUser(deps, userId, 'daily', recs);
-      if (r !== null) reports.push(r);
+      // a user mid-sync is skipped this tick (ADR-0012 §7); the next tick retries (≤ 15 min)
+      const r = await processUserLeased(deps, userId, 'daily', recs);
+      if (r === 'busy') busy++;
+      else if (r !== null) reports.push(r);
     }
     return json(200, {
       mode,
       due: due.length,
       users: reports.length,
+      skipped_busy: busy,
       tuples_written: reports.reduce((s, r) => s + r.tuples_written, 0),
       delivered: reports.reduce((s, r) => s + r.delivered, 0),
       reports: reports.map(({ recommendations: _r, ...rest }) => rest),
@@ -437,7 +487,8 @@ export async function handleAttributeRewards(req: Request, deps: Deps): Promise<
     userId = await deps.verifyUser(token);
     if (userId === null) return json(401, { error: 'unauthorized' });
   }
-  const report = await processUser(deps, userId, 'instant', null);
+  const report = await processUserLeased(deps, userId, 'instant', null);
+  if (report === 'busy') return json(409, { error: 'busy' });
   if (report === null) return json(404, { error: 'profile_not_found' });
   return json(200, { mode, ...report });
 }

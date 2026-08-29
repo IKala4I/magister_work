@@ -294,3 +294,19 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     (≈ 40 % return the partial anytime plan with the ladder flagged) — the product path is the
     day horizon; the weekly plan (FR-20) needs a budget decision before it ships (revisit.md).
     `p5-manual-verification.md` §2.1–2.3, ADR-0007 §11 addendum.
+38. **§3.x (sync / UC-09 "plan consistent with external calendar ≤ 5 min after change"):**
+    state the bound as a **server-side** property — the Google push channel (seconds, typical)
+    backed by a 5-minute pg_cron sweep (`gcal_sweep_tick`) that re-syncs any connected calendar
+    not synced in the last 5 min and renews channels; the **device** learns the new state at its
+    next foreground or 60-second poll (invariant 7: no correctness depends on background
+    execution). Say explicitly that the offline-first client is eventually consistent and that
+    the reward path is what the bound protects (the displacement is recorded server-side before
+    the facts arrive). ADR-0012 §10; spec-conflicts L29.
+39. **§3.x (File 05 §2 "field-level merge, user-owned fields LWW"):** the text should name the
+    rule the system implements: user-owned fields follow the newest edit time across devices
+    (ties to the device in hand); fact-derived fields are monotone (a completion never regresses
+    to a plan-side status, `postpone_count` is the max); the merged row is replayed against the
+    server's version and every queued op of the entity collapses into it, so the conflict loop
+    is bounded by construction. Also state that replaying a duplicate `op_id` is a no-op at the
+    constraint level (ledger `sync_ops`), verified by pgTAP, a Deno scenario and the live
+    smoke. ADR-0012 §2–§4; `p8-manual-verification.md` §2.
