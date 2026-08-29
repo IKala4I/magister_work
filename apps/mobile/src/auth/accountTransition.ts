@@ -31,6 +31,7 @@ import {
 import type { LocalDb } from '../db/writes';
 import { useSyncStore } from '../state/sync';
 import { appStorage, StorageKeys } from '../storage/mmkv';
+import { clearInsightsCache } from '../sync/insights';
 import { resetSyncCursor } from '../sync/cursor';
 import { isLocalUserId, LOCAL_USER_PREFIX } from '../sync/localUser';
 
@@ -100,6 +101,7 @@ export function wipeLocalMirror(db: LocalDb): void {
     for (const table of USER_TABLES) tx.delete(table).run();
   });
   resetSyncCursor();
+  clearInsightsCache(); // the previous account's beliefs never render for the next (P9 adversarial #2)
 }
 
 /** Unacked ops that belong to `userId` (payload user_id; status ops carry none and count for nobody). */

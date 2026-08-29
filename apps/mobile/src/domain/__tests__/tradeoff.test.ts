@@ -63,7 +63,7 @@ describe('copy', () => {
         kind: 'drop',
         consequence: { metric: 'value_forfeited', value: 1.234 },
       }),
-    ).toBe('skips a task worth 1.2 of its value today');
+    ).toBe('gives up about 1.2 points of expected value today');
     expect(
       tradeoffConsequence({
         ...shrink,

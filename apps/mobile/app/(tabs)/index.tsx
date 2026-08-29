@@ -182,8 +182,13 @@ export default function TodayScreen() {
   const planning = status === 'planning';
   // FR-24: the sheet shows once per plan; a decision (or "keep as is") is a fact on this device
   const tradeoffOptions = useMemo(() => infeasibleOptionsOf(plan), [plan]);
+  // only today's plan: before 06:00 `plan` may be yesterday's, whose options are stale
+  // (P9 adversarial #13)
   const tradeoffOpen =
-    plan !== undefined && tradeoffOptions.length > 0 && !decidedPlanIds(decisionRows).has(plan.id);
+    plan !== undefined &&
+    plan.planDate === todayDay &&
+    tradeoffOptions.length > 0 &&
+    !decidedPlanIds(decisionRows).has(plan.id);
   const [tradeoffNotice, setTradeoffNotice] = useState<string | null>(null);
   const hasBlocks = plan !== undefined && (recs.length > 0 || busy.length > 0);
   const liveNotice = notice !== null && now.getTime() - notice.at < NOTICE_TTL_MS ? notice : null;

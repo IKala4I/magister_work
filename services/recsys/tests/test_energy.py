@@ -123,3 +123,11 @@ def test_labelled_cell_is_personal_by_definition() -> None:
     assert is_personal(cell, T0, labeled=True)
     assert learning_mode([cell], T0) is True
     assert learning_mode([cell], T0, frozenset({cell.key})) is False
+
+
+def test_label_weight_follows_the_cell_prior_out_of_hours_too() -> None:
+    from hourwell_recsys.energy import apply_label, label_weight
+
+    out_of_hours = BetaCell("deep", "NT", "weekday", alpha0=1.2, beta0=2.8)  # n₀ = 4 h
+    assert label_weight(out_of_hours) == pytest.approx(4.0)
+    assert apply_label(out_of_hours, "incorrect", T0).fail == pytest.approx(4.0)

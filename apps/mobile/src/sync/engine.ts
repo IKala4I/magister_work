@@ -26,7 +26,7 @@ import { AppState } from 'react-native';
 
 import { supabase } from '../auth/client';
 import { db } from '../db/client';
-import { opOutbox, profiles, tasks } from '../db/schema';
+import { events, opOutbox, profiles, tasks } from '../db/schema';
 import type { TaskRow } from '../db/tasks';
 import type { LocalDb } from '../db/writes';
 import { track } from '../observability/analytics';
@@ -361,6 +361,13 @@ export function applyAcks(
             .where(eq(opOutbox.seq, op.seq))
             .run();
           report.acked++;
+          if (op.opType === 'event_append') {
+            // the fact is on the server: `server_ts` is what "pending" reads (P9 adversarial #1)
+            tx.update(events)
+              .set({ serverTs: now, serverSeq: ack.server_seq ?? null })
+              .where(eq(events.opId, op.opId))
+              .run();
+          }
           if (ack.outcome === 'applied' && typeof ack.version === 'number') {
             adoptServerVersion(tx, uid, op, ack.version, ack.server_seq ?? null);
           }

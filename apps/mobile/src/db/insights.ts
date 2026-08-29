@@ -241,13 +241,16 @@ export function applyTradeoffOption(
         break;
       }
       case 'unpin': {
+        // the pin is the task's LIVE `pinned` row — it sits on the previous plan (the infeasible
+        // plan's rows are all `shown`); superseded rows are `expired`, so status alone finds it
+        // (P9 adversarial #5)
         const pinned = tx
           .select()
           .from(recommendations)
           .where(
             and(
+              eq(recommendations.userId, input.userId),
               eq(recommendations.taskId, option.task_id),
-              eq(recommendations.planId, input.planId),
               eq(recommendations.status, 'pinned'),
             ),
           )

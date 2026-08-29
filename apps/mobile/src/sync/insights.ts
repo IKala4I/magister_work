@@ -13,6 +13,8 @@ import { invokeFunction } from './invoke';
 export interface CachedInsights {
   doc: InsightsDocument;
   fetchedAt: number;
+  /** The identity the document belongs to — a cache for another account is never shown. */
+  userId: string;
 }
 
 export type InsightsOutcome =
@@ -23,13 +25,14 @@ export type InsightsOutcome =
   | { kind: 'profile_missing' }
   | { kind: 'failed'; detail: string };
 
-export function cachedInsights(): CachedInsights | null {
+export function cachedInsights(userId: string): CachedInsights | null {
   try {
     const raw = appStorage.getString(StorageKeys.insightsCache);
     if (raw === undefined) return null;
-    const parsed = JSON.parse(raw) as { doc?: unknown; fetchedAt?: unknown };
+    const parsed = JSON.parse(raw) as { doc?: unknown; fetchedAt?: unknown; userId?: unknown };
     if (!isInsightsDocument(parsed.doc) || typeof parsed.fetchedAt !== 'number') return null;
-    return { doc: parsed.doc, fetchedAt: parsed.fetchedAt };
+    if (parsed.userId !== userId) return null; // another account's beliefs (adversarial #2)
+    return { doc: parsed.doc, fetchedAt: parsed.fetchedAt, userId };
   } catch {
     return null;
   }
@@ -46,7 +49,11 @@ export async function fetchInsights(now: Date = new Date()): Promise<InsightsOut
   const res = await invokeFunction<unknown>('insights', { action: 'get' });
   if (res.kind === 'ok') {
     if (!isInsightsDocument(res.data)) return { kind: 'failed', detail: 'malformed document' };
-    const cached: CachedInsights = { doc: res.data, fetchedAt: now.getTime() };
+    const cached: CachedInsights = {
+      doc: res.data,
+      fetchedAt: now.getTime(),
+      userId: data.session.user.id,
+    };
     appStorage.set(StorageKeys.insightsCache, JSON.stringify(cached));
     return { kind: 'ok', ...cached };
   }

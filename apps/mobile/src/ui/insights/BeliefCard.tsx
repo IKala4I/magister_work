@@ -61,14 +61,19 @@ export function BeliefCard({ belief, label, pending = false, onLabel }: BeliefCa
       : label === 'incorrect'
         ? t('beliefs.labeled.incorrect')
         : '';
+  // the statement is ONE readable element carrying evidence + label state; the toggles stay
+  // separate focusable siblings — a wrapper marked `accessible` would swallow them on iOS
+  // (P9 adversarial #4)
   return (
-    <View
-      accessible
-      accessibilityLabel={t('beliefs.a11y', { statement, evidence, labelState })}
-      style={styles.wrap}
-    >
+    <View style={styles.wrap}>
       <GlassPanel solidity={confidenceOpacity(belief.confidence)} style={styles.panel}>
-        <ThemedText variant="body">{statement}</ThemedText>
+        <ThemedText
+          variant="body"
+          accessibilityRole="text"
+          accessibilityLabel={t('beliefs.a11y', { statement, evidence, labelState })}
+        >
+          {statement}
+        </ThemedText>
         <View style={styles.meta}>
           {belief.affinity ? (
             <ThemedText variant="caption" tone="secondary">
@@ -109,7 +114,12 @@ export function BeliefCard({ belief, label, pending = false, onLabel }: BeliefCa
             <ThemedText variant="body">✗</ThemedText>
           </Pressable>
           {labelState ? (
-            <ThemedText variant="caption" tone="secondary" style={styles.labelState}>
+            <ThemedText
+              variant="caption"
+              tone="secondary"
+              style={styles.labelState}
+              importantForAccessibility="no"
+            >
               {labelState}
               {pending ? ` ${t('beliefs.pending')}` : ''}
             </ThemedText>

@@ -162,3 +162,16 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   hosted project: `supabase db push --linked` was refused by the session's permission
   classifier. — ⛔ owner (HANDOFF): push it, then run `p9-live-smoke.mjs` for the label round
   trip (the smoke SKIPs those checks while the table is absent).
+- [P9, 2026-08-29] Adversarial #6 — the label delivery re-POSTs the oldest ≤ 200 undelivered
+  rows every pass; a batch the service refuses permanently (e.g. 409 for a user whose cells were
+  never instantiated) blocks later labels — the same contract as `/feedback` tuples. — P12
+  runbook: on a 4xx answer, mark the batch with the reason and skip it next pass (keep 5xx
+  retrying).
+- [P9, 2026-08-29] Adversarial #9 — a `belief_label` with a bad vocabulary fails the event
+  insert → op outcome `error` (retried 5× then dead-lettered), not `rejected`; only a tampered
+  client can reach it (the client validates the same regex). — P12: map errcode 22023 →
+  `rejected` in `sync_replay` when the next sync migration is written anyway.
+- [P9, 2026-08-29] Adversarial note — ✗ on the favoured cell lowers it, the belief moves to the
+  next daypart and the ✗ leaves the list (still in force on the cell, visible on the heatmap).
+  — P10 copy review: show the cell's label state on the heatmap text view; consider listing the
+  labelled cell under the belief it displaced.

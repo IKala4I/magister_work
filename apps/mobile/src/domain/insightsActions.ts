@@ -77,13 +77,20 @@ export function applyTradeoffAction(input: {
   rank: number;
   options: readonly TradeOffOption[];
 }): void {
-  applyTradeoffOption(localDb, {
-    userId: currentUserId(),
-    planId: input.plan.id,
-    option: input.option,
-    rank: input.rank,
-    options: input.options,
-  });
+  try {
+    applyTradeoffOption(localDb, {
+      userId: currentUserId(),
+      planId: input.plan.id,
+      option: input.option,
+      rank: input.rank,
+      options: input.options,
+    });
+  } catch {
+    // the task vanished meanwhile (deleted on another device): the sheet's answer is still a
+    // decision — record it as "keep as is" rather than crash the press (P9 adversarial #12)
+    rejectTradeoffsAction(input);
+    return;
+  }
   track('tradeoff_decided', {
     outcome: 'chosen',
     kind: input.option.kind,

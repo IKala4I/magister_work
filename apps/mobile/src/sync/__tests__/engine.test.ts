@@ -50,16 +50,17 @@ jest.mock('../../observability/sentry', () => ({
   },
 }));
 
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 
 import { db } from '../../db/client';
-import { opOutbox, tasks } from '../../db/schema';
+import { events, opOutbox, tasks } from '../../db/schema';
 import { createTask, updateTask, type TaskDraft } from '../../db/tasks';
-import type { LocalDb } from '../../db/writes';
+import { appendEvent, type LocalDb } from '../../db/writes';
 import { useSyncStore } from '../../state/sync';
 import { appStorage, StorageKeys } from '../../storage/mmkv';
 import { getSyncCursor } from '../cursor';
 import {
+  applyAcks,
   MAX_ATTEMPTS,
   MAX_OPS_PER_BATCH,
   pendingOpCount,
@@ -649,5 +650,51 @@ describe('syncNow — hardening (adversarial #5–#8, #13)', () => {
       version: 2,
       serverSeq: 11,
     });
+  });
+});
+
+// --- P9: an acked fact carries server_ts (what the Insights "pending" caption reads) -----------
+
+describe('applyAcks — event_append', () => {
+  it('sets events.server_ts/server_seq on applied and duplicate acks (adversarial #1)', () => {
+    const localDb = db as unknown as LocalDb;
+    const uid = 'local:acks-user';
+    const now = new Date('2026-09-02T09:00:00Z');
+    const opId = appendEvent(localDb, {
+      userId: uid,
+      type: 'belief_label',
+      payload: { state_ref: 'beta:deep.MO.weekday', label: 'correct' },
+      now,
+    });
+    const op2 = appendEvent(localDb, {
+      userId: uid,
+      type: 'belief_label',
+      payload: { state_ref: 'beta:deep.EV.weekday', label: 'none' },
+      now,
+    });
+    const before = localDb.select().from(events).where(eq(events.opId, opId)).get()!;
+    expect(before.serverTs).toBeNull();
+    const ops = localDb
+      .select()
+      .from(opOutbox)
+      .where(inArray(opOutbox.opId, [opId, op2]))
+      .all() as unknown as Parameters<typeof applyAcks>[2];
+    const at = new Date('2026-09-02T09:00:05Z');
+    applyAcks(
+      localDb,
+      uid,
+      ops,
+      [
+        { op_id: opId, outcome: 'applied', server_seq: 77 },
+        { op_id: op2, outcome: 'duplicate' },
+      ],
+      at,
+    );
+    const after = localDb.select().from(events).where(eq(events.opId, opId)).get()!;
+    expect(after.serverTs).toEqual(at);
+    expect(after.serverSeq).toBe(77);
+    const dup = localDb.select().from(events).where(eq(events.opId, op2)).get()!;
+    expect(dup.serverTs).toEqual(at);
+    expect(dup.serverSeq).toBeNull();
   });
 });

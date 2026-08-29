@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
   },
   grid: { gap: 2, marginTop: 4 },
   row: { flexDirection: 'row', gap: 2, alignItems: 'stretch' },
-  hourCell: { width: 32, textAlign: 'right', paddingRight: 4 },
+  hourCell: { minWidth: 32, flexShrink: 0, textAlign: 'right', paddingRight: 4 },
   dayLabel: { flex: 1, textAlign: 'center' },
   cell: { flex: 1, minHeight: 16, borderRadius: 3, borderWidth: 1 },
   legend: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },

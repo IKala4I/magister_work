@@ -58,7 +58,7 @@ const CHRONOTYPE_KEYS: Record<NonNullable<InsightsDocument['chronotype_class']>,
 export default function InsightsScreen() {
   useSessionStore((s) => s.userId);
   const userId = currentUserId();
-  const [cached] = useState(() => cachedInsights());
+  const [cached] = useState(() => cachedInsights(userId));
   const [doc, setDoc] = useState<InsightsDocument | null>(cached?.doc ?? null);
   const [fetchedAt, setFetchedAt] = useState<number | null>(cached?.fetchedAt ?? null);
   const [status, setStatus] = useState<LoadStatus>('idle');

@@ -128,7 +128,12 @@ def _prepare(
         if deadline_tick is not None and deadline_tick < 0:
             unplaceable.append(t.id)
             continue
-        critical = pinned_tick is not None or (deadline_tick is not None and deadline_tick <= n)
+        # a task the user deferred past this horizon (earliest start ≥ its end) is an explicit
+        # choice, not a constraint the plan failed — it must not raise FR-24 options (P9 #3)
+        deferred_past = earliest_tick is not None and earliest_tick >= n
+        critical = not deferred_past and (
+            pinned_tick is not None or (deadline_tick is not None and deadline_tick <= n)
+        )
         specs[t.id] = TaskSpec(
             task_id=t.id,
             category=t.category,

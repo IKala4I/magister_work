@@ -340,3 +340,13 @@ def test_labels_reject_unknown_state_refs_and_uninstantiated_users(repo: InMemor
         feedback.apply_labels(
             _labels(_label("l1", "beta:deep.MO.weekday", "correct")), InMemoryRepo()
         )
+
+
+def test_same_timestamp_labels_resolve_by_delivery_order_not_id_text(repo: InMemoryRepo) -> None:
+    ref = "beta:deep.MO.weekday"
+    # op ids are numeric-monotonic, not lexicographic: "dev-9" precedes "dev-10"
+    feedback.apply_labels(
+        _labels(_label("dev-9", ref, "correct"), _label("dev-10", ref, "incorrect")), repo
+    )
+    mo = {c.key: c for c in repo.load_cells(USER)}[("deep", "MO", "weekday")]
+    assert mo.fail > 0 and mo.succ == 0.0  # the later-delivered "incorrect" is in force

@@ -12,7 +12,8 @@
 -- (toggle state across devices) and never write them directly (no insert/update grant).
 --
 -- Vocabulary is the closed specs/07 state_ref form `beta:<category>.<daypart>.<day_type>`;
--- anything else is rejected at the event → the op comes back `rejected`, nothing half-applied.
+-- anything else fails the event insert → the op comes back `error` (the client validates the
+-- same vocabulary before writing, so only a tampered client can reach this), nothing half-applied.
 
 create table public.belief_labels (
   id text primary key,
@@ -63,7 +64,8 @@ begin
   end if;
   v_parts := regexp_split_to_array(substr(v_ref, 6), '\.');
   insert into public.belief_labels (id, user_id, category, daypart, day_type, state_ref, label, labeled_at)
-  values (new.op_id, new.user_id, v_parts[1], v_parts[2], v_parts[3], v_ref, v_label, new.client_ts)
+  -- a device clock ahead of real time must not freeze the cell's decay (energy.py clamps Δt ≥ 0)
+  values (new.op_id, new.user_id, v_parts[1], v_parts[2], v_parts[3], v_ref, v_label, least(new.client_ts, now()))
   on conflict (id) do nothing;
   return new;
 end $$;

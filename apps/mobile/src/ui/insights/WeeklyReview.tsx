@@ -226,10 +226,10 @@ const styles = StyleSheet.create({
   heading: { marginTop: 8 },
   weeks: { gap: 6 },
   weekRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  weekLabel: { width: 36 },
+  weekLabel: { minWidth: 36, flexShrink: 0 },
   track: { flex: 1, height: 10, borderRadius: 5, overflow: 'hidden' },
   bar: { height: 10, borderRadius: 5 },
-  weekValue: { minWidth: 120 },
+  weekValue: { minWidth: 120, flexShrink: 0 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: {
     minHeight: 44,

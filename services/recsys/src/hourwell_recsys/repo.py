@@ -76,9 +76,11 @@ def parse_state_ref(ref: str) -> tuple[str, str, str]:
 
 
 def latest_labels(labels: Iterable[StoredLabel]) -> dict[tuple[str, str, str], StoredLabel]:
-    """The label in force per cell: the latest `labeled_at` (ties → the larger id)."""
+    """The label in force per cell: the latest `labeled_at`; ties keep the repo's order (the
+    ledger's `created_at` = replay order = the client's op order — op ids are not lexicographic,
+    adversarial #11), so a stable sort on time alone is the tie-break."""
     current: dict[tuple[str, str, str], StoredLabel] = {}
-    for lab in sorted(labels, key=lambda x: (x.labeled_at, x.id)):
+    for lab in sorted(labels, key=lambda x: x.labeled_at):
         current[lab.key] = lab
     return current
 
@@ -200,7 +202,8 @@ class InMemoryRepo:
         )
 
     def load_labels(self, user_id: str) -> list[StoredLabel]:
-        return sorted(self.labels.get(user_id, {}).values(), key=lambda x: (x.labeled_at, x.id))
+        # insertion order = delivery order (ties on labeled_at resolve to the later delivery)
+        return sorted(self.labels.get(user_id, {}).values(), key=lambda x: x.labeled_at)
 
     def save_labels(self, user_id: str, labels: Iterable[StoredLabel]) -> None:
         # upsert by id: a re-delivered label is the same fact (idempotent)
@@ -433,7 +436,7 @@ class PostgresRepo:
             rows = _dicts(
                 conn.execute(
                     "select id, category, daypart, day_type, label, labeled_at "
-                    "from belief_labels where user_id = %s order by labeled_at, id",
+                    "from belief_labels where user_id = %s order by labeled_at, created_at, id",
                     (user_id,),
                 ).fetchall()
             )

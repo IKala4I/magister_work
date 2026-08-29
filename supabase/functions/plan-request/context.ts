@@ -58,6 +58,10 @@ export async function loadContext(
       .eq('user_id', userId)
       .in('status', ['inbox', 'scheduled'])
       .is('deleted_at', null)
+      // a task the user deferred past this horizon (FR-24 "drop" = earliest_start tomorrow) is
+      // not a candidate — sending it made the planner report it "critical + unplaceable" and
+      // reopen the trade-off sheet every time (P9 adversarial #3)
+      .or(`earliest_start.is.null,earliest_start.lt.${new Date(endMs).toISOString()}`)
       .order('created_at', { ascending: true })
       .limit(200),
     client

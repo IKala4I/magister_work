@@ -91,8 +91,10 @@ Deno.serve(async (req: Request) => {
           .eq('user_id', userId)
           .eq('type', 'focus_end')
           .gte('client_ts', fromIso)
+          .order('client_ts', { ascending: false })
           .limit(4000);
         if (error) throw new Error(`events: ${error.message}`);
+        if ((data ?? []).length === 4000) console.warn('insights: focus facts capped at 4000');
         return (data ?? []).map((e) => ({
           type: e.type as string,
           recommendation_id: (e.recommendation_id as string | null) ?? null,

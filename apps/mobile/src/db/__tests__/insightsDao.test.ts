@@ -387,6 +387,21 @@ describe('trade-off decisions (FR-24 / UC-05)', () => {
     }
   });
 
+  it('an option for a task that no longer exists throws before any write (the action layer falls back to reject)', () => {
+    const { db, close } = openDb();
+    try {
+      const task = seedTask(db);
+      const planId = seedPlan(db, task);
+      const gone = opt({ task_id: '00000000-0000-4000-8000-00000000dead' });
+      expect(() =>
+        applyTradeoffOption(db, { userId: USER, planId, option: gone, rank: 1, options: [gone] }),
+      ).toThrow(/not found/);
+      expect(allEvents(db).filter((e) => e.type === 'tradeoff_decision')).toHaveLength(0);
+    } finally {
+      close();
+    }
+  });
+
   it('rejecting every option logs the overload fact (UC-05 A1) and counts as decided', () => {
     const { db, close } = openDb();
     try {
