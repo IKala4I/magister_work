@@ -130,46 +130,67 @@ check(
 );
 
 // --- insights document -----------------------------------------------------------------------
+// The service's /insights (and every rebuild) reads belief_labels; until the P9 migration is on
+// the hosted project the service answers 500 and the function relays 503 (the client keeps its
+// cache) — the smoke asserts that contract and SKIPs the document checks with the reason.
+const hasTable =
+  sql(`select to_regclass('public.belief_labels') is not null as present`)[0]?.present === true;
 const ins1 = await fn('insights', { action: 'get' });
-check(
-  'insights → 200 with the service document',
-  ins1.status === 200,
-  `${ins1.status} ${JSON.stringify(ins1.data).slice(0, 120)}`,
+console.log(
+  `      insights round trip: ${ins1.ms} ms (service ${ins1.data?.service_ms ?? '—'} ms)`,
 );
-console.log(`      insights round trip: ${ins1.ms} ms (service ${ins1.data?.service_ms} ms)`);
 check('EU region header on insights', ins1.region === 'eu-west-1', String(ins1.region));
 const d1 = ins1.data ?? {};
-check(
-  '48 heatmap cells (4 categories × 6 dayparts × 2 day types)',
-  d1.heatmap?.length === 48,
-  String(d1.heatmap?.length),
-);
-check(
-  '8 beliefs (one per category × day type), none labelled',
-  d1.beliefs?.length === 8 && d1.beliefs.every((b) => b.label === null),
-  JSON.stringify(d1.beliefs?.map((b) => b.label)),
-);
-check(
-  'learning mode on for a fresh user; no labels; no adherence weeks yet',
-  d1.learning_mode === true && d1.labels?.length === 0 && d1.adherence?.length === 0,
-  JSON.stringify({ lm: d1.learning_mode, labels: d1.labels?.length, adh: d1.adherence?.length }),
-);
-check(
-  'chronotype provenance = DM (from the profile)',
-  d1.chronotype_class === 'DM' && d1.survey_skipped === false,
-  String(d1.chronotype_class),
-);
-const deepMorning = d1.heatmap?.find(
-  (c) => c.category === 'deep' && c.daypart === 'MO' && c.day_type === 'weekday',
-);
-check(
-  'deep/MO/weekday cell carries the DM prior (mean ≈ 0.74, n_effective 0, not personal)',
-  deepMorning !== undefined &&
-    Math.abs(deepMorning.mean - 0.74) < 0.02 &&
-    deepMorning.n_effective === 0 &&
-    deepMorning.personal === false,
-  JSON.stringify(deepMorning),
-);
+const MIGRATION_PENDING =
+  'P9 migration not on the hosted project yet (⛔ supabase db push --linked)';
+if (!hasTable) {
+  check(
+    'insights → 503 service_unavailable while the service cannot read belief_labels (designed: the client keeps its cache)',
+    ins1.status === 503 && d1.error === 'service_unavailable',
+    `${ins1.status} ${JSON.stringify(d1).slice(0, 120)}`,
+  );
+  skip(
+    'insights document (48 cells, 8 beliefs, learning mode, provenance, DM prior on deep/MO)',
+    MIGRATION_PENDING,
+  );
+} else {
+  check(
+    'insights → 200 with the service document',
+    ins1.status === 200,
+    `${ins1.status} ${JSON.stringify(ins1.data).slice(0, 120)}`,
+  );
+  check(
+    '48 heatmap cells (4 categories × 6 dayparts × 2 day types)',
+    d1.heatmap?.length === 48,
+    String(d1.heatmap?.length),
+  );
+  check(
+    '8 beliefs (one per category × day type), none labelled',
+    d1.beliefs?.length === 8 && d1.beliefs.every((b) => b.label === null),
+    JSON.stringify(d1.beliefs?.map((b) => b.label)),
+  );
+  check(
+    'learning mode on for a fresh user; no labels; no adherence weeks yet',
+    d1.learning_mode === true && d1.labels?.length === 0 && d1.adherence?.length === 0,
+    JSON.stringify({ lm: d1.learning_mode, labels: d1.labels?.length, adh: d1.adherence?.length }),
+  );
+  check(
+    'chronotype provenance = DM (from the profile)',
+    d1.chronotype_class === 'DM' && d1.survey_skipped === false,
+    String(d1.chronotype_class),
+  );
+  const deepMorning = d1.heatmap?.find(
+    (c) => c.category === 'deep' && c.daypart === 'MO' && c.day_type === 'weekday',
+  );
+  check(
+    'deep/MO/weekday cell carries the DM prior (mean ≈ 0.74, n_effective 0, not personal)',
+    deepMorning !== undefined &&
+      Math.abs(deepMorning.mean - 0.74) < 0.02 &&
+      deepMorning.n_effective === 0 &&
+      deepMorning.personal === false,
+    JSON.stringify(deepMorning),
+  );
+}
 
 // --- belief label round trip -----------------------------------------------------------------
 async function sync(ops, cursor, reason = 'write') {
@@ -182,8 +203,6 @@ async function sync(ops, cursor, reason = 'write') {
   });
   return r;
 }
-const hasTable =
-  sql(`select to_regclass('public.belief_labels') is not null as present`)[0]?.present === true;
 const REF = 'beta:deep.EV.weekday'; // an out-of-hours-for-DM cell: the prior is weak there (n₀ = 4 h)
 const prior = sql(
   `select alpha0, beta0, succ, fail from public.beta_cells where user_id = '${uid}' and category = 'deep' and daypart = 'EV' and day_type = 'weekday'`,

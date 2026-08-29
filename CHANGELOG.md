@@ -27,7 +27,7 @@ facts only — a source-level test guards H2; displaced/`expired`/open blocks ou
 denominator; ISO weeks in the profile zone) + the chronotype class the priors assume; 503 when
 the service is unreachable. `attribute-rewards`/`sync-resolve` reward pass: undelivered
 `belief_labels` rows are POSTed to `/labels` after the tuples and marked delivered (re-sent on
-failure). 165 Deno.
+failure). A ledger read failure (e.g. the migration not yet applied) never takes the sync down: logged, `labels_delivery: failed`, retried next pass (found by the live smoke). 166 Deno.
 
 **Mobile.** Insights tab: learning-mode badge + prior provenance; the FR-40 hour × weekday
 heatmap (native Views, OKLCH interpolation between `energyLow`/`energyHigh`, cell alpha =
@@ -43,6 +43,8 @@ matching task edit (drop → not today + postpone; shrink → est − Δ; move �
 unpin → `recommendation_status`) + `tradeoff_decision`, then a manual re-plan; "keep as is" →
 `tradeoff_rejected`; once per plan. Analytics: `belief_labeled`, `tradeoff_decided`,
 `weekly_review_completed`, `insights_viewed` (categorical). 380 jest (47 suites).
+
+**Live (2026-08-29, `p9-live-smoke.mjs` 10/10 + 2 SKIP).** Functions deployed, service image rolled out from the branch; FR-24 verified live (two pins → ranked `unpin` option in `plans.telemetry.infeasible`, decision fact synced); `insights` relays 503 while the service cannot read `belief_labels` (migration pending ⛔); the label round trip SKIPs until then.
 
 **Docs.** ADR-0013; traceability (7 rows); device checklist (heatmap at 200 %, VoiceOver/
 TalkBack on the grid summary + text view, toggle targets, reduced motion); revisit (P9 lines
