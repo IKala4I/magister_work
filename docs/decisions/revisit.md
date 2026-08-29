@@ -94,6 +94,11 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   tenancies have no support access (privacy README G1). — **Owner 2026-08-27: PAYG deferred**
   (no reclamation exemption; keep-busy stays on); revisit before participant enrollment, when
   support access may matter. Residual gap recorded in the DPIA until then.
+- [P8, 2026-08-29] Google Cloud consent screen created in **Testing** status (enough for the
+  owner's verification; refresh tokens expire after 7 days). — **Pre-enrollment, with the PAYG
+  revisit above:** switch to **In production** before any participant connects a calendar
+  (runbook `google-calendar.md` §4; unverified production shows a warning page, capped at 100
+  users, enough for the study).
 - [P7.1, 2026-08-28] Week-horizon capacity on the deployment box: 50-task/7-day plans end
   UNKNOWN in ≈ 40 % of runs on every rung under the spec-fixed 1.5 s plan-level budget
   (`p5-manual-verification.md` §2.2). — **P9 (weekly plan UI), owner-visible:** a longer budget

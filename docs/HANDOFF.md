@@ -76,15 +76,20 @@ insights.tsx` (P2 shell) + `src/ui/plan/Timeline.tsx` (busy rows landed in P8).
 
 ## ⛔ ACTION REQUIRED (owner) — not blocking the merge
 
-- **Google Cloud project for FR-03** — `docs/runbooks/google-calendar.md` §1–§2 (project,
-  Calendar API, OAuth client with redirect `<functions-url>/gcal-callback`, consent screen with
-  the two calendar scopes, test users); paste the three values into a temp env file for the
-  session to `supabase secrets set`; then the session runs runbook §3 incl. **3b** (an event 20
-  days out must arrive — adversarial #2). Before enrollment the consent screen must be **In
-  production** (Testing status expires refresh tokens after 7 days).
+- **Google Cloud project for FR-03** — `docs/runbooks/google-calendar.md`. **§1 done
+  2026-08-29** (owner): project created, Calendar API enabled, consent screen External /
+  **Testing** with both calendar scopes, owner account as test user, app domain filled, Web
+  OAuth client with redirect `https://uapiuehjcntilwdmpojk.supabase.co/functions/v1/gcal-callback`.
+  **§2 next:** owner writes the three values to `/tmp/gcal.env` (never in chat), session runs
+  `supabase secrets set --env-file` + redeploys the three gcal functions + `rm`; then §3 incl.
+  **3b** (an event 20 days out must arrive — adversarial #2).
 - **Consent clause review** — `docs/privacy/consent-clause.md` (draft; contact block to fill).
 - Earlier gates unchanged: Google OAuth _sign-in_ consent screen (FR-01, P4), magic-link E2E with
-  a real mailbox, PAYG before enrollment, OSF-freeze text items.
+  a real mailbox, OSF-freeze text items.
+- **Pre-enrollment list** (revisit together; `docs/decisions/revisit.md`): (1) Oracle **PAYG**
+  (owner 2026-08-27: deferred); (2) Google consent screen **Testing → In production** — in
+  Testing, refresh tokens expire after 7 days, which is fine for the owner's own verification
+  but would silently disconnect every participant in week 2 (runbook §4).
 
 ## Gotchas (P8 additions; earlier lists still apply)
 
