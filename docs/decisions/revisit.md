@@ -129,8 +129,8 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   ("a meeting took 14:00 — Slides is back in your Inbox") without any background sync.
 - [P8, 2026-08-29] Engine hardening left open by the adversarial pass (#5–#8, #13): retry on
   `busy`, drain a > 200-op backlog within one sync, an error boundary in `run()`, re-fetch an
-  entity after a dead-letter, apply `ack.version`/`server_seq` locally on `applied`. — **Next
-  session, before the P8 PR merges** (HANDOFF lists the exact specs).
+  entity after a dead-letter, apply `ack.version`/`server_seq` locally on `applied`. — **DONE
+  2026-08-29** before the P8 merge (`engine.ts`, 7 tests; `p8-manual-verification.md` §4).
 - [P8, 2026-08-29] A single displaced chunk moves the whole task to the Inbox (`pull.ts`), while
   sibling chunks stay open and `persist_plan` supersedes only `shown` rows — the P6 per-task
   mirror coarseness gains a new trigger. — P9 (timeline work): mirror per chunk or re-place only

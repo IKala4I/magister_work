@@ -66,6 +66,14 @@ within seconds; an event 20 days out arrives (adversarial #2 closed); a meeting 
 block → `displaced_pending` with no reward tuple; sweep with one connected calendar; default
 all-day events free, Busy ones block the local day; disconnect revokes + tombstones.
 
+**Adversarial fixes (fresh-context pass, 2026-08-28 → 29).** 3 MAJOR + 12 MINOR; all MAJORs and
+eleven MINORs fixed with regression tests (`p8-manual-verification.md` §4): lease for every
+reward writer + compare-and-set patches, `timeMin`-only initial calendar sync, device-bound
+consent confirm, write-back cleanup, 410-only resync, status ops carrying `user_id`, and the
+engine hardening — one debounced retry on `busy`, backlog drain within a sync, an error boundary
+in `run()`, dead-letter refetch, `ack.version`/`server_seq` adoption. 344 jest / 155 Deno / 85
+pgTAP.
+
 **Docs.** ADR-0012; spec-conflicts L19 closed, L28–L33; thesis-corrections #38–39; revisit: five
 P4–P7 lines closed, six P8 lines; privacy README G4 closed + G7 (Google as an independent
 controller, production-status gate), `docs/privacy/consent-clause.md` (draft for the owner);

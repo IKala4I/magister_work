@@ -49,10 +49,10 @@ p_ops)`,** `security definer`, executable by `service_role` only; the user id co
    `duplicate`, `conflict` (+ server row), `superseded`, `rejected` (ownership / vocabulary),
    `error` (unexpected — the client retries, dead-letters after 5 attempts). Every statement is
    filtered by `p_user_id`: an op naming another user's row is `rejected`, never applied
-   (pgTAP). `applied` ops return the row's new `version`; today the local mirror converges
-   through the pull page of the same response (the engine acks before it applies the page, so
-   the entity is no longer skipped) — applying `ack.version` locally is a scheduled hardening
-   item (adversarial #13).
+   (pgTAP). `applied` ops return the row's new `version` and `server_seq`; the engine adopts
+   them on the local row when no later unacked op owns the entity (adversarial #13, done
+   2026-08-29), and the pull page of the same response converges everything else (the engine
+   acks before it applies the page, so the entity is no longer skipped).
 
 3. **The three conflict classes (File 05 §2), mapped op by op.**
    - _Class 1 — `event_append`:_ append-only, never conflicts; insert `ON CONFLICT (user_id,
@@ -119,9 +119,10 @@ op_id) DO NOTHING`; referenced `task_id` / `recommendation_id` must be the user'
    pull would bring the same rows and is idempotent on the plan id. Invocation budget (invariant
    11): the 60 s poll is ≈ 60 calls per active hour per device; at study scale (< 100 users,
    ~1 h/day) that is < 10 % of the free tier's 500 k invocations/month — P12 re-checks.
-   Scheduled hardening (adversarial #5–#8, #13): retry on `busy`, drain a > 200-op backlog
-   within one sync, an error boundary in `run()`, re-fetch an entity after a dead-letter, apply
-   `ack.version` locally.
+   Hardening from the adversarial pass (#5–#8, #13, done 2026-08-29): one debounced retry on
+   `busy` (never a loop), a > 200-op backlog drains within one sync (bounded by `MAX_ROUNDS`),
+   an error boundary in `run()`, an entity is re-read after a dead-letter, `ack.version` /
+   `server_seq` are adopted locally.
 
 7. **Per-user lease around replay + mapping (`sync_leases`, RPCs `acquire_sync_lease` /
    `release_sync_lease`, TTL 30 s, service-only)** — the concrete answer to revisit

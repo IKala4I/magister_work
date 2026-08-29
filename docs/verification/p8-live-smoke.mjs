@@ -405,10 +405,11 @@ const gs = await fetch(`${URL_}/functions/v1/gcal-connect`, {
   headers: { 'content-type': 'application/json', apikey: ANON, authorization: `Bearer ${jwt}` },
   body: JSON.stringify({ action: 'start' }),
 });
+const gsBody = await gs.json().catch(() => null);
 check(
-  'gcal-connect start without Google credentials → 503 not_configured',
-  gs.status === 503,
-  String(gs.status),
+  'gcal-connect start → 200 + auth_url once the Google secrets are set (503 not_configured before)',
+  (gs.status === 200 && typeof gsBody?.auth_url === 'string') || gs.status === 503,
+  `${gs.status} ${JSON.stringify(gsBody).slice(0, 80)}`,
 );
 // handler-specific fingerprint (P7.1 lesson): the deployed build must know the confirm action
 const fp = await fetch(`${URL_}/functions/v1/gcal-connect`, {
