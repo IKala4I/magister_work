@@ -7,7 +7,8 @@
  * shows the optimistic "Planning…" banner (NFR-P1), labels NFR-R2 fallback plans, and lists tasks
  * the plan could not place — calmly, they simply stay in the Inbox. P8 adds the imported busy
  * rows (FR-03), the File 05 §2 notices (meeting kept / block displaced) and the deferred-wipe
- * banner (ADR-0012 §11).
+ * banner (ADR-0012 §11). P9 adds the FR-24/UC-05 trade-off sheet when the plan's telemetry
+ * carries `infeasible.options` and this device has not answered it yet (ADR-0013 §6).
  */
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -19,6 +20,7 @@ import { useSessionStore } from '../../src/auth/session';
 import { busyEventsQuery, type CalendarEventRow } from '../../src/db/calendar';
 import { db } from '../../src/db/client';
 import { activeFocusSessionQuery, type FocusSessionRow } from '../../src/db/feedback';
+import { decidedPlanIds, type EventRow, tradeoffDecisionsQuery } from '../../src/db/insights';
 import {
   isFallbackPlan,
   latestPlanAnyQuery,
@@ -40,7 +42,9 @@ import {
   skipDiagnosticAction,
   startFocusAction,
 } from '../../src/domain/blockActions';
+import { applyTradeoffAction, rejectTradeoffsAction } from '../../src/domain/insightsActions';
 import { planDayOf, requestPlanDayOf } from '../../src/domain/planTrigger';
+import { infeasibleOptionsOf } from '../../src/domain/tradeoff';
 import { t } from '../../src/i18n';
 import { usePlanStore } from '../../src/state/plan';
 import { useSyncStore } from '../../src/state/sync';
@@ -50,6 +54,7 @@ import { type BlockAction, BlockActions } from '../../src/ui/plan/BlockActions';
 import { MovePicker } from '../../src/ui/plan/MovePicker';
 import { SkipDiagnosticCard } from '../../src/ui/plan/SkipDiagnosticCard';
 import { Timeline } from '../../src/ui/plan/Timeline';
+import { TradeOffSheet } from '../../src/ui/plan/TradeOffSheet';
 import { Button, EmptyState, Screen, ThemedText } from '../../src/ui/primitives';
 import { useTheme } from '../../src/ui/theme';
 
@@ -59,6 +64,7 @@ const REC_TABLES = ['recommendations'] as const;
 const TASK_TABLES = ['tasks'] as const;
 const SESSION_TABLES = ['focus_sessions'] as const;
 const CALENDAR_TABLES = ['calendar_events'] as const;
+const EVENT_TABLES = ['events'] as const;
 /** A sync notice is shown for a minute, then fades (never modal, never red). */
 const NOTICE_TTL_MS = 60_000;
 
@@ -128,6 +134,11 @@ export default function TodayScreen() {
     CALENDAR_TABLES,
     [userId, shownDay],
   );
+  const decisionRows = useLiveRows<EventRow>(
+    () => tradeoffDecisionsQuery(localDb, userId),
+    EVENT_TABLES,
+    [userId],
+  );
   const notice = useSyncStore((s) => s.notice);
   const pendingWipe = useSyncStore((s) => s.pendingWipe);
   const titles = useMemo(() => new Map(taskRows.map((task) => [task.id, task.title])), [taskRows]);
@@ -169,6 +180,11 @@ export default function TodayScreen() {
 
   const unplaced = unplacedOf(plan);
   const planning = status === 'planning';
+  // FR-24: the sheet shows once per plan; a decision (or "keep as is") is a fact on this device
+  const tradeoffOptions = useMemo(() => infeasibleOptionsOf(plan), [plan]);
+  const tradeoffOpen =
+    plan !== undefined && tradeoffOptions.length > 0 && !decidedPlanIds(decisionRows).has(plan.id);
+  const [tradeoffNotice, setTradeoffNotice] = useState<string | null>(null);
   const hasBlocks = plan !== undefined && (recs.length > 0 || busy.length > 0);
   const liveNotice = notice !== null && now.getTime() - notice.at < NOTICE_TTL_MS ? notice : null;
   const noticeKey =
@@ -290,6 +306,24 @@ export default function TodayScreen() {
       ) : diagnosticResult ? (
         <ThemedText variant="caption" tone="secondary" style={styles.notice}>
           {diagnosticResult}
+        </ThemedText>
+      ) : null}
+      {tradeoffOpen && plan !== undefined ? (
+        <TradeOffSheet
+          options={tradeoffOptions}
+          titles={titles}
+          onChoose={(option, rank) => {
+            applyTradeoffAction({ plan, option, rank, options: tradeoffOptions });
+            setTradeoffNotice(t('tradeoff.applied'));
+          }}
+          onReject={() => {
+            rejectTradeoffsAction({ plan, options: tradeoffOptions });
+            setTradeoffNotice(t('tradeoff.rejected'));
+          }}
+        />
+      ) : tradeoffNotice ? (
+        <ThemedText variant="caption" tone="secondary" style={styles.notice}>
+          {tradeoffNotice}
         </ThemedText>
       ) : null}
       {moving ? (

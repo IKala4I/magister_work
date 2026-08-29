@@ -77,6 +77,12 @@ export const CLIENT_EVENT_TYPES = [
   'lapse_corrected',
   'session_rated',
   'skip_diagnostic',
+  // P9 trust surfaces (ADR-0013): a belief label is a fact the server materialises into a
+  // correction; trade-off decisions (FR-24/UC-05) and review completion (UC-08) are plain facts
+  'belief_label',
+  'tradeoff_decision',
+  'tradeoff_rejected',
+  'weekly_review_completed',
 ] as const;
 export type ClientEventType = (typeof CLIENT_EVENT_TYPES)[number];
 
