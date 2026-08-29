@@ -2,14 +2,14 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-08-29 (afternoon), **P9 — Trust surfaces: code-complete on `phase/P9-trust`
-> (PR #17); one ⛔ owner step (migration push) gates the live label round trip; P10 —
-> Notifications, privacy, a11y, performance opens next.** Standing rules live in CLAUDE.md:
+> Last update: 2026-08-29 (afternoon), **P9 — Trust surfaces: complete; PR #17 merged; one ⛔ owner
+> step (migration push) gates the live label round trip; P10 — Notifications, privacy, a11y,
+> performance opens next.** Standing rules live in CLAUDE.md:
 > "Working mode", "Context efficiency", "Simulator evidence".
 
 ## Where we are
 
-- **P0–P8 merged** (PRs #1–#16). **P9 on PR #17** — see "P9 status" below for merge state.
+- **P0–P9 merged** (PRs #1–#17). `main` = hosted project minus the P9 migration (⛔ below).
 - **What P9 built** (ADR-0013; CHANGELOG "P9"): a belief label (FR-41 ✓/✗, FR-33 correction,
   the review's "tell Hourwell" picker) is a `belief_label` **fact** through the op outbox → an
   `events` trigger materialises `belief_labels` (id = op_id, closed vocabularies enforced at the
@@ -47,8 +47,8 @@
   FR-24 drop no longer loops the sheet — `plan-request` filters tasks deferred past the horizon;
   belief toggles reachable by VoiceOver; unpin/clamp/order/tie-break/fallback/today-only). Two
   MINORs (#6 4xx label batch, #9 `error` vs `rejected`) and one note in revisit.md.
-- **PR #17** — merged once CI on `7c7c238` and the re-run smoke (fixed image + functions) are
-  green; see the transcript's final report for the merge state.
+- **PR #17 merged 2026-08-29** after CI on the fix commit and the re-run smoke (fixed image +
+  functions: 10/10 + 2 SKIP) were green.
 
 ## Exact next actions (next session, in order)
 

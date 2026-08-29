@@ -72,6 +72,10 @@ PASS  tradeoff_decision fact synced (UC-05 post: decision logged)
 ALL PASS (2 skipped)
 ```
 
+**Re-run after the adversarial fixes** (`7c7c238`: functions `plan-request`/`insights`
+redeployed, service image rebuilt from the branch and rolled out): identical result — 10/10 +
+2 SKIP, plan round trip 1742 ms (learned).
+
 **What the first run found (fixed in `3d04a0c`):** with the migration missing, every
 `sync-resolve` reward pass threw on the ledger read _after_ the replay had committed → 500 to
 the client, tuples undelivered. The label stage now logs the read failure, reports
