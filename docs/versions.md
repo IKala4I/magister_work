@@ -187,3 +187,10 @@ pattern); `findBy*` / `waitFor` hung the suite in P7.
 | docker/build-push-action · setup-buildx · login-action | v6 · v3 · v3                  | GHCR push with `GITHUB_TOKEN` (`packages: write`); `load: true` for the in-runner verification        |
 | DuckDNS                                                | `hourwell-recsys.duckdns.org` | free; on the Public Suffix List (per-subdomain Let's Encrypt rate limits)                             |
 | systemd timers (on the VM)                             | rollout 5 min · keep-busy 1 h | `services/recsys/deploy/systemd/`                                                                     |
+
+## Mobile — P9 (verified 2026-08-29)
+
+No new dependencies. The FR-40 heatmap uses native Views with an in-repo OKLCH module
+(`src/ui/tokens/oklch.ts`, Ottosson 2020 constants — the CSS `oklch()` math); `react-native-skia`
+stays a deferred install (ADR-0013 §5: no consumer yet). `@testing-library/react-native` 14
+(`render` is async — `await render(...)`).

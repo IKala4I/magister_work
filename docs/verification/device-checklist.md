@@ -178,6 +178,33 @@
   Simulator can't settle it: iOS simulator push is a development shim, FCM needs a real
   device, and delivery timing under Doze/Low-Power mode only exists on hardware.
 
+### Trust surfaces (added P9)
+
+- ⬜ **FR-40 / NFR-A2 — the energy heatmap at 200 % font scale on both platforms** (added P9).
+  Open Insights with the largest accessibility font: the hour gutter (fixed 32 px) and the
+  weekday header must not clip or overlap the cells; the legend, the category chips and the
+  "Show as text" toggle must wrap, not truncate. Why the simulator can't settle it: Android's
+  display-size + font-scale combination has never run on hardware, and iOS Dynamic Type
+  rendering of the mono hour labels differs on device.
+- ⬜ **FR-40 / NFR-A1 — VoiceOver and TalkBack on the heatmap** (added P9). With the screen
+  reader on: the grid must read as ONE element with the best/lowest daypart summary; the cells
+  and hour labels must not be announced individually; "Show as text" must expose every daypart
+  row. Why: `accessible` grouping and `importantForAccessibility` behave differently on real
+  TalkBack (Android has never run on hardware).
+- ⬜ **FR-41 — ✓/✗ toggles: 44 px targets, `selected` state announced, "pending" caption read**
+  (added P9). Tap each toggle by screen reader; confirm the label state sentence and the
+  "Saved — applies at the next sync" caption are read; confirm nothing renders red (invariant
+  14). Why: touch-target hit-testing and state announcements are device behaviours.
+- ⬜ **FR-24 — trade-off sheet on a real over-committed day** (added P9). Pin two blocks on the
+  same slot (Move… + pin) and re-plan; the sheet must appear inline (never modal-blocking),
+  options in the server's order; choose one → the re-plan runs and the sheet does not return;
+  "Keep it as is" is a quiet secondary button. Why: the flow crosses the real network (task op →
+  re-plan) and a real keyboard/gesture path the jest render cannot exercise.
+- ⬜ **NFR-A2 — reduced motion on Insights** (added P9). With Reduce Motion on: the refresh and
+  the category switch must not animate (there are no animations by design — confirm none are
+  introduced by the platform ScrollView/Pressable defaults). Why: OS-level reduced-motion
+  hooks are not represented on the simulator.
+
 ## Service environment (Oracle A1 VM, container pinned to `cpus: 2` — ADR-0009) — same honesty rule, different box
 
 Timing measured on the development Mac is a smoke check, not evidence for the container File 04
