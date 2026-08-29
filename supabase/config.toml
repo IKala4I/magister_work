@@ -433,7 +433,14 @@ entrypoint = "./functions/gcal-callback/index.ts"
 enabled = true
 verify_jwt = false
 import_map = "./functions/deno.json"
+
 entrypoint = "./functions/gcal-webhook/index.ts"
+
+[functions.insights]
+enabled = true
+verify_jwt = false
+import_map = "./functions/deno.json"
+entrypoint = "./functions/insights/index.ts"
 
 [analytics]
 enabled = true

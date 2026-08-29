@@ -62,3 +62,56 @@ export async function postFeedback(
     ms: ms(),
   };
 }
+
+/** One `belief_labels` row on the wire (P9, ADR-0013) — the service's `BeliefLabel` schema. */
+export interface WireLabel {
+  id: string;
+  state_ref: string;
+  label: 'correct' | 'incorrect' | 'none';
+  labeled_at: string;
+}
+
+/**
+ * POST /labels — the same store-then-deliver contract as /feedback: a failure leaves the rows
+ * undelivered and the next pass re-sends them; the service upserts by id and rebuilds, so a
+ * re-delivery converges on the same state.
+ */
+export async function postLabels(
+  config: ServiceConfig,
+  userId: string,
+  labels: readonly WireLabel[],
+  fetchImpl: typeof fetch = fetch,
+  timeoutMs = 10_000,
+): Promise<FeedbackCall> {
+  if (config.url === null || config.serviceKey === null) return { kind: 'not_configured' };
+  const t0 = performance.now();
+  const ms = () => Math.round(performance.now() - t0);
+  let res: Response;
+  try {
+    res = await fetchImpl(`${config.url.replace(/\/$/, '')}/labels`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-service-key': config.serviceKey },
+      body: JSON.stringify({ user_id: userId, labels }),
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+  } catch (err) {
+    return { kind: 'failed', status: null, detail: String((err as Error)?.name ?? err), ms: ms() };
+  }
+  if (!res.ok) {
+    const detail = (await res.text().catch(() => '')).slice(0, 200);
+    return { kind: 'failed', status: res.status, detail, ms: ms() };
+  }
+  const body = await res.json().catch(() => null) as
+    | { state_version?: number; applied?: number; rebuilt?: boolean }
+    | null;
+  if (body === null || typeof body.state_version !== 'number') {
+    return { kind: 'failed', status: res.status, detail: 'invalid response', ms: ms() };
+  }
+  return {
+    kind: 'ok',
+    state_version: body.state_version,
+    updated: body.applied ?? 0,
+    rebuilt: body.rebuilt ?? true,
+    ms: ms(),
+  };
+}

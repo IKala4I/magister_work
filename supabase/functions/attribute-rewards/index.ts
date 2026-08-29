@@ -12,7 +12,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { acquireLease, releaseLease } from '../_shared/lease.ts';
 import { makeDbDeps } from './db.ts';
-import { postFeedback, type ServiceConfig } from './feedback.ts';
+import { postFeedback, postLabels, type ServiceConfig } from './feedback.ts';
 import { handleAttributeRewards } from './handler.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
@@ -47,6 +47,7 @@ Deno.serve(async (req: Request) => {
         return data.claims.sub;
       },
       postFeedback: (userId, tuples) => postFeedback(serviceConfig, userId, tuples),
+      postLabels: (userId, labels) => postLabels(serviceConfig, userId, labels),
     });
   } catch (err) {
     console.error('attribute-rewards failed', err); // details stay in the function logs

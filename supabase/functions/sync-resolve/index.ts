@@ -10,7 +10,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { acquireLease, releaseLease } from '../_shared/lease.ts';
 import { makeDbDeps } from '../attribute-rewards/db.ts';
-import { postFeedback, type ServiceConfig } from '../attribute-rewards/feedback.ts';
+import { postFeedback, postLabels, type ServiceConfig } from '../attribute-rewards/feedback.ts';
 import { processUser } from '../attribute-rewards/handler.ts';
 import { pullRows, replayOps } from './db.ts';
 import { handleSyncResolve, LEASE_TTL_SECONDS } from './handler.ts';
@@ -57,6 +57,7 @@ Deno.serve(async (req: Request) => {
             releaseLease: () => Promise.resolve(),
             verifyUser,
             postFeedback: (uid, tuples) => postFeedback(serviceConfig, uid, tuples),
+            postLabels: (uid, labels) => postLabels(serviceConfig, uid, labels),
           },
           userId,
           'instant',

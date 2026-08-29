@@ -137,6 +137,7 @@ function summarize(report: UserReport | null): SyncRewards | null {
     delivered: report.delivered,
     delivery: report.delivery,
     duration_updates: report.duration_updates,
+    labels_delivered: report.labels_delivered,
   };
 }
 

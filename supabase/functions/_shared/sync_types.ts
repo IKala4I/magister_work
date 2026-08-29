@@ -99,6 +99,8 @@ export interface SyncRewards {
   delivered: number;
   delivery: string;
   duration_updates: number;
+  /** P9: belief labels delivered to the service in this pass. */
+  labels_delivered: number;
 }
 
 export interface SyncResponse {

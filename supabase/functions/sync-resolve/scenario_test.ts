@@ -261,6 +261,9 @@ function rewardDeps(s: Server): RewardDeps {
     markDelivered: () => Promise.resolve(),
     loadDurationEstimates: () => Promise.resolve({}),
     saveDurationEstimate: () => Promise.resolve(),
+    loadUndeliveredLabels: () => Promise.resolve([]),
+    postLabels: () => Promise.resolve({ kind: 'not_configured' as const }),
+    markLabelsDelivered: () => Promise.resolve(),
   };
 }
 

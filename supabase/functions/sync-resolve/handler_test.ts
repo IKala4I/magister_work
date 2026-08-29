@@ -145,6 +145,8 @@ Deno.test('push → rewards → pull; acks pass through; cursor advances to the 
       delivery: 'ok',
       duration_updates: 0,
       recommendations: [],
+      labels_delivered: 0,
+      labels_delivery: 'nothing_pending',
     },
     pull: [
       { server_seq: 40, tbl: 'tasks', row: { id: 't1' } },
@@ -167,6 +169,7 @@ Deno.test('push → rewards → pull; acks pass through; cursor advances to the 
     delivered: 1,
     delivery: 'ok',
     duration_updates: 0,
+    labels_delivered: 0,
   });
   assertEquals(body.pull.length, 2);
   assertEquals(body.cursor, 42);

@@ -29,7 +29,7 @@ import {
   updateDurationEstimate,
 } from '../_shared/rewards.ts';
 import type { Category } from '../_shared/types.ts';
-import type { FeedbackCall, WireTuple } from './feedback.ts';
+import type { FeedbackCall, WireLabel, WireTuple } from './feedback.ts';
 import { targetContext } from './override.ts';
 
 export interface Profile {
@@ -108,6 +108,10 @@ export interface Deps {
     estimate: DurationEstimate,
     lastSessionAtIso: string,
   ): Promise<void>;
+  /** P9 (ADR-0013): undelivered belief labels (materialised from `belief_label` events). */
+  loadUndeliveredLabels(userId: string): Promise<WireLabel[]>;
+  postLabels(userId: string, labels: readonly WireLabel[]): Promise<FeedbackCall>;
+  markLabelsDelivered(userId: string, ids: readonly string[], atIso: string): Promise<void>;
 }
 
 export interface UserReport {
@@ -119,6 +123,9 @@ export interface UserReport {
   delivery: FeedbackCall['kind'] | 'nothing_pending';
   duration_updates: number;
   recommendations: RecRow[];
+  /** P9: belief labels delivered to /labels in this pass (each delivery rebuilds — invariant 6). */
+  labels_delivered: number;
+  labels_delivery: FeedbackCall['kind'] | 'nothing_pending';
 }
 
 const JSON_HEADERS = { 'content-type': 'application/json' };
@@ -264,6 +271,19 @@ async function deliverPending(deps: Deps, userId: string, nowIso: string): Promi
   return { delivered: wire.length, delivery: 'ok' };
 }
 
+/** P9 (ADR-0013): store-then-deliver for belief labels — the label row exists before this call
+ * (event trigger); a failed POST leaves it undelivered for the next pass. */
+async function deliverLabels(deps: Deps, userId: string, nowIso: string): Promise<
+  { labels_delivered: number; labels_delivery: UserReport['labels_delivery'] }
+> {
+  const pending = await deps.loadUndeliveredLabels(userId);
+  if (pending.length === 0) return { labels_delivered: 0, labels_delivery: 'nothing_pending' };
+  const call = await deps.postLabels(userId, pending);
+  if (call.kind !== 'ok') return { labels_delivered: 0, labels_delivery: call.kind };
+  await deps.markLabelsDelivered(userId, pending.map((l) => l.id), nowIso);
+  return { labels_delivered: pending.length, labels_delivery: 'ok' };
+}
+
 async function gatePatches(
   deps: Deps,
   userId: string,
@@ -335,6 +355,7 @@ export async function processUser(
   const recs = [...byId.values()].map((r) => toRewardRec(r, tz));
   if (recs.length === 0 && facts.length === 0) {
     const d = await deliverPending(deps, userId, nowIso);
+    const l = await deliverLabels(deps, userId, nowIso);
     return {
       user_id: userId,
       facts: 0,
@@ -343,6 +364,7 @@ export async function processUser(
       ...d,
       duration_updates: 0,
       recommendations: [],
+      ...l,
     };
   }
   const stored = await deps.loadStored(userId, recs.map((r) => r.id));
@@ -379,6 +401,8 @@ export async function processUser(
   const updatedRows = allowed.length > 0 ? await deps.patchRecs(userId, allowed) : [];
   const durationUpdates = mode === 'instant' ? await updateDurations(deps, userId, recs, facts) : 0;
   const d = await deliverPending(deps, userId, nowIso);
+  // labels after tuples: the /labels rebuild then already sees this pass's tuples
+  const l = await deliverLabels(deps, userId, nowIso);
   return {
     user_id: userId,
     facts: facts.length,
@@ -387,6 +411,7 @@ export async function processUser(
     ...d,
     duration_updates: durationUpdates,
     recommendations: updatedRows,
+    ...l,
   };
 }
 
