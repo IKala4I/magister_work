@@ -218,7 +218,7 @@ describe('Settings — notifications (FR-50 / FR-26, P10)', () => {
     await fireEvent.press(admin);
     expect(mockNotify.update).toHaveBeenCalledWith({ muted_categories: [] });
     expect(screen.getByLabelText('Evening time 21:00').props.accessibilityState).toEqual({
-      selected: true,
+      checked: true,
     });
     await fireEvent.press(screen.getByLabelText('Evening time 19:00'));
     expect(mockNotify.update).toHaveBeenCalledWith({ evening_ritual_time: '19:00' });

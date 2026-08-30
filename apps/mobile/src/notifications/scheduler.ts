@@ -18,7 +18,7 @@ import { notificationSettingsOf } from '../domain/notificationSettings';
 import { t } from '../i18n';
 import { track } from '../observability/analytics';
 
-import { commitScheduled, resetLedger, settleLedger } from './ledger';
+import { commitScheduled, settleLedger } from './ledger';
 import { type NotificationSpec, planNotifications } from './plan';
 import {
   CATEGORY_BLOCK,
@@ -103,15 +103,23 @@ export function runNotificationScheduler(now: Date = new Date()): Promise<void> 
 
 async function pass(now: Date): Promise<void> {
   const permission = await getPermissionState();
-  const settled = settleLedger(now);
+  // cancel FIRST, then settle: a request firing between settle and cancel would be delivered
+  // but uncounted (P10 adversarial #4); after the cancel nothing can fire in the gap
   try {
     await Notifications.cancelAllScheduledNotificationsAsync();
   } catch {
     // no native module — nothing was scheduled either
   }
+  const settled = settleLedger(now);
   const userId = currentUserId();
   const profile = getProfile(localDb, userId);
-  const settings = notificationSettingsOf(profile?.settings ?? null);
+  if (profile === undefined) {
+    // no profile (erased account, pre-onboarding identity): nothing to remind, no ritual from
+    // defaults (P10 adversarial #5)
+    commitScheduled([]);
+    return;
+  }
+  const settings = notificationSettingsOf(profile.settings ?? null);
   const recs = upcomingRecommendationsQuery(
     localDb,
     userId,
@@ -168,13 +176,4 @@ async function pass(now: Date): Promise<void> {
   });
 }
 
-/** Sign-out / erasure: nothing pending, nothing remembered. */
-export async function clearAllNotifications(): Promise<void> {
-  resetLedger();
-  try {
-    await Notifications.cancelAllScheduledNotificationsAsync();
-    await Notifications.dismissAllNotificationsAsync();
-  } catch {
-    // no native module
-  }
-}
+export { clearAllNotifications } from './setup';

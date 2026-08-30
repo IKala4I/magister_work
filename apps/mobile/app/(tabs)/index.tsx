@@ -12,7 +12,7 @@
  */
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, AppState, Pressable, StyleSheet, View } from 'react-native';
 
 import { discardPendingWipe, keepPendingWipe } from '../../src/auth/accountTransition';
 import { currentUserId } from '../../src/auth/identity';
@@ -50,7 +50,7 @@ import {
   reminderPermissionState,
 } from '../../src/domain/notificationActions';
 import { notificationSettingsOf, timeOnDay } from '../../src/domain/notificationSettings';
-import { planDayOf, requestPlanDayOf, tomorrowOf } from '../../src/domain/planTrigger';
+import { nextPlanDayOf, planDayOf, requestPlanDayOf } from '../../src/domain/planTrigger';
 import { infeasibleOptionsOf } from '../../src/domain/tradeoff';
 import { t } from '../../src/i18n';
 import { usePlanStore } from '../../src/state/plan';
@@ -118,8 +118,9 @@ export default function TodayScreen() {
     PLAN_TABLES,
     [userId],
   );
-  // P10 (FR-26): tomorrow's plan, when the evening ritual made one
-  const tomorrowDay = tomorrowOf(now);
+  // P10 (FR-26): the coming plan day's plan, when the evening ritual made one (06:00 anchor:
+  // before 06:00 "tomorrow" is the current calendar day)
+  const tomorrowDay = nextPlanDayOf(now);
   const tomorrowRows = useLiveRows<PlanRow>(
     () => latestPlanQuery(localDb, userId, tomorrowDay),
     PLAN_TABLES,
@@ -137,14 +138,23 @@ export default function TodayScreen() {
   const [promptDismissed, setPromptDismissed] = useState(() => isRemindersPromptDismissed());
   useEffect(() => {
     let alive = true;
-    void reminderPermissionState().then((p) => {
-      if (alive) setPermission(p);
+    const refresh = () =>
+      void reminderPermissionState().then((p) => {
+        if (alive) setPermission(p);
+      });
+    refresh();
+    // back from the OS settings screen: re-read the permission (P10 adversarial #9)
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') refresh();
     });
     return () => {
       alive = false;
+      sub.remove();
     };
   }, []);
-  const plan = todayRows[0] ?? (planDay !== todayDay ? previousRows[0] : undefined);
+  // Display follows the 06:00 plan day: before 06:00 the previous plan day's plan stays on
+  // screen (an evening plan for the calendar day takes over at 06:00 — P10 adversarial #3)
+  const plan = planDay !== todayDay ? (previousRows[0] ?? todayRows[0]) : todayRows[0];
   const planId = plan?.id ?? '__none__';
   const recs = useLiveRows<RecommendationRow>(
     () => planRecommendationsQuery(localDb, planId),
@@ -238,7 +248,7 @@ export default function TodayScreen() {
   // FR-26: after the ritual time, with tasks waiting and no plan for tomorrow, offer the one tap
   const inboxCount = taskRows.filter((task) => task.status === 'inbox').length;
   const ritualDue =
-    now.getTime() >= timeOnDay(todayDay, notifySettings.evening_ritual_time).getTime();
+    now.getTime() >= timeOnDay(planDay, notifySettings.evening_ritual_time).getTime();
   const tomorrowPlanned = tomorrowRows[0] !== undefined;
   const tomorrowOpen = tomorrowRecs.filter((r) => r.status !== 'expired');
   const tomorrowFirst = tomorrowOpen[0];

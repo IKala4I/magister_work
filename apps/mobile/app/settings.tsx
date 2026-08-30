@@ -8,7 +8,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Linking, Pressable, StyleSheet, Switch, TextInput, View } from 'react-native';
+import {
+  Alert,
+  AppState,
+  Linking,
+  Pressable,
+  StyleSheet,
+  Switch,
+  TextInput,
+  View,
+} from 'react-native';
 
 import { isAuthAvailable } from '../src/auth/client';
 import { convertAnonymousToEmail, signOut } from '../src/auth/flows';
@@ -308,11 +317,18 @@ function NotificationsSection() {
   const [permission, setPermission] = useState<PermissionState | null>(null);
   useEffect(() => {
     let alive = true;
-    void reminderPermissionState().then((p) => {
-      if (alive) setPermission(p);
+    const refresh = () =>
+      void reminderPermissionState().then((p) => {
+        if (alive) setPermission(p);
+      });
+    refresh();
+    // back from the OS settings screen (Linking.openSettings): re-read (P10 adversarial #9)
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') refresh();
     });
     return () => {
       alive = false;
+      sub.remove();
     };
   }, []);
   const remindersOn = settings.block_reminders && permission === 'granted';
@@ -414,7 +430,7 @@ function NotificationsSection() {
                 <Pressable
                   key={time}
                   accessibilityRole="radio"
-                  accessibilityState={{ selected }}
+                  accessibilityState={{ checked: selected }}
                   accessibilityLabel={t('settings.notifications.ritual.time.a11y', { time })}
                   onPress={() => updateNotificationSettingsAction({ evening_ritual_time: time })}
                   style={[
@@ -634,7 +650,7 @@ export default function SettingsScreen() {
           <Pressable
             key={option}
             accessibilityRole="radio"
-            accessibilityState={{ selected: option === preference }}
+            accessibilityState={{ checked: option === preference }}
             accessibilityLabel={t(PREFERENCE_LABELS[option])}
             onPress={() => setPreference(option)}
             style={styles.row}

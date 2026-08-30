@@ -238,6 +238,15 @@ describe('runNotificationScheduler', () => {
     expect(readLedger()).toEqual({ delivered: {}, scheduled: [] });
   });
 
+  it('no profile row (erased account / pre-onboarding identity) → cancels and schedules nothing, not even the ritual', async () => {
+    seed(2);
+    (sqlite as unknown as import('better-sqlite3').Database).exec('delete from profiles;');
+    await runNotificationScheduler(NOW);
+    expect(os.cancelAll).toBe(1);
+    expect(os.scheduled).toEqual([]);
+    expect(readLedger().scheduled).toEqual([]);
+  });
+
   it('concurrent runs coalesce into one follow-up pass', async () => {
     seed(2);
     const a = runNotificationScheduler(NOW);

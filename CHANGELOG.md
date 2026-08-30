@@ -22,13 +22,14 @@ with priors, bandit state, blend weights, duration estimates, cluster assignment
 `retention` (backend key) — best-effort Google teardown (`disconnectGoogle`, now shared with
 `gcal-connect`), `deletion_audit` row, `auth.admin.deleteUser` (the cascade), `completed_at`;
 responses carry audit references only. `plan-request` accepts `trigger: evening_ritual`.
-184 Deno. Deployed 2026-08-30.
+187 Deno. Deployed 2026-08-30 (redeployed after the adversarial fixes).
 
 **Mobile — notifications (FR-50, FR-26, FR-32).** Local notifications only (ADR-0011): a pure
 planner picks at most **5 per local day** — block reminders at `slot_start − 10 min`, earliest
 first, the evening ritual reserving one slot — against a conservative **delivered-ledger**
 (MMKV) that counts every past-due request as delivered, so the cap holds across re-plans,
-settings changes, restarts and the day boundary (storm tests). The scheduler runs on mount,
+settings changes, restarts and the day boundary (storm tests) — **per device, per local
+calendar day** (two devices of one account each keep their own ledger). The scheduler runs on mount,
 foreground and table changes only (invariant 7); the OS permission is asked once from a Today
 card. Per-category mute and the ritual time (presets 19–22:00) live in `profiles.settings` and
 ride the `profile_update` op. Every tap/action is a `notification_response` fact (kind, action,
@@ -62,7 +63,18 @@ PostgREST read 88 / write 82 ms p95 ✅ (NFR-P3 holds for the core CRUD API); `s
 revisit: one RPC for lease + replay + pull); `plan-request` 965 ms p95 ✅ (NFR-P1). No device
 number claimed; NFR-P2 stays at the P2 simulator value pending the hardware pass.
 
-**Tests.** 457 jest (56 suites) · 184 Deno · 149 pytest (unchanged) · 36 pgTAP.
+**Adversarial pass** (fresh-context subagent): 2 MAJOR + 12 MINOR, both MAJORs and 10 MINORs
+fixed the same day — `settings` now survive the client's profile-conflict merge (a second device
+could silently revert a mute); the analytics opt-out calls `optOut()` on the live instance and
+lifecycle capture is off (the typed catalog is complete); sign-out / account switch / erasure
+cancel pending notifications; the ritual plans the day after its own plan day (a tap at 00:30);
+Today follows the 06:00 anchor before dawn; cancel-before-settle; no ritual without a profile;
+a failed audit stamp after the delete no longer strands the device; constant-time backend-key
+compare rejecting empty keys (shared); the permission re-reads on foreground; radios announce
+`checked`; a brace-aware a11y scanner. Two MINORs documented (cap per install; non-preset
+ritual times show no selected chip) — `docs/verification/p10-manual-verification.md` §4.
+
+**Tests.** 461 jest (56 suites) · 187 Deno · 149 pytest (unchanged) · 36 pgTAP.
 
 ## P9 — Trust surfaces (2026-08-29, phase/P9-trust)
 

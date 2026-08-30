@@ -81,6 +81,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import TodayScreen from '../../app/(tabs)/index';
 import type { PlanRow, RecommendationRow } from '../db/plans';
 import type { TaskRow } from '../db/tasks';
+import { nextPlanDayOf } from '../domain/planTrigger';
 import { en } from '../i18n/en';
 import type { CalendarEventRow } from '../db/calendar';
 import { usePlanStore } from '../state/plan';
@@ -183,11 +184,7 @@ function rows(input: {
   tomorrowPlans?: PlanRow[];
   tomorrowRecs?: RecommendationRow[];
 }) {
-  const tomorrowDay = (() => {
-    const d = new Date(today);
-    d.setDate(d.getDate() + 1);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  })();
+  const tomorrowDay = nextPlanDayOf(new Date());
   mockUseLiveRows.mockImplementation(
     (_build: unknown, tables: readonly string[], deps?: readonly unknown[]) => {
       if (tables[0] === 'plans') {
@@ -686,11 +683,7 @@ describe('P10 — reminders card (FR-50) and the evening ritual on Today (FR-26)
     expect(mockRunPlanRequest).toHaveBeenCalledTimes(1);
     const [trigger, , planDay] = mockRunPlanRequest.mock.calls[0]!;
     expect(trigger).toBe('evening_ritual');
-    const d = new Date(today);
-    d.setDate(d.getDate() + 1);
-    expect(planDay).toBe(
-      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`,
-    );
+    expect(planDay).toBe(nextPlanDayOf(new Date()));
     await fireEvent.press(screen.getByLabelText(en['today.tomorrow.adjust']));
     expect(mockNavigate).toHaveBeenCalledWith('/(tabs)/inbox');
   });

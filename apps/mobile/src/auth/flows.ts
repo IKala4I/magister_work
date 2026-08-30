@@ -7,6 +7,7 @@
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 
+import { clearAllNotifications } from '../notifications/setup';
 import { track } from '../observability/analytics';
 
 import { supabase } from './client';
@@ -102,6 +103,8 @@ export async function signOut(): Promise<void> {
   if (!supabase) return;
   const { data } = await supabase.auth.getSession();
   const method = data.session?.user.is_anonymous ? 'anonymous' : 'magic_link';
+  // the previous account's reminders (with its task titles) must not keep firing (P10 #1)
+  await clearAllNotifications();
   await supabase.auth.signOut();
   track('auth_event', { method, event: 'signed_out' });
 }

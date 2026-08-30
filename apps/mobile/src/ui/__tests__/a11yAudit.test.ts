@@ -33,18 +33,52 @@ function walk(dir: string, out: string[] = []): string[] {
 
 const files = SCAN_DIRS.flatMap((d) => walk(d));
 
-/** Opening JSX tags of `tag` with their attribute text (multi-line, until the first `>`). */
+/**
+ * Opening JSX tags of `tag` with their attribute text — brace-aware: the tag ends at the first
+ * `>` outside `{…}` and quotes, so `onPress={() => …}` before a role is not a false positive.
+ */
 function openingTags(source: string, tag: string): string[] {
-  const re = new RegExp(`<${tag}(\\s[^>]*)?>`, 'gs');
   const out: string[] = [];
+  const re = new RegExp(`<${tag}(?=[\\s/>])`, 'g');
   let m: RegExpExecArray | null;
-  while ((m = re.exec(source)) !== null) out.push(m[1] ?? '');
+  while ((m = re.exec(source)) !== null) {
+    let i = m.index + m[0].length;
+    let depth = 0;
+    let quote: string | null = null;
+    for (; i < source.length; i += 1) {
+      const c = source[i]!;
+      if (quote !== null) {
+        if (c === quote) quote = null;
+        continue;
+      }
+      if (c === "'" || c === '"' || c === '`') quote = c;
+      else if (c === '{') depth += 1;
+      else if (c === '}') depth -= 1;
+      else if (c === '>' && depth === 0) break;
+    }
+    out.push(source.slice(m.index + m[0].length, i));
+    re.lastIndex = i;
+  }
   return out;
 }
 
 describe('a11y source audit (NFR-A1)', () => {
   it('scans the shipped screens and UI components', () => {
     expect(files.length).toBeGreaterThan(20);
+  });
+
+  it('the scanner is brace-aware (an arrow function before the role is not a false positive)', () => {
+    const src = `<Pressable onPress={() => go('x')} accessibilityRole="button">hi</Pressable>
+      <Pressable
+        onPress={() => {
+          if (a > b) go();
+        }}
+        accessibilityRole="link"
+      />
+      <PressableX accessibilityRole="none" />`;
+    const tags = openingTags(src, 'Pressable');
+    expect(tags).toHaveLength(2);
+    expect(tags.every((t) => /accessibilityRole=/.test(t))).toBe(true);
   });
 
   it('every Pressable / TouchableOpacity in app/ and src/ui carries an accessibilityRole', () => {

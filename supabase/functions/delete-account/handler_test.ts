@@ -195,6 +195,20 @@ Deno.test('self: a failing delete leaves the audit row open (requested, not comp
   assertEquals(f.audits[0].completed_at, null);
 });
 
+Deno.test('self: a failing audit stamp AFTER the delete still answers deleted (the device must not be stranded)', async () => {
+  const f = fake();
+  const res = await handleDeleteAccount(
+    post({}, { authorization: 'Bearer good' }),
+    deps(f, { completeAudit: () => Promise.reject(new Error('db hiccup')) }),
+  );
+  assertEquals(res.status, 200);
+  const body = await res.json();
+  assertEquals(body.status, 'deleted');
+  assertEquals(body.reference, 'audit-1');
+  assertEquals(f.deleted, [USER]);
+  assertEquals(f.audits[0].completed_at, null); // the evidence that the stamp failed
+});
+
 Deno.test('operator: backend key required; user_id validated; unknown user is 404 without an audit row', async () => {
   const f = fake();
   assertEquals(

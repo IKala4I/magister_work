@@ -8,6 +8,7 @@
  * (Google teardown; without them the calendar rows still fall with the cascade).
  */
 import { createClient } from '@supabase/supabase-js';
+import { serviceKeyMatches } from '../_shared/auth.ts';
 import { revokeToken } from '../_shared/gcal.ts';
 import type { SyncDeps } from '../_shared/gcal_sync.ts';
 import { loadState, makeSyncDbDeps } from '../gcal-webhook/db.ts';
@@ -54,7 +55,7 @@ Deno.serve(async (req: Request) => {
         if (error || !data?.claims?.sub) return null;
         return data.claims.sub;
       },
-      verifyServiceKey: (key) => SERVICE_KEY !== null && key !== null && key === SERVICE_KEY,
+      verifyServiceKey: (key) => serviceKeyMatches(SERVICE_KEY, key),
       hashUser: sha256Hex,
       userExists: async (userId) => {
         const { data, error } = await admin.auth.admin.getUserById(userId);

@@ -127,6 +127,8 @@ export interface ProfilePayload {
   survey_skipped: boolean;
   top_categories: string[];
   onboarding_completed_at: string | null;
+  /** P10 (ADR-0014 §5): notification prefs; absent on payloads from older builds. */
+  settings?: unknown;
   version?: number;
   updated_at?: number;
 }
@@ -155,6 +157,9 @@ export function mergeProfile(local: ProfilePayload, server: ServerProfile): Prof
     // onboarding completion is a fact: never un-complete
     onboarding_completed_at:
       local.onboarding_completed_at ?? server.onboarding_completed_at ?? null,
+    // settings ride with the winner; a payload without them (older build) keeps the other side's
+    // (P10 adversarial M1 — the merged op used to drop them and the RPC kept the stale blob)
+    settings: winner.settings ?? (winner === local ? server.settings : local.settings) ?? null,
     version: server.version + 1,
     updated_at: Math.max(localAt, serverAt),
   };

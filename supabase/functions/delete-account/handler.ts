@@ -92,8 +92,16 @@ export async function eraseUser(
   }
   const reference = await deps.insertAudit({ user_hash: await deps.hashUser(userId), reason });
   await deps.deleteUser(userId);
-  const completed_at = await deps.completeAudit(reference);
-  return { reference, completed_at };
+  // the user is gone at this point: a failure to stamp the audit row must not turn a completed
+  // erasure into a 500 that strands the device with a dead session (P10 adversarial #6); the
+  // row keeps completed_at = null as the evidence to look at
+  try {
+    const completed_at = await deps.completeAudit(reference);
+    return { reference, completed_at };
+  } catch (err) {
+    console.error('delete-account: completeAudit failed after the delete', reference, err);
+    return { reference, completed_at: new Date(deps.now()).toISOString() };
+  }
 }
 
 export async function handleDeleteAccount(req: Request, deps: Deps): Promise<Response> {

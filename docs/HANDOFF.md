@@ -24,8 +24,8 @@
   `deletion_audit` → `auth.admin.deleteUser` cascade → in-app confirmation with the reference);
   retention fixed (anonymous 30 d inactive, daily tick); SDK opt-outs; a11y source audit with
   three real AA fixes; Maestro sweep + `scripts/device-pass.sh`; perf probe from Node.
-- **Gates at the close:** typecheck/lint/Prettier clean · jest **457** (56 suites) · Deno
-  **184** · pytest **149** (8 skipped) · pgTAP **36/36** (linked, rolled back) · expo-doctor
+- **Gates at the close:** typecheck/lint/Prettier clean · jest **461** (56 suites) · Deno
+  **187** · pytest **149** (8 skipped) · pgTAP **36/36** (linked, rolled back) · expo-doctor
   21/21 · CI on PR #19 all green · live smoke pre-migration: export **13/13**, erasure blocked
   (expected) — `p10-manual-verification.md` §2.2.
 - **Perf (Node → eu-west-1):** REST read/write 88/82 ms p95 ✅ NFR-P3; `sync-resolve` 477 ms,
@@ -40,8 +40,13 @@
 
 ## P10 status
 
-- **Adversarial pass:** _pending at the time of this draft — the section is rewritten below
-  once the fresh-context review returns._
+- **Adversarial pass done** (`p10-manual-verification.md` §4): 2 MAJOR + 12 MINOR; both
+  MAJORs and 10 MINORs fixed the same day (settings survive the profile-conflict merge; the
+  analytics opt-out really opts out and lifecycle capture is off; sign-out/switch/erasure
+  cancel notifications; ritual plans the day after its own plan day; Today follows the 06:00
+  anchor; cancel-before-settle; no ritual without a profile; tolerant audit stamp; constant-time
+  key compare; permission re-read on foreground; radio `checked`; brace-aware audit scanner).
+  Two MINORs documented (cap per install; non-preset ritual time shows no chip).
 
 ## Exact next actions (next session, in order)
 
@@ -104,6 +109,9 @@ main -L 1` green.
 
 ## Gotchas (P10 additions; earlier lists still apply)
 
+- **A fact for another account after sign-out**: reminders are now cancelled on sign-out /
+  account switch / erasure (`clearAllNotifications` lives in `notifications/setup.ts` — no DB
+  import, safe to call from `auth/`); any new "identity changes" path must call it too.
 - **Migration before smoke, again.** `delete-account` inserts `deletion_audit.reason`; without
   the P10 migration the self-erasure is a 500 and the test user stays (the retention tick
   purges it after 30 d once the migration is in). `export-data` works pre-migration.

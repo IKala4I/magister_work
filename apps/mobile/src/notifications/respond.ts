@@ -10,7 +10,7 @@ import { DEFAULT_ACTION_IDENTIFIER, type NotificationResponse } from 'expo-notif
 import { currentUserId } from '../auth/identity';
 import { db } from '../db/client';
 import { appendEvent, type LocalDb } from '../db/writes';
-import { tomorrowOf } from '../domain/planTrigger';
+import { nextPlanDayOf } from '../domain/planTrigger';
 import { track } from '../observability/analytics';
 import { appStorage, StorageKeys } from '../storage/mmkv';
 import { scheduleSync } from '../sync/engine';
@@ -100,8 +100,12 @@ export function handleNotificationResponse(
   });
   deps.sync();
   track('notification_opened', { kind: data.kind, action, variant: data.variant ?? null });
-  if (data.kind === 'evening_ritual' && action === 'accept')
-    deps.planTomorrow(now, tomorrowOf(now));
+  if (data.kind === 'evening_ritual' && action === 'accept') {
+    // the day after the ritual's OWN plan day — a 22:00 ritual tapped at 00:30 plans the coming
+    // day, not the one after (P10 adversarial #2)
+    const anchor = data.scheduled_for > 0 ? new Date(data.scheduled_for) : now;
+    deps.planTomorrow(now, nextPlanDayOf(anchor));
+  }
   const route = routeFor(data, action);
   deps.navigate(route);
   return { handled: true, action, route };

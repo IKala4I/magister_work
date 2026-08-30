@@ -9,15 +9,15 @@
 
 ## 1. Gates (2026-08-30, `phase/P10-notify`)
 
-| Gate                                            | Result                                                                                                                                                               |
-| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm typecheck` · `pnpm lint` · `format:check` | clean (packages/shared + apps/mobile + docs/verification scripts)                                                                                                    |
-| `pnpm test` (jest, from `apps/mobile`)          | **457 passed, 56 suites** (P9: 382/47) — +75: planner/ledger/scheduler/respond, settings + Today P10 cases, profile settings, privacy, analytics opt-out, a11y audit |
-| `uv run ruff check` · `mypy` · `pytest`         | clean · clean · **149 passed, 8 skipped** (service untouched this phase)                                                                                             |
-| Deno fmt/lint/check/test                        | clean · **184 passed** (P9: 166) — +18: delete-account (11), export-data (6), plan-request trigger vocabulary (1)                                                    |
-| pgTAP `p10_privacy_test.sql`                    | **36/36** via `scripts/pgtap-linked.sh` against the linked project (migration applied inside the rolled-back transaction)                                            |
-| `npx expo-doctor`                               | 21/21 checks passed                                                                                                                                                  |
-| Contract sync                                   | `database.ts` hand-written for `deletion_audit.reason` + the two RPCs (CI's db job diffs it against the local database); `api.ts` unchanged (no service change)      |
+| Gate                                            | Result                                                                                                                                                                                                              |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm typecheck` · `pnpm lint` · `format:check` | clean (packages/shared + apps/mobile + docs/verification scripts)                                                                                                                                                   |
+| `pnpm test` (jest, from `apps/mobile`)          | **461 passed, 56 suites** (P9: 382/47) — +79: planner/ledger/scheduler/respond, settings + Today P10 cases, profile settings + conflict merge, privacy, analytics opt-out, a11y audit (incl. the scanner self-test) |
+| `uv run ruff check` · `mypy` · `pytest`         | clean · clean · **149 passed, 8 skipped** (service untouched this phase)                                                                                                                                            |
+| Deno fmt/lint/check/test                        | clean · **187 passed** (P9: 166) — +21: delete-account (12), export-data (6), plan-request trigger vocabulary (1), shared backend-key check (2)                                                                     |
+| pgTAP `p10_privacy_test.sql`                    | **36/36** via `scripts/pgtap-linked.sh` against the linked project (migration applied inside the rolled-back transaction)                                                                                           |
+| `npx expo-doctor`                               | 21/21 checks passed                                                                                                                                                                                                 |
+| Contract sync                                   | `database.ts` hand-written for `deletion_audit.reason` + the two RPCs (CI's db job diffs it against the local database); `api.ts` unchanged (no service change)                                                     |
 
 ## 2. What is established
 
@@ -44,7 +44,9 @@
 ### 2.2 Live on the hosted project (2026-08-30)
 
 - Functions **deployed**: `export-data`, `delete-account`, `plan-request` (trigger vocabulary),
-  `gcal-connect` (shared disconnect).
+  `gcal-connect` (shared disconnect); **redeployed after the adversarial fixes** (2026-08-30,
+  later the same day): `delete-account` (tolerant audit stamp, shared constant-time key check),
+  `attribute-rewards`, `gcal-webhook` (shared key check).
 - **Pre-migration run of `p10-live-smoke.mjs` (2026-08-30 16:20 UTC)** — what the deployed
   functions establish before the ⛔ push: `export-data` live **13/13** (401 without a session;
   200 in 1 407 ms cold from `eu-west-1`; format/version; the download filename; the profile with
@@ -109,6 +111,30 @@ re-measures with `measure-cold-start.py` / Xcode App Launch and `adb am start -W
   device sees it at its next sync (fine); its own ritual notification still fires (a second
   "Plan tomorrow?" that finds the plan already made) — revisit.md.
 
-## 4. Adversarial pass (fresh-context subagent, 2026-08-30)
+## 4. Adversarial pass (fresh-context subagent, 2026-08-30 → fixes the same day)
 
-_(appended below once the review returns)_
+**2 MAJOR + 12 MINOR.** Both MAJORs and ten MINORs fixed; two MINORs documented.
+
+| #   | Finding                                                                                                                                                                           | Fix / disposition                                                                                                                                                                     |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| M1  | `settings` dropped on the profile **conflict** path (`merge.ts`/`engine.ts` rebuilt the op from a fixed field list): a second device's newer mute/ritual change reverted silently | `settings` ride with the LWW winner (fallback to the other side when the winner's payload has none); the engine writes them locally; `merge.test.ts` covers 4 combinations            |
+| M2  | Analytics opt-out only dropped the reference; PostHog's own lifecycle capture kept running ("Stops immediately" was false); lifecycle events were never in the typed catalog      | `optOut()` on the live instance after the toggle event, then drop; instance created with `captureAppLifecycleEvents: false`; test asserts both                                        |
+| 1   | Sign-out / account switch left the previous account's reminders (with task titles) scheduled; a tap would write a fact under the new uid                                          | `clearAllNotifications()` (moved to `setup.ts`, no DB import) in `signOut()` and `transitionToAccount()`                                                                              |
+| 2   | Ritual "accept" after midnight planned the day after tomorrow (`tomorrowOf(now)`)                                                                                                 | `nextPlanDayOf(scheduled_for)` — the day after the ritual's own plan day; `respond.test.ts` 00:30 case; `planTrigger.test.ts`                                                         |
+| 3   | Today flipped to the evening plan at 00:00, against the 06:00 plan-day anchor                                                                                                     | before 06:00 the previous plan day's plan stays (`previousRows[0] ?? todayRows[0]`); the "tomorrow" line/card and `ritualDue` follow the plan day                                     |
+| 4   | Settle-before-cancel window: a request firing between the two calls was delivered but uncounted                                                                                   | cancel first, then settle                                                                                                                                                             |
+| 5   | A pass with no profile row scheduled the ritual from defaults (race after erasure)                                                                                                | no profile → `commitScheduled([])`, return; `scheduler.test.ts`                                                                                                                       |
+| 6   | `completeAudit` failure after `deleteUser` → 500 → the device kept a dead session and every retry was 401                                                                         | logged, `deleted` still returned (the open audit row is the evidence); `handler_test.ts`                                                                                              |
+| 7   | Backend-key compare was `===` and accepted an empty configured key                                                                                                                | `_shared/auth.ts` (`constantTimeEqual`, `serviceKeyMatches` rejecting empty) used by delete-account; attribute-rewards and gcal-webhook switched to the shared helper; `auth_test.ts` |
+| 8   | Cap is per install (two devices remind twice); ADR said the ledger keys on the plan day — it keys on the calendar day of the fire time                                            | **documented** (ADR §2, CHANGELOG, explainer, revisit two-device line)                                                                                                                |
+| 9   | Permission read once on mount (back from OS settings showed stale state)                                                                                                          | re-read on `AppState` `active` in Settings and Today                                                                                                                                  |
+| 10  | Radio chips announced `selected`, not `checked`; non-preset stored time shows no chip                                                                                             | `checked` on the ritual and the appearance radios (tests updated); non-preset case **documented** in the audit table                                                                  |
+| 11  | Audit regex stopped at the `>` of an arrow function (false positive risk)                                                                                                         | brace/quote-aware opening-tag scanner + a self-test                                                                                                                                   |
+| 12  | Doc nits: `truncated` is a list; `optOut()` claim; retention = "no synced event"                                                                                                  | ADR §7/§10/§12 reworded                                                                                                                                                               |
+
+Checked and found sound by the reviewer: invariants 1/7 on every notification path; the cap
+arithmetic across re-plans, day rollover, pruning, clock changes, restarts, DST; the response
+dedup and cold-start ordering; the server event type/ownership checks; RLS-as-filter for all 14
+exported tables and the paging keys; erasure order, cascade, retention loop isolation, grants on
+the new objects; the MMKV/SecureStore leftovers after erasure (device id, op counter, scheme
+preference, opt-out flags only).

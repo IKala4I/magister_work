@@ -10,6 +10,8 @@ import { Platform } from 'react-native';
 import { t } from '../i18n';
 import { track } from '../observability/analytics';
 
+import { resetLedger } from './ledger';
+
 /** Android channel ids (importance DEFAULT: a reminder, not an alarm — no guilt UI). */
 export const CHANNEL_REMINDERS = 'reminders';
 export const CHANNEL_RITUAL = 'ritual';
@@ -75,6 +77,17 @@ async function registerChannels(): Promise<void> {
     });
   } catch {
     // channel creation failing only degrades to the default channel
+  }
+}
+
+/** Sign-out / account switch / erasure: nothing pending, nothing remembered (ledger + OS). */
+export async function clearAllNotifications(): Promise<void> {
+  resetLedger();
+  try {
+    await Notifications.cancelAllScheduledNotificationsAsync();
+    await Notifications.dismissAllNotificationsAsync();
+  } catch {
+    // no native module
   }
 }
 

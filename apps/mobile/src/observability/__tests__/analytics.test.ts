@@ -8,6 +8,7 @@
  */
 const mockCtor = jest.fn();
 const mockCapture = jest.fn();
+const mockOptOut = jest.fn(() => Promise.resolve());
 
 jest.mock('posthog-react-native', () => ({
   __esModule: true,
@@ -16,6 +17,7 @@ jest.mock('posthog-react-native', () => ({
       mockCtor(apiKey, options);
     }
     capture = mockCapture;
+    optOut = mockOptOut;
   },
 }));
 
@@ -79,7 +81,11 @@ describe('initAnalytics (env-gated, NFR-S2)', () => {
       expect(initAnalytics()).toBe(true);
       expect(isAnalyticsEnabled()).toBe(true);
       expect(mockCtor).toHaveBeenCalledTimes(1);
-      expect(mockCtor).toHaveBeenCalledWith(KEY, { host: EU_HOST, disableGeoip: true });
+      expect(mockCtor).toHaveBeenCalledWith(KEY, {
+        host: EU_HOST,
+        disableGeoip: true,
+        captureAppLifecycleEvents: false,
+      });
     });
   });
 
@@ -166,6 +172,10 @@ describe('opt-out (P10, ADR-0014 §12)', () => {
         sdk: 'analytics',
         enabled: false,
       });
+      expect(mockOptOut).toHaveBeenCalledTimes(1); // the live instance is opted out, not just dropped
+      expect(mockCtor.mock.calls[0]![1]).toEqual(
+        expect.objectContaining({ captureAppLifecycleEvents: false }),
+      );
       expect(isAnalyticsEnabled()).toBe(false);
       track('task_created', {
         source: 'form',

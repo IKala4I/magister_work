@@ -119,7 +119,7 @@ describe('settings appearance control', () => {
     const selected = screen
       .getAllByRole('radio')
       .filter((node) => appearance.includes(node.props.accessibilityLabel))
-      .filter((node) => node.props.accessibilityState?.selected === true);
+      .filter((node) => node.props.accessibilityState?.checked === true);
     expect(selected).toHaveLength(1);
   });
 });

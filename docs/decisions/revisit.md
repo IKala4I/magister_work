@@ -159,8 +159,9 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   its own decision (or the re-plan replaces the plan — the usual case within seconds). — P10
   notifications / P12: if two-device use matters for the study, pull `tradeoff_*` events or
   mark the plan row. — **P10: unchanged**; the same holds for the evening ritual (each device
-  fires its own "Plan tomorrow?" and finds the plan already made) — P12 if two-device use
-  matters.
+  fires its own "Plan tomorrow?" and finds the plan already made) and for the FR-50 cap, which
+  is per install (two devices may remind about the same block; the adversarial pass, #8) —
+  P12 if two-device use matters.
 - [P9, 2026-08-29] `drop` = "not today" (earliest_start = tomorrow 00:00 local, +1 postpone);
   a task with a deadline today that is dropped will be reported past its deadline tomorrow —
   the sheet's consequence line says "skips a task worth …", not "misses its deadline". — P10

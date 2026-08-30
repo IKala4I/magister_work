@@ -60,9 +60,19 @@ export function decidePlanTrigger(input: {
   return { request: true, trigger: input.latestPlanDate === null ? 'first_open' : 'new_day' };
 }
 
-/** The local calendar day after `now` — what the evening ritual plans (FR-26). */
+/** The local calendar day after `now`. */
 export function tomorrowOf(now: Date): string {
   const d = new Date(now);
   d.setDate(now.getDate() + 1);
   return localDayOf(d);
+}
+
+/**
+ * The plan day after the plan day `at` belongs to — what the evening ritual plans (FR-26).
+ * A 22:00 ritual tapped at 00:30 still plans the coming day, not the one after (the 06:00
+ * anchor: 00:30 is the previous plan day). Callers pass the ritual's own fire time.
+ */
+export function nextPlanDayOf(at: Date): string {
+  const [y, m, d] = planDayOf(at).split('-').map(Number);
+  return localDayOf(new Date(y ?? 1970, (m ?? 1) - 1, (d ?? 1) + 1));
 }

@@ -37,20 +37,26 @@ windows (events 24 months, anonymous accounts 30 days) are [INFERRED] in specs/0
    (`ledger.ts`, MMKV).** The app remembers what it asked the OS to schedule (`scheduled`,
    with fire times). On every scheduler run it first _settles_: every scheduled request whose
    fire time is ≤ now is counted as **delivered** (whether or not the OS actually presented
-   it — counting an undelivered one keeps the cap a ceiling, never a floor), every request
-   still ahead is cancelled, then the plan is recomputed from scratch and re-scheduled. The
-   ledger keys on the local plan day and resets at the day boundary. "Storm" = twenty
-   placements, three re-plans and a settings change in one day → never more than five
-   requests scheduled+delivered (jest `plan.test.ts`, `scheduler.test.ts`).
+   it — counting an undelivered one keeps the cap a ceiling, never a floor), then the plan is
+   recomputed from scratch and re-scheduled. The OS-side cancel runs **before** the settle, so
+   nothing can fire in between and go uncounted. The ledger keys on the **local calendar day
+   of the fire time** (not the 06:00 plan day) and keeps today + yesterday. The cap is **per
+   install**: two devices of one account each hold their own ledger and may both remind about
+   the same block (revisit.md). A pass without a profile row (erased account) schedules
+   nothing, not even the ritual. "Storm" = twenty placements, three re-plans and a settings
+   change in one day → never more than five requests scheduled+delivered (jest `plan.test.ts`,
+   `ledger.test.ts`, `scheduler.test.ts`).
 3. **The evening ritual (FR-26) is one local notification per day at the user's ritual time
    (default 20:00 local, Settings) with two actions:** `accept` ("Plan tomorrow") requests
    tomorrow's plan (`plan-request` already accepts `plan_date` up to seven days ahead; new
    trigger value `evening_ritual` persisted in `plans.telemetry.request.trigger`), `adjust`
    ("Adjust tasks") opens the Inbox. On Sundays the copy invites the weekly review and the tap
-   opens Insights (UC-08 "Sunday-evening notification, FR-26 cadence"). A plan for tomorrow
-   made tonight is what Today shows after 06:00; the UC-03 trigger now asks "is there a plan
-   for **today**", not "is the latest plan today's", so an evening plan never re-plans the
-   current day at 21:00.
+   opens Insights (UC-08 "Sunday-evening notification, FR-26 cadence"). "Tomorrow" is the day
+   after the ritual's **own plan day** (`nextPlanDayOf(scheduled_for)`): a 22:00 ritual tapped
+   at 00:30 still plans the coming day. A plan for tomorrow made tonight is what Today shows
+   after 06:00 — before 06:00 the previous plan day's plan stays on screen (the 06:00 anchor);
+   the UC-03 trigger now asks "is there a plan for **today**", not "is the latest plan
+   today's", so an evening plan never re-plans the current day at 21:00.
 4. **A notification response is a fact (FR-32).** Every tap/action appends a
    `notification_response` event (`kind` ∈ {block_reminder, evening_ritual}, `action`,
    `recommendation_id`, `scheduled_for`, `latency_ms`) through the op outbox — categorical
@@ -62,8 +68,10 @@ windows (events 24 months, anonymous accounts 30 days) are [INFERRED] in specs/0
    defaults (`block_reminders: true`, `lead_minutes: 10`, `muted_categories: []`,
    `evening_ritual: true`, `evening_ritual_time: "20:00"`). The `profile_update` op now carries
    `settings`; the replay RPC `sync_apply_profile` merges it (it silently dropped the column
-   before — spec-conflicts L-line). Reminders are only ever scheduled after the OS permission
-   was granted; the app asks once from a Today card, never at launch.
+   before — spec-conflicts L34); the client's conflict merge (`merge.ts`) carries `settings`
+   with the row-level winner too (adversarial M1). Reminders are only ever scheduled after the
+   OS permission was granted; the app asks once from a Today card, never at launch. Sign-out,
+   an account switch and erasure cancel every pending notification and forget the ledger.
 6. **No displacement notification.** ADR-0012 §10's "≤ 5 min" is server-side; the device
    learns of a displacement at its next foreground — at which moment the user is looking at
    the app and the existing Today notice is the right surface. A push would need a relay
@@ -77,8 +85,9 @@ windows (events 24 months, anonymous accounts 30 days) are [INFERRED] in specs/0
    duration_estimates, cluster_assignments) plus study_assignments; server-only ledgers
    (`sync_ops`, `sync_leases`, `gcal_sync_state`, `recsys_applied_tuples`) are not personal
    data of the user's making and stay out. Pages of 1 000 rows, `truncated: true` past
-   200 000 rows of one table. The document is `{ format: "hourwell-export", version: 1 }`; the
-   app writes it to its cache directory and opens the OS share sheet (expo-sharing).
+   200 000 rows of one table (`truncated` lists the cut tables). The document is
+   `{ format: "hourwell-export", version: 1 }`; the app writes it to its cache directory and
+   opens the OS share sheet (expo-sharing).
 8. **FR-42 erasure = `delete-account` edge function**, three modes: `self` (user JWT), `operator`
    (service key + `user_id`; the privacy README §7 path for a request by e-mail — the operator
    resolves the id, never browses rows), `retention` (service key; decision 9). Per user, in
@@ -88,10 +97,14 @@ disconnectGoogle`), a `deletion_audit` row (`user_hash` = SHA-256 of the uid, `r
    `auth.admin.deleteUser(uid)` — the cascade through every user-owned table (pgTAP
    `p10_privacy_test.sql` inserts a row in **every** table that references `auth.users` and
    proves all are gone while a second user's rows survive; a structural assertion checks that
-   every FK to `auth.users` in `public` is `ON DELETE CASCADE`), then `completed_at`. Erasure
-   completes synchronously — "≤ 30 days" is the bound, seconds is the practice. The app then
-   cancels every scheduled notification, wipes the local mirror and MMKV state, signs out
-   locally and shows a confirmation with the audit reference.
+   every FK to `auth.users` in `public` is `ON DELETE CASCADE`), then `completed_at`. A failure
+   to stamp `completed_at` after the delete is logged, not surfaced — the user is gone and the
+   device must not be stranded with a dead session (the open audit row is the evidence). The
+   backend-key check for operator/retention is constant-time and rejects an empty key
+   (`_shared/auth.ts`, shared with the other cron-called functions). Erasure completes
+   synchronously — "≤ 30 days" is the bound, seconds is the practice. The app then cancels
+   every scheduled notification, wipes the local mirror and MMKV state, signs out locally and
+   shows a confirmation with the audit reference.
 9. **Confirmation is in-app, not by e-mail.** The free tier has no transactional mail (the
    auth mailer only sends its own templates), a mail provider would be a new processor
    (Art. 28) and anonymous accounts have no address at all. The confirmation screen shows the
@@ -99,7 +112,9 @@ disconnectGoogle`), a `deletion_audit` row (`user_hash` = SHA-256 of the uid, `r
    (thesis-corrections). If the owner wants e-mail confirmation for the study, it needs an
    EU mail processor — owner decision, revisit.md.
 10. **Retention (Appendix A, fixed here).** Anonymous accounts: purged after **30 days of
-    inactivity** (no sign-in and no event for 30 days) — the [INFERRED] "unconverted after 30
+    inactivity** (no sign-in and no **synced** event for 30 days — an anonymous session's
+    `last_sign_in_at` does not advance on token refresh, so a device offline for 30 days is a
+    candidate) — the [INFERRED] "unconverted after 30
     days" would destroy an active trial user's data mid-trial, which the hygiene rationale
     never intended; a daily pg_cron tick (`retention_sweep_tick`, 03:10 UTC) calls
     `delete-account {mode: retention}`, which lists candidates through the service-only RPC
@@ -119,8 +134,12 @@ anonymous_retention`). Raw events: the 24-month window starts at **study end** a
     labelled by where they were taken; NFR-P3 is measured from Node against the hosted
     project (`p10-perf.mjs`), never claimed for a handset.
 12. **Analytics and crash reporting get an opt-out** (Settings → Privacy; MMKV flag read at
-    init; PostHog `optOut()` immediately, Sentry at next launch). Off by default stays "on when
-    keys are present" — the study needs the events (File 06), the consent clause discloses them.
+    init; PostHog: the toggle event is sent, then `optOut()` on the live instance — persisted by
+    the SDK and gating its own listeners — then the client is dropped; the instance is created
+    with `captureAppLifecycleEvents: false` so the typed catalog in `events.ts` is the complete
+    list of what the app emits (adversarial M2); Sentry at next launch, said in the hint). Off by
+    default stays "on when keys are present" — the study needs the events (File 06), the consent
+    clause discloses them.
 
 ## Rejected
 

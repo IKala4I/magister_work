@@ -112,6 +112,21 @@ describe('handleNotificationResponse', () => {
     );
     expect(accept.planned).toEqual(['2026-09-08']);
     expect(accept.routes).toEqual(['/(tabs)']);
+    // tapped after midnight: the ritual's own plan day decides → still the 8th, not the 9th
+    const late = deps();
+    late.d.now = () => new Date(2026, 8, 8, 0, 30);
+    handleNotificationResponse(
+      response(
+        {
+          kind: 'evening_ritual',
+          scheduled_for: new Date(2026, 8, 7, 22, 0).getTime(),
+          variant: 'daily',
+        },
+        'accept',
+      ),
+      late.d,
+    );
+    expect(late.planned).toEqual(['2026-09-08']);
     const adjust = deps();
     handleNotificationResponse(
       response(

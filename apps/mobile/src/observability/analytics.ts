@@ -29,6 +29,9 @@ export function initAnalytics(): boolean {
   client = new PostHog(apiKey, {
     host,
     disableGeoip: true,
+    // the typed catalog (events.ts) is the complete list of what the app emits: no SDK-authored
+    // lifecycle events (P10 adversarial M2)
+    captureAppLifecycleEvents: false,
   });
   return true;
 }
@@ -51,6 +54,9 @@ export function isAnalyticsEnabled(): boolean {
 export function setAnalyticsEnabled(enabled: boolean): boolean {
   if (!enabled) {
     track('privacy_toggled', { sdk: 'analytics', enabled: false });
+    // optOut() is persisted by the SDK and gates capture on the live instance (its own
+    // listeners included); dropping the reference alone would leave those running
+    void client?.optOut().catch(() => undefined);
     client = null;
     return false;
   }

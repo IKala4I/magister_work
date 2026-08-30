@@ -29,6 +29,7 @@ import {
   tasks,
 } from '../db/schema';
 import type { LocalDb } from '../db/writes';
+import { clearAllNotifications } from '../notifications/setup';
 import { useSyncStore } from '../state/sync';
 import { appStorage, StorageKeys } from '../storage/mmkv';
 import { clearInsightsCache } from '../sync/insights';
@@ -135,6 +136,7 @@ export function wipeRowsOf(db: LocalDb, userId: string): void {
  * otherwise defer — reset the cursor only, remember the previous uid, surface the banner.
  */
 export function transitionToAccount(db: LocalDb, previousUserId: string): void {
+  void clearAllNotifications(); // the previous account's reminders never reach the next one (P10 #1)
   const pending = unackedOpsFor(db, previousUserId);
   if (pending === 0) {
     wipeLocalMirror(db);

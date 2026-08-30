@@ -9,7 +9,7 @@ import { supabase } from '../auth/client';
 import { wipeLocalMirror } from '../auth/accountTransition';
 import { db } from '../db/client';
 import type { LocalDb } from '../db/writes';
-import { clearAllNotifications } from '../notifications/scheduler';
+import { clearAllNotifications } from '../notifications/setup';
 import { track } from '../observability/analytics';
 import { appStorage, StorageKeys } from '../storage/mmkv';
 import { resetSyncCursor } from '../sync/cursor';
