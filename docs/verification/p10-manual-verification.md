@@ -45,10 +45,22 @@
 
 - Functions **deployed**: `export-data`, `delete-account`, `plan-request` (trigger vocabulary),
   `gcal-connect` (shared disconnect).
-- **Pending the ⛔ migration push** (`20260830120000_p10_privacy.sql`): `docs/verification/p10-live-smoke.mjs`
-  — export document checks, then the self-erasure round trip observed service-side (nothing of
-  the user remains in any table; audit row completed with `reason = user_request`). Paste the
-  output here as §2.2.1 once run; expected **24/24**.
+- **Pre-migration run of `p10-live-smoke.mjs` (2026-08-30 16:20 UTC)** — what the deployed
+  functions establish before the ⛔ push: `export-data` live **13/13** (401 without a session;
+  200 in 1 407 ms cold from `eu-west-1`; format/version; the download filename; the profile with
+  its notification settings; the task with its title; the `notification_response` fact that had
+  just replayed through `sync-resolve`; 48 Beta cells with priors; the cluster row; no calendar
+  `title` key; counts over 14 tables; no server-only ledger). `delete-account` auth live 3/3
+  (401 without a session, operator and retention without the backend key). **Expected FAILs
+  (6):** the migration checks (`deletion_audit.reason`, the cron job) and the self-erasure
+  (500 — the audit insert needs the `reason` column), so the user's rows remained — that
+  anonymous test user is exactly what the retention tick will purge after 30 days once the
+  migration is in. One test user is left behind per run (30-day purge).
+- **After the ⛔ migration push** (`20260830120000_p10_privacy.sql`): re-run
+  `node ../../docs/verification/p10-live-smoke.mjs` from `apps/mobile` — expected **25/25**:
+  the self-erasure round trip observed service-side (nothing of the user remains in any table;
+  the session is dead; the audit row completed with `reason = user_request`). Paste the output
+  here as §2.2.1.
 
 ### 2.3 Performance (NFR-P1 / P3) — numbers labelled by where they were taken
 
