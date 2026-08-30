@@ -41,7 +41,60 @@
 | FR-24 apply/reject on real SQLite                                                 | `insightsDao.test.ts`: drop (earliest_start = tomorrow local midnight, +1 postpone, inbox, task op with base_version), shrink (floor 15), move (deadline + slip), unpin (`recommendation_status` op), rejection fact, decided plan ids                                                                                                                                                                                                                                  |
 | FR-24 sheet on Today                                                              | `today.test.tsx`: ranked options with consequences, choose → `applyTradeoffAction` with rank, reject → fact, answered plan hides the sheet, feasible plan shows none                                                                                                                                                                                                                                                                                                    |
 
-### 2.2 Live on the hosted project (2026-08-29, `p9-live-smoke.mjs`, 10/10 + 2 SKIP)
+### 2.2 Live on the hosted project (2026-08-29 → 30, `p9-live-smoke.mjs`)
+
+**2026-08-30 — migration applied by the owner; 31/31, no skips** (output in §2.2.1 below; the
+run after the badge fix rolled out).
+The thesis-critical claim is now live evidence: a belief label is a fact that becomes a
+correction; the service rebuilds; the tab shows it; clearing it restores the prior. Two things
+the migrated run corrected in the smoke itself (not in the system): the gate on a side
+`db query` (which evaluated false in the owner's shell and skipped the round trip) is gone, and
+the label target moved from the evening cell (one prior's worth lifts 0.40 → 0.70, which does not
+beat the DM early-morning prior of 0.78) to the morning cell (0.74 → 0.87, decisive). One live
+finding in the system, fixed on `phase/P9-smoke-close`: a single ✓ on a day-0 user switched the
+learning-mode badge off — labelled cells are now outside the badge's count.
+
+#### 2.2.1 Output (2026-08-30, badge-fix image + P9 functions, migrated project)
+
+```
+PASS  anonymous sign-in on the hosted project
+PASS  insights without a session → 401
+PASS  insights before onboarding → 404 profile_missing
+PASS  profile insert through RLS (priors instantiated by trigger)
+PASS  belief_labels exists on the hosted project (P9 migration applied)
+      insights round trip: 1062 ms (service 499 ms)
+PASS  EU region header on insights
+PASS  insights → 200 with the service document
+PASS  48 heatmap cells (4 categories × 6 dayparts × 2 day types)
+PASS  8 beliefs (one per category × day type), none labelled
+PASS  learning mode on for a fresh user; no labels; no adherence weeks yet
+PASS  chronotype provenance = DM (from the profile)
+PASS  deep/MO/weekday cell carries the DM prior (mean ≈ 0.74, n_effective 0, not personal)
+PASS  the deep/weekday belief starts at the DM prior peak (EM 0.78), not personal, unlabelled
+PASS  the cell starts at its prior with no evidence
+PASS  belief_label op applied
+PASS  reward pass ran and delivered 1 label
+PASS  belief_labels row materialised by the trigger with the op_id and marked delivered
+PASS  service rebuilt: the cell's evidence is one prior's worth (succ = α₀ + β₀, fail = 0)
+PASS  insights: the label is in force and the belief moved from EM to the labelled MO cell (≈ 0.87), personal
+PASS  heatmap cell reports n_effective = weight and personal = true
+PASS  learning mode stays on: a label is a statement, not an observed day (ADR-0013 §2, amended after the first live run)
+PASS  replaying the label op → duplicate, still one row
+PASS  a "none" label applied and delivered (rebuild, not a downdate)
+PASS  the cell is back to its prior (succ = fail = 0, no event)
+PASS  insights: label in force is none → belief back at EM, unlabelled, not personal; learning mode still on
+PASS  a malformed state_ref fails the op and leaves no event/label
+PASS  two tasks synced
+PASS  plan-request planned both tasks
+      plan-request round trip: 947 ms (engine learned, learned)
+PASS  re-plan with two pins on one slot → infeasible options (FR-24), unpin first
+PASS  options are stored in plans.telemetry.infeasible (what the sheet reads)
+PASS  tradeoff_decision fact synced (UC-05 post: decision logged)
+
+ALL PASS
+```
+
+**2026-08-29 — migration pending (10/10 + 2 SKIP)**
 
 Functions `insights`, `attribute-rewards`, `sync-resolve` deployed; the P9 service image built
 from the branch (`deploy-recsys.yml` workflow_dispatch → GHCR → the VM's 5-min rollout timer,
@@ -85,16 +138,14 @@ functions and the image are already the P9 versions.
 
 ## 3. What is NOT established (and where it is tracked)
 
-- **The live label round trip** (fact → trigger → `/labels` → rebuild → `/insights`): the P9
-  migration is verified against the linked project only inside a rolled-back transaction;
-  `supabase db push --linked` was refused by the session's permission classifier. ⛔ owner
-  (HANDOFF); the smoke then runs the full block.
-- **`database.ts` for `belief_labels`** was hand-written (no local Docker); the CI db job
-  regenerates and diffs it — a mismatch fails CI, not a user.
+- ~~The live label round trip~~ — done 2026-08-30 (§2.2.1, 31/31).
+- ~~`database.ts` for `belief_labels` hand-written~~ — regenerated from the live schema on
+  2026-08-30 with `supabase gen types typescript --linked`: byte-identical to the hand-written
+  block (and CI's db job had already agreed).
 - **200 % font scale, VoiceOver/TalkBack on the grid and toggles, the sheet on a real
   over-committed day, reduced motion** — `device-checklist.md` "Trust surfaces (added P9)".
-- **Rung-2 badge on labels alone** for a user with few outcomes — a P11 first-data-review line
-  (revisit.md).
+- ~~Rung-2 badge on labels alone~~ — observed live and fixed 2026-08-30 (labelled cells outside
+  the badge's count); P11 still reports the share of personal-by-label cells.
 - **Two-device decisions** (the sheet re-appears on a second device until its own decision or
   the re-plan) — revisit.md.
 

@@ -150,9 +150,15 @@ def learning_mode(
     labeled: frozenset[tuple[str, str, str]] = frozenset(),
 ) -> bool:
     """True while the population-prior badge stays on: fewer than 50 % of active cells are
-    personal (no active cells ⇒ still learning). `labeled` = cell keys carrying a belief label."""
-    active = [c for c in cells if is_active(c)]
+    personal (no active cells ⇒ still learning).
+
+    `labeled` = cell keys carrying a belief label. Labelled cells are left OUT of the badge's
+    count on both sides: the badge says "these hours come from your own days", and a label is a
+    statement, not a day — the P9 live smoke showed one ✓ on a day-0 user switching the badge off
+    (the labelled cell was the only active one). Per-cell `is_personal(labeled=True)` still drives
+    the personal phrasing of that cell (ADR-0013 §2)."""
+    active = [c for c in cells if is_active(c) and c.key not in labeled]
     if not active:
         return True
-    personal = sum(1 for c in active if is_personal(c, now, labeled=c.key in labeled))
+    personal = sum(1 for c in active if is_personal(c, now))
     return personal < RUNG2_ACTIVE_CELL_FRACTION * len(active)

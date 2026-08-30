@@ -122,7 +122,12 @@ def test_labelled_cell_is_personal_by_definition() -> None:
     assert not is_personal(cell, T0)  # 1 < 8
     assert is_personal(cell, T0, labeled=True)
     assert learning_mode([cell], T0) is True
-    assert learning_mode([cell], T0, frozenset({cell.key})) is False
+    # a label alone never switches the badge off: labelled cells are outside its count
+    assert learning_mode([cell], T0, frozenset({cell.key})) is True
+    observed = BetaCell("deep", "AF", "weekday", alpha0=4.0, beta0=4.0, succ=9.0, last_event_at=T0)
+    assert (
+        learning_mode([cell, observed], T0, frozenset({cell.key})) is False
+    )  # 1/1 observed personal
 
 
 def test_label_weight_follows_the_cell_prior_out_of_hours_too() -> None:

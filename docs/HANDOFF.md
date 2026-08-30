@@ -2,14 +2,14 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-08-29 (afternoon), **P9 — Trust surfaces: complete; PR #17 merged; one ⛔ owner
-> step (migration push) gates the live label round trip; P10 — Notifications, privacy, a11y,
-> performance opens next.** Standing rules live in CLAUDE.md:
+> Last update: 2026-08-30, **P9 — Trust surfaces: complete; PR #17 merged; migration applied by
+> the owner and the full label round trip verified live (31/31); follow-up PR #18 (badge fix +
+> smoke) merged; P10 — Notifications, privacy, a11y, performance opens next.** Standing rules live in CLAUDE.md:
 > "Working mode", "Context efficiency", "Simulator evidence".
 
 ## Where we are
 
-- **P0–P9 merged** (PRs #1–#17). `main` = hosted project minus the P9 migration (⛔ below).
+- **P0–P9 merged** (PRs #1–#18). `main` = hosted project (P9 migration applied 2026-08-30; functions and the service image at PR #18).
 - **What P9 built** (ADR-0013; CHANGELOG "P9"): a belief label (FR-41 ✓/✗, FR-33 correction,
   the review's "tell Hourwell" picker) is a `belief_label` **fact** through the op outbox → an
   `events` trigger materialises `belief_labels` (id = op_id, closed vocabularies enforced at the
@@ -27,13 +27,10 @@
 - **Gates at the close:** typecheck/lint/Prettier clean · jest **382** (47 suites) · Deno
   **166** · pytest **149** (8 skipped) · pgTAP **23/23** (linked, rolled back) · expo-doctor
   21/21 · live smoke **10/10 + 2 SKIP** (`p9-live-smoke.mjs`; FR-24 verified live).
-- **Deployed:** functions `insights`, `attribute-rewards`, `sync-resolve` (P9 versions); the
-  service image built from the branch by `deploy-recsys.yml` (workflow_dispatch) and rolled out
-  to the VM (confirmed by the workflow). **NOT applied:** migration
-  `20260829120000_p9_trust.sql` — see ⛔ below. Until it is, the service's `/insights` and any
-  `/feedback` correction rebuild answer 500 (they read `belief_labels`): the Insights tab shows
-  its cached/empty state via the 503 contract, and a UC-04 A1 correction stays undelivered
-  (re-sent every pass, never lost). Sync itself is unaffected (fix `3d04a0c`).
+- **Deployed:** functions `insights`, `attribute-rewards`, `sync-resolve`, `plan-request` (P9
+  versions); the service image from `phase/P9-smoke-close` (badge fix) rolled out to the VM;
+  migration `20260829120000_p9_trust.sql` applied by the owner 2026-08-30. `p9-live-smoke.mjs`
+  **31/31** on the migrated project — the full label round trip (see CHANGELOG "Live").
 - **Docs current:** ADR-0013, `p9-manual-verification.md` (§1 gates, §2.1 tests, §2.2 smoke,
   §3 not established, §4 adversarial), traceability (7 P9 rows), CHANGELOG, PLAN board + P9
   status line, device checklist "Trust surfaces (added P9)", revisit (P9-tagged lines closed or
@@ -93,8 +90,6 @@ CASCADE`); WCAG 2.2 AA pass + 200 %/reduced-motion sweep (NFR-A1/A2) scoped as "
 
 ## ⛔ ACTION REQUIRED (owner)
 
-- **P9 migration push** — item 1 above. The session's permission classifier refused
-  `supabase db push --linked --yes` (a hosted-schema change); everything else of P9 is deployed.
 - **Consent clause review** — `docs/privacy/consent-clause.md` (draft; contact block to fill).
 - **Google OAuth _sign-in_ (FR-01, P4 leftover):** second Web OAuth client with redirect
   `https://uapiuehjcntilwdmpojk.supabase.co/auth/v1/callback`, id + secret into Supabase
@@ -119,8 +114,14 @@ CASCADE`); WCAG 2.2 AA pass + 200 %/reduced-motion sweep (NFR-A1/A2) scoped as "
   changed its line breaks silently no-ops — grep the anchor first (bit twice this phase).
 - **zsh + `--include=*.py`**: quote glob patterns for `grep -r` (`--include='*.py'`).
 - The permission classifier may refuse hosted-schema changes (`db push`); function deploys and
-  `gh workflow run` were allowed. Run the migration push as the owner, do not route the DDL
-  through `db query` (it would skip the migration history table).
+  `gh workflow run` were allowed. The owner runs the push; never route DDL through `db query`
+  (it would skip the migration history table).
+- **A smoke must not gate on a side query.** The first P9 smoke skipped its own point because a
+  `supabase db query` gate evaluated false in the owner's shell; gates now read the thing under
+  test (the function's response) and a parse failure prints instead of silently returning `[]`.
+- **A label weighs one prior, not a veto**: a ✓ on a cell with prior μ₀ lifts it to
+  (μ₀ + 1)/2 — write live expectations from that arithmetic (the DM evening cell reaches 0.70,
+  below the 0.78 early-morning prior; the morning cell reaches 0.87 and moves the belief).
 - **`deploy-recsys.yml` can be dispatched from a branch** (`gh workflow run deploy-recsys.yml
 --ref <branch>`) — it pushes `:latest`, so the VM runs the branch's service until main's next
   merge rebuilds it; fine for a phase that merges the same code.

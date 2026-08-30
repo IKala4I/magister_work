@@ -111,8 +111,8 @@ File 06 §1.4 defines PAR and spec-conflicts H2 forbids deriving it from the rew
   vocabulary guard and RLS. The live round trip (label → sync → `/labels` → `/insights` shows it)
   is the P9 smoke's job and needs the migration on the hosted project (⛔ owner: `supabase db push
 --linked` was refused by the session's permission classifier).
-- `is_personal` now has a `labeled` input and `learning_mode` a `labeled` set; the rung-2 badge
-  can drop on labels alone for a user with few outcomes — intended (a stated belief is personal).
+- `is_personal` now has a `labeled` input and `learning_mode` a `labeled` set; the badge counts
+  observed cells only, so labels alone never drop it (amended after the live smoke).
 - Thesis text: "high-weight labels" now has a definition (one prior's worth, decaying) and the
   rebuild-on-correction claim extends to labels (thesis-corrections #40); the heatmap deviates
   from File 03's Skia nomination (#41); in-app adherence is the File 06 PAR per ISO week, not a

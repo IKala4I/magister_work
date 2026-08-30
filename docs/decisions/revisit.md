@@ -145,9 +145,10 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   displacement notification, or P12.
 - [P9, 2026-08-29] ADR-0013 §2 label weight = one prior's worth (α₀ + β₀), decaying like
   evidence, and a labelled cell counts as personal for the rung-2 badge. With few outcomes a
-  user who labels many cells drops the learning-mode badge on labels alone. — P11 first data
-  review: report the share of "personal" cells that are personal by label only; if labels
-  dominate, count them at half weight for the badge (not for the posterior) by ADR.
+  user who labels many cells drops the learning-mode badge on labels alone. — **DONE 2026-08-30**
+  (live smoke: one ✓ on a day-0 user switched the badge off): labelled cells are outside the
+  badge's count on both sides; per-cell phrasing unchanged. P11 still reports the share of
+  personal-by-label cells.
 - [P9, 2026-08-29] A trade-off decision is a fact on the deciding device; `events` are not
   pulled, so a second device of the same account shows the sheet again for the same plan until
   its own decision (or the re-plan replaces the plan — the usual case within seconds). — P10
@@ -160,8 +161,8 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
 - [P9, 2026-08-29] The P9 migration (`belief_labels` + trigger) is on the branch and pgTAP-
   verified against the linked project in a rolled-back transaction, but **not applied** to the
   hosted project: `supabase db push --linked` was refused by the session's permission
-  classifier. — ⛔ owner (HANDOFF): push it, then run `p9-live-smoke.mjs` for the label round
-  trip (the smoke SKIPs those checks while the table is absent).
+  classifier. — **DONE 2026-08-30** (owner pushed it; `p9-live-smoke.mjs` 31/31 with the full
+  label round trip).
 - [P9, 2026-08-29] Adversarial #6 — the label delivery re-POSTs the oldest ≤ 200 undelivered
   rows every pass; a batch the service refuses permanently (e.g. 409 for a user whose cells were
   never instantiated) blocks later labels — the same contract as `/feedback` tuples. — P12

@@ -17,9 +17,9 @@ regenerated. 149 pytest.
 `belief_label` event and the service, id = the event's op_id, RLS select-own, no client writes)
 materialised by a trigger on `events` that enforces the closed `state_ref`/label vocabularies
 (a malformed label fails the op — nothing half-applied). pgTAP `p9_trust_test.sql`: 23
-assertions (run against the linked project inside a rolled-back transaction; `labeled_at` clamped to `now()`). **Not yet pushed
-to the hosted project** — `supabase db push --linked` was refused by the session's permission
-classifier (⛔ owner, HANDOFF).
+assertions (run against the linked project inside a rolled-back transaction; `labeled_at` clamped to `now()`). Pushed to the
+hosted project by the owner on 2026-08-30 (the session's permission classifier had refused
+`db push`).
 
 **Edge functions.** New `insights` (user JWT): the service document with the backend key +
 weekly PAR (File 06 §1.4 per block; `_shared/par.ts` reads `recommendations` + `focus_end`
@@ -44,7 +44,7 @@ unpin → `recommendation_status`) + `tradeoff_decision`, then a manual re-plan;
 `tradeoff_rejected`; once per plan. Analytics: `belief_labeled`, `tradeoff_decided`,
 `weekly_review_completed`, `insights_viewed` (categorical). 382 jest (47 suites).
 
-**Live (2026-08-29, `p9-live-smoke.mjs` 10/10 + 2 SKIP).** Functions deployed, service image rolled out from the branch; FR-24 verified live (two pins → ranked `unpin` option in `plans.telemetry.infeasible`, decision fact synced); `insights` relays 503 while the service cannot read `belief_labels` (migration pending ⛔); the label round trip SKIPs until then.
+**Live (2026-08-29 → 30, `p9-live-smoke.mjs`).** 2026-08-29 (migration pending): 10/10 + 2 SKIP — functions deployed, image rolled out, FR-24 verified live. **2026-08-30 (migration applied): 31/31, no skips** — the full label round trip: `belief_label` fact → trigger row (id = op_id) → delivered to `/labels` → rebuild (`succ = α₀ + β₀`) → `/insights` shows the label in force, the belief moves from the DM early-morning prior (0.78) to the labelled morning cell (0.87), personal → replay = duplicate → `none` clears the evidence and the belief returns → malformed state_ref rejected with nothing half-applied → FR-24 two pins → ranked `unpin`, decision fact synced. **Live finding, fixed (`phase/P9-smoke-close`):** one ✓ on a day-0 user switched the learning-mode badge off (the labelled cell was the only active one) — labelled cells are now outside the badge's count (ADR-0013 §2 amended); the smoke's side-query gate that skipped the round trip in the owner's shell is gone.
 
 **Adversarial pass (fresh-context subagent → `7c7c238`).** 4 MAJOR + 10 MINOR: acked facts
 never got `server_ts` (the "pending" caption was permanent); the insights cache outlived an
