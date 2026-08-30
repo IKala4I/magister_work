@@ -2,16 +2,19 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-08-30, **P10 — Notifications, privacy, a11y, performance: built; PR #19 open
-> with all six CI checks green; adversarial pass — see "P10 status"; ⛔ the P10 migration push
-> is the owner's step, then the live erasure smoke, then merge.** Standing rules live in
-> CLAUDE.md: "Working mode", "Context efficiency", "Simulator evidence".
+> Last update: 2026-08-30, **P10 — Notifications, privacy, a11y, performance: complete; PR #19
+> merged (all six CI checks green; adversarial pass done — see "P10 status"); ⛔ the P10
+> migration push is the owner's step, then the live erasure smoke in a small follow-up PR
+> (P9 precedent), then P11.** Standing rules live in CLAUDE.md: "Working mode", "Context
+> efficiency", "Simulator evidence".
 
 ## Where we are
 
-- **P0–P9 merged** (PRs #1–#18). **P10 on `phase/P10-notify` (PR #19)** — functions deployed
-  2026-08-30 (`export-data`, `delete-account`, `plan-request`, `gcal-connect`); migration
-  `20260830120000_p10_privacy.sql` **not yet applied** (⛔ below).
+- **P0–P10 merged** (PRs #1–#19). Functions deployed 2026-08-30 (`export-data`,
+  `delete-account`, `plan-request`, `gcal-connect`; `delete-account`, `attribute-rewards`,
+  `gcal-webhook` redeployed after the adversarial fixes); migration
+  `20260830120000_p10_privacy.sql` **not yet applied** (⛔ below) — until then `delete-account`
+  answers 500 and no retention tick runs.
 - **What P10 built** (ADR-0014; CHANGELOG "P10"): local notifications only — a pure planner
   (`src/notifications/plan.ts`) over a conservative delivered-ledger (`ledger.ts`, MMKV) keeps
   FR-50's ≤ 5/day a ceiling under any re-plan sequence (storm tests); the scheduler runs on
@@ -60,9 +63,9 @@
    FR-42 traceability rows to ✅ fully. Also regenerate `packages/shared/src/database.ts`
    (`supabase gen types typescript --linked > packages/shared/src/database.ts &&
 ./scripts/normalize-db-types.sh packages/shared/src/database.ts`) and commit if it differs
-   (CI's db job already agrees with the hand-written block).
-2. Merge PR #19 (squash-free, as before); `git checkout main && git pull`; `gh run list --branch
-main -L 1` green.
+   (CI's db job already agrees with the hand-written block). Do this on a small branch
+   `phase/P10-smoke-close` → PR "P10 — live smoke close" → merge (P9 precedent, PR #18).
+2. `git checkout main && git pull`; `gh run list --branch main -L 1` green.
 3. **Hardware verification pass (owner-run, before P12)** is now fully scripted:
    `scripts/device-pass.sh ios|android` (Maestro sweeps incl. `p10-a11y-sweep.yaml`, cold start,
    fps, the manual notification/export/erasure protocol). Needs a development build with the
