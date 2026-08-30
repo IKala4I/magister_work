@@ -41,7 +41,19 @@
 | FR-24 apply/reject on real SQLite                                                 | `insightsDao.test.ts`: drop (earliest_start = tomorrow local midnight, +1 postpone, inbox, task op with base_version), shrink (floor 15), move (deadline + slip), unpin (`recommendation_status` op), rejection fact, decided plan ids                                                                                                                                                                                                                                  |
 | FR-24 sheet on Today                                                              | `today.test.tsx`: ranked options with consequences, choose → `applyTradeoffAction` with rank, reject → fact, answered plan hides the sheet, feasible plan shows none                                                                                                                                                                                                                                                                                                    |
 
-### 2.2 Live on the hosted project (2026-08-29, `p9-live-smoke.mjs`, 10/10 + 2 SKIP)
+### 2.2 Live on the hosted project (2026-08-29 → 30, `p9-live-smoke.mjs`)
+
+**2026-08-30 — migration applied by the owner; 30/30, no skips** (output in §2.2.1 below).
+The thesis-critical claim is now live evidence: a belief label is a fact that becomes a
+correction; the service rebuilds; the tab shows it; clearing it restores the prior. Two things
+the migrated run corrected in the smoke itself (not in the system): the gate on a side
+`db query` (which evaluated false in the owner's shell and skipped the round trip) is gone, and
+the label target moved from the evening cell (one prior's worth lifts 0.40 → 0.70, which does not
+beat the DM early-morning prior of 0.78) to the morning cell (0.74 → 0.87, decisive). One live
+finding in the system, fixed on `phase/P9-smoke-close`: a single ✓ on a day-0 user switched the
+learning-mode badge off — labelled cells are now outside the badge's count.
+
+**2026-08-29 — migration pending (10/10 + 2 SKIP)**
 
 Functions `insights`, `attribute-rewards`, `sync-resolve` deployed; the P9 service image built
 from the branch (`deploy-recsys.yml` workflow_dispatch → GHCR → the VM's 5-min rollout timer,
@@ -85,16 +97,14 @@ functions and the image are already the P9 versions.
 
 ## 3. What is NOT established (and where it is tracked)
 
-- **The live label round trip** (fact → trigger → `/labels` → rebuild → `/insights`): the P9
-  migration is verified against the linked project only inside a rolled-back transaction;
-  `supabase db push --linked` was refused by the session's permission classifier. ⛔ owner
-  (HANDOFF); the smoke then runs the full block.
-- **`database.ts` for `belief_labels`** was hand-written (no local Docker); the CI db job
-  regenerates and diffs it — a mismatch fails CI, not a user.
+- ~~The live label round trip~~ — done 2026-08-30 (§2.2).
+- ~~`database.ts` for `belief_labels` hand-written~~ — regenerated from the live schema on
+  2026-08-30 with `supabase gen types typescript --linked`: byte-identical to the hand-written
+  block (and CI's db job had already agreed).
 - **200 % font scale, VoiceOver/TalkBack on the grid and toggles, the sheet on a real
   over-committed day, reduced motion** — `device-checklist.md` "Trust surfaces (added P9)".
-- **Rung-2 badge on labels alone** for a user with few outcomes — a P11 first-data-review line
-  (revisit.md).
+- ~~Rung-2 badge on labels alone~~ — observed live and fixed 2026-08-30 (labelled cells outside
+  the badge's count); P11 still reports the share of personal-by-label cells.
 - **Two-device decisions** (the sheet re-appears on a second device until its own decision or
   the re-plan) — revisit.md.
 
