@@ -104,7 +104,7 @@ export default function SignInScreen() {
         ]}
       />
       {errorKey !== null ? (
-        <ThemedText variant="caption" style={[styles.spaced, { color: theme.colors.warning }]}>
+        <ThemedText variant="caption" tone="secondary" style={styles.spaced}>
           {t(errorKey)}
         </ThemedText>
       ) : null}

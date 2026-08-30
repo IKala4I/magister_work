@@ -37,9 +37,19 @@ export function Button({ label, onPress, kind = 'primary', disabled = false, sty
     >
       <ThemedText
         variant="body"
-        // White on primary in BOTH schemes — the token set has no on-primary color yet
-        // (File 02 §3.2 defines none); indigo-600 passes AA against white (contrast tests).
-        style={[styles.label, { color: primary ? '#FFFFFF' : theme.colors.primary }]}
+        // On-primary text (File 02 §3.2 defines no token): white on indigo-600 in light (6.3:1);
+        // in dark the lighter indigo needs DARK text — white is 2.98:1 (P10 a11y audit), the
+        // dark surface colour is 6.3:1. Asserted in src/ui/__tests__/a11yAudit.test.ts.
+        style={[
+          styles.label,
+          {
+            color: primary
+              ? theme.scheme === 'dark'
+                ? theme.colors.surface
+                : '#FFFFFF'
+              : theme.colors.primary,
+          },
+        ]}
       >
         {label}
       </ThemedText>

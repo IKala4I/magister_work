@@ -69,7 +69,6 @@ export function RecommendationCard({
   active = false,
   actions,
 }: RecommendationCardProps) {
-  const theme = useTheme();
   const start = formatClock(r.slotStart);
   const end = formatClock(r.slotEnd);
   const captionKey = statusCaptionKey(r.status, active);
@@ -102,15 +101,10 @@ export function RecommendationCard({
       {captionKey ? (
         <ThemedText
           variant="caption"
-          style={[
-            styles.status,
-            {
-              color:
-                captionKey === 'block.status.completed'
-                  ? theme.colors.success
-                  : theme.colors.textSecondary,
-            },
-          ]}
+          tone="secondary"
+          // the state is in the words; success green fails AA as body text on the light surface
+          // (2.4:1 — P10 a11y audit), so the caption keeps the secondary text colour
+          style={styles.status}
         >
           {t(captionKey)}
         </ThemedText>
