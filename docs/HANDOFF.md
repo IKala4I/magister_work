@@ -3,7 +3,7 @@
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
 > Last update: 2026-08-30, **P9 — Trust surfaces: complete; PR #17 merged; migration applied by
-> the owner and the full label round trip verified live (30/30); follow-up PR #18 (badge fix +
+> the owner and the full label round trip verified live (31/31); follow-up PR #18 (badge fix +
 > smoke) merged; P10 — Notifications, privacy, a11y, performance opens next.** Standing rules live in CLAUDE.md:
 > "Working mode", "Context efficiency", "Simulator evidence".
 
@@ -30,7 +30,7 @@
 - **Deployed:** functions `insights`, `attribute-rewards`, `sync-resolve`, `plan-request` (P9
   versions); the service image from `phase/P9-smoke-close` (badge fix) rolled out to the VM;
   migration `20260829120000_p9_trust.sql` applied by the owner 2026-08-30. `p9-live-smoke.mjs`
-  **30/30** on the migrated project — the full label round trip (see CHANGELOG "Live").
+  **31/31** on the migrated project — the full label round trip (see CHANGELOG "Live").
 - **Docs current:** ADR-0013, `p9-manual-verification.md` (§1 gates, §2.1 tests, §2.2 smoke,
   §3 not established, §4 adversarial), traceability (7 P9 rows), CHANGELOG, PLAN board + P9
   status line, device checklist "Trust surfaces (added P9)", revisit (P9-tagged lines closed or

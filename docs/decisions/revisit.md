@@ -161,7 +161,7 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
 - [P9, 2026-08-29] The P9 migration (`belief_labels` + trigger) is on the branch and pgTAP-
   verified against the linked project in a rolled-back transaction, but **not applied** to the
   hosted project: `supabase db push --linked` was refused by the session's permission
-  classifier. — **DONE 2026-08-30** (owner pushed it; `p9-live-smoke.mjs` 30/30 with the full
+  classifier. — **DONE 2026-08-30** (owner pushed it; `p9-live-smoke.mjs` 31/31 with the full
   label round trip).
 - [P9, 2026-08-29] Adversarial #6 — the label delivery re-POSTs the oldest ≤ 200 undelivered
   rows every pass; a batch the service refuses permanently (e.g. 409 for a user whose cells were
