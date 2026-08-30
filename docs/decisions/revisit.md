@@ -42,6 +42,7 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   fall back most of the time. — P9/P10: if a week view is built, add an async plan path or a
   horizon-specific budget by ADR; re-measure on the 2 vCPU Space first. — **P9: no week view
   was built** (the trust surfaces render the model, not a week plan); stays open for P10/P12.
+  — **P10: no week view either** (notifications and privacy); P12.
 - [P6, 2026-08-26] Task-push bridge (`apps/mobile/src/sync/taskPush.ts`) is last-write-wins by
   design (ADR-0008 §5). — P8: replace with op replay (base_version checks) and delete the bridge.
   — **DONE P8** (bridges deleted; `sync_replay()` + `src/sync/engine.ts`).
@@ -134,6 +135,9 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
 - [P8, 2026-08-28] UC-09 "≤ 5 min" is the server-side bound; the client's 60 s foreground poll
   is the device half. — P10 notifications: a displacement could push a local notification
   ("a meeting took 14:00 — Slides is back in your Inbox") without any background sync.
+  — **Closed P10 (ADR-0014 §6): not built** — the device learns of a displacement only at its
+  next foreground, when the Today notice is the right surface; a push would need a relay
+  (ADR-0011). UC-09's "replacement suggestion notification" is the next block reminder.
 - [P8, 2026-08-29] Engine hardening left open by the adversarial pass (#5–#8, #13): retry on
   `busy`, drain a > 200-op backlog within one sync, an error boundary in `run()`, re-fetch an
   entity after a dead-letter, apply `ack.version`/`server_seq` locally on `applied`. — **DONE
@@ -142,7 +146,8 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   sibling chunks stay open and `persist_plan` supersedes only `shown` rows — the P6 per-task
   mirror coarseness gains a new trigger. — P9 (timeline work): mirror per chunk or re-place only
   the displaced chunk. — **P9: not built** (no timeline rework this phase); P10 with the
-  displacement notification, or P12.
+  displacement notification, or P12. — **P10: not built** (no displacement notification,
+  ADR-0014 §6); P12.
 - [P9, 2026-08-29] ADR-0013 §2 label weight = one prior's worth (α₀ + β₀), decaying like
   evidence, and a labelled cell counts as personal for the rung-2 badge. With few outcomes a
   user who labels many cells drops the learning-mode badge on labels alone. — **DONE 2026-08-30**
@@ -153,11 +158,15 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   pulled, so a second device of the same account shows the sheet again for the same plan until
   its own decision (or the re-plan replaces the plan — the usual case within seconds). — P10
   notifications / P12: if two-device use matters for the study, pull `tradeoff_*` events or
-  mark the plan row.
+  mark the plan row. — **P10: unchanged**; the same holds for the evening ritual (each device
+  fires its own "Plan tomorrow?" and finds the plan already made) and for the FR-50 cap, which
+  is per install (two devices may remind about the same block; the adversarial pass, #8) —
+  P12 if two-device use matters.
 - [P9, 2026-08-29] `drop` = "not today" (earliest_start = tomorrow 00:00 local, +1 postpone);
   a task with a deadline today that is dropped will be reported past its deadline tomorrow —
   the sheet's consequence line says "skips a task worth …", not "misses its deadline". — P10
   copy review: add a deadline warning to the drop option when `deadline < tomorrow`.
+  — **P10: not done** (the phase had no copy review); P12.
 - [P9, 2026-08-29] The P9 migration (`belief_labels` + trigger) is on the branch and pgTAP-
   verified against the linked project in a rolled-back transaction, but **not applied** to the
   hosted project: `supabase db push --linked` was refused by the session's permission
@@ -175,4 +184,30 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
 - [P9, 2026-08-29] Adversarial note — ✗ on the favoured cell lowers it, the belief moves to the
   next daypart and the ✗ leaves the list (still in force on the cell, visible on the heatmap).
   — P10 copy review: show the cell's label state on the heatmap text view; consider listing the
-  labelled cell under the belief it displaced.
+  labelled cell under the belief it displaced. — **P10: not done**; P12.
+- [P10, 2026-08-30] **NFR-P3 and the edge-function round trips.** From Node → eu-west-1 the
+  PostgREST read/write p95 is 82–88 ms (✅ 300 ms) but `sync-resolve` (lease + replay + pull +
+  release ≈ 4 hops + boot) is 477 ms p95, `insights` 714 ms (VM hop), `export-data` 736 ms. The
+  client never blocks on these (offline-first), but the spec sentence is about the API. — P12:
+  one RPC for lease + replay + pull (or pull inside `sync_replay`), keep-alive, and a handset
+  measurement over LTE (device checklist); report both numbers in the thesis
+  (`p10-manual-verification.md` §2.3).
+- [P10, 2026-08-30] **E-mail confirmation of erasure** (UC-10 "confirmed by email") is an in-app
+  confirmation with the `deletion_audit` reference (ADR-0014 §9: no transactional mail on the
+  free tier, a mail provider = a new processor, anonymous accounts have no address). — Owner
+  decision before enrollment: keep, or approve an EU mail processor (cost + Art. 28) for the
+  study cohort.
+- [P10, 2026-08-30] **FR-51 smart lead time** stays behind the (absent) flag; the lead is the
+  Appendix A static 10 min. — Roadmap (thesis "future work"): a per-category lead learned from
+  `notification_response` latency.
+- [P10, 2026-08-30] **Android DATE triggers are inexact by default** on API 31+ (no
+  `SCHEDULE_EXACT_ALARM`); a reminder may land minutes late under Doze. — Device pass measures
+  the drift; if it matters for the study, request the exact-alarm permission in P12.
+- [P10, 2026-08-30] **Tomorrow's reminders are scheduled tonight** (ADR-0014 §1: the ritual's
+  plan for tomorrow gets tomorrow's budget) but only if the app is opened after the plan lands
+  — a ritual accepted from the notification opens the app, so this holds; a plan made by the
+  other device does not schedule reminders here until the next foreground. — P12 if two-device
+  use matters.
+- [P10, 2026-08-30] **`@testing-library/react-native` 14: a second `render` after `cleanup()`
+  in the same test leaves the NEXT test's render empty** (found while adding the Today cases;
+  one existing trade-off test had the pattern). Rule from now on: one render per test.

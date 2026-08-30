@@ -197,4 +197,24 @@ describe('mergeProfile — row-level LWW, onboarding completion never regresses'
     expect(m.rmeq_score).toBe(12);
     expect(m.version).toBe(5);
   });
+
+  it("P10: `settings` ride with the winner; a payload without them keeps the other side's", () => {
+    const a = { notifications: { muted_categories: ['admin'] } };
+    const b = { notifications: { evening_ritual_time: '21:00' } };
+    // local newer with settings → local's
+    expect(
+      mergeProfile({ ...localProfile, settings: b }, { ...serverProfile, settings: a }).settings,
+    ).toEqual(b);
+    // server newer → server's
+    expect(
+      mergeProfile(
+        { ...localProfile, updated_at: T0, settings: b },
+        { ...serverProfile, settings: a },
+      ).settings,
+    ).toEqual(a);
+    // local newer but from a build that never sent settings → the server's stay
+    expect(mergeProfile(localProfile, { ...serverProfile, settings: a }).settings).toEqual(a);
+    // neither side → null (the RPC keeps what it has)
+    expect(mergeProfile(localProfile, serverProfile).settings).toBeNull();
+  });
 });

@@ -8,12 +8,30 @@ jest.mock('../db/client', () => ({ db: {} }));
 
 const mockUseLiveRows = jest.fn();
 jest.mock('../db/useLiveRows', () => ({
-  useLiveRows: (build: unknown, tables: readonly string[]) => mockUseLiveRows(build, tables),
+  useLiveRows: (build: unknown, tables: readonly string[], deps?: readonly unknown[]) =>
+    mockUseLiveRows(build, tables, deps),
 }));
+// P10: the reminder-permission card and the FR-26 tomorrow line/card
+const mockNotify = {
+  permission: jest.fn(() => Promise.resolve('granted')),
+  dismissed: false,
+  dismiss: jest.fn(),
+  enable: jest.fn<Promise<string>, [unknown]>(() => Promise.resolve('granted')),
+};
+jest.mock('../domain/notificationActions', () => ({
+  reminderPermissionState: () => mockNotify.permission(),
+  isRemindersPromptDismissed: () => mockNotify.dismissed,
+  dismissRemindersPrompt: () => mockNotify.dismiss(),
+  enableRemindersAction: (source: unknown) => mockNotify.enable(source),
+}));
+const mockProfile = { settings: null as unknown };
+jest.mock('../db/useProfile', () => ({ useCurrentProfile: () => mockProfile }));
+const mockRunPlanRequest = jest.fn();
 
 const mockRequestManual = jest.fn();
 jest.mock('../sync/usePlanTrigger', () => ({
   usePlanTrigger: () => ({ requestManual: mockRequestManual }),
+  runPlanRequest: (...a: unknown[]) => mockRunPlanRequest(...a),
 }));
 const mockLapse = { diagnosticTask: null as unknown, dismissDiagnostic: jest.fn() };
 jest.mock('../sync/useLapseScan', () => ({ useLapseScan: () => mockLapse }));
@@ -63,6 +81,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import TodayScreen from '../../app/(tabs)/index';
 import type { PlanRow, RecommendationRow } from '../db/plans';
 import type { TaskRow } from '../db/tasks';
+import { nextPlanDayOf } from '../domain/planTrigger';
 import { en } from '../i18n/en';
 import type { CalendarEventRow } from '../db/calendar';
 import { usePlanStore } from '../state/plan';
@@ -162,15 +181,28 @@ function rows(input: {
   sessions?: Array<{ recommendationId: string }>;
   busy?: CalendarEventRow[];
   events?: Array<{ payload: Record<string, unknown> }>;
+  tomorrowPlans?: PlanRow[];
+  tomorrowRecs?: RecommendationRow[];
 }) {
-  mockUseLiveRows.mockImplementation((_build: unknown, tables: readonly string[]) => {
-    if (tables[0] === 'plans') return input.plans ?? [];
-    if (tables[0] === 'recommendations') return input.recs ?? [];
-    if (tables[0] === 'focus_sessions') return input.sessions ?? [];
-    if (tables[0] === 'calendar_events') return input.busy ?? [];
-    if (tables[0] === 'events') return input.events ?? [];
-    return input.tasks ?? [];
-  });
+  const tomorrowDay = nextPlanDayOf(new Date());
+  mockUseLiveRows.mockImplementation(
+    (_build: unknown, tables: readonly string[], deps?: readonly unknown[]) => {
+      if (tables[0] === 'plans') {
+        if (deps?.[1] === tomorrowDay) return input.tomorrowPlans ?? [];
+        return input.plans ?? [];
+      }
+      if (tables[0] === 'recommendations') {
+        const planId = deps?.[0];
+        if (planId === '__none__') return [];
+        if (input.tomorrowPlans?.some((p) => p.id === planId)) return input.tomorrowRecs ?? [];
+        return input.recs ?? [];
+      }
+      if (tables[0] === 'focus_sessions') return input.sessions ?? [];
+      if (tables[0] === 'calendar_events') return input.busy ?? [];
+      if (tables[0] === 'events') return input.events ?? [];
+      return input.tasks ?? [];
+    },
+  );
 }
 
 function busyEvent(over: Partial<CalendarEventRow> = {}): CalendarEventRow {
@@ -556,7 +588,7 @@ describe('trade-off sheet (FR-24 / UC-05)', () => {
     );
   });
 
-  it('"keep it as is" logs the rejection (UC-05 A1); an answered plan never shows the sheet again', async () => {
+  it('"keep it as is" logs the rejection (UC-05 A1)', async () => {
     const p = plan({ telemetry: INFEASIBLE, solverStatus: 'INFEASIBLE' });
     rows({ plans: [p], recs: [rec()], tasks: [task()] });
     await render(withSafeArea(<TodayScreen />));
@@ -564,7 +596,12 @@ describe('trade-off sheet (FR-24 / UC-05)', () => {
     expect(mockTradeoff.reject).toHaveBeenCalledWith(
       expect.objectContaining({ plan: expect.objectContaining({ id: 'plan-1' }) }),
     );
-    screen.unmount();
+  });
+
+  // one render per test: a second render after cleanup() in the same test leaves the NEXT
+  // test's render empty under @testing-library/react-native 14 (P10 finding)
+  it('an answered plan never shows the sheet again', async () => {
+    const p = plan({ telemetry: INFEASIBLE, solverStatus: 'INFEASIBLE' });
     rows({
       plans: [p],
       recs: [rec()],
@@ -579,5 +616,75 @@ describe('trade-off sheet (FR-24 / UC-05)', () => {
     rows({ plans: [plan()], recs: [rec()], tasks: [task()] });
     await render(withSafeArea(<TodayScreen />));
     expect(screen.queryByText(en['tradeoff.title'])).toBeNull();
+  });
+});
+
+describe('P10 — reminders card (FR-50) and the evening ritual on Today (FR-26)', () => {
+  beforeEach(() => {
+    mockNotify.dismissed = false;
+    mockNotify.permission.mockResolvedValue('undetermined');
+    mockProfile.settings = null;
+    mockRunPlanRequest.mockClear();
+  });
+  it('offers the OS permission once there are blocks; "Not now" dismisses, "Turn on" asks', async () => {
+    rows({ plans: [plan()], recs: [rec()], tasks: [task()] });
+    await render(withSafeArea(<TodayScreen />));
+    await act(async () => {});
+    expect(screen.getByText(en['today.reminders.title'])).toBeTruthy();
+    await fireEvent.press(screen.getByLabelText(en['today.reminders.enable']));
+    expect(mockNotify.enable).toHaveBeenCalledWith('today_card');
+    await act(async () => {});
+    expect(screen.queryByText(en['today.reminders.title'])).toBeNull(); // granted → card gone
+  });
+  it('"Not now" hides the card for good', async () => {
+    rows({ plans: [plan()], recs: [rec()], tasks: [task()] });
+    await render(withSafeArea(<TodayScreen />));
+    await act(async () => {});
+    await fireEvent.press(screen.getByLabelText(en['today.reminders.later']));
+    expect(mockNotify.dismiss).toHaveBeenCalled();
+    expect(screen.queryByText(en['today.reminders.title'])).toBeNull();
+  });
+  it('no card once the OS permission is decided', async () => {
+    mockNotify.permission.mockResolvedValue('granted');
+    rows({ plans: [plan()], recs: [rec()], tasks: [task()] });
+    await render(withSafeArea(<TodayScreen />));
+    await act(async () => {});
+    expect(screen.queryByText(en['today.reminders.title'])).toBeNull();
+  });
+  it('tomorrow planned by the ritual → a calm line with the block count and first start', async () => {
+    const tomorrowPlan = plan({ id: 'plan-tomorrow' });
+    const start = new Date(today);
+    start.setDate(start.getDate() + 1);
+    start.setHours(9, 30, 0, 0);
+    rows({
+      plans: [plan()],
+      recs: [rec()],
+      tasks: [task()],
+      tomorrowPlans: [tomorrowPlan],
+      tomorrowRecs: [
+        rec({ id: 'r-t1', planId: 'plan-tomorrow', slotStart: start }),
+        rec({ id: 'r-t2', planId: 'plan-tomorrow', slotStart: start }),
+      ],
+    });
+    await render(withSafeArea(<TodayScreen />));
+    await act(async () => {});
+    const time = start.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    expect(screen.getByText(`Tomorrow is planned: 2 blocks, first at ${time}.`)).toBeTruthy();
+    expect(screen.queryByText(en['today.tomorrow.ask'])).toBeNull();
+  });
+  it('after the ritual time with tasks waiting and no plan for tomorrow: one tap plans tomorrow', async () => {
+    mockProfile.settings = { notifications: { evening_ritual_time: '00:00' } };
+    mockNotify.permission.mockResolvedValue('granted');
+    rows({ plans: [plan()], recs: [rec()], tasks: [task(), task({ id: 't-2', status: 'inbox' })] });
+    await render(withSafeArea(<TodayScreen />));
+    await act(async () => {});
+    expect(screen.getByText(en['today.tomorrow.ask'])).toBeTruthy();
+    await fireEvent.press(screen.getByLabelText(en['today.tomorrow.accept']));
+    expect(mockRunPlanRequest).toHaveBeenCalledTimes(1);
+    const [trigger, , planDay] = mockRunPlanRequest.mock.calls[0]!;
+    expect(trigger).toBe('evening_ritual');
+    expect(planDay).toBe(nextPlanDayOf(new Date()));
+    await fireEvent.press(screen.getByLabelText(en['today.tomorrow.adjust']));
+    expect(mockNavigate).toHaveBeenCalledWith('/(tabs)/inbox');
   });
 });

@@ -449,6 +449,93 @@ export const en = {
   'gcal.callback.failed': 'Google Calendar could not be connected.',
   'gcal.callback.back': 'Back to settings',
 
+  // --- P10 notifications (FR-50 / FR-26; ADR-0014) ---
+  'notify.channel.reminders': 'Block reminders',
+  'notify.channel.ritual': 'Plan tomorrow',
+  'notify.block.fallbackTitle': 'Your next block',
+  'notify.block.body': 'Starts at {time}. Ready when you are.',
+  'notify.ritual.title': 'Plan tomorrow?',
+  'notify.ritual.body': '{count} tasks are waiting — one tap plans your day.',
+  'notify.ritual.body.one': 'One task is waiting — one tap plans your day.',
+  'notify.ritual.body.empty': 'Your inbox is empty. Add a task or enjoy the evening.',
+  'notify.ritual.sunday.title': 'Your week, then tomorrow',
+  'notify.ritual.sunday.body': 'A quick look at how the week went, then plan Monday.',
+  'notify.ritual.action.accept': 'Plan tomorrow',
+  'notify.ritual.action.adjust': 'Adjust tasks',
+
+  'settings.notifications.title': 'Notifications',
+  'settings.notifications.reminders': 'Block reminders',
+  'settings.notifications.reminders.hint':
+    'A nudge 10 minutes before each block. At most 5 notifications a day.',
+  'settings.notifications.reminders.denied':
+    'Notifications are switched off for Hourwell in your system settings.',
+  'settings.notifications.openSettings': 'Open system settings',
+  'settings.notifications.mute': 'Mute reminders for',
+  'settings.notifications.mute.a11y': 'Mute reminders for {category}',
+  'settings.notifications.ritual': '"Plan tomorrow" in the evening',
+  'settings.notifications.ritual.hint':
+    'One notification at the time you choose; one tap plans the next day.',
+  'settings.notifications.ritual.time': 'Evening time',
+  'settings.notifications.ritual.time.a11y': 'Evening time {time}',
+  'settings.notifications.cap': 'Hourwell never sends more than 5 notifications a day.',
+
+  'settings.data.title': 'My data',
+  'settings.data.export': 'Export my data',
+  'settings.data.export.hint':
+    'A JSON file with your tasks, plans, events and what Hourwell learned — to keep or share as you like.',
+  'settings.data.export.working': 'Preparing your export…',
+  'settings.data.export.done': 'Export ready — {tables} tables shared.',
+  'settings.data.export.offline': 'You are offline. Try again when connected.',
+  'settings.data.export.noSession': 'Sign in to export your data.',
+  'settings.data.export.failed': 'Could not export right now. Try again in a moment.',
+  'settings.data.export.shareUnavailable': 'Sharing is not available on this device.',
+  'settings.data.delete': 'Delete account and data',
+  'settings.data.delete.hint':
+    'Removes your account and everything Hourwell holds about you. This cannot be undone.',
+  'settings.data.delete.confirm1.title': 'Delete your account?',
+  'settings.data.delete.confirm1.body':
+    'Your tasks, plans, history and what Hourwell learned about you will be erased. Export first if you want a copy.',
+  'settings.data.delete.confirm1.cancel': 'Keep my account',
+  'settings.data.delete.confirm1.next': 'Continue',
+  'settings.data.delete.confirm2.title': 'This cannot be undone',
+  'settings.data.delete.confirm2.body': 'Delete the account and all its data now?',
+  'settings.data.delete.confirm2.cancel': 'Cancel',
+  'settings.data.delete.confirm2.confirm': 'Delete everything',
+  'settings.data.delete.working': 'Deleting…',
+  'settings.data.delete.offline': 'You are offline. Deletion needs a connection.',
+  'settings.data.delete.noSession': 'Sign in to delete your account.',
+  'settings.data.delete.failed':
+    'Could not delete right now. Nothing was changed — try again in a moment.',
+
+  'settings.privacy.title': 'Privacy',
+  'settings.privacy.analytics': 'Usage analytics',
+  'settings.privacy.analytics.hint':
+    'Anonymous, categorical events (which screens, which actions) — never your task text. Stops immediately.',
+  'settings.privacy.crash': 'Crash reports',
+  'settings.privacy.crash.hint':
+    'Stack traces and device details when the app crashes — never your task text. Takes effect at the next launch.',
+  'settings.privacy.on': 'On',
+  'settings.privacy.off': 'Off',
+
+  'today.reminders.title': 'Get a nudge before each block',
+  'today.reminders.body':
+    '10 minutes before a block starts — at most 5 a day. You choose what to mute.',
+  'today.reminders.enable': 'Turn on',
+  'today.reminders.later': 'Not now',
+  'today.tomorrow.planned': 'Tomorrow is planned: {count} blocks, first at {time}.',
+  'today.tomorrow.plannedOne': 'Tomorrow is planned: one block at {time}.',
+  'today.tomorrow.ask': 'Plan tomorrow?',
+  'today.tomorrow.ask.body': '{count} tasks are waiting.',
+  'today.tomorrow.ask.bodyOne': 'One task is waiting.',
+  'today.tomorrow.accept': 'Plan tomorrow',
+  'today.tomorrow.adjust': 'Adjust tasks',
+
+  'accountDeleted.title': 'Your account is deleted',
+  'accountDeleted.body': 'Everything Hourwell held about you was erased on {when}.',
+  'accountDeleted.reference': 'Reference: {reference}',
+  'accountDeleted.referenceHint': 'Keep this reference if you ever need to prove the erasure.',
+  'accountDeleted.startOver': 'Start over',
+
   'common.justNow': 'just now',
   'common.minutesAgo': '{count} min ago',
   'common.hoursAgo': '{count} h ago',

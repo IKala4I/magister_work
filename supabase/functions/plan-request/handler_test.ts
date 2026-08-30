@@ -338,6 +338,23 @@ Deno.test('learned path: context forwarded verbatim with the pinned ε/m, rows p
     n_eligible: null,
   });
   assertEquals((p.telemetry.request as Record<string, unknown>).trigger, 'first_open');
+});
+
+Deno.test('trigger vocabulary: evening_ritual (FR-26, P10) plans tomorrow, anything unknown is 400', async () => {
+  const h = harness();
+  const bad = await handlePlanRequest(
+    post({ plan_date: '2026-08-27', trigger: 'cron', now: kyiv(20) }),
+    h.deps,
+  );
+  assertEquals(bad.status, 400);
+  const res = await handlePlanRequest(
+    post({ plan_date: '2026-08-27', trigger: 'evening_ritual', now: kyiv(20) }),
+    h.deps,
+  );
+  assertEquals(res.status, 200);
+  const p = h.persisted[h.persisted.length - 1]!;
+  assertEquals(p.planDate, '2026-08-27');
+  assertEquals((p.telemetry.request as Record<string, unknown>).trigger, 'evening_ritual');
   assertEquals((p.telemetry.service as Record<string, unknown>).solve_ms, 70);
   assertEquals(p.supersedePlanIds, ['00000000-0000-4000-8000-00000000aaaa']);
   assertEquals(h.wakes, 0);

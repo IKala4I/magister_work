@@ -1,0 +1,77 @@
+# NFR-A1/A2 sweep over EVERY shipped screen (P10, ADR-0014 §11). Extends p2-a11y-sweep.yaml
+# with the P3–P10 screens: Inbox with a task, the task form, Today with a plan (blocks, the
+# reminders card), Focus, Insights (heatmap text view, beliefs, review), Settings (all sections
+# incl. notifications / my data / privacy), the account-deleted screen is NOT walked (destructive).
+# Precondition (set by the runner, scripts/device-pass.sh, or by hand on the device):
+#   max text size ("accessibility-extra-extra-extra-large" / Android "Largest" + display size),
+#   Reduce Motion on, Reduce Transparency on (iOS), Bold Text off. Light and dark once each.
+# Asserts the key copy is present (nothing clipped away) and screenshots every state for the
+# audit table in docs/verification/p10-a11y-audit.md. Real screen-reader order is a manual item.
+appId: com.hourwell.app
+---
+- launchApp:
+    stopApp: true
+- assertVisible: 'No plan yet'
+- takeScreenshot: p10-today-empty
+- tapOn: 'Inbox, tab.*'
+- takeScreenshot: p10-inbox
+- tapOn: 'New task'
+- assertVisible: 'Title'
+- takeScreenshot: p10-task-form
+- inputText: 'Write the thesis intro'
+- tapOn: 'Save'
+- assertVisible: 'Write the thesis intro'
+- takeScreenshot: p10-inbox-with-task
+- tapOn: 'Today, tab.*'
+- tapOn: 'Plan my day'
+- extendedWaitUntil:
+    visible: 'Write the thesis intro'
+    timeout: 15000
+- takeScreenshot: p10-today-plan
+# the reminders card (only when the OS permission is still undetermined)
+- runFlow:
+    when:
+      visible: 'Get a nudge before each block'
+    commands:
+      - takeScreenshot: p10-today-reminders-card
+      - tapOn: 'Not now'
+- tapOn: 'Focus, tab.*'
+- takeScreenshot: p10-focus
+- tapOn: 'Insights, tab.*'
+- extendedWaitUntil:
+    visible: 'Insights'
+    timeout: 10000
+- takeScreenshot: p10-insights
+- scroll
+- takeScreenshot: p10-insights-scrolled
+- tapOn: 'Open settings'
+- assertVisible: 'Notifications'
+- takeScreenshot: p10-settings-top
+- scroll
+- assertVisible: 'Mute reminders for'
+- takeScreenshot: p10-settings-notifications
+- tapOn: 'Mute reminders for Admin'
+- takeScreenshot: p10-settings-mute-admin
+- tapOn: 'Mute reminders for Admin'
+- scroll
+- assertVisible: 'My data'
+- assertVisible: 'Privacy'
+- takeScreenshot: p10-settings-data-privacy
+- scroll
+- assertVisible: 'Appearance'
+- tapOn: 'Dark'
+- takeScreenshot: p10-settings-dark
+- scrollUntilVisible:
+    element: 'Notifications'
+    direction: UP
+- swipe:
+    start: 50%, 15%
+    end: 50%, 85%
+- tapOn: 'Today, tab.*'
+- takeScreenshot: p10-today-dark
+- tapOn: 'Open settings'
+- scrollUntilVisible:
+    element: 'System'
+    direction: DOWN
+- tapOn: 'System'
+- takeScreenshot: p10-settings-restored

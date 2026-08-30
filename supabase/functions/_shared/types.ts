@@ -205,7 +205,7 @@ export interface PlanRequestBody {
   /** Client wall-clock instant; ticks before it are not workable (defaults to server now). */
   now?: string;
   /** UC-03 trigger label, echoed into telemetry for the NFR-P1 measurement. */
-  trigger?: 'first_open' | 'new_day' | 'manual';
+  trigger?: 'first_open' | 'new_day' | 'manual' | 'evening_ritual';
 }
 
 export type PlanRequestResponse =

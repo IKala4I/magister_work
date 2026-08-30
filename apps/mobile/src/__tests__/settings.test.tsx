@@ -32,7 +32,35 @@ jest.mock('../auth/flows', () => ({
   convertAnonymousToEmail: jest.fn(),
   signOut: jest.fn(),
 }));
-jest.mock('expo-router', () => ({ useRouter: () => ({ push: jest.fn() }) }));
+const mockRouter = { push: jest.fn(), replace: jest.fn() };
+jest.mock('expo-router', () => ({ useRouter: () => mockRouter }));
+// P10 sections: profile settings, the notification actions, export/delete, the SDK toggles
+const mockProfile = { settings: null as unknown };
+jest.mock('../db/useProfile', () => ({
+  useCurrentProfile: () => mockProfile,
+  useOnboardingComplete: () => true,
+}));
+const mockNotify = {
+  update: jest.fn(),
+  enable: jest.fn<Promise<string>, [unknown]>(() => Promise.resolve('granted')),
+  permission: jest.fn(() => Promise.resolve('granted')),
+};
+jest.mock('../domain/notificationActions', () => ({
+  updateNotificationSettingsAction: (...a: unknown[]) => mockNotify.update(...a),
+  enableRemindersAction: (source: unknown) => mockNotify.enable(source),
+  reminderPermissionState: () => mockNotify.permission(),
+}));
+const mockPrivacy = { exportData: jest.fn(), deleteAccount: jest.fn() };
+jest.mock('../privacy/exportData', () => ({ exportDataAction: () => mockPrivacy.exportData() }));
+jest.mock('../privacy/deleteAccount', () => ({
+  deleteAccountAction: () => mockPrivacy.deleteAccount(),
+}));
+const mockAnalytics = { setEnabled: jest.fn(), enabled: true };
+jest.mock('../observability/analytics', () => ({
+  isAnalyticsEnabled: () => mockAnalytics.enabled,
+  setAnalyticsEnabled: (v: boolean) => mockAnalytics.setEnabled(v),
+  track: jest.fn(),
+}));
 
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import type { ReactElement } from 'react';
@@ -42,7 +70,9 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import SettingsScreen from '../../app/settings';
 import { useSessionStore } from '../auth/session';
 import { en } from '../i18n/en';
+import { isAnalyticsOptedOut } from '../privacy/state';
 import { useSyncStore } from '../state/sync';
+import { appStorage, StorageKeys } from '../storage/mmkv';
 
 const initialMetrics = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
@@ -166,5 +196,134 @@ describe('Settings — Google Calendar section', () => {
     await render(withSafeArea(<SettingsScreen />));
     await act(async () => {});
     expect(screen.getByText(en['settings.gcal.notConfigured'])).toBeTruthy();
+  });
+});
+
+describe('Settings — notifications (FR-50 / FR-26, P10)', () => {
+  beforeEach(() => {
+    mockProfile.settings = null;
+    mockNotify.permission.mockResolvedValue('granted');
+  });
+  it('renders the reminder switch, mute chips, the ritual switch and time presets from the profile', async () => {
+    mockProfile.settings = {
+      notifications: { muted_categories: ['admin'], evening_ritual_time: '21:00' },
+    };
+    await render(withSafeArea(<SettingsScreen />));
+    await act(async () => {});
+    expect(screen.getByLabelText(en['settings.notifications.reminders'])).toBeTruthy();
+    const admin = screen.getByLabelText('Mute reminders for Admin');
+    expect(admin.props.accessibilityState).toEqual({ checked: true });
+    await fireEvent.press(screen.getByLabelText('Mute reminders for Deep work'));
+    expect(mockNotify.update).toHaveBeenCalledWith({ muted_categories: ['admin', 'deep'] });
+    await fireEvent.press(admin);
+    expect(mockNotify.update).toHaveBeenCalledWith({ muted_categories: [] });
+    expect(screen.getByLabelText('Evening time 21:00').props.accessibilityState).toEqual({
+      checked: true,
+    });
+    await fireEvent.press(screen.getByLabelText('Evening time 19:00'));
+    expect(mockNotify.update).toHaveBeenCalledWith({ evening_ritual_time: '19:00' });
+    expect(screen.getByText(en['settings.notifications.cap'])).toBeTruthy();
+  });
+  it('turning reminders on asks the OS through the action; off is a plain settings write', async () => {
+    mockNotify.permission.mockResolvedValue('undetermined');
+    await render(withSafeArea(<SettingsScreen />));
+    await act(async () => {});
+    const sw = screen.getByLabelText(en['settings.notifications.reminders']);
+    await fireEvent(sw, 'valueChange', true);
+    expect(mockNotify.enable).toHaveBeenCalledWith('settings');
+    await fireEvent(sw, 'valueChange', false);
+    expect(mockNotify.update).toHaveBeenCalledWith({ block_reminders: false });
+  });
+  it('denied permission shows the calm hint with a system-settings link', async () => {
+    mockNotify.permission.mockResolvedValue('denied');
+    await render(withSafeArea(<SettingsScreen />));
+    await act(async () => {});
+    expect(screen.getByText(en['settings.notifications.reminders.denied'])).toBeTruthy();
+    expect(screen.getByLabelText(en['settings.notifications.openSettings'])).toBeTruthy();
+  });
+});
+
+describe('Settings — my data (FR-42, P10)', () => {
+  it('export runs the action and reports the table count', async () => {
+    mockPrivacy.exportData.mockResolvedValue({ ok: true, fileUri: 'file:///x', tables: 14 });
+    await render(withSafeArea(<SettingsScreen />));
+    await fireEvent.press(screen.getByLabelText(en['settings.data.export']));
+    await act(async () => {});
+    expect(mockPrivacy.exportData).toHaveBeenCalled();
+    expect(screen.getByText('Export ready — 14 tables shared.')).toBeTruthy();
+  });
+  it('export failures are calm lines', async () => {
+    mockPrivacy.exportData.mockResolvedValue({ ok: false, code: 'offline' });
+    await render(withSafeArea(<SettingsScreen />));
+    await fireEvent.press(screen.getByLabelText(en['settings.data.export']));
+    await act(async () => {});
+    expect(screen.getByText(en['settings.data.export.offline'])).toBeTruthy();
+  });
+  it('deletion needs two confirmations, then routes to the confirmation screen with the reference', async () => {
+    mockPrivacy.deleteAccount.mockResolvedValue({
+      ok: true,
+      reference: 'audit-9',
+      completedAt: '2026-09-05T10:00:00Z',
+    });
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    await render(withSafeArea(<SettingsScreen />));
+    await fireEvent.press(screen.getByLabelText(en['settings.data.delete']));
+    expect(alert).toHaveBeenCalledTimes(1);
+    const first = alert.mock.calls[0]!;
+    expect(first[0]).toBe(en['settings.data.delete.confirm1.title']);
+    const cont = (first[2] as Array<{ text: string; onPress?: () => void }>).find(
+      (b) => b.text === en['settings.data.delete.confirm1.next'],
+    )!;
+    await act(async () => cont.onPress?.());
+    expect(alert).toHaveBeenCalledTimes(2);
+    expect(mockPrivacy.deleteAccount).not.toHaveBeenCalled();
+    const second = alert.mock.calls[1]!;
+    const confirm = (
+      second[2] as Array<{ text: string; style?: string; onPress?: () => void }>
+    ).find((b) => b.text === en['settings.data.delete.confirm2.confirm'])!;
+    expect(confirm.style).toBe('destructive');
+    await act(async () => {
+      confirm.onPress?.();
+    });
+    await act(async () => {});
+    expect(mockPrivacy.deleteAccount).toHaveBeenCalledTimes(1);
+    expect(mockRouter.replace).toHaveBeenCalledWith({
+      pathname: '/account-deleted',
+      params: { reference: 'audit-9', at: '2026-09-05T10:00:00Z' },
+    });
+    alert.mockRestore();
+  });
+  it('a failed deletion changes nothing and says so', async () => {
+    mockPrivacy.deleteAccount.mockResolvedValue({ ok: false, code: 'failed' });
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation((_t, _b, buttons) => {
+      const go = (buttons as Array<{ text: string; onPress?: () => void }>).find((b) => b.onPress);
+      go?.onPress?.();
+    });
+    await render(withSafeArea(<SettingsScreen />));
+    await fireEvent.press(screen.getByLabelText(en['settings.data.delete']));
+    await act(async () => {});
+    expect(screen.getByText(en['settings.data.delete.failed'])).toBeTruthy();
+    expect(mockRouter.replace).not.toHaveBeenCalled();
+    alert.mockRestore();
+  });
+});
+
+describe('Settings — privacy (ADR-0014 §12)', () => {
+  afterEach(() => {
+    appStorage.delete(StorageKeys.analyticsOptOut);
+    appStorage.delete(StorageKeys.crashReportsOptOut);
+  });
+  it('the analytics switch writes the opt-out flag and drops the client', async () => {
+    await render(withSafeArea(<SettingsScreen />));
+    const sw = screen.getByLabelText(en['settings.privacy.analytics']);
+    expect(sw.props.value).toBe(true);
+    await fireEvent(sw, 'valueChange', false);
+    expect(isAnalyticsOptedOut()).toBe(true);
+    expect(mockAnalytics.setEnabled).toHaveBeenCalledWith(false);
+  });
+  it('the crash-reports switch writes its flag (applies at next launch)', async () => {
+    await render(withSafeArea(<SettingsScreen />));
+    await fireEvent(screen.getByLabelText(en['settings.privacy.crash']), 'valueChange', false);
+    expect(appStorage.getString(StorageKeys.crashReportsOptOut)).toBe('1');
   });
 });

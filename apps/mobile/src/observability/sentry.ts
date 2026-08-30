@@ -6,17 +6,21 @@
  */
 import * as Sentry from '@sentry/react-native';
 
+import { isCrashReportsOptedOut } from '../privacy/state';
+
 const dsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
 
 export function initSentry(): boolean {
+  // P10 (ADR-0014 §12): the Settings → Privacy opt-out applies from the next launch on
+  const enabled = Boolean(dsn) && !isCrashReportsOptedOut();
   Sentry.init({
     dsn,
-    enabled: Boolean(dsn),
+    enabled,
     sendDefaultPii: false,
     tracesSampleRate: 0,
     maxBreadcrumbs: 50,
   });
-  return Boolean(dsn);
+  return enabled;
 }
 
 export { Sentry };

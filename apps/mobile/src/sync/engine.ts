@@ -545,6 +545,7 @@ function resolveConflict(
         topCategories: merged.top_categories,
         onboardingCompletedAt:
           merged.onboarding_completed_at === null ? null : new Date(merged.onboarding_completed_at),
+        settings: (merged.settings as never) ?? null,
         version: merged.version ?? server.version + 1,
         updatedAt: new Date(merged.updated_at ?? now.getTime()),
       })

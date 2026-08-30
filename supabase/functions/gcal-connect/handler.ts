@@ -14,7 +14,7 @@
 import { authUrl, type GoogleConfig } from '../_shared/gcal.ts';
 import {
   clearWriteBack,
-  ensureAccessToken,
+  disconnectGoogle,
   type GcalState,
   type SyncDeps,
 } from '../_shared/gcal_sync.ts';
@@ -185,21 +185,8 @@ export async function handleGcalConnect(req: Request, deps: Deps): Promise<Respo
     case 'disconnect': {
       if (state !== null) {
         if (deps.config !== null && state.refresh_token !== null) {
-          // best effort, in this order: our events out of their calendar while we still hold a
-          // token, then the channel, then the token itself
-          try {
-            await clearWriteBack(sync(deps.config), state);
-            if (state.channel_id !== null && state.resource_id !== null) {
-              const access = await ensureAccessToken(sync(deps.config), state);
-              await deps.google.stopChannel(access, {
-                channelId: state.channel_id,
-                resourceId: state.resource_id,
-              });
-            }
-          } catch {
-            // ignore — Google may already have revoked/expired everything
-          }
-          await deps.revokeToken(state.refresh_token);
+          // shared with account erasure (ADR-0014 §8): mirror out, channel stopped, token revoked
+          await disconnectGoogle(sync(deps.config), state, deps.revokeToken);
         }
         await deps.deleteState(userId);
         await deps.wipeEvents(userId);

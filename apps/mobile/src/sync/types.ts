@@ -62,7 +62,7 @@ export interface PlanRequestBody {
   plan_date: string;
   horizon?: Horizon;
   now?: string;
-  trigger?: 'first_open' | 'new_day' | 'manual';
+  trigger?: 'first_open' | 'new_day' | 'manual' | 'evening_ritual';
 }
 
 export type PlanRequestResponse =

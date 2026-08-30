@@ -1,0 +1,259 @@
+/**
+ * The scheduler against real SQLite and a faked OS: today's plan → at most the cap handed to
+ * the OS with stable ids and the user's copy; a re-run cancels and re-plans; permission
+ * denied → nothing scheduled; sign-out clears everything.
+ */
+jest.mock('expo-crypto', () => {
+  let n = 0;
+  return {
+    randomUUID: jest.fn(() => `00000000-0000-4000-8000-${String(++n).padStart(12, '0')}`),
+  };
+});
+const os = {
+  scheduled: [] as Array<{
+    identifier?: string;
+    content: Record<string, unknown>;
+    trigger: Record<string, unknown>;
+  }>,
+  cancelAll: 0,
+  dismissAll: 0,
+  permission: 'granted' as 'granted' | 'denied' | 'undetermined',
+};
+jest.mock('expo-notifications', () => ({
+  setNotificationHandler: jest.fn(),
+  setNotificationCategoryAsync: jest.fn(() => Promise.resolve()),
+  setNotificationChannelAsync: jest.fn(() => Promise.resolve(null)),
+  getPermissionsAsync: jest.fn(() =>
+    Promise.resolve({
+      granted: os.permission === 'granted',
+      canAskAgain: os.permission !== 'denied',
+      status: os.permission,
+    }),
+  ),
+  scheduleNotificationAsync: jest.fn((req: (typeof os.scheduled)[number]) => {
+    os.scheduled.push(req);
+    return Promise.resolve(req.identifier ?? 'x');
+  }),
+  cancelAllScheduledNotificationsAsync: jest.fn(() => {
+    os.cancelAll += 1;
+    os.scheduled = [];
+    return Promise.resolve();
+  }),
+  dismissAllNotificationsAsync: jest.fn(() => {
+    os.dismissAll += 1;
+    return Promise.resolve();
+  }),
+  SchedulableTriggerInputTypes: { DATE: 'date' },
+  AndroidImportance: { DEFAULT: 3 },
+  IosAuthorizationStatus: { PROVISIONAL: 3 },
+  DEFAULT_ACTION_IDENTIFIER: 'expo.modules.notifications.actions.DEFAULT',
+}));
+const mockTrack = jest.fn();
+jest.mock('../../observability/analytics', () => ({ track: (...a: unknown[]) => mockTrack(...a) }));
+jest.mock('../../auth/identity', () => ({ currentUserId: () => 'local:test-user' }));
+
+// the device database handle is replaced by an in-memory SQLite with the real migrations
+// (built inside the factory: jest hoists mocks above the imports that need them)
+jest.mock('../../db/client', () => {
+  const path = jest.requireActual('node:path') as typeof import('node:path');
+  const Database = jest.requireActual('better-sqlite3') as typeof import('better-sqlite3');
+  const { drizzle } = jest.requireActual(
+    'drizzle-orm/better-sqlite3',
+  ) as typeof import('drizzle-orm/better-sqlite3');
+  const { migrate } = jest.requireActual(
+    'drizzle-orm/better-sqlite3/migrator',
+  ) as typeof import('drizzle-orm/better-sqlite3/migrator');
+  const sqlite = new Database(':memory:');
+  const db = drizzle(sqlite);
+  migrate(db, { migrationsFolder: path.join(__dirname, '..', '..', '..', 'drizzle') });
+  return { db, sqlite };
+});
+
+import { NOTIFICATION_DAILY_CAP } from '@hourwell/shared';
+
+import { db as testDb, sqlite } from '../../db/client';
+import { plans, recommendations } from '../../db/schema';
+import { saveProfile } from '../../db/profile';
+import { createTask } from '../../db/tasks';
+import type { LocalDb } from '../../db/writes';
+import { StorageKeys, appStorage } from '../../storage/mmkv';
+import { readLedger } from '../ledger';
+import { clearAllNotifications, runNotificationScheduler } from '../scheduler';
+
+const db = testDb as unknown as LocalDb;
+const USER = 'local:test-user';
+const NOW = new Date(2026, 8, 7, 9, 0); // Monday
+
+function seed(nBlocks: number, day = new Date(2026, 8, 7)): void {
+  saveProfile(db, {
+    userId: USER,
+    draft: {
+      timezone: 'Europe/Kyiv',
+      locale: 'en',
+      workingHours: { mon: [540, 1080] },
+      sleepWindow: [1380, 420],
+      rmeqScore: null,
+      chronotypeClass: 'INT',
+      surveySkipped: true,
+      topCategories: ['deep'],
+      onboardingCompletedAt: NOW,
+      settings: { notifications: { muted_categories: ['admin'] } },
+    },
+    now: NOW,
+  });
+  const planId = `plan-${day.getDate()}`;
+  db.insert(plans)
+    .values({
+      id: planId,
+      userId: USER,
+      planDate: `2026-09-${String(day.getDate()).padStart(2, '0')}`,
+      horizon: 'day',
+      engine: 'learned',
+      modelVersion: 'x',
+      telemetry: {},
+      generatedAt: NOW,
+    })
+    .run();
+  for (let i = 0; i < nBlocks; i += 1) {
+    const task = createTask(db, {
+      userId: USER,
+      draft: {
+        title: `Task ${i}`,
+        category: i === 1 ? 'admin' : 'deep',
+        estMinutes: 60,
+        value: 2,
+        deadline: null,
+        splittable: false,
+        earliestStart: null,
+      },
+      meta: { source: 'form', nlParseUsed: false },
+      now: NOW,
+    });
+    const start = new Date(day);
+    start.setHours(10 + i, 0, 0, 0);
+    const end = new Date(start);
+    end.setHours(start.getHours() + 1);
+    db.insert(recommendations)
+      .values({
+        id: `rec-${day.getDate()}-${i}`,
+        userId: USER,
+        planId,
+        taskId: task.id,
+        chunkIndex: 0,
+        slotStart: start,
+        slotEnd: end,
+        contextBucket: 'MO.wd',
+        status: 'shown',
+        createdAt: NOW,
+        updatedAt: NOW,
+      })
+      .run();
+  }
+}
+
+beforeEach(() => {
+  os.scheduled = [];
+  os.cancelAll = 0;
+  os.dismissAll = 0;
+  os.permission = 'granted';
+  mockTrack.mockClear();
+  appStorage.delete(StorageKeys.notificationLedger);
+  (sqlite as unknown as import('better-sqlite3').Database).exec(
+    'delete from recommendations; delete from plans; delete from tasks; delete from profiles; delete from op_outbox; delete from events;',
+  );
+});
+
+describe('runNotificationScheduler', () => {
+  it('hands the OS at most the cap for today: 4 blocks (admin muted, earliest first) + the ritual', async () => {
+    seed(8);
+    await runNotificationScheduler(NOW);
+    expect(os.cancelAll).toBe(1);
+    const today = os.scheduled.filter(
+      (r) =>
+        String(r.identifier).endsWith('2026-09-07') || String(r.identifier).startsWith('block:'),
+    );
+    expect(today).toHaveLength(NOTIFICATION_DAILY_CAP);
+    const ids = os.scheduled.map((r) => r.identifier);
+    expect(ids).toContain('ritual:2026-09-07');
+    expect(ids).toContain('ritual:2026-09-08'); // tomorrow's ritual pre-scheduled
+    expect(ids.filter((i) => String(i).startsWith('block:'))).toEqual([
+      'block:rec-7-0',
+      'block:rec-7-2',
+      'block:rec-7-3',
+      'block:rec-7-4',
+    ]);
+    const first = os.scheduled.find((r) => r.identifier === 'block:rec-7-0')!;
+    expect(first.content.title).toBe('Task 0');
+    expect(first.content.categoryIdentifier).toBe('block_reminder');
+    expect((first.content.data as { kind: string }).kind).toBe('block_reminder');
+    expect(first.trigger).toEqual({ type: 'date', date: new Date(2026, 8, 7, 9, 50).getTime() });
+    const ritual = os.scheduled.find((r) => r.identifier === 'ritual:2026-09-07')!;
+    expect(ritual.content.categoryIdentifier).toBe('plan_tomorrow');
+    expect(ritual.content.body).toBe('8 tasks are waiting — one tap plans your day.');
+    expect(mockTrack).toHaveBeenCalledWith('notifications_planned', {
+      scheduled: 6,
+      capped: 3,
+      muted: 1,
+      past: 0,
+      reason: 'ok',
+    });
+    expect(readLedger().scheduled.map((s) => s.id)).toEqual(ids);
+  });
+
+  it('a later run settles, cancels and re-plans under the remaining budget', async () => {
+    seed(8);
+    await runNotificationScheduler(NOW);
+    // 11:30: 09:50, 11:50? no — 09:50 (block 0), 11:50 is ahead; blocks 2 (11:50) still ahead
+    await runNotificationScheduler(new Date(2026, 8, 7, 11, 30));
+    expect(os.cancelAll).toBe(2);
+    const todays = os.scheduled.filter((r) => !String(r.identifier).endsWith('2026-09-08'));
+    // delivered so far: block 0 (09:50) → 4 left: blocks 2,3,4 + ritual
+    expect(todays.map((r) => r.identifier)).toEqual([
+      'block:rec-7-2',
+      'block:rec-7-3',
+      'block:rec-7-4',
+      'ritual:2026-09-07',
+    ]);
+    expect(readLedger().delivered['2026-09-07']).toEqual(['block:rec-7-0']);
+  });
+
+  it('permission denied → cancels what exists and schedules nothing (the ledger stays honest)', async () => {
+    seed(3);
+    os.permission = 'denied';
+    await runNotificationScheduler(NOW);
+    expect(os.cancelAll).toBe(1);
+    expect(os.scheduled).toEqual([]);
+    expect(mockTrack).toHaveBeenCalledWith(
+      'notifications_planned',
+      expect.objectContaining({ scheduled: 0, reason: 'no_permission' }),
+    );
+  });
+
+  it('clearAllNotifications cancels, dismisses and forgets the ledger', async () => {
+    seed(3);
+    await runNotificationScheduler(NOW);
+    await clearAllNotifications();
+    expect(os.cancelAll).toBe(2);
+    expect(os.dismissAll).toBe(1);
+    expect(readLedger()).toEqual({ delivered: {}, scheduled: [] });
+  });
+
+  it('no profile row (erased account / pre-onboarding identity) → cancels and schedules nothing, not even the ritual', async () => {
+    seed(2);
+    (sqlite as unknown as import('better-sqlite3').Database).exec('delete from profiles;');
+    await runNotificationScheduler(NOW);
+    expect(os.cancelAll).toBe(1);
+    expect(os.scheduled).toEqual([]);
+    expect(readLedger().scheduled).toEqual([]);
+  });
+
+  it('concurrent runs coalesce into one follow-up pass', async () => {
+    seed(2);
+    const a = runNotificationScheduler(NOW);
+    const b = runNotificationScheduler(NOW);
+    expect(b).toBe(a);
+    await a;
+    await new Promise((r) => setTimeout(r, 0));
+    expect(os.cancelAll).toBeGreaterThanOrEqual(1);
+  });
+});

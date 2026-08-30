@@ -8,6 +8,7 @@
  */
 const mockCtor = jest.fn();
 const mockCapture = jest.fn();
+const mockOptOut = jest.fn(() => Promise.resolve());
 
 jest.mock('posthog-react-native', () => ({
   __esModule: true,
@@ -16,10 +17,12 @@ jest.mock('posthog-react-native', () => ({
       mockCtor(apiKey, options);
     }
     capture = mockCapture;
+    optOut = mockOptOut;
   },
 }));
 
-import { initAnalytics, isAnalyticsEnabled, track } from '../analytics';
+import { appStorage, StorageKeys } from '../../storage/mmkv';
+import { initAnalytics, isAnalyticsEnabled, setAnalyticsEnabled, track } from '../analytics';
 import type { AnalyticsEvents } from '../events';
 
 const KEY = 'phc_test_key';
@@ -78,7 +81,11 @@ describe('initAnalytics (env-gated, NFR-S2)', () => {
       expect(initAnalytics()).toBe(true);
       expect(isAnalyticsEnabled()).toBe(true);
       expect(mockCtor).toHaveBeenCalledTimes(1);
-      expect(mockCtor).toHaveBeenCalledWith(KEY, { host: EU_HOST, disableGeoip: true });
+      expect(mockCtor).toHaveBeenCalledWith(KEY, {
+        host: EU_HOST,
+        disableGeoip: true,
+        captureAppLifecycleEvents: false,
+      });
     });
   });
 
@@ -144,5 +151,41 @@ describe('typed catalog (compile-time, enforced by pnpm typecheck)', () => {
     };
     void emitUnknown;
     expect(true).toBe(true);
+  });
+});
+
+describe('opt-out (P10, ADR-0014 §12)', () => {
+  afterEach(() => appStorage.delete(StorageKeys.analyticsOptOut));
+  it('the MMKV flag wins over present keys: no client is constructed', () => {
+    appStorage.set(StorageKeys.analyticsOptOut, '1');
+    withEnv({ EXPO_PUBLIC_POSTHOG_API_KEY: KEY, EXPO_PUBLIC_POSTHOG_HOST: EU_HOST }, () => {
+      expect(initAnalytics()).toBe(false);
+      expect(isAnalyticsEnabled()).toBe(false);
+      expect(mockCtor).not.toHaveBeenCalled();
+    });
+  });
+  it('switching off sends the toggle event last and drops the client; switching on re-inits', () => {
+    withEnv({ EXPO_PUBLIC_POSTHOG_API_KEY: KEY, EXPO_PUBLIC_POSTHOG_HOST: EU_HOST }, () => {
+      expect(initAnalytics()).toBe(true);
+      expect(setAnalyticsEnabled(false)).toBe(false);
+      expect(mockCapture).toHaveBeenLastCalledWith('privacy_toggled', {
+        sdk: 'analytics',
+        enabled: false,
+      });
+      expect(mockOptOut).toHaveBeenCalledTimes(1); // the live instance is opted out, not just dropped
+      expect(mockCtor.mock.calls[0]![1]).toEqual(
+        expect.objectContaining({ captureAppLifecycleEvents: false }),
+      );
+      expect(isAnalyticsEnabled()).toBe(false);
+      track('task_created', {
+        source: 'form',
+        nl_parse_used: false,
+        has_deadline: false,
+        has_duration: false,
+      });
+      expect(mockCapture).toHaveBeenCalledTimes(1);
+      expect(setAnalyticsEnabled(true)).toBe(true);
+      expect(isAnalyticsEnabled()).toBe(true);
+    });
   });
 });

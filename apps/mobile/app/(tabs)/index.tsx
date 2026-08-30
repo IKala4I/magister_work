@@ -12,7 +12,7 @@
  */
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, AppState, Pressable, StyleSheet, View } from 'react-native';
 
 import { discardPendingWipe, keepPendingWipe } from '../../src/auth/accountTransition';
 import { currentUserId } from '../../src/auth/identity';
@@ -43,13 +43,22 @@ import {
   startFocusAction,
 } from '../../src/domain/blockActions';
 import { applyTradeoffAction, rejectTradeoffsAction } from '../../src/domain/insightsActions';
-import { planDayOf, requestPlanDayOf } from '../../src/domain/planTrigger';
+import {
+  dismissRemindersPrompt,
+  enableRemindersAction,
+  isRemindersPromptDismissed,
+  reminderPermissionState,
+} from '../../src/domain/notificationActions';
+import { notificationSettingsOf, timeOnDay } from '../../src/domain/notificationSettings';
+import { nextPlanDayOf, planDayOf, requestPlanDayOf } from '../../src/domain/planTrigger';
 import { infeasibleOptionsOf } from '../../src/domain/tradeoff';
 import { t } from '../../src/i18n';
 import { usePlanStore } from '../../src/state/plan';
 import { useSyncStore } from '../../src/state/sync';
 import { useLapseScan } from '../../src/sync/useLapseScan';
-import { usePlanTrigger } from '../../src/sync/usePlanTrigger';
+import { runPlanRequest, usePlanTrigger } from '../../src/sync/usePlanTrigger';
+import { useCurrentProfile } from '../../src/db/useProfile';
+import type { PermissionState } from '../../src/notifications/setup';
 import { type BlockAction, BlockActions } from '../../src/ui/plan/BlockActions';
 import { MovePicker } from '../../src/ui/plan/MovePicker';
 import { SkipDiagnosticCard } from '../../src/ui/plan/SkipDiagnosticCard';
@@ -109,7 +118,43 @@ export default function TodayScreen() {
     PLAN_TABLES,
     [userId],
   );
-  const plan = todayRows[0] ?? (planDay !== todayDay ? previousRows[0] : undefined);
+  // P10 (FR-26): the coming plan day's plan, when the evening ritual made one (06:00 anchor:
+  // before 06:00 "tomorrow" is the current calendar day)
+  const tomorrowDay = nextPlanDayOf(now);
+  const tomorrowRows = useLiveRows<PlanRow>(
+    () => latestPlanQuery(localDb, userId, tomorrowDay),
+    PLAN_TABLES,
+    [userId, tomorrowDay],
+  );
+  const tomorrowPlanId = tomorrowRows[0]?.id ?? '__none__';
+  const tomorrowRecs = useLiveRows<RecommendationRow>(
+    () => planRecommendationsQuery(localDb, tomorrowPlanId),
+    REC_TABLES,
+    [tomorrowPlanId],
+  );
+  const profile = useCurrentProfile();
+  const notifySettings = notificationSettingsOf(profile?.settings ?? null);
+  const [permission, setPermission] = useState<PermissionState | null>(null);
+  const [promptDismissed, setPromptDismissed] = useState(() => isRemindersPromptDismissed());
+  useEffect(() => {
+    let alive = true;
+    const refresh = () =>
+      void reminderPermissionState().then((p) => {
+        if (alive) setPermission(p);
+      });
+    refresh();
+    // back from the OS settings screen: re-read the permission (P10 adversarial #9)
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') refresh();
+    });
+    return () => {
+      alive = false;
+      sub.remove();
+    };
+  }, []);
+  // Display follows the 06:00 plan day: before 06:00 the previous plan day's plan stays on
+  // screen (an evening plan for the calendar day takes over at 06:00 — P10 adversarial #3)
+  const plan = planDay !== todayDay ? (previousRows[0] ?? todayRows[0]) : todayRows[0];
   const planId = plan?.id ?? '__none__';
   const recs = useLiveRows<RecommendationRow>(
     () => planRecommendationsQuery(localDb, planId),
@@ -144,7 +189,10 @@ export default function TodayScreen() {
   const titles = useMemo(() => new Map(taskRows.map((task) => [task.id, task.title])), [taskRows]);
   const status = usePlanStore((s) => s.status);
   const emptyInbox = usePlanStore((s) => s.emptyInbox);
-  const { requestManual } = usePlanTrigger(latestAnyRows[0]?.planDate ?? null);
+  const { requestManual } = usePlanTrigger(
+    latestAnyRows[0]?.planDate ?? null,
+    todayRows[0]?.planDate ?? null,
+  );
   const lapse = useLapseScan();
 
   const [moving, setMoving] = useState<RecommendationRow | null>(null);
@@ -191,6 +239,20 @@ export default function TodayScreen() {
     !decidedPlanIds(decisionRows).has(plan.id);
   const [tradeoffNotice, setTradeoffNotice] = useState<string | null>(null);
   const hasBlocks = plan !== undefined && (recs.length > 0 || busy.length > 0);
+  // FR-50: ask for the OS permission once, from a card, only when there is something to remind
+  const remindersPrompt =
+    hasBlocks &&
+    notifySettings.block_reminders &&
+    permission === 'undetermined' &&
+    !promptDismissed;
+  // FR-26: after the ritual time, with tasks waiting and no plan for tomorrow, offer the one tap
+  const inboxCount = taskRows.filter((task) => task.status === 'inbox').length;
+  const ritualDue =
+    now.getTime() >= timeOnDay(planDay, notifySettings.evening_ritual_time).getTime();
+  const tomorrowPlanned = tomorrowRows[0] !== undefined;
+  const tomorrowOpen = tomorrowRecs.filter((r) => r.status !== 'expired');
+  const tomorrowFirst = tomorrowOpen[0];
+  const askTomorrow = ritualDue && !tomorrowPlanned && inboxCount > 0 && !planning;
   const liveNotice = notice !== null && now.getTime() - notice.at < NOTICE_TTL_MS ? notice : null;
   const noticeKey =
     status === 'error'
@@ -287,6 +349,75 @@ export default function TodayScreen() {
         >
           {t('today.fallback')}
         </ThemedText>
+      ) : null}
+      {remindersPrompt ? (
+        <View
+          style={[styles.banner, { backgroundColor: theme.colors.primaryContainer }]}
+          accessibilityRole="summary"
+          accessibilityLabel={t('today.reminders.title')}
+        >
+          <ThemedText>{t('today.reminders.title')}</ThemedText>
+          <ThemedText variant="caption">{t('today.reminders.body')}</ThemedText>
+          <View style={styles.bannerActions}>
+            <Button
+              kind="secondary"
+              label={t('today.reminders.enable')}
+              onPress={() => void enableRemindersAction('today_card').then(setPermission)}
+            />
+            <Button
+              kind="secondary"
+              label={t('today.reminders.later')}
+              onPress={() => {
+                dismissRemindersPrompt();
+                setPromptDismissed(true);
+              }}
+            />
+          </View>
+        </View>
+      ) : null}
+      {tomorrowPlanned && tomorrowFirst !== undefined ? (
+        <ThemedText variant="caption" tone="secondary" style={styles.notice}>
+          {tomorrowOpen.length === 1
+            ? t('today.tomorrow.plannedOne', {
+                time: tomorrowFirst.slotStart.toLocaleTimeString(undefined, {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                }),
+              })
+            : t('today.tomorrow.planned', {
+                count: tomorrowOpen.length,
+                time: tomorrowFirst.slotStart.toLocaleTimeString(undefined, {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                }),
+              })}
+        </ThemedText>
+      ) : null}
+      {askTomorrow ? (
+        <View
+          style={[styles.banner, { backgroundColor: theme.colors.primaryContainer }]}
+          accessibilityRole="summary"
+          accessibilityLabel={t('today.tomorrow.ask')}
+        >
+          <ThemedText>{t('today.tomorrow.ask')}</ThemedText>
+          <ThemedText variant="caption">
+            {inboxCount === 1
+              ? t('today.tomorrow.ask.bodyOne')
+              : t('today.tomorrow.ask.body', { count: inboxCount })}
+          </ThemedText>
+          <View style={styles.bannerActions}>
+            <Button
+              kind="secondary"
+              label={t('today.tomorrow.accept')}
+              onPress={() => void runPlanRequest('evening_ritual', new Date(), tomorrowDay)}
+            />
+            <Button
+              kind="secondary"
+              label={t('today.tomorrow.adjust')}
+              onPress={() => router.navigate('/(tabs)/inbox')}
+            />
+          </View>
+        </View>
       ) : null}
       {diagnostic ? (
         <SkipDiagnosticCard

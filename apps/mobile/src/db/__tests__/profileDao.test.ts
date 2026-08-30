@@ -17,7 +17,14 @@ import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 
-import { getProfile, markProfileSynced, saveProfile, upsertProfileFromServer } from '../profile';
+import {
+  draftFromRow,
+  getProfile,
+  markProfileSynced,
+  saveProfile,
+  updateProfileSettings,
+  upsertProfileFromServer,
+} from '../profile';
 import type { ProfileDraft } from '../profile';
 import { opOutbox } from '../schema';
 import type { LocalDb } from '../writes';
@@ -150,5 +157,43 @@ describe('markProfileSynced', () => {
     const row = getProfile(db, USER);
     expect(row?.version).toBe(2);
     expect(row?.serverSeq).toBe(17);
+  });
+});
+
+describe('updateProfileSettings (P10, ADR-0014 §5)', () => {
+  it('no row → nothing written, nothing queued', () => {
+    expect(updateProfileSettings(db, { userId: 'nobody', settings: { a: 1 } })).toBeUndefined();
+    expect(db.select().from(opOutbox).all()).toHaveLength(0);
+  });
+  it('replaces settings on the row and queues a profile_update carrying the FULL snapshot + settings', () => {
+    saveProfile(db, { userId: 'u1', draft: DRAFT, now: NOW });
+    const later = new Date(NOW.getTime() + 60_000);
+    const row = updateProfileSettings(db, {
+      userId: 'u1',
+      settings: { notifications: { muted_categories: ['admin'] } },
+      now: later,
+    });
+    expect(row?.settings).toEqual({ notifications: { muted_categories: ['admin'] } });
+    expect(row?.version).toBe(2);
+    expect(row?.timezone).toBe(DRAFT.timezone);
+    const ops = db.select().from(opOutbox).all();
+    expect(ops).toHaveLength(2);
+    const payload = ops[1]!.payload as Record<string, unknown>;
+    expect(ops[1]!.baseVersion).toBe(1);
+    expect(payload.settings).toEqual({ notifications: { muted_categories: ['admin'] } });
+    expect(payload.timezone).toBe(DRAFT.timezone);
+    expect(payload.top_categories).toEqual(DRAFT.topCategories);
+    expect(payload.version).toBe(2);
+    // a plain saveProfile (onboarding edits) never sends settings and never clears them
+    saveProfile(db, { userId: 'u1', draft: { ...DRAFT, locale: 'uk' }, now: later });
+    const again = getProfile(db, 'u1');
+    expect(again?.settings).toEqual({ notifications: { muted_categories: ['admin'] } });
+    const third = db.select().from(opOutbox).all()[2]!.payload as Record<string, unknown>;
+    expect('settings' in third).toBe(false);
+  });
+  it('draftFromRow round-trips a saved row', () => {
+    saveProfile(db, { userId: 'u1', draft: DRAFT, now: NOW });
+    const row = getProfile(db, 'u1')!;
+    expect(draftFromRow(row)).toEqual({ ...DRAFT, settings: null });
   });
 });

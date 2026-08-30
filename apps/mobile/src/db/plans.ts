@@ -8,7 +8,7 @@
  *   scheduled-but-unplaced ⇒ back to `inbox`), the latter through the outbox like every other
  *   task write so P8 replays it.
  */
-import { and, desc, eq, inArray, ne } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, lt, ne } from 'drizzle-orm';
 
 import type { PlanRequestResponse, RecommendationRow as ServerRecommendation } from '../sync/types';
 
@@ -20,7 +20,7 @@ import type { LocalDb } from './writes';
 
 export type PlanRow = typeof plans.$inferSelect;
 export type RecommendationRow = typeof recommendations.$inferSelect;
-export type PlanTrigger = 'first_open' | 'new_day' | 'manual';
+export type PlanTrigger = 'first_open' | 'new_day' | 'manual' | 'evening_ritual';
 
 export type UnplacedEntry = {
   task_id: string;
@@ -61,6 +61,24 @@ export function planRecommendationsQuery(db: LocalDb, planId: string) {
     .select()
     .from(recommendations)
     .where(and(eq(recommendations.planId, planId), ne(recommendations.status, 'expired')))
+    .orderBy(recommendations.slotStart, recommendations.chunkIndex);
+}
+
+/**
+ * Open placements starting in [from, to) across plans — what the FR-50 scheduler reminds about
+ * (P10). Status filter happens in the pure planner; this just bounds the read.
+ */
+export function upcomingRecommendationsQuery(db: LocalDb, userId: string, from: Date, to: Date) {
+  return db
+    .select()
+    .from(recommendations)
+    .where(
+      and(
+        eq(recommendations.userId, userId),
+        gte(recommendations.slotStart, from),
+        lt(recommendations.slotStart, to),
+      ),
+    )
     .orderBy(recommendations.slotStart, recommendations.chunkIndex);
 }
 

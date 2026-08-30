@@ -205,6 +205,51 @@
   introduced by the platform ScrollView/Pressable defaults). Why: OS-level reduced-motion
   hooks are not represented on the simulator.
 
+### Notifications, privacy, performance (added P10)
+
+- ⬜ **FR-50 — reminder delivery and the ≤ 5/day cap on hardware** (P10). Plan a day with ≥ 6
+  blocks, grant the permission from the Today card, lock the device: the first four reminders
+  arrive 10 min before their blocks, the fifth slot is the 20:00 ritual; re-plan twice and change
+  a mute during the day → never a sixth notification (iOS: also with Focus modes; Android: also
+  under Doze / battery saver, note the OEM). Why: the ledger is proven in jest against a faked
+  OS; real delivery, coalescing and OS-side dropping only exist on hardware.
+- ⬜ **FR-50 — Android exact-alarm semantics of the DATE trigger** (P10). On API 31+ confirm a
+  reminder lands within a minute of `slot_start − 10 min` without `SCHEDULE_EXACT_ALARM`; if the
+  OEM defers it by more, record the drift for the thesis (ADR-0014 Consequences). Why: inexact
+  alarm windows are device/OEM policy.
+- ⬜ **FR-26 — ritual actions from every app state** (P10). At the ritual time with the app
+  KILLED: tap "Plan tomorrow" → the app cold-starts, plans tomorrow (one `plan_requested` with
+  trigger `evening_ritual`, one `notification_response` fact), Today shows the tomorrow line;
+  "Adjust tasks" opens the Inbox; a plain tap on a Sunday opens Insights. Repeat with the app
+  backgrounded. Why: `useLastNotificationResponse` vs the listener and category action buttons
+  behave differently per platform and cannot be exercised in jest.
+- ⬜ **FR-42 — export on device** (P10). Settings → Export → the share sheet offers Files/AirDrop
+  (iOS) or the share targets (Android); the saved JSON opens; it contains the tasks, events, the
+  48 Beta cells and no calendar `title`. Why: `expo-sharing` + the cache-directory file are
+  native paths; the share sheet itself has no simulator equivalent worth counting.
+- ⬜ **FR-42 — erasure on device** (P10). Settings → Delete (two confirmations) → the
+  confirmation screen with a reference → relaunch → onboarding; notifications scheduled before
+  the deletion never fire afterwards; the reference exists in `deletion_audit` (owner: an
+  aggregate `count(*) where id = …` — no row browsing). Why: the local wipe + `signOut(local)`
+  - cancelled notifications is a device lifecycle path.
+- ⬜ **NFR-A1 — VoiceOver / TalkBack on the P10 surfaces** (P10). Settings: switches announce
+  label + state; mute chips read "checkbox, Mute reminders for Admin, checked"; ritual time
+  chips read as radios in a labelled group; the export/delete status line is announced
+  (live region). Today: the reminders card and the tomorrow card are single summaries with
+  two buttons each. Account-deleted: the reference is read as a whole. Why: composed labels
+  and live regions are not verifiable without a real screen reader.
+- ⬜ **NFR-A2 — `p10-a11y-sweep.yaml` on both devices** (P10). Run via `scripts/device-pass.sh`
+  at max text size (Android: + display size) with Reduce Motion (+ Reduce Transparency on iOS),
+  light and dark; keep the screenshots for `p10-a11y-audit.md` §2. Why: the flow was written
+  in P10 but not executed — it needs a development build with the notification categories.
+- ⬜ **NFR-P2 — cold start and 60 fps on the P10 bundle** (P10). `device-pass.sh` steps 3–4
+  (Xcode App Launch / `adb am start -W`, Instruments FPS / `gfxinfo`). Why: the bundle grew
+  (notifications, sharing); the only number is the P2 simulator one.
+- ⬜ **NFR-P3 from a handset** (P10). Re-run `p10-perf.mjs`'s REST read/write over LTE and Wi-Fi
+  from the device network (a Node script cannot run on the handset — use the app's
+  `sync_completed` durations from PostHog for `sync-resolve`, and time one `export-data` from
+  Settings). Why: the Node numbers exclude radio wake-up and mobile TLS.
+
 ## Service environment (Oracle A1 VM, container pinned to `cpus: 2` — ADR-0009) — same honesty rule, different box
 
 Timing measured on the development Mac is a smoke check, not evidence for the container File 04

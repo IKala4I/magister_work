@@ -41,6 +41,8 @@ msg = ""
 if isinstance(d, dict):
     e = d.get("error") or {}
     msg = e.get("message") if isinstance(e, dict) else str(e)
+    if not msg and isinstance(d.get("message"), str):
+        msg = d["message"]  # CLI ≥ 2.115 wraps the raised TAP text as {"message": "..."}
     if not msg and "rows" in d:
         msg = json.dumps(d["rows"])
 print(msg or raw)

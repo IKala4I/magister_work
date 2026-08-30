@@ -33,6 +33,8 @@ Deno.test('EF params == packages/shared params (client side of the boundary)', (
   assertEquals(ef.DURATION_EWMA_ALPHA, shared.DURATION_EWMA_ALPHA);
   assertEquals(ef.DURATION_MIN_SESSIONS, shared.DURATION_MIN_SESSIONS);
   assertEquals([...ef.DURATION_RATIO_CLIP], [...shared.DURATION_RATIO_CLIP]);
+  // P10 retention (ADR-0014 §10)
+  assertEquals(ef.ANONYMOUS_RETENTION_DAYS, shared.ANONYMOUS_RETENTION_DAYS);
 });
 
 Deno.test('EF params == services/recsys params.py (service side of the boundary)', async () => {

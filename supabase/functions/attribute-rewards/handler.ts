@@ -11,6 +11,7 @@
  * `handler_test.ts` covers every branch without a database or a network. P8's `sync-resolve`
  * calls `processUser` after op replay instead of the client calling this function.
  */
+import { constantTimeEqual } from '../_shared/auth.ts';
 import type { BetaCell } from '../_shared/energy.ts';
 import type { BusyInterval, WorkingHours } from '../_shared/grid.ts';
 import { wallClock } from '../_shared/grid.ts';
@@ -148,13 +149,6 @@ export function localDayOf(ms: number, timezone: string): string {
 
 function toRewardRec(row: RecRow, timezone: string): RewardRec {
   return { ...row, local_day: localDayOf(Date.parse(row.slot_end), timezone) };
-}
-
-function constantTimeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  let diff = 0;
-  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return diff === 0;
 }
 
 async function overrideTargets(

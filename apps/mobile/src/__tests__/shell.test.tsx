@@ -6,6 +6,21 @@
 // The Inbox screen reads the live DB; tests never open the native database (P2 rule),
 // so the client and the live-query hook are stubbed to an empty inbox here.
 jest.mock('../db/client', () => ({ db: {} }));
+// P10: the tab shell mounts the FR-50 scheduler and the root layout the response listener —
+// both touch the OS and the database; the shell tests are about navigation
+jest.mock('../notifications/useNotificationScheduler', () => ({
+  useNotificationScheduler: () => {},
+}));
+jest.mock('../notifications/NotificationResponder', () => ({ NotificationResponder: () => null }));
+jest.mock('../domain/notificationActions', () => ({
+  reminderPermissionState: () => Promise.resolve('granted'),
+  isRemindersPromptDismissed: () => true,
+  dismissRemindersPrompt: () => {},
+  enableRemindersAction: () => Promise.resolve('granted'),
+  updateNotificationSettingsAction: () => {},
+}));
+jest.mock('../privacy/exportData', () => ({ exportDataAction: jest.fn() }));
+jest.mock('../privacy/deleteAccount', () => ({ deleteAccountAction: jest.fn() }));
 jest.mock('../db/useLiveRows', () => ({ useLiveRows: () => [] }));
 // P7: the Today tab runs the lazy lapse scan on mount — a DB write path, mocked here like the DB
 jest.mock('../sync/useLapseScan', () => ({
@@ -75,7 +90,15 @@ describe('settings appearance control', () => {
     expect(screen.getByText(en['settings.appearance.system'])).toBeTruthy();
     expect(screen.getByText(en['settings.appearance.light'])).toBeTruthy();
     expect(screen.getByText(en['settings.appearance.dark'])).toBeTruthy();
-    expect(screen.getAllByRole('radio')).toHaveLength(3);
+    // P10 added the ritual-time radios to Settings; the appearance group is the three labelled ones
+    const appearance = [
+      en['settings.appearance.system'],
+      en['settings.appearance.light'],
+      en['settings.appearance.dark'],
+    ];
+    expect(
+      screen.getAllByRole('radio').filter((n) => appearance.includes(n.props.accessibilityLabel)),
+    ).toHaveLength(3);
   });
 
   it('selecting Dark updates the store and persists the MMKV flag', async () => {
@@ -88,9 +111,15 @@ describe('settings appearance control', () => {
   it('the selected option is exposed via accessibilityState (NFR-A1)', async () => {
     useAppearanceStore.getState().setPreference('light');
     await render(withSafeArea(<SettingsScreen />));
+    const appearance = [
+      en['settings.appearance.system'],
+      en['settings.appearance.light'],
+      en['settings.appearance.dark'],
+    ];
     const selected = screen
       .getAllByRole('radio')
-      .filter((node) => node.props.accessibilityState?.selected === true);
+      .filter((node) => appearance.includes(node.props.accessibilityLabel))
+      .filter((node) => node.props.accessibilityState?.checked === true);
     expect(selected).toHaveLength(1);
   });
 });

@@ -12,9 +12,18 @@ import { usePlanStore } from '../state/plan';
 
 import { isPlanRequestInFlight, requestPlan } from './planRequest';
 
-export async function runPlanRequest(trigger: PlanTrigger, now: Date = new Date()): Promise<void> {
-  const planDate = requestPlanDayOf(now);
-  usePlanStore.setState({ status: 'planning', lastRequestedDay: planDate });
+export async function runPlanRequest(
+  trigger: PlanTrigger,
+  now: Date = new Date(),
+  /** P10 (FR-26): the evening ritual plans TOMORROW; every other trigger plans the current day. */
+  planDate: string = requestPlanDayOf(now),
+): Promise<void> {
+  // the dedup key is only ever today's request — a plan for tomorrow must not block today's
+  usePlanStore.setState(
+    planDate === requestPlanDayOf(now)
+      ? { status: 'planning', lastRequestedDay: planDate }
+      : { status: 'planning' },
+  );
   const outcome = await requestPlan({ planDate, trigger, now });
   switch (outcome.kind) {
     case 'planned':
@@ -41,16 +50,24 @@ export async function runPlanRequest(trigger: PlanTrigger, now: Date = new Date(
   }
 }
 
-export function usePlanTrigger(latestPlanDate: string | null): { requestManual: () => void } {
+export function usePlanTrigger(
+  latestPlanDate: string | null,
+  /** plan_date of today's plan if one exists (ADR-0014 §3); omitted = derive from the latest. */
+  todayPlanDate?: string | null,
+): { requestManual: () => void } {
   const check = useCallback(() => {
+    const now = new Date();
     const decision = decidePlanTrigger({
-      now: new Date(),
+      now,
       latestPlanDate,
+      ...(todayPlanDate !== undefined
+        ? { hasPlanForToday: todayPlanDate === requestPlanDayOf(now) }
+        : {}),
       lastRequestedDay: usePlanStore.getState().lastRequestedDay,
       inFlight: isPlanRequestInFlight(),
     });
     if (decision.request) void runPlanRequest(decision.trigger);
-  }, [latestPlanDate]);
+  }, [latestPlanDate, todayPlanDate]);
 
   useEffect(() => {
     check();

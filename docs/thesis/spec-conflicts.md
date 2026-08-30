@@ -359,3 +359,31 @@ accepted — option A):** analysis + training on the EU VM, `train.yml` on synth
 `artifact_uri` = Supabase Storage (EU), public release = synthetic dataset + replay harness, the
 real log as a restricted-access OSF deposit (Frankfurt storage). Text: thesis-corrections
 #34–36. PLAN P11 amended accordingly.
+
+- **L34.** (P10) specs/07 §4.1 lists `profiles.settings` ("notification prefs incl. per-category
+  mute") but the P8 `sync_apply_profile` replay body never wrote the column — a `profile_update`
+  op silently dropped settings. Normative: the RPC merges `settings` when the payload carries an
+  object (both branches), keeps the stored blob otherwise; the client's `profile_update` snapshot
+  carries it. ADR-0014 §5; pgTAP 31–36.
+- **L35.** (P10) specs/07 §7 / UC-10 "completion email within 30 days": there is no transactional
+  mail on the free tier (the auth mailer sends only its templates), a mail provider is a new
+  Art. 28 processor, and anonymous accounts have no address. Normative: erasure completes
+  synchronously and is confirmed **in-app** with the `deletion_audit` reference; the consent
+  clause says so. ADR-0014 §9; thesis-corrections #43; owner decision if e-mail is wanted.
+- **L36.** (P10) Appendix A / §4.4 "anonymous-trial accounts purged after 30 days unconverted"
+  ([INFERRED]) would delete an active trial user's data mid-trial. Normative: purge after **30
+  days of inactivity** (no sign-in, no event), through the same audited erasure path
+  (`reason = anonymous_retention`). ADR-0014 §10.
+- **L37.** (P10) UC-09 "replacement suggestion notification (respecting FR-50 cap)" and the
+  P8 revisit line assumed a displacement push. Normative: no displacement notification — the
+  device learns of a displacement at its next foreground (invariant 7; ADR-0012 §10's "≤ 5 min"
+  is server-side) and the Today notice is the surface; the next block reminder of the re-planned
+  day is the "replacement suggestion". ADR-0014 §6.
+- **L38.** (P10) FR-50 "smart lead time": v1 is the Appendix A static 10 min; the learned lead
+  is FR-51 (C, behind a flag) and is not built. ADR-0014 §1.
+- **L39.** (P10) File 02 §3.2 "all pairings meet WCAG 2.2 AA (≥ 4.5:1 body text)" is false as
+  stated for the accent colours used as text on the light surface (success 2.4:1, warning
+  2.7:1, energy 2.1–2.5:1) and for white on the dark primary (2.98:1). Normative: accents are
+  fills only (heatmap with a text alternative), body text uses `textPrimary`/`textSecondary`,
+  on-primary text is white in light and the dark surface colour in dark; pinned by
+  `a11yAudit.test.ts`. ADR-0014 §11.

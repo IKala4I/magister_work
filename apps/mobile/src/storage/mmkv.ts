@@ -21,6 +21,15 @@ export const StorageKeys = {
   pendingWipeUserId: 'sync.pendingWipeUserId',
   /** Last `insights` document (JSON, with fetched_at) so the tab renders offline (P9). */
   insightsCache: 'insights.cache',
+  /** FR-50 delivered/scheduled ledger — the daily cap's memory (P10, ADR-0014 §2). */
+  notificationLedger: 'notify.ledger',
+  /** The Today reminder-permission card was dismissed ("not now"). */
+  remindersPromptDismissed: 'notify.promptDismissed',
+  /** Last notification response handled (id@date) — cold-start dedup (P10). */
+  lastNotificationResponse: 'notify.lastResponse',
+  /** Privacy opt-outs (P10, ADR-0014 §12): '1' when the user switched the SDK off. */
+  analyticsOptOut: 'privacy.analyticsOptOut',
+  crashReportsOptOut: 'privacy.crashOptOut',
   /**
    * Prefix for supabase session ciphertext (AES-256-CTR; key material lives in
    * expo-secure-store, never here — src/auth/largeSecureStore.ts).

@@ -11,6 +11,21 @@ jest.mock('drizzle-orm/expo-sqlite/migrator', () => ({
   useMigrations: jest.fn(() => ({ success: true, error: undefined })),
 }));
 jest.mock('../db/client', () => ({ db: {} }));
+// P10: the tab shell mounts the FR-50 scheduler and the root layout the response listener —
+// both touch the OS and the database; the shell tests are about navigation
+jest.mock('../notifications/useNotificationScheduler', () => ({
+  useNotificationScheduler: () => {},
+}));
+jest.mock('../notifications/NotificationResponder', () => ({ NotificationResponder: () => null }));
+jest.mock('../domain/notificationActions', () => ({
+  reminderPermissionState: () => Promise.resolve('granted'),
+  isRemindersPromptDismissed: () => true,
+  dismissRemindersPrompt: () => {},
+  enableRemindersAction: () => Promise.resolve('granted'),
+  updateNotificationSettingsAction: () => {},
+}));
+jest.mock('../privacy/exportData', () => ({ exportDataAction: jest.fn() }));
+jest.mock('../privacy/deleteAccount', () => ({ deleteAccountAction: jest.fn() }));
 // The Today tab (P6) reads plans/recommendations through live queries and wires the UC-03
 // trigger; the shell test is about readiness, not planning.
 jest.mock('../db/useLiveRows', () => ({ useLiveRows: () => [] }));

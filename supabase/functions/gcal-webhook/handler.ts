@@ -9,6 +9,7 @@
  *     without push), and runs the opt-in write-back.
  * Dependency-injected; `handler_test.ts` runs it against a fake Google and a fake database.
  */
+import { constantTimeEqual } from '../_shared/auth.ts';
 import type { GoogleConfig } from '../_shared/gcal.ts';
 import {
   ensureChannel,
@@ -40,13 +41,6 @@ const JSON_HEADERS = { 'content-type': 'application/json' };
 
 function json(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), { status, headers: JSON_HEADERS });
-}
-
-function constantTimeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  let diff = 0;
-  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return diff === 0;
 }
 
 function errorText(err: unknown): string {
