@@ -195,6 +195,17 @@ Deno.test('self: a failing delete leaves the audit row open (requested, not comp
   assertEquals(f.audits[0].completed_at, null);
 });
 
+Deno.test('self: a JWT whose account is already gone is 401 — no second audit row (FR-42, live-smoke finding)', async () => {
+  const f = fake();
+  const res = await handleDeleteAccount(
+    post({}, { authorization: 'Bearer good' }),
+    deps(f, { userExists: () => Promise.resolve(false) }),
+  );
+  assertEquals(res.status, 401);
+  assertEquals(f.audits, []);
+  assertEquals(f.deleted, []);
+});
+
 Deno.test('self: a failing audit stamp AFTER the delete still answers deleted (the device must not be stranded)', async () => {
   const f = fake();
   const res = await handleDeleteAccount(

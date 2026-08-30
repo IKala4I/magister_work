@@ -50,10 +50,12 @@ Deno.serve(async (req: Request) => {
   try {
     return await handleDeleteAccount(req, {
       now: () => Date.now(),
+      // getUser (server-side), not getClaims: a JWT whose account was just deleted must not
+      // start a second "erasure" (FR-42; found by the P10 live smoke).
       verifyUser: async (jwt) => {
-        const { data, error } = await userClient.auth.getClaims(jwt);
-        if (error || !data?.claims?.sub) return null;
-        return data.claims.sub;
+        const { data, error } = await userClient.auth.getUser(jwt);
+        if (error || !data?.user?.id) return null;
+        return data.user.id;
       },
       verifyServiceKey: (key) => serviceKeyMatches(SERVICE_KEY, key),
       hashUser: sha256Hex,

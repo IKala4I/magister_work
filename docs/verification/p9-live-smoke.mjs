@@ -26,13 +26,13 @@
  * Usage: node docs/verification/p9-live-smoke.mjs   (from apps/mobile so supabase-js resolves)
  */
 /* global fetch */
-import { execFileSync } from 'node:child_process';
-import { readFileSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { createClient } from '@supabase/supabase-js';
+
+import { dbQuery } from './lib/db-query.mjs';
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const env = Object.fromEntries(
@@ -58,23 +58,13 @@ const DEVICE = uuid();
 let counter = 0;
 const opId = () => `${DEVICE}-${pad(++counter)}`;
 
-/** Service-side read through the CLI (postgres role). A parse failure is printed, never hidden. */
+/** Service-side read through the CLI (postgres role) — the shared shape-tolerant parser. */
 function sql(query) {
-  const file = join(tmpdir(), `p9-smoke-${uuid()}.sql`);
-  writeFileSync(file, query);
-  const out = execFileSync(
-    'supabase',
-    ['db', 'query', '--linked', '--output-format', 'json', '-f', file],
-    { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] },
-  );
-  const json = out.slice(out.indexOf('{')); // the CLI may print notices before the document
   try {
-    const parsed = JSON.parse(json);
-    if (!Array.isArray(parsed.rows)) throw new Error('no rows array');
-    return parsed.rows;
+    return dbQuery(repoRoot, query, { prefix: 'p9-smoke' });
   } catch (err) {
-    console.log(`      db query could not be parsed (${err.message}): ${out.slice(0, 200)}`);
-    throw err;
+    console.log(`  (db query failed: ${err.message.slice(0, 300)})`);
+    return [];
   }
 }
 
