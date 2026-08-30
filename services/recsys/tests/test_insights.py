@@ -85,4 +85,5 @@ def test_beliefs_one_per_category_day_type_with_label_and_rung2_flags() -> None:
     ]
     aff = next(a for a in r2.affinities if a.state_ref == "beta:deep.MO.weekday")
     assert aff.label == "incorrect" and aff.personal
-    assert r2.learning_mode is False  # 1 active cell, personal (evidence 8 ≤ prior 8, but labelled)
+    # the labelled cell is outside the badge's count: with no OBSERVED active cell it stays on
+    assert r2.learning_mode is True
