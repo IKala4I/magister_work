@@ -83,7 +83,7 @@ jobs:
           deno-version: v2.9.5
       - run: deno fmt --check
       - run: deno lint
-      - run: deno check _shared/*.ts plan-request/*.ts attribute-rewards/*.ts sync-resolve/*.ts gcal-connect/*.ts gcal-callback/*.ts gcal-webhook/*.ts insights/*.ts
+      - run: deno check _shared/*.ts plan-request/*.ts attribute-rewards/*.ts sync-resolve/*.ts gcal-connect/*.ts gcal-callback/*.ts gcal-webhook/*.ts insights/*.ts export-data/*.ts delete-account/*.ts
       - name: Unit tests (arm-A heuristic, matched ε-draw, grid/φ parity with the service, plan-request + attribute-rewards handlers, reward mapping)
         run: deno test --allow-read --allow-env --allow-net
 

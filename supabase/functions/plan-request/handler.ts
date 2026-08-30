@@ -130,8 +130,11 @@ function parseBody(raw: unknown): PlanRequestBody | string {
     return 'now must be an ISO timestamp';
   }
   const trigger = b.trigger ?? 'manual';
-  if (trigger !== 'first_open' && trigger !== 'new_day' && trigger !== 'manual') {
-    return 'trigger must be first_open, new_day or manual';
+  if (
+    trigger !== 'first_open' && trigger !== 'new_day' && trigger !== 'manual' &&
+    trigger !== 'evening_ritual'
+  ) {
+    return 'trigger must be first_open, new_day, manual or evening_ritual';
   }
   return { plan_date: b.plan_date, horizon, now: b.now as string | undefined, trigger };
 }

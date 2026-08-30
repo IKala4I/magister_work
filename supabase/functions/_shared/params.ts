@@ -61,3 +61,7 @@ export const DURATION_SAMPLE_CLIP: readonly [number, number] = [0.25, 4.0]; // [
 
 /** NFR-O1 model tag on every heuristic recommendation (arm A and the NFR-R2 fallback). */
 export const HEURISTIC_MODEL_VERSION = 'heuristic-p6.0';
+
+// --- retention (specs/07 §7, Appendix A; ADR-0014 §10) ---
+/** Anonymous accounts inactive (no sign-in, no event) for this long are erased by the daily sweep. */
+export const ANONYMOUS_RETENTION_DAYS = 30; // [A: retention windows] P10

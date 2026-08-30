@@ -441,6 +441,19 @@ enabled = true
 verify_jwt = false
 import_map = "./functions/deno.json"
 entrypoint = "./functions/insights/index.ts"
+# P10 (ADR-0014): FR-42 export (user JWT) and erasure (user JWT; service key for the operator
+# path and the daily retention tick from pg_cron) — both verify inside the function.
+[functions.export-data]
+enabled = true
+verify_jwt = false
+import_map = "./functions/deno.json"
+entrypoint = "./functions/export-data/index.ts"
+
+[functions.delete-account]
+enabled = true
+verify_jwt = false
+import_map = "./functions/deno.json"
+entrypoint = "./functions/delete-account/index.ts"
 
 [analytics]
 enabled = true

@@ -5,7 +5,7 @@
   },
   "tasks": {
     "test": "deno test --allow-read --allow-env",
-    "check": "deno check _shared/*.ts plan-request/*.ts attribute-rewards/*.ts sync-resolve/*.ts gcal-connect/*.ts gcal-callback/*.ts gcal-webhook/*.ts",
+    "check": "deno check _shared/*.ts plan-request/*.ts attribute-rewards/*.ts sync-resolve/*.ts gcal-connect/*.ts gcal-callback/*.ts gcal-webhook/*.ts insights/*.ts export-data/*.ts delete-account/*.ts",
     "lint": "deno lint",
     "fmt": "deno fmt --check"
   },

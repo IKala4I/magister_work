@@ -369,3 +369,30 @@ export async function clearWriteBack(deps: SyncDeps, state: GcalState): Promise<
 }
 
 export { HOURWELL_MARKER };
+
+/**
+ * Best-effort teardown of a Google connection, in this order: our write-back events out of the
+ * user's calendar while we still hold a token, then the push channel, then the token itself.
+ * Google may already have revoked/expired everything — the first two steps are best effort
+ * (disconnect from Settings, ADR-0012 §10; account erasure, ADR-0014 §8).
+ */
+export async function disconnectGoogle(
+  deps: SyncDeps,
+  state: GcalState,
+  revokeToken: (token: string) => Promise<boolean>,
+): Promise<void> {
+  if (state.refresh_token === null) return;
+  try {
+    await clearWriteBack(deps, state);
+    if (state.channel_id !== null && state.resource_id !== null) {
+      const access = await ensureAccessToken(deps, state);
+      await deps.google.stopChannel(access, {
+        channelId: state.channel_id,
+        resourceId: state.resource_id,
+      });
+    }
+  } catch {
+    // ignore — Google may already have revoked/expired everything
+  }
+  await revokeToken(state.refresh_token);
+}
