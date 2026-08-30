@@ -10,7 +10,6 @@ import type { RecommendationRow } from '../../db/plans';
 import { rationaleSentence } from '../../domain/rationale';
 import { t } from '../../i18n';
 import { ConfidenceBlock, ThemedText } from '../primitives';
-import { useTheme } from '../theme';
 
 export function formatClock(date: Date): string {
   return date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });

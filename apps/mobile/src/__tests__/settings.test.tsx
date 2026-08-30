@@ -42,7 +42,7 @@ jest.mock('../db/useProfile', () => ({
 }));
 const mockNotify = {
   update: jest.fn(),
-  enable: jest.fn((_source: unknown) => Promise.resolve('granted')),
+  enable: jest.fn<Promise<string>, [unknown]>(() => Promise.resolve('granted')),
   permission: jest.fn(() => Promise.resolve('granted')),
 };
 jest.mock('../domain/notificationActions', () => ({

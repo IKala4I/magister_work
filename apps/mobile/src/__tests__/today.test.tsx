@@ -16,7 +16,7 @@ const mockNotify = {
   permission: jest.fn(() => Promise.resolve('granted')),
   dismissed: false,
   dismiss: jest.fn(),
-  enable: jest.fn((_source: unknown) => Promise.resolve('granted')),
+  enable: jest.fn<Promise<string>, [unknown]>(() => Promise.resolve('granted')),
 };
 jest.mock('../domain/notificationActions', () => ({
   reminderPermissionState: () => mockNotify.permission(),
