@@ -102,9 +102,15 @@ disconnectGoogle`), a `deletion_audit` row (`user_hash` = SHA-256 of the uid, `r
    device must not be stranded with a dead session (the open audit row is the evidence). The
    backend-key check for operator/retention is constant-time and rejects an empty key
    (`_shared/auth.ts`, shared with the other cron-called functions). Erasure completes
-   synchronously — "≤ 30 days" is the bound, seconds is the practice. The app then cancels
-   every scheduled notification, wipes the local mirror and MMKV state, signs out locally and
-   shows a confirmation with the audit reference.
+   synchronously — "≤ 30 days" is the bound, seconds is the practice. **Session semantics** (live
+   smoke finding): the access token is stateless and outlives the account until it expires
+   (refresh is impossible — the sessions cascade with the user). The two account functions
+   therefore verify the session **against the auth server** (`auth.getUser`, → `user_not_found`)
+   instead of the local JWKS check, and the delete handler re-checks existence before writing an
+   audit row; every other function keeps the cheap local check — a deleted user's writes fail on
+   FK/RLS and reads return empty for the ≤ 1 h remainder, which exposes nothing (the rows are
+   gone). The app then cancels every scheduled notification, wipes the local mirror and MMKV
+   state, signs out locally and shows a confirmation with the audit reference.
 9. **Confirmation is in-app, not by e-mail.** The free tier has no transactional mail (the
    auth mailer only sends its own templates), a mail provider would be a new processor
    (Art. 28) and anonymous accounts have no address at all. The confirmation screen shows the

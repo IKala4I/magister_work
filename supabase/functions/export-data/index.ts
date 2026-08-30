@@ -21,10 +21,13 @@ Deno.serve(async (req: Request) => {
   try {
     return await handleExportData(req, {
       now: () => Date.now(),
+      // getUser (server-side) rather than getClaims (local JWKS): the access token is stateless
+      // and outlives a deleted account until it expires — the auth server knows the account is
+      // gone and answers user_not_found (FR-42; found by the P10 live smoke).
       verifyUser: async (jwt) => {
-        const { data, error } = await userClient.auth.getClaims(jwt);
-        if (error || !data?.claims?.sub) return null;
-        return data.claims.sub;
+        const { data, error } = await userClient.auth.getUser(jwt);
+        if (error || !data?.user?.id) return null;
+        return data.user.id;
       },
       readPage: async (table, userId, order, from, to) => {
         let q = userClient.from(table).select('*').eq('user_id', userId);

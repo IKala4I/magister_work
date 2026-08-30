@@ -123,6 +123,9 @@ export async function handleDeleteAccount(req: Request, deps: Deps): Promise<Res
     const token = bearer(req);
     const userId = token === null ? null : await deps.verifyUser(token);
     if (userId === null) return json(401, { error: 'unauthorized' });
+    // belt to the wiring's server-side getUser: a stateless JWT can outlive its account until
+    // it expires — an already-erased account gets 401, never a second audit row (FR-42)
+    if (!(await deps.userExists(userId))) return json(401, { error: 'unauthorized' });
     const done = await eraseUser(deps, userId, 'user_request');
     return json(200, { status: 'deleted', ...done });
   }

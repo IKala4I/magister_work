@@ -74,7 +74,16 @@ compare rejecting empty keys (shared); the permission re-reads on foreground; ra
 `checked`; a brace-aware a11y scanner. Two MINORs documented (cap per install; non-preset
 ritual times show no selected chip) — `docs/verification/p10-manual-verification.md` §4.
 
-**Tests.** 461 jest (56 suites) · 187 Deno · 149 pytest (unchanged) · 36 pgTAP.
+**Tests.** 461 jest (56 suites) · 188 Deno · 149 pytest (unchanged) · 36 pgTAP.
+
+**Live (2026-08-30, after the owner's migration push).** `p10-live-smoke.mjs` **25/25** on the
+hosted project: the export document and the full self-erasure round trip observed service-side
+(zero rows for the uid in every user-owned table incl. `auth.users`; audit row completed). Two
+findings fixed first: the stateless JWT outlived the deleted account (the account functions now
+verify the session server-side via `auth.getUser`; the delete handler re-checks existence —
+never a second audit row), and the smoke's `db query` parser broke on the CLI's new output
+shape for the second phase running — replaced by ONE shared shape-tolerant parser
+(`docs/verification/lib/db-query.mjs`) used by the P9 and P10 smokes.
 
 ## P9 — Trust surfaces (2026-08-29, phase/P9-trust)
 

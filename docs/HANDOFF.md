@@ -3,18 +3,20 @@
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
 > Last update: 2026-08-30, **P10 — Notifications, privacy, a11y, performance: complete; PR #19
-> merged (all six CI checks green; adversarial pass done — see "P10 status"); ⛔ the P10
-> migration push is the owner's step, then the live erasure smoke in a small follow-up PR
-> (P9 precedent), then P11.** Standing rules live in CLAUDE.md: "Working mode", "Context
-> efficiency", "Simulator evidence".
+> merged; migration applied by the owner and the full export/erasure round trip verified live
+> (25/25, incl. the dead-session check); follow-up PR (smoke close: session fix + shared
+> db-query parser) — see "P10 status". P11 — Training pipeline + OPE + study mode opens
+> next.** Standing rules live in CLAUDE.md: "Working mode", "Context efficiency", "Simulator
+> evidence".
 
 ## Where we are
 
-- **P0–P10 merged** (PRs #1–#19). Functions deployed 2026-08-30 (`export-data`,
-  `delete-account`, `plan-request`, `gcal-connect`; `delete-account`, `attribute-rewards`,
-  `gcal-webhook` redeployed after the adversarial fixes); migration
-  `20260830120000_p10_privacy.sql` **not yet applied** (⛔ below) — until then `delete-account`
-  answers 500 and no retention tick runs.
+- **P0–P10 merged** (PRs #1–#19; the P10 smoke-close PR follows the P9 precedent). Migration
+  `20260830120000_p10_privacy.sql` **applied by the owner 2026-08-30**; functions live at the
+  smoke-close state (`export-data`/`delete-account` with the server-side session check;
+  `attribute-rewards`/`gcal-webhook` with the shared key check). `p10-live-smoke.mjs` **25/25**
+  — the full export/erasure round trip observed service-side, incl. the dead session
+  (verification §2.2.1). The retention tick (`retention-sweep`, 03:10 UTC) is live.
 - **What P10 built** (ADR-0014; CHANGELOG "P10"): local notifications only — a pure planner
   (`src/notifications/plan.ts`) over a conservative delivered-ledger (`ledger.ts`, MMKV) keeps
   FR-50's ≤ 5/day a ceiling under any re-plan sequence (storm tests); the scheduler runs on
@@ -53,18 +55,9 @@
 
 ## Exact next actions (next session, in order)
 
-1. **⛔ Owner first (5 minutes):** from the repo root, `supabase db push --linked` (answer yes).
-   It applies `20260830120000_p10_privacy.sql` (`deletion_audit.reason`,
-   `anonymous_purge_candidates`, `retention_sweep_tick` + the daily cron job, the
-   `sync_apply_profile` settings merge; pgTAP-verified 36/36 against the linked project in a
-   rolled-back transaction). Then, from `apps/mobile`: `node ../../docs/verification/p10-live-smoke.mjs`
-   — expect **25/25**: the export document and the full self-erasure round trip observed
-   service-side. Paste the output into `p10-manual-verification.md` §2.2.1 and flip the two
-   FR-42 traceability rows to ✅ fully. Also regenerate `packages/shared/src/database.ts`
-   (`supabase gen types typescript --linked > packages/shared/src/database.ts &&
-./scripts/normalize-db-types.sh packages/shared/src/database.ts`) and commit if it differs
-   (CI's db job already agrees with the hand-written block). Do this on a small branch
-   `phase/P10-smoke-close` → PR "P10 — live smoke close" → merge (P9 precedent, PR #18).
+1. ~~Migration push + live smoke~~ — **done 2026-08-30**: owner pushed the migration; smoke
+   25/25 (verification §2.2.1); types regenerated from the linked project — byte-identical to
+   the committed file; the smoke-close PR carries the session fix + the shared parser.
 2. `git checkout main && git pull`; `gh run list --branch main -L 1` green.
 3. **Hardware verification pass (owner-run, before P12)** is now fully scripted:
    `scripts/device-pass.sh ios|android` (Maestro sweeps incl. `p10-a11y-sweep.yaml`, cold start,
@@ -95,8 +88,6 @@
 
 ## ⛔ ACTION REQUIRED (owner)
 
-- **P10 migration push** (step 1 above) — until then the erasure path returns 500 (the audit
-  insert needs `deletion_audit.reason`) and no retention tick runs.
 - **Erasure confirmation by e-mail?** (ADR-0014 §9; privacy README G8): keep the in-app
   reference (current), or approve an EU mail processor (cost + Art. 28 entry) — decide before
   enrollment; the consent clause currently says "no e-mail is sent".
@@ -112,6 +103,16 @@
 
 ## Gotchas (P10 additions; earlier lists still apply)
 
+- **`supabase db query --output-format json` output shape varies by CLI version** (object with
+  `rows` → pretty-printed top-level ARRAY since ≈ 2.115, notices before the JSON either way) —
+  it broke the P9 and then the P10 smoke. Rule: NEVER parse it ad hoc; use the shared
+  `docs/verification/lib/db-query.mjs` (`dbQuery(repoRoot, sql)` — extracts the first complete
+  JSON value quote-aware, normalises every shape, throws with the raw text instead of returning
+  `[]`). Any new verification script imports it.
+- **A stateless JWT outlives a deleted account** until it expires (refresh dies with the
+  cascade). Account-gated functions must verify the session server-side (`auth.getUser`), not
+  by local JWKS (`getClaims`); other functions may keep the cheap check because the rows are
+  gone. Found by the P10 live smoke; ADR-0014 §8.
 - **A fact for another account after sign-out**: reminders are now cancelled on sign-out /
   account switch / erasure (`clearAllNotifications` lives in `notifications/setup.ts` — no DB
   import, safe to call from `auth/`); any new "identity changes" path must call it too.

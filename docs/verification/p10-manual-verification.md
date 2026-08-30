@@ -58,11 +58,64 @@
   (500 — the audit insert needs the `reason` column), so the user's rows remained — that
   anonymous test user is exactly what the retention tick will purge after 30 days once the
   migration is in. One test user is left behind per run (30-day purge).
-- **After the ⛔ migration push** (`20260830120000_p10_privacy.sql`): re-run
-  `node ../../docs/verification/p10-live-smoke.mjs` from `apps/mobile` — expected **25/25**:
-  the self-erasure round trip observed service-side (nothing of the user remains in any table;
-  the session is dead; the audit row completed with `reason = user_request`). Paste the output
-  here as §2.2.1.
+
+#### 2.2.1 Migrated project (2026-08-30, after `supabase db push` by the owner) — **25/25**
+
+The first post-migration run surfaced one real defect and one tooling defect, both fixed the
+same day before the clean pass below:
+
+- **Real (FR-42): the session outlived the deleted account.** The access token is stateless —
+  `auth.getClaims` only checks the signature, so `export-data` answered 200 (with an empty
+  document) for up to the token's lifetime after erasure. Fix: the two **account** functions
+  (`export-data`, `delete-account`) verify the session against the auth server
+  (`auth.getUser` → `user_not_found` once the account is gone), and the delete handler
+  additionally checks `userExists` before writing an audit row (never a second erasure;
+  Deno test). Every other function keeps the cheap local check: a deleted user's ops fail on
+  the FK / RLS side and reads return empty — bounded to the token's ≤ 1 h lifetime, no data
+  exposure (the rows are gone), noted in ADR-0014 §8.
+- **Tooling: the `sql()` helper mis-parsed the CLI's new output shape** (supabase CLI ≥ 2.115
+  prints a pretty top-level ARRAY; slicing from the first `{` chopped the `[` — the same class
+  of bug that bit the P9 smoke). Fixed **properly this time** (owner directive): one shared
+  shape-tolerant parser, `docs/verification/lib/db-query.mjs` (first complete JSON value by
+  quote-aware bracket matching; normalises array / `{rows}` / `{result}` / `{message}`;
+  throws with the raw output, never a silent `[]`), used by BOTH `p9-live-smoke.mjs` and
+  `p10-live-smoke.mjs`, with a self-test in the session log and a HANDOFF gotcha.
+
+`node ../../docs/verification/p10-live-smoke.mjs` (from `apps/mobile`), functions redeployed
+with the session fix first:
+
+```
+PASS  P10 migration applied (deletion_audit.reason exists)
+PASS  retention-sweep cron job scheduled
+PASS  anonymous sign-in on the hosted project
+PASS  profile insert through RLS (priors instantiated by trigger)
+PASS  a task and a notification_response fact replay through sync-resolve
+PASS  export-data without a session → 401
+PASS  export-data → 200 (1290 ms, region eu-west-1)
+PASS  document format/version
+PASS  download filename header
+PASS  the profile with its notification settings
+PASS  the task with its title (the user's own text)
+PASS  the notification_response fact
+PASS  48 Beta cells with their priors (learned parameters)
+PASS  cluster assignment present; blend_state key present (null on day 0 — the service writes it at the first feedback)
+PASS  no calendar title key anywhere in the export
+PASS  counts cover every exported table
+PASS  no server-only ledger in the document
+PASS  delete-account without a session → 401
+PASS  operator mode without the backend key → 401
+PASS  retention mode with a wrong key → 401
+PASS  service-side: the user's rows exist before erasure
+PASS  delete-account self → 200 deleted (437 ms)
+PASS  the session is dead afterwards (export → 401)
+PASS  service-side: nothing of the user remains (profile, tasks, events, cells, bandit, sync_ops, auth.users)
+PASS  the proof-of-erasure row: reason user_request, completed after requested
+ALL PASS
+```
+
+The FR-42 acceptance is now fully live: export document (14 tables, no calendar titles, the
+learned parameters) → self-erasure → dead session → zero rows for the uid in every user-owned
+table incl. `auth.users` → the audit row `reason = user_request`, completed after requested.
 
 ### 2.3 Performance (NFR-P1 / P3) — numbers labelled by where they were taken
 
@@ -97,8 +150,8 @@ re-measures with `measure-cold-start.py` / Xcode App Launch and `adb am start -W
 
 ## 3. What is NOT established (and where it is tracked)
 
-- **The live export/erasure round trip** — pending the migration push (§2.2); the functions are
-  deployed and unit-tested; the cascade is pgTAP-proved on the linked schema.
+- ~~The live export/erasure round trip~~ — **done 2026-08-30 (§2.2.1, 25/25)** after the owner's
+  migration push; incl. the dead-session check.
 - **Real notification delivery** (APNs/FCM local delivery timing, Doze, OEM battery savers,
   category action buttons, cold-start response) — `device-checklist.md` "Sync & notifications"
   FR-50 + the P10 entries.
