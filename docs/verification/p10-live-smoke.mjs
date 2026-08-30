@@ -249,10 +249,10 @@ check(
   String(doc.learned_parameters?.beta_cells?.length),
 );
 check(
-  'blend state present, cluster assignment present',
-  doc.learned_parameters?.blend_state?.w_energy !== undefined &&
-    doc.learned_parameters?.cluster_assignment?.cluster_id !== undefined,
-  JSON.stringify(doc.learned_parameters?.blend_state),
+  'cluster assignment present; blend_state key present (null on day 0 — the service writes it at the first feedback)',
+  doc.learned_parameters?.cluster_assignment?.cluster_id !== undefined &&
+    'blend_state' in (doc.learned_parameters ?? {}),
+  JSON.stringify(doc.learned_parameters?.cluster_assignment),
 );
 const calendarTitles = JSON.stringify(doc.calendar_events ?? []).includes('"title"');
 check(
