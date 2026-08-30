@@ -19,7 +19,8 @@ jest.mock('posthog-react-native', () => ({
   },
 }));
 
-import { initAnalytics, isAnalyticsEnabled, track } from '../analytics';
+import { appStorage, StorageKeys } from '../../storage/mmkv';
+import { initAnalytics, isAnalyticsEnabled, setAnalyticsEnabled, track } from '../analytics';
 import type { AnalyticsEvents } from '../events';
 
 const KEY = 'phc_test_key';
@@ -144,5 +145,37 @@ describe('typed catalog (compile-time, enforced by pnpm typecheck)', () => {
     };
     void emitUnknown;
     expect(true).toBe(true);
+  });
+});
+
+describe('opt-out (P10, ADR-0014 §12)', () => {
+  afterEach(() => appStorage.delete(StorageKeys.analyticsOptOut));
+  it('the MMKV flag wins over present keys: no client is constructed', () => {
+    appStorage.set(StorageKeys.analyticsOptOut, '1');
+    withEnv({ EXPO_PUBLIC_POSTHOG_API_KEY: KEY, EXPO_PUBLIC_POSTHOG_HOST: EU_HOST }, () => {
+      expect(initAnalytics()).toBe(false);
+      expect(isAnalyticsEnabled()).toBe(false);
+      expect(mockCtor).not.toHaveBeenCalled();
+    });
+  });
+  it('switching off sends the toggle event last and drops the client; switching on re-inits', () => {
+    withEnv({ EXPO_PUBLIC_POSTHOG_API_KEY: KEY, EXPO_PUBLIC_POSTHOG_HOST: EU_HOST }, () => {
+      expect(initAnalytics()).toBe(true);
+      expect(setAnalyticsEnabled(false)).toBe(false);
+      expect(mockCapture).toHaveBeenLastCalledWith('privacy_toggled', {
+        sdk: 'analytics',
+        enabled: false,
+      });
+      expect(isAnalyticsEnabled()).toBe(false);
+      track('task_created', {
+        source: 'form',
+        nl_parse_used: false,
+        has_deadline: false,
+        has_duration: false,
+      });
+      expect(mockCapture).toHaveBeenCalledTimes(1);
+      expect(setAnalyticsEnabled(true)).toBe(true);
+      expect(isAnalyticsEnabled()).toBe(true);
+    });
   });
 });

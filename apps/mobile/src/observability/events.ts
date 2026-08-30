@@ -44,7 +44,7 @@ export type AnalyticsEvents = {
    * study's arm A so outage days are identifiable (File 06 exclusion rule).
    */
   plan_requested: {
-    trigger: 'first_open' | 'new_day' | 'manual';
+    trigger: 'first_open' | 'new_day' | 'manual' | 'evening_ritual';
     outcome: 'learned' | 'arm_a' | 'fallback' | 'empty_inbox' | 'error';
     duration_ms: number;
     engine: 'learned' | 'heuristic' | null;
@@ -136,6 +136,31 @@ export type AnalyticsEvents = {
     method: 'anonymous' | 'magic_link' | 'google';
     event: 'signed_in' | 'signed_out' | 'conversion_started' | 'converted';
   };
+  /**
+   * FR-50 (P10, ADR-0014 §1–§2): one per scheduler run — how many local notifications were
+   * asked for and why the rest were not. Counts only; never a title.
+   */
+  notifications_planned: {
+    scheduled: number;
+    capped: number;
+    muted: number;
+    past: number;
+    reason: 'ok' | 'no_permission';
+  };
+  /** FR-32/FR-50 (P10): the user acted on a local notification (the fact is the `events` row). */
+  notification_opened: {
+    kind: 'block_reminder' | 'evening_ritual';
+    action: 'open' | 'accept' | 'adjust';
+    variant: 'daily' | 'sunday' | null;
+  };
+  /** FR-50 (P10): the OS permission prompt outcome from the Today card or Settings. */
+  reminders_permission: { granted: boolean; source: 'today_card' | 'settings' };
+  /** FR-42 (P10): the export document was fetched and handed to the share sheet. */
+  data_exported: { tables: number; truncated: boolean };
+  /** FR-42 (P10): erasure confirmed by the server (the last event this install ever sends). */
+  account_deleted: { had_calendar: boolean };
+  /** ADR-0014 §12 (P10): an SDK opt-out toggled — the last analytics event before opting out. */
+  privacy_toggled: { sdk: 'analytics' | 'crash_reports'; enabled: boolean };
 };
 
 export type AnalyticsEventName = keyof AnalyticsEvents;

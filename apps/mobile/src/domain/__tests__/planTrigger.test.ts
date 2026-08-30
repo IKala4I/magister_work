@@ -1,4 +1,4 @@
-import { decidePlanTrigger, planDayOf, requestPlanDayOf } from '../planTrigger';
+import { decidePlanTrigger, planDayOf, requestPlanDayOf, tomorrowOf } from '../planTrigger';
 
 describe('planDayOf — 06:00 local day boundary (Appendix A plan triggers)', () => {
   it('rolls back before 06:00 and not at/after it', () => {
@@ -67,5 +67,45 @@ describe('decidePlanTrigger — lazy UC-03 (invariant 7: no background dependenc
     ).toEqual({ request: false });
     expect(requestPlanDayOf(night)).toBe('2026-08-27');
     expect(planDayOf(night)).toBe('2026-08-26');
+  });
+});
+
+describe('decidePlanTrigger — an evening plan for tomorrow (FR-26, ADR-0014 §3)', () => {
+  it('a plan for tomorrow made tonight never re-plans today', () => {
+    const tonight = new Date(2026, 7, 26, 21, 0);
+    expect(
+      decidePlanTrigger({
+        now: tonight,
+        latestPlanDate: '2026-08-27',
+        hasPlanForToday: true,
+        lastRequestedDay: null,
+        inFlight: false,
+      }),
+    ).toEqual({ request: false });
+  });
+  it('tomorrow morning the evening plan stands (no new_day request)', () => {
+    expect(
+      decidePlanTrigger({
+        now: new Date(2026, 7, 27, 8, 0),
+        latestPlanDate: '2026-08-27',
+        hasPlanForToday: true,
+        lastRequestedDay: null,
+        inFlight: false,
+      }),
+    ).toEqual({ request: false });
+  });
+  it('without a plan for today the latest-date fallback still names the trigger', () => {
+    expect(
+      decidePlanTrigger({
+        now: new Date(2026, 7, 27, 8, 0),
+        latestPlanDate: '2026-08-26',
+        hasPlanForToday: false,
+        lastRequestedDay: null,
+        inFlight: false,
+      }),
+    ).toEqual({ request: true, trigger: 'new_day' });
+  });
+  it('tomorrowOf crosses month boundaries', () => {
+    expect(tomorrowOf(new Date(2026, 7, 31, 20, 0))).toBe('2026-09-01');
   });
 });

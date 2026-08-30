@@ -8,13 +8,32 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, Linking, Pressable, StyleSheet, Switch, TextInput, View } from 'react-native';
 
 import { isAuthAvailable } from '../src/auth/client';
 import { convertAnonymousToEmail, signOut } from '../src/auth/flows';
 import { useSessionStore } from '../src/auth/session';
+import { TASK_CATEGORIES } from '../src/db/schema';
+import type { TaskCategory } from '../src/db/tasks';
+import { useCurrentProfile } from '../src/db/useProfile';
+import {
+  enableRemindersAction,
+  reminderPermissionState,
+  updateNotificationSettingsAction,
+} from '../src/domain/notificationActions';
+import { notificationSettingsOf, RITUAL_TIME_PRESETS } from '../src/domain/notificationSettings';
 import { formatRelative } from '../src/domain/relativeTime';
 import { t, type MessageKey } from '../src/i18n';
+import type { PermissionState } from '../src/notifications/setup';
+import { isAnalyticsEnabled, setAnalyticsEnabled } from '../src/observability/analytics';
+import { deleteAccountAction } from '../src/privacy/deleteAccount';
+import { exportDataAction } from '../src/privacy/exportData';
+import {
+  isAnalyticsOptedOut,
+  isCrashReportsOptedOut,
+  setAnalyticsOptedOut,
+  setCrashReportsOptedOut,
+} from '../src/privacy/state';
 import {
   SCHEME_PREFERENCES,
   useAppearanceStore,
@@ -75,7 +94,7 @@ function AccountSection() {
           ) : convertState === 'editing' || convertState === 'failed' ? (
             <>
               {convertState === 'failed' ? (
-                <ThemedText variant="caption" style={{ color: theme.colors.warning }}>
+                <ThemedText variant="caption" tone="secondary">
                   {t('auth.signIn.error.sendFailed')}
                 </ThemedText>
               ) : null}
@@ -171,7 +190,6 @@ function SyncSection() {
 }
 
 function CalendarSection() {
-  const theme = useTheme();
   const signedIn = useSessionStore((s) => s.status === 'signed_in');
   const [gcal, setGcal] = useState<GcalStatus | null>(null);
   const [busy, setBusy] = useState(false);
@@ -207,7 +225,7 @@ function CalendarSection() {
         {t('settings.gcal.body')}
       </ThemedText>
       {message ? (
-        <ThemedText variant="caption" style={{ color: theme.colors.warning }}>
+        <ThemedText variant="caption" tone="secondary">
           {t(message)}
         </ThemedText>
       ) : null}
@@ -275,6 +293,294 @@ function CalendarSection() {
   );
 }
 
+const CATEGORY_LABELS: Record<TaskCategory, MessageKey> = {
+  deep: 'task.category.deep',
+  admin: 'task.category.admin',
+  physical: 'task.category.physical',
+  learning: 'task.category.learning',
+};
+
+/** FR-50 / FR-26 preferences (ADR-0014 §5) — profile settings through the outbox. */
+function NotificationsSection() {
+  const theme = useTheme();
+  const profile = useCurrentProfile();
+  const settings = notificationSettingsOf(profile?.settings ?? null);
+  const [permission, setPermission] = useState<PermissionState | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void reminderPermissionState().then((p) => {
+      if (alive) setPermission(p);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+  const remindersOn = settings.block_reminders && permission === 'granted';
+  const toggleReminders = async (value: boolean) => {
+    if (!value) {
+      updateNotificationSettingsAction({ block_reminders: false });
+      return;
+    }
+    setPermission(await enableRemindersAction('settings'));
+  };
+  const toggleMute = (category: TaskCategory) => {
+    const muted = settings.muted_categories.includes(category)
+      ? settings.muted_categories.filter((c) => c !== category)
+      : [...settings.muted_categories, category];
+    updateNotificationSettingsAction({ muted_categories: muted });
+  };
+  return (
+    <View style={styles.block}>
+      <View style={styles.row}>
+        <View style={styles.rowText}>
+          <ThemedText>{t('settings.notifications.reminders')}</ThemedText>
+          <ThemedText variant="caption" tone="secondary">
+            {t('settings.notifications.reminders.hint')}
+          </ThemedText>
+        </View>
+        <Switch
+          accessibilityRole="switch"
+          accessibilityLabel={t('settings.notifications.reminders')}
+          value={remindersOn}
+          onValueChange={(v) => void toggleReminders(v)}
+          trackColor={{ true: theme.colors.primary }}
+        />
+      </View>
+      {settings.block_reminders && permission === 'denied' ? (
+        <View style={styles.block}>
+          <ThemedText variant="caption" tone="secondary">
+            {t('settings.notifications.reminders.denied')}
+          </ThemedText>
+          <Button
+            kind="secondary"
+            label={t('settings.notifications.openSettings')}
+            onPress={() => void Linking.openSettings()}
+          />
+        </View>
+      ) : null}
+      <ThemedText variant="caption" tone="secondary">
+        {t('settings.notifications.mute')}
+      </ThemedText>
+      <View style={styles.chips}>
+        {TASK_CATEGORIES.map((category) => {
+          const muted = settings.muted_categories.includes(category);
+          return (
+            <Pressable
+              key={category}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: muted }}
+              accessibilityLabel={t('settings.notifications.mute.a11y', {
+                category: t(CATEGORY_LABELS[category]),
+              })}
+              onPress={() => toggleMute(category)}
+              style={[
+                styles.chip,
+                { borderColor: theme.colors.primary },
+                muted && { backgroundColor: theme.colors.primaryContainer },
+              ]}
+            >
+              <ThemedText variant="caption">{t(CATEGORY_LABELS[category])}</ThemedText>
+            </Pressable>
+          );
+        })}
+      </View>
+      <View style={styles.row}>
+        <View style={styles.rowText}>
+          <ThemedText>{t('settings.notifications.ritual')}</ThemedText>
+          <ThemedText variant="caption" tone="secondary">
+            {t('settings.notifications.ritual.hint')}
+          </ThemedText>
+        </View>
+        <Switch
+          accessibilityRole="switch"
+          accessibilityLabel={t('settings.notifications.ritual')}
+          value={settings.evening_ritual}
+          onValueChange={(v) => updateNotificationSettingsAction({ evening_ritual: v })}
+          trackColor={{ true: theme.colors.primary }}
+        />
+      </View>
+      {settings.evening_ritual ? (
+        <View
+          accessibilityRole="radiogroup"
+          accessibilityLabel={t('settings.notifications.ritual.time')}
+        >
+          <ThemedText variant="caption" tone="secondary">
+            {t('settings.notifications.ritual.time')}
+          </ThemedText>
+          <View style={styles.chips}>
+            {RITUAL_TIME_PRESETS.map((time) => {
+              const selected = settings.evening_ritual_time === time;
+              return (
+                <Pressable
+                  key={time}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected }}
+                  accessibilityLabel={t('settings.notifications.ritual.time.a11y', { time })}
+                  onPress={() => updateNotificationSettingsAction({ evening_ritual_time: time })}
+                  style={[
+                    styles.chip,
+                    { borderColor: theme.colors.primary },
+                    selected && { backgroundColor: theme.colors.primaryContainer },
+                  ]}
+                >
+                  <ThemedText variant="caption" mono>
+                    {time}
+                  </ThemedText>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+      ) : null}
+      <ThemedText variant="caption" tone="secondary">
+        {t('settings.notifications.cap')}
+      </ThemedText>
+    </View>
+  );
+}
+
+/** FR-42 / UC-10 (ADR-0014 §7–§9): export to the share sheet; erasure with two confirmations. */
+function DataSection() {
+  const router = useRouter();
+  const [message, setMessage] = useState<MessageKey | null>(null);
+  const [messageParams, setMessageParams] = useState<Record<string, string | number> | undefined>();
+  const [busy, setBusy] = useState<'export' | 'delete' | null>(null);
+  const runExport = async () => {
+    setBusy('export');
+    setMessage('settings.data.export.working');
+    setMessageParams(undefined);
+    const r = await exportDataAction();
+    setBusy(null);
+    if (r.ok) {
+      setMessage('settings.data.export.done');
+      setMessageParams({ tables: r.tables });
+    } else if (r.code === 'offline') setMessage('settings.data.export.offline');
+    else if (r.code === 'no_session') setMessage('settings.data.export.noSession');
+    else if (r.code === 'share_unavailable') setMessage('settings.data.export.shareUnavailable');
+    else setMessage('settings.data.export.failed');
+  };
+  const runDelete = async () => {
+    setBusy('delete');
+    setMessage('settings.data.delete.working');
+    setMessageParams(undefined);
+    const r = await deleteAccountAction();
+    setBusy(null);
+    if (r.ok) {
+      router.replace({
+        pathname: '/account-deleted',
+        params: { reference: r.reference, at: r.completedAt },
+      });
+      return;
+    }
+    if (r.code === 'offline') setMessage('settings.data.delete.offline');
+    else if (r.code === 'no_session') setMessage('settings.data.delete.noSession');
+    else setMessage('settings.data.delete.failed');
+  };
+  const confirmDelete = () =>
+    Alert.alert(t('settings.data.delete.confirm1.title'), t('settings.data.delete.confirm1.body'), [
+      { text: t('settings.data.delete.confirm1.cancel'), style: 'cancel' },
+      {
+        text: t('settings.data.delete.confirm1.next'),
+        onPress: () =>
+          Alert.alert(
+            t('settings.data.delete.confirm2.title'),
+            t('settings.data.delete.confirm2.body'),
+            [
+              { text: t('settings.data.delete.confirm2.cancel'), style: 'cancel' },
+              {
+                text: t('settings.data.delete.confirm2.confirm'),
+                style: 'destructive',
+                onPress: () => void runDelete(),
+              },
+            ],
+          ),
+      },
+    ]);
+  return (
+    <View style={styles.block}>
+      <ThemedText variant="caption" tone="secondary">
+        {t('settings.data.export.hint')}
+      </ThemedText>
+      <Button
+        label={t('settings.data.export')}
+        kind="secondary"
+        disabled={busy !== null}
+        onPress={() => void runExport()}
+      />
+      <ThemedText variant="caption" tone="secondary">
+        {t('settings.data.delete.hint')}
+      </ThemedText>
+      <Button
+        label={t('settings.data.delete')}
+        kind="secondary"
+        disabled={busy !== null}
+        onPress={confirmDelete}
+      />
+      {message ? (
+        <ThemedText variant="caption" tone="secondary" accessibilityLiveRegion="polite">
+          {t(message, messageParams)}
+        </ThemedText>
+      ) : null}
+    </View>
+  );
+}
+
+/** ADR-0014 §12: SDK opt-outs. */
+function PrivacySection() {
+  const theme = useTheme();
+  const [analytics, setAnalytics] = useState(!isAnalyticsOptedOut());
+  const [crash, setCrash] = useState(!isCrashReportsOptedOut());
+  const analyticsLive = isAnalyticsEnabled();
+  return (
+    <View style={styles.block}>
+      <View style={styles.row}>
+        <View style={styles.rowText}>
+          <ThemedText>{t('settings.privacy.analytics')}</ThemedText>
+          <ThemedText variant="caption" tone="secondary">
+            {t('settings.privacy.analytics.hint')}
+          </ThemedText>
+        </View>
+        <Switch
+          accessibilityRole="switch"
+          accessibilityLabel={t('settings.privacy.analytics')}
+          value={analytics}
+          onValueChange={(v) => {
+            setAnalyticsOptedOut(!v);
+            setAnalyticsEnabled(v);
+            setAnalytics(v);
+          }}
+          trackColor={{ true: theme.colors.primary }}
+        />
+      </View>
+      <View style={styles.row}>
+        <View style={styles.rowText}>
+          <ThemedText>{t('settings.privacy.crash')}</ThemedText>
+          <ThemedText variant="caption" tone="secondary">
+            {t('settings.privacy.crash.hint')}
+          </ThemedText>
+        </View>
+        <Switch
+          accessibilityRole="switch"
+          accessibilityLabel={t('settings.privacy.crash')}
+          value={crash}
+          onValueChange={(v) => {
+            setCrashReportsOptedOut(!v);
+            setCrash(v);
+          }}
+          trackColor={{ true: theme.colors.primary }}
+        />
+      </View>
+      <ThemedText
+        variant="caption"
+        tone="secondary"
+        accessibilityLabel={analyticsLive ? t('settings.privacy.on') : t('settings.privacy.off')}
+      >
+        {analyticsLive ? t('settings.privacy.on') : t('settings.privacy.off')}
+      </ThemedText>
+    </View>
+  );
+}
+
 const PREFERENCE_LABELS: Record<SchemePreference, MessageKey> = {
   system: 'settings.appearance.system',
   light: 'settings.appearance.light',
@@ -304,6 +610,22 @@ export default function SettingsScreen() {
           <CalendarSection />
         </>
       ) : null}
+      <ThemedText variant="h2" style={styles.sectionTitle}>
+        {t('settings.notifications.title')}
+      </ThemedText>
+      <NotificationsSection />
+      {isAuthAvailable() ? (
+        <>
+          <ThemedText variant="h2" style={styles.sectionTitle}>
+            {t('settings.data.title')}
+          </ThemedText>
+          <DataSection />
+        </>
+      ) : null}
+      <ThemedText variant="h2" style={styles.sectionTitle}>
+        {t('settings.privacy.title')}
+      </ThemedText>
+      <PrivacySection />
       <ThemedText variant="h2" style={styles.sectionTitle}>
         {t('settings.appearance.title')}
       </ThemedText>
@@ -344,5 +666,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: 12,
+  },
+  rowText: { flex: 1, gap: 2 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chip: {
+    minHeight: 44,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    justifyContent: 'center',
   },
 });

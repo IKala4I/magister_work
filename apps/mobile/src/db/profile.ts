@@ -26,6 +26,11 @@ export type ProfileDraft = {
   surveySkipped: boolean;
   topCategories: string[];
   onboardingCompletedAt: Date | null;
+  /**
+   * `profiles.settings` (specs/07 §4.1; notification prefs — src/domain/notificationSettings).
+   * Undefined = leave the stored blob alone (the replay RPC keeps it when the payload has none).
+   */
+  settings?: Record<string, unknown> | null;
 };
 
 export type ProfileRow = typeof profiles.$inferSelect;
@@ -51,6 +56,10 @@ function serverPayload(
     survey_skipped: draft.surveySkipped,
     top_categories: draft.topCategories,
     onboarding_completed_at: draft.onboardingCompletedAt?.toISOString() ?? null,
+    // P10 (ADR-0014 §5): only when the caller carries settings — absent keeps the server's
+    ...(draft.settings !== undefined && draft.settings !== null
+      ? { settings: draft.settings }
+      : {}),
     // P8 merge inputs (ADR-0012 §4): the version this edit produces and its edit time
     version: meta.version,
     updated_at: meta.updatedAt.getTime(),
@@ -77,6 +86,7 @@ export function saveProfile(
           surveySkipped: draft.surveySkipped,
           topCategories: draft.topCategories,
           onboardingCompletedAt: draft.onboardingCompletedAt,
+          ...(draft.settings !== undefined ? { settings: draft.settings } : {}),
           version: existing.version + 1,
           updatedAt: now,
         })
@@ -95,6 +105,7 @@ export function saveProfile(
           surveySkipped: draft.surveySkipped,
           topCategories: draft.topCategories,
           onboardingCompletedAt: draft.onboardingCompletedAt,
+          ...(draft.settings !== undefined ? { settings: draft.settings } : {}),
           updatedAt: now,
         })
         .run();
@@ -110,6 +121,39 @@ export function saveProfile(
       now,
     });
     return getProfile(tx as LocalDb, userId) as ProfileRow;
+  });
+}
+
+/** The row as a draft — the full snapshot every `profile_update` op must carry (RPC semantics). */
+export function draftFromRow(row: ProfileRow): ProfileDraft {
+  return {
+    timezone: row.timezone,
+    locale: row.locale,
+    workingHours: row.workingHours as WorkingHours,
+    sleepWindow: row.sleepWindow as MinuteRange,
+    rmeqScore: row.rmeqScore,
+    chronotypeClass: row.chronotypeClass,
+    surveySkipped: row.surveySkipped,
+    topCategories: row.topCategories as string[],
+    onboardingCompletedAt: row.onboardingCompletedAt,
+    settings: (row.settings as Record<string, unknown> | null) ?? null,
+  };
+}
+
+/**
+ * P10 (ADR-0014 §5): replace `profiles.settings` for the current row — same transaction shape
+ * as saveProfile (row + op with the full snapshot, base_version chained). No row → nothing.
+ */
+export function updateProfileSettings(
+  db: LocalDb,
+  input: { userId: string; settings: Record<string, unknown>; now?: Date },
+): ProfileRow | undefined {
+  const existing = getProfile(db, input.userId);
+  if (existing === undefined) return undefined;
+  return saveProfile(db, {
+    userId: input.userId,
+    draft: { ...draftFromRow(existing), settings: input.settings },
+    now: input.now ?? new Date(),
   });
 }
 
@@ -141,6 +185,7 @@ export function upsertProfileFromServer(
       surveySkipped: draft.surveySkipped,
       topCategories: draft.topCategories,
       onboardingCompletedAt: draft.onboardingCompletedAt,
+      ...(draft.settings !== undefined ? { settings: draft.settings } : {}),
       version: input.version,
       serverSeq: input.serverSeq,
       updatedAt: now,

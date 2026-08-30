@@ -12,6 +12,8 @@
  */
 import PostHog from 'posthog-react-native';
 
+import { isAnalyticsOptedOut } from '../privacy/state';
+
 import type { AnalyticsEventName, AnalyticsEvents } from './events';
 
 let client: PostHog | null = null;
@@ -19,7 +21,8 @@ let client: PostHog | null = null;
 export function initAnalytics(): boolean {
   const apiKey = process.env.EXPO_PUBLIC_POSTHOG_API_KEY;
   const host = process.env.EXPO_PUBLIC_POSTHOG_HOST;
-  if (!apiKey || !host) {
+  // P10 (ADR-0014 §12): the opt-out flag wins over the keys — no client, no events
+  if (!apiKey || !host || isAnalyticsOptedOut()) {
     client = null;
     return false;
   }
@@ -35,7 +38,21 @@ export function track<N extends AnalyticsEventName>(name: N, properties: Analyti
   client?.capture(name, properties);
 }
 
-/** Test seam + future opt-out surface (P10 privacy screen). */
+/** Test seam + the Settings → Privacy toggle's read side. */
 export function isAnalyticsEnabled(): boolean {
   return client !== null;
+}
+
+/**
+ * Settings → Privacy (P10): switching off drops the client at once (nothing is captured or
+ * flushed afterwards); switching on re-initialises from the env keys. The toggle event itself
+ * is the last thing sent before an opt-out.
+ */
+export function setAnalyticsEnabled(enabled: boolean): boolean {
+  if (!enabled) {
+    track('privacy_toggled', { sdk: 'analytics', enabled: false });
+    client = null;
+    return false;
+  }
+  return initAnalytics();
 }

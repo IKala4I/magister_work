@@ -24,6 +24,8 @@ import migrations from '../drizzle/migrations';
 import { initAuth } from '../src/auth/session';
 import { db } from '../src/db/client';
 import { t } from '../src/i18n';
+import { NotificationResponder } from '../src/notifications/NotificationResponder';
+import { initNotifications } from '../src/notifications/setup';
 import { initAnalytics } from '../src/observability/analytics';
 import { initSentry, Sentry } from '../src/observability/sentry';
 import { markFirstFrame } from '../src/observability/startup';
@@ -39,6 +41,7 @@ initSentry(); // env-gated: disabled without EXPO_PUBLIC_SENTRY_DSN
 initAnalytics(); // env-gated: disabled without EXPO_PUBLIC_POSTHOG_API_KEY + _HOST (EU)
 initAuth(); // env-gated: disabled without EXPO_PUBLIC_SUPABASE_URL + _ANON_KEY (local-only)
 wireSync(); // P8: foreground / reconnect / poll triggers (no-op without a Supabase client)
+initNotifications(); // P10: handler, channels, categories — local notifications only (ADR-0014)
 
 function RootLayout() {
   const theme = useTheme();
@@ -81,6 +84,7 @@ function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }} onLayout={markFirstFrame}>
       <StatusBar style={theme.scheme === 'dark' ? 'light' : 'dark'} />
+      <NotificationResponder />
       <Stack
         screenOptions={{
           headerStyle: { backgroundColor: theme.colors.surface },
@@ -95,6 +99,7 @@ function RootLayout() {
         <Stack.Screen name="auth/sign-in" options={{ title: t('auth.signIn.title') }} />
         <Stack.Screen name="auth-callback" options={{ headerShown: false }} />
         <Stack.Screen name="gcal-callback" options={{ headerShown: false }} />
+        <Stack.Screen name="account-deleted" options={{ headerShown: false }} />
         <Stack.Screen
           name="settings"
           options={{ presentation: 'modal', title: t('settings.title') }}

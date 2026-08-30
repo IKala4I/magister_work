@@ -83,6 +83,8 @@ export const CLIENT_EVENT_TYPES = [
   'tradeoff_decision',
   'tradeoff_rejected',
   'weekly_review_completed',
+  // P10 (ADR-0014 §4): FR-32 "notification response" — a tap/action on a local notification
+  'notification_response',
 ] as const;
 export type ClientEventType = (typeof CLIENT_EVENT_TYPES)[number];
 
