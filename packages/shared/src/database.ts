@@ -239,18 +239,21 @@ export type Database = {
         Row: {
           completed_at: string | null
           id: string
+          reason: string
           requested_at: string
           user_hash: string
         }
         Insert: {
           completed_at?: string | null
           id?: string
+          reason?: string
           requested_at?: string
           user_hash: string
         }
         Update: {
           completed_at?: string | null
           id?: string
+          reason?: string
           requested_at?: string
           user_hash?: string
         }
@@ -903,6 +906,13 @@ export type Database = {
         Args: { p_ttl_seconds?: number; p_user_id: string }
         Returns: string
       }
+      anonymous_purge_candidates: {
+        Args: { p_days?: number; p_limit?: number; p_now?: string }
+        Returns: {
+          last_seen_at: string
+          user_id: string
+        }[]
+      }
       attribution_due: {
         Args: { p_limit?: number; p_now?: string }
         Returns: {
@@ -937,6 +947,7 @@ export type Database = {
         Args: { p_token: string; p_user_id: string }
         Returns: boolean
       }
+      retention_sweep_tick: { Args: never; Returns: string }
       sync_apply_event: {
         Args: { p: Json; p_op_id: string; p_user_id: string }
         Returns: Json
