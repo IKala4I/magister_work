@@ -1,5 +1,69 @@
 # Changelog
 
+## P10 — Notifications, privacy, a11y, performance (2026-08-30, phase/P10-notify)
+
+**Database (ADR-0014).** Migration `20260830120000_p10_privacy`: `deletion_audit.reason`
+(`user_request` | `operator` | `anonymous_retention`); `anonymous_purge_candidates()` — anonymous
+accounts with no sign-in and no event for 30 days (the Appendix A window read as inactivity, not
+age; service-only); `retention_sweep_tick()` + a daily pg_cron job (Vault-held key →
+`delete-account {mode: retention}`); `sync_apply_profile` now merges `profiles.settings` (the P8
+body dropped the column). pgTAP `p10_privacy_test.sql` (36): every FK to `auth.users` cascades,
+the 18 user-owned tables are pinned, one user's row in every table is gone after one
+`auth.users` delete while the bystander and the audit row survive, the purge rule, the settings
+merge on both replay branches. Run against the linked project inside a rolled-back transaction
+(36/36; `pgtap-linked.sh` parses the CLI's new `{message}` shape).
+
+**Edge functions.** `export-data` (user JWT): the FR-42 document read under the USER's client so
+RLS is the filter — profile, tasks, calendar events **without titles**, plans, placements,
+events, reward tuples, belief labels, study assignments and the learned parameters (Beta cells
+with priors, bandit state, blend weights, duration estimates, cluster assignment); pages of
+1 000, a 200 k-row ceiling flagged; a contract test pins exported ∪ server-only = the 18 tables.
+`delete-account`: `self` (JWT) / `operator` (backend key + uid — the privacy README §7 path) /
+`retention` (backend key) — best-effort Google teardown (`disconnectGoogle`, now shared with
+`gcal-connect`), `deletion_audit` row, `auth.admin.deleteUser` (the cascade), `completed_at`;
+responses carry audit references only. `plan-request` accepts `trigger: evening_ritual`.
+184 Deno. Deployed 2026-08-30.
+
+**Mobile — notifications (FR-50, FR-26, FR-32).** Local notifications only (ADR-0011): a pure
+planner picks at most **5 per local day** — block reminders at `slot_start − 10 min`, earliest
+first, the evening ritual reserving one slot — against a conservative **delivered-ledger**
+(MMKV) that counts every past-due request as delivered, so the cap holds across re-plans,
+settings changes, restarts and the day boundary (storm tests). The scheduler runs on mount,
+foreground and table changes only (invariant 7); the OS permission is asked once from a Today
+card. Per-category mute and the ritual time (presets 19–22:00) live in `profiles.settings` and
+ride the `profile_update` op. Every tap/action is a `notification_response` fact (kind, action,
+latency) through the outbox; the ritual's **Accept plans tomorrow** (`plan-request` +1 d),
+**Adjust** opens the Inbox, a Sunday tap opens the weekly review (UC-08). The UC-03 trigger now
+asks "is today planned", so an evening plan never re-plans the current day. Today shows the
+tomorrow line ("Tomorrow is planned: N blocks, first at …") and, after the ritual time with
+tasks waiting, the one-tap card. `expo-notifications ~57.0.15`.
+
+**Mobile — privacy (FR-42, UC-10, NFR-S2).** Settings → My data: **Export** (document → cache
+file → OS share sheet, `expo-sharing ~57.0.16`) and **Delete account and data** (two
+confirmations → `delete-account` → every local row, the outbox, the cursor, the insights cache,
+the notification ledger and all pending notifications are forgotten → local sign-out → a
+confirmation screen with the audit reference and the completion time; no e-mail —
+thesis-corrections #43). Settings → Privacy: analytics off at once (the toggle is the last
+event), crash reports off at the next launch.
+
+**Accessibility (NFR-A1/A2).** `a11yAudit.test.ts` pins on every commit: every pressable
+carries a role, every switch a label, no raw `<Text>` outside the primitives, `ThemedText` keeps
+scaling with the 200 % cap, the palette rules (body pairs ≥ 4.5:1 in both schemes; secondary
+text on the primary container is large-text only; accents are fills, never text). Three real
+AA misses found and fixed: white on the dark primary (2.98:1 → the dark surface colour, 6.3:1),
+the green "Done" caption (2.4:1) and the warning captions in Settings / sign-in (2.7:1) →
+secondary text. `e2e/p10-a11y-sweep.yaml` walks every screen at max text size + reduced
+motion; `scripts/device-pass.sh` drives the hardware pass. Audit table:
+`docs/verification/p10-a11y-audit.md`.
+
+**Performance (NFR-P1/P3, measured from Node → eu-west-1, 2026-08-30).** Wire floor 73 ms p95;
+PostgREST read 88 / write 82 ms p95 ✅ (NFR-P3 holds for the core CRUD API); `sync-resolve`
+477 ms, `insights` 714 ms, `export-data` 736 ms p95 ❌ (composite function round trips — reported,
+revisit: one RPC for lease + replay + pull); `plan-request` 965 ms p95 ✅ (NFR-P1). No device
+number claimed; NFR-P2 stays at the P2 simulator value pending the hardware pass.
+
+**Tests.** 457 jest (56 suites) · 184 Deno · 149 pytest (unchanged) · 36 pgTAP.
+
 ## P9 — Trust surfaces (2026-08-29, phase/P9-trust)
 
 **Service (ADR-0013).** `POST /labels`: a belief label (FR-41 ✓/✗, FR-33 correction) is one

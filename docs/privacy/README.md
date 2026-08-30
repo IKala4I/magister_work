@@ -101,6 +101,16 @@ re-verifiable with `deploy/verify.sh`):
   Consequences); the calendar scopes are "sensitive", so an unverified app shows a warning
   screen and is capped at 100 users — enough for the study, but the verification review is
   owner work if the warning is unacceptable.
+- **G8 — Erasure confirmation is in-app, not by e-mail (P10, ADR-0014 §9).** UC-10 says
+  "confirmed by email"; the free tier has no transactional mail, a mail provider (Resend, Postmark…)
+  would be a new Art. 28 processor to record here, and anonymous accounts have no address. The
+  app shows the `deletion_audit` reference and the completion time; the consent clause says so.
+  **Owner decision before enrollment:** keep the in-app confirmation, or approve an EU mail
+  processor (cost + Art. 28 entry) for the study cohort. Until decided: in-app.
+- **G9 — Retention fixed (P10, ADR-0014 §10).** Anonymous accounts inactive for 30 days (no
+  sign-in, no event) are erased daily by `retention_sweep_tick` → `delete-account {retention}`
+  with an audit row (`reason = anonymous_retention`); the 24-month raw-event window is executed by
+  the P11 archive job, never by a delete sweep. Recorded here so the DPIA cites the mechanism.
 - **G5 — Public dataset (File 06 §5).** A row-level event dataset of 42 people is not anonymous
   by relabelling; publication is lawful only if genuinely anonymous. ADR-0011 §4: synthetic
   dataset + replay harness, and/or restricted-access OSF deposit (Frankfurt storage). ⛔ owner
@@ -122,17 +132,28 @@ re-verifiable with `deploy/verify.sh`):
 - `calendar_events.title` is display-only; excluded from every export/training path (specs/07 §7).
 - Erasure: `on delete cascade` from `auth.users` through every user-owned table (FR-42);
   `deletion_audit` keeps proof-of-erasure with a user hash, no FK — survives the cascade.
+  **P10:** proven by pgTAP `p10_privacy_test.sql` (every FK to `auth.users` cascades; a row of
+  one user in all 18 tables is gone after one delete), executed by the `delete-account` edge
+  function (self / operator / retention) after a best-effort Google teardown (mirror out,
+  channel stopped, token revoked). ADR-0014 §8.
+- Export (Art. 20): the `export-data` edge function reads under the **user's** client — RLS is
+  the filter — and never includes calendar event titles or the server-only ledgers (`sync_ops`,
+  `sync_leases`, `gcal_sync_state`, `recsys_applied_tuples`); the whitelist is pinned by a
+  contract test against the same 18-table list. ADR-0014 §7.
 - `recommendations.features` snapshots are numeric arrays (no text) by contract (specs/07 §5).
 - P7: every client fact payload is categorical/numeric (tested, NFR-S3); ratings are labels.
 - P8: `gcal_sync_state` (refresh tokens, channel secrets) has no client grants and no policies;
   the device only ever sees a consent URL and a yes/no status. Calendar-event tombstones
   (`deleted_at`) make cancellations converge without hard deletes on the audit substrate.
 
-## 6. Retention (defaults, fixed by ADR in P10)
+## 6. Retention (fixed by ADR-0014 §10, P10)
 
-Raw `events`: 24 months → pseudonymized Parquet archive (File 06 §5 — see G2 for where it may
-live). Unconverted anonymous accounts: purged after 30 days. Account deletion completes ≤30 days
-with email confirmation (UC-10). VM logs: ≤ 30 MB rotated, ≤ 7 days (Caddy).
+Raw `events`: 24 months from study end → pseudonymized Parquet archive (File 06 §5 — see G2 for
+where it may live; the archive job is P11's, no delete sweep exists before it). Anonymous
+accounts: erased after **30 days of inactivity** (no sign-in, no event) by the daily
+`retention-sweep` pg_cron job through the audited `delete-account` path. Account deletion on
+request completes synchronously (the ≤ 30-day bound of UC-10 is the legal ceiling) and is
+confirmed in-app with the audit reference (G8). VM logs: ≤ 30 MB rotated, ≤ 7 days (Caddy).
 
 ## 7. Operator access rule — path 4 (ADR-0011 decision 4; in force from the first real participant)
 
@@ -164,8 +185,13 @@ it shows a participant's row. Option A only holds if daily operations respect th
 **Row-level access that cannot be avoided** (a participant's own support request, an FR-42
 erasure, a bug that only reproduces on their data):
 
-1. Prefer a **purpose-built RPC** that acts without displaying rows (`erase_user(email)`,
-   `diagnose_user(email)` returning counts/timestamps — add them in P8/P9 as needed).
+1. Prefer a **purpose-built path** that acts without displaying rows. **Erasure (P10):**
+   `delete-account` in operator mode — `curl -X POST <functions-url>/delete-account -H
+'x-service-key: …' -H 'apikey: <anon>' -d '{"mode":"operator","user_id":"<uid>"}'` (the
+   backend key from `~/.hourwell`, never from the repo); resolve the uid with
+   `select id from auth.users where email = '…'` (one id, no other column) and log the access.
+   The response is the audit reference only. `diagnose_user(email)` returning counts/timestamps —
+   add in P11 if a support case needs it.
 2. If a row must be seen: minimum columns, that participant only, from the VM
    (`docker compose exec recsys …` / `psql` inside the compose network) — the screen is still a
    transfer, so this is the case the consent form's Art. 49(1)(a) clause covers.

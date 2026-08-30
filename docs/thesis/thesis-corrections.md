@@ -330,3 +330,28 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     focused; displaced and superseded blocks out of the denominator), computed from
     recommendations + facts only — never from the reward table (spec-conflicts H2, guarded by a
     source-level test). The draft should not describe it as "completion rate". ADR-0013 §3.
+
+43. **§UC-10 / privacy chapter ("confirmed by email"):** erasure is confirmed **in the app** with
+    the `deletion_audit` reference and completion time; no e-mail is sent (free tier, no
+    transactional mail; a mail provider would be a new processor; anonymous accounts have no
+    address). Say "confirmed in-app with a reference number"; keep "within 30 days" as the legal
+    bound, note the actual completion is synchronous (seconds). ADR-0014 §8–§9.
+44. **§retention ("anonymous accounts purged after 30 days unconverted"):** the rule implemented
+    is **30 days of inactivity** (no sign-in, no event) — an active trial is never destroyed. Also
+    say that the 24-month raw-event window starts at study end and is executed by the archive job
+    (P11), not by a deletion sweep. ADR-0014 §10.
+45. **§notifications (FR-50 "smart lead time"; UC-09 "replacement suggestion notification"):** v1
+    ships a **static 10-minute lead** (Appendix A); there is **no displacement push** — the device
+    learns of a displacement at its next foreground and the Today notice is the surface. The
+    thesis should describe the cap mechanism precisely: a pure planner over a conservative
+    delivered-ledger (anything past-due counts as delivered), so "≤ 5/day" is a ceiling under
+    any sequence of re-plans, without background execution. ADR-0014 §1–§2, §6.
+46. **§accessibility ("all pairings meet AA"):** state the measured exceptions and the rule that
+    fixes them: accents are fills only; secondary text on the primary container is large-text
+    only (dark 4.36:1); on-primary text is white in light and the dark surface colour in dark
+    (white on the dark primary was 2.98:1). Cite `p10-a11y-audit.md`. ADR-0014 §11.
+47. **§performance (NFR-P3 "core read/write API ≤ 300 ms p95"):** report two numbers, not one:
+    PostgREST read/write from Node → eu-west-1 82–88 ms p95 (meets), the composite `sync-resolve`
+    round trip 477 ms p95 (does not). Do not present the sync round trip as the "core API", and
+    do not present any of these as device numbers (the handset adds radio wake-up and mobile
+    TLS; the device pass measures). `p10-manual-verification.md` §2.3.

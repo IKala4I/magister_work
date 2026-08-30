@@ -44,14 +44,17 @@ pseudonymous technical events only — never the text of your tasks or calendar.
 
 ## 3. Your rights and how to exercise them (FR-42)
 
-`[system]` **Export.** In Settings you can export everything Hourwell holds about you as a
-JSON file: your tasks, events, plans, the learned parameters and their history. (P10 —
-`export-data` edge function; until then, by request to the researcher.)
+`[system]` **Export.** In Settings → My data you can export everything Hourwell holds about you
+as a JSON file: your tasks, plans, events, calendar times (never the titles of your meetings),
+the learned parameters and the study assignments — and share or save it as you like. (P10:
+`export-data` edge function, live.)
 
-`[system]` **Deletion.** In Settings you can delete your account and all its data. Deletion
-removes your records from the database within 30 days and revokes any calendar access; you
-receive a confirmation e-mail. Aggregated study results computed before your deletion cannot
-be un-computed, but they do not identify you. (P10 — UC-10; specs/07 §7.)
+`[system]` **Deletion.** In Settings → My data you can delete your account and all its data.
+Deletion removes your records from the database — in practice within seconds, and in any case
+within 30 days — and revokes any calendar access; the app shows a confirmation with a reference
+number you can keep as proof (no e-mail is sent). Aggregated study results computed before your
+deletion cannot be un-computed, but they do not identify you. An anonymous trial account that is
+not used for 30 days is deleted automatically. (P10 — UC-10; ADR-0014.)
 
 `[system]` **Withdrawal from the study** is deletion plus a note to the researcher; no reason
 is needed.
