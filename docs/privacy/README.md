@@ -103,7 +103,8 @@ re-verifiable with `deploy/verify.sh`):
   Consequences); the calendar scopes are "sensitive", so an unverified app shows a warning
   screen and is capped at 100 users — enough for the study, but the verification review is
   owner work if the warning is unacceptable.
-- **G8 — Erasure confirmation is in-app, not by e-mail (P10, ADR-0014 §9).** UC-10 says
+- **G8 — Erasure confirmation is in-app, not by e-mail (P10, ADR-0014 §9). Full
+  comparison + recommendation (reword the spec): ADR-0016 — owner decision pending.** UC-10 says
   "confirmed by email"; the free tier has no transactional mail, a mail provider (Resend, Postmark…)
   would be a new Art. 28 processor to record here, and anonymous accounts have no address. The
   app shows the `deletion_audit` reference and the completion time; the consent clause says so.
