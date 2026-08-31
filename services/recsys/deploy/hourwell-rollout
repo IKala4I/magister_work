@@ -6,7 +6,7 @@
 set -euo pipefail
 cd /home/ubuntu/hourwell
 before="$(docker compose images -q recsys 2>/dev/null | head -1 || true)"
-docker compose pull --quiet recsys
+docker compose --profile training pull --quiet  # recsys + the P11 training image
 docker compose up -d --remove-orphans --quiet-pull
 after="$(docker compose images -q recsys 2>/dev/null | head -1 || true)"
 if [ "$before" != "$after" ]; then

@@ -1,0 +1,12 @@
+[Unit]
+Description=Hourwell nightly training + OPE run (ADR-0015: in-region on the EU VM)
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/home/ubuntu/hourwell
+# One-shot compose profile service (never auto-started by `up -d`): pulls happen via the
+# rollout timer; --rm keeps the box clean. The 2-cpu cap keeps /plan responsive (ADR-0011).
+ExecStart=/usr/bin/docker compose run --rm training --nightly --out-dir /tmp/out

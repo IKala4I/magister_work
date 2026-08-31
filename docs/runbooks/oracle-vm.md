@@ -311,20 +311,25 @@ its visibility — anonymous pull verified 2026-08-27). If `docker compose pull`
   **and** memory are all below their 7-day thresholds, so keeping CPU p95 ≥ 20 % is enough.
   **Keep it on regardless of plan** — Oracle's docs do not say a PAYG upgrade exempts instances
   (ADR-0009 Q2, corrected; PAYG deferred by the owner until before enrollment). Check it ran:
-  `journalctl -u hourwell-keepbusy -n 3`. (ADR-0011: the P11 training/analysis container will
-  replace this synthetic load with real work on the same timer slot.)
+  `journalctl -u hourwell-keepbusy -n 3`. (ADR-0011 forecast that P11's training container
+  would replace this load "on the same timer slot" — **corrected by ADR-0015 §1**: a single
+  nightly run cannot keep the 7-day CPU p95 above the reclaim threshold, so the hourly
+  keep-busy STAYS and the training run is an additional nightly timer, below.)
+- `hourwell-train.timer` → daily 03:00 UTC `docker compose run --rm training --nightly`
+  (P11, ADR-0015): the in-region training + OPE pipeline (§10). Check:
+  `journalctl -u hourwell-train -n 20`.
 - Manual rollout: `ssh oracle-recsys 'sudo -u ubuntu /usr/local/bin/hourwell-rollout'`.
 - Pin a version: set `RECSYS_TAG=<sha12>` in `.env` (CI publishes `:sha` and `:latest`), re-run
   the rollout; unpin by setting `latest` back.
 
 ## 8. Wire the secrets (three places, one key) **[owner]**
 
-| Where                         | What                                                                                                                                                    |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Box `~/hourwell/.env`         | `HOURWELL_SERVICE_KEY`, `DATABASE_URL`, `SUPABASE_URL`, `RECSYS_HOST` (§6)                                                                              |
-| Supabase function secrets     | from the repo root: `supabase secrets set HOURWELL_SERVICE_KEY=<key> RECSYS_URL=https://hourwell-recsys.duckdns.org` (needs `supabase login` once)      |
-| Supabase Vault (cron tick)    | run `~/.hourwell/vault-secrets.sql` in the SQL editor (`hourwell_functions_url`, `hourwell_service_key`, `hourwell_anon_key`)                           |
-| GitHub → Settings → Variables | **`RECSYS_HOST`** = `hourwell-recsys.duckdns.org` (enables the workflow's rollout check). **No GitHub secrets are needed** — CI never SSHes to the box. |
+| Where                         | What                                                                                                                                                                                     |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Box `~/hourwell/.env`         | `HOURWELL_SERVICE_KEY`, `DATABASE_URL`, `SUPABASE_URL`, `RECSYS_HOST` (§6); **P11:** `SUPABASE_SERVICE_ROLE_KEY` (artifact uploads — without it nothing promotes) + `ARCHIVE_SALT` (§10) |
+| Supabase function secrets     | from the repo root: `supabase secrets set HOURWELL_SERVICE_KEY=<key> RECSYS_URL=https://hourwell-recsys.duckdns.org` (needs `supabase login` once)                                       |
+| Supabase Vault (cron tick)    | run `~/.hourwell/vault-secrets.sql` in the SQL editor (`hourwell_functions_url`, `hourwell_service_key`, `hourwell_anon_key`)                                                            |
+| GitHub → Settings → Variables | **`RECSYS_HOST`** = `hourwell-recsys.duckdns.org` (enables the workflow's rollout check). **No GitHub secrets are needed** — CI never SSHes to the box.                                  |
 
 Set `RECSYS_URL` and the GitHub variable only after `https://<host>/healthz` answers, so fallback
 telemetry and CI stay clean.
@@ -381,3 +386,22 @@ telemetry and CI stay clean.
 [ ] Vault: attribution_sweep_tick() → posted [ ] supabase secrets: RECSYS_URL + HOURWELL_SERVICE_KEY
 [ ] unattended-upgrades dry-run clean         [ ] keep-busy timer active (journalctl -u hourwell-keepbusy)
 ```
+
+## 10. The training/analysis container (P11 — ADR-0011 option A, ADR-0015)
+
+- **What runs:** `ghcr.io/ikala4i/hourwell-training` (built by `deploy-training.yml`, arm64,
+  in-image ALS smoke) as the one-shot compose service `training` (profile `training`, 2-cpu
+  cap). Nightly via `hourwell-train.timer` (03:00 UTC): NFR-S3 whitelisted export → EB prior
+  refresh behind the eval gate → ALS + k-means → fold-in (≥ 30 outcomes, unvisited-cell-only
+  refresh) → K = 32 MC propensity backfill → the aggregate report. Artifacts + reports go to
+  the private `models` Storage bucket (EU); `model_registry` records every version.
+- **Rollout:** the 5-min rollout timer pulls this image too (`--profile training pull`);
+  `docker compose up -d` never starts it (profile-gated) — only the timer or a manual run does.
+- **Manual run:** `ssh oracle-recsys 'cd ~/hourwell && docker compose run --rm training --nightly --out-dir /tmp/out'`
+  → the JSON summary prints; the report lands in the bucket under `reports/<date>/`.
+- **Archive (study end only):** `docker compose run --rm training --archive --out-dir /tmp/archive`
+  — Parquet with SHA-256(uid + `ARCHIVE_SALT`) ids (ADR-0015 §17). `ARCHIVE_SALT` lives only
+  in `.env`; never rotate it mid-study, never copy row-level output to a laptop (privacy §7).
+- **No credentials, no promotion:** without `SUPABASE_SERVICE_ROLE_KEY` the run completes,
+  records `artifact_uri = NULL`, refuses to promote, and says so on stderr — CI (`train.yml`)
+  runs exactly that way on a synthetic cohort (G3: no participant data near CI).
