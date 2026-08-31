@@ -11,13 +11,13 @@ import os
 import sys
 from pathlib import Path
 
-import psycopg
+from hourwell_training import db
 
 
 def main() -> int:
     summary = json.loads(Path(sys.argv[1]).read_text())
     out_dir = Path(sys.argv[2])
-    db = os.environ["DATABASE_URL"]
+    db_url = os.environ["DATABASE_URL"]
     failures: list[str] = []
 
     def check(cond: bool, msg: str) -> None:
@@ -32,7 +32,7 @@ def main() -> int:
     check(len(ope_rows) >= 10, "OPE table covers 2 policies x 5 estimators")
     check(all("ess" in r and "evidence" in r for r in ope_rows), "every OPE row carries its ESS")
 
-    with psycopg.connect(db) as conn:
+    with db.connect(db_url) as conn:
         n_reg = conn.execute(
             "select count(*) from public.model_registry where kind in ('priors', 'als')"
         ).fetchone()[0]

@@ -12,8 +12,8 @@ import uuid
 from datetime import UTC, datetime, timedelta
 
 import numpy as np
-import psycopg
 
+from hourwell_training import db
 from hourwell_training.synthetic import BUCKETS_WD, CLASSES, q_true
 
 __all__ = ["seed_synthetic_db"]
@@ -31,7 +31,7 @@ def seed_synthetic_db(
     rng = np.random.default_rng(seed)
     now = datetime.now(tz=UTC)
     counts = {"users": 0, "plans": 0, "recommendations": 0, "rewards": 0, "events": 0}
-    with psycopg.connect(conninfo) as conn:
+    with db.connect(conninfo) as conn:
         cur = conn.cursor()
         for i in range(n_users):
             uid = _uid(i)

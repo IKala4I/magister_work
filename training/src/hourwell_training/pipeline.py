@@ -25,7 +25,7 @@ from hourwell_recsys.energy import BetaCell, decayed_evidence, posterior
 from psycopg.rows import dict_row
 from sklearn.linear_model import LogisticRegression
 
-from hourwell_training import als, clusters, ope, par, priors, propensity, report
+from hourwell_training import als, clusters, db, ope, par, priors, propensity, report
 from hourwell_training.export import DroppedRows, Exporter, mixed_ts_rows
 from hourwell_training.params import (
     DM_FEATURE_SLICE,
@@ -82,7 +82,7 @@ def _mature_rates(
 
 def _previous_priors(ctx: Ctx) -> tuple[int, dict[priors.CellKey, priors.PriorCell]]:
     """The version instantiate_user_priors would use (highest PROMOTED, fallback highest)."""
-    with psycopg.connect(ctx.conninfo, row_factory=dict_row) as conn:
+    with db.connect(ctx.conninfo, row_factory=dict_row) as conn:
         row = conn.execute(
             """
             select max(pc.version) as v from public.prior_cells pc
@@ -137,7 +137,7 @@ def _stage_priors(ctx: Ctx, exp: Exporter, chrono: dict[str, str]) -> None:
     promoted = bool(promoted and uri is not None)
     ctx.registry.record("priors", str(version), uri, {**fit_metrics, **gate_metrics}, promoted)
     if promoted:
-        with psycopg.connect(ctx.conninfo) as conn:
+        with db.connect(ctx.conninfo) as conn:
             conn.cursor().executemany(
                 "insert into public.prior_cells "
                 "(version, chronotype_class, category, daypart, day_type, mu0, n0) "
@@ -224,7 +224,7 @@ def _stage_als(ctx: Ctx, exp: Exporter, cells_by_user: dict[str, list[als.CellOb
     first_fold_ins = 0
     folded = 0
     refreshed_cells = 0
-    with psycopg.connect(ctx.conninfo, row_factory=dict_row) as conn:
+    with db.connect(ctx.conninfo, row_factory=dict_row) as conn:
         if rows:
             conn.cursor().executemany(
                 "insert into public.cluster_cells "
@@ -282,7 +282,7 @@ def _stage_als(ctx: Ctx, exp: Exporter, cells_by_user: dict[str, list[als.CellOb
 
 
 def _latest_metric(ctx: Ctx, kind: str, key: str) -> float | None:
-    with psycopg.connect(ctx.conninfo, row_factory=dict_row) as conn:
+    with db.connect(ctx.conninfo, row_factory=dict_row) as conn:
         row = conn.execute(
             "select metrics ->> %s as v from public.model_registry "
             "where kind = %s and promoted order by created_at desc limit 1",
@@ -302,7 +302,7 @@ def _stage_mc_backfill(ctx: Ctx, limit: int = 5000) -> None:
     """
     done = 0
     skipped = 0
-    with psycopg.connect(ctx.conninfo, row_factory=dict_row) as conn:
+    with db.connect(ctx.conninfo, row_factory=dict_row) as conn:
         rows = conn.execute(sql, (limit,)).fetchall()
         states: dict[str, dict[str, bandit.LinearState]] = {}
         blends: dict[str, Blend] = {}
@@ -445,7 +445,7 @@ def _par_by_arm_phase(ctx: Ctx, exp: Exporter) -> dict[str, Any]:
             )
         )
     pairs: list[tuple[str, float]] = []
-    with psycopg.connect(ctx.conninfo, row_factory=dict_row) as conn:
+    with db.connect(ctx.conninfo, row_factory=dict_row) as conn:
         for r in conn.execute(
             """
             select r.id, r.slot_start, r.slot_end, r.status, p.arm, sa.phase_no
@@ -497,7 +497,7 @@ def _posterior_policy(
     Beta posterior mean over A_m(x) (evaluation-time state — the File 04 §2.3 caveat)."""
     users = {str(r.context["user_id"]) for r in rows if r.context.get("user_id")}
     cells: dict[str, dict[tuple[str, str], propensity.CellPosterior]] = {}
-    with psycopg.connect(ctx.conninfo, row_factory=dict_row) as conn:
+    with db.connect(ctx.conninfo, row_factory=dict_row) as conn:
         for uid in users:
             cells[uid] = _load_cells(conn, uid, ctx.now)
 
@@ -606,7 +606,7 @@ def _stage_report(ctx: Ctx, exp: Exporter, out_dir: Path) -> None:
 def _label_scaling_aggregates(ctx: Ctx) -> dict[str, Any]:
     """privacy §7 aggregate queries (counts only): personal-by-label share (revisit P9) and
     duration-scaling-active users (revisit P7)."""
-    with psycopg.connect(ctx.conninfo, row_factory=dict_row) as conn:
+    with db.connect(ctx.conninfo, row_factory=dict_row) as conn:
         labeled = conn.execute(
             "select count(distinct (user_id, category, daypart, day_type)) as n "
             "from public.belief_labels where label <> 'none'"
