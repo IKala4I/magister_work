@@ -57,17 +57,25 @@ checks green** — including the db contract sync accepting the hand-authored ty
 full seed → pipeline → assertions chain. Round 3 (49d6c5b, lint fix): green. Round 4 (the
 adversarial-fix round): recorded in the PR checks at merge.
 
-## §3 Live verification after the migration push (owner + session)
+## §3 Live verification after the migration push — DONE 2026-08-31 (owner + session)
 
-1. ⛔ **Owner:** `supabase db push` (applies `20260831120000_p11_training`).
-2. Session: `node docs/verification/p11-live-smoke.mjs` — objects present, v0 promoted,
-   enroll/diagnose round trip on a disposable test user, gate behaviour live (§3.1).
-3. ⛔ **Owner (VM):** add `SUPABASE_SERVICE_ROLE_KEY` + `ARCHIVE_SALT` to
-   `~/hourwell/.env`; `git pull` the deploy dir → `bash ~/hourwell/deploy/install.sh`;
-   then `journalctl -u hourwell-train -n 20` after 03:00 UTC or run the container once
-   (runbook §10). Flip the three device-checklist "Service environment" items.
-4. Types: `supabase gen types typescript --linked` → byte-identical to committed
-   `database.ts` (after normalization).
+1. ✅ **Owner pushed the migration** (`supabase db push`, 2026-08-31).
+2. ✅ **Live smoke `p11-live-smoke.mjs`: 21/21 ALL PASS** — first run was 19/21: the two
+   "must raise" checks failed because `dbQuery` discarded stderr and `execFileSync`'s
+   nonzero-exit throw hid the CLI's stdout error JSON behind a bare "Command failed" (the
+   functions DID raise — the nonzero exit was on exactly those two calls, and pgTAP had
+   proven the messages). Fixed in the SHARED parser (`lib/db-query.mjs`: capture
+   err.stdout/err.stderr, `unwrapErrorText` descends the nested error/message layers —
+   the same rule as `pgtap-linked.sh`), then 21/21. Fifth output-shape incident of this
+   CLI; the lib now owns both the success and the error path.
+3. ✅ **pgTAP live**: `scripts/pgtap-linked.sh supabase/tests/p11_training_test.sql`
+   (no migration arg — the applied schema) → **26/26**, rolled back.
+4. ✅ **Types**: `supabase gen types typescript --linked` byte-identical to the committed
+   `database.ts` after `normalize-db-types.sh` on both sides.
+5. ⛔ **Owner (VM), still open:** add `SUPABASE_SERVICE_ROLE_KEY` + `ARCHIVE_SALT` to
+   `~/hourwell/.env`; pull the deploy dir → `bash ~/hourwell/deploy/install.sh`; then
+   `journalctl -u hourwell-train -n 20` after 00:30 UTC or run the container once
+   (runbook §10). Flips the three device-checklist "Service environment" items.
 
 ## §4 Adversarial pass (fresh-context subagent, 2026-08-31)
 

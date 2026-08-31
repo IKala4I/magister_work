@@ -3,18 +3,20 @@
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
 > Last update: 2026-08-31, **P11 — Training pipeline + OPE + study mode: complete; PR #21
-> merged on green. Live verification of the P11 surface is BLOCKED on the ⛔ owner steps
-> below (migration push → smoke; VM `.env` keys → first nightly run). P12 — Release prep
-> opens next; the owner-run hardware pass sits before it.** Standing rules live in
+> merged; migration pushed by the owner and the live smoke is 21/21 (first run 19/21 — a
+> db-query error-path parsing gap, fixed in the shared lib; smoke-close PR follows the P9/P10
+> precedent), pgTAP 26/26 live, types byte-identical. The ONE remaining ⛔ for P11
+> activation: the VM `.env` keys + `install.sh` re-run (first nightly run). P12 — Release
+> prep opens next; the owner-run hardware pass sits before it.** Standing rules live in
 > CLAUDE.md: "Working mode", "Context efficiency", "Simulator evidence".
 
 ## Where we are
 
-- **P0–P11 merged** (PRs #1–#21). The P11 migration `20260831120000_p11_training.sql` is
-  **NOT yet on the hosted project** — everything server-side P11 (cluster_cells, `models`
-  bucket, φ CHECK, promoted-version gate, `enroll_participant`, `diagnose_user`) is proven
-  by pgTAP 26/26 against the linked project (applied in-transaction, rolled back) and by
-  the CI synthetic e2e, but nothing is live until the owner pushes.
+- **P0–P11 merged** (PRs #1–#21 + the smoke-close PR). Migration
+  `20260831120000_p11_training.sql` **applied by the owner 2026-08-31**; the full P11
+  server surface verified LIVE: smoke **21/21** (objects, promoted-version instantiation,
+  the enroll round trip incl. both raise-paths, diagnose_user leak checks, cleanup),
+  pgTAP **26/26** on the applied schema (rolled back), regenerated types byte-identical.
 - **What P11 built** (ADR-0015; CHANGELOG "P11"): the nightly in-region training container
   (ADR-0011 option A) — NFR-S3 whitelist-as-data as the only producer of cross-user
   export/archive SQL (closed-vocab text columns CHECK-pinned in schema, client event
@@ -55,13 +57,9 @@
 
 ## Exact next actions (next session, in order)
 
-1. ⛔ **Owner: `supabase db push`** (applies `20260831120000_p11_training`). Then the
-   session runs `node docs/verification/p11-live-smoke.mjs` (from `apps/mobile`) — 19
-   checks: objects, live promoted-version instantiation, the full enroll round trip,
-   diagnose_user leak checks, self-cleanup. Also re-run
-   `scripts/pgtap-linked.sh supabase/tests/p11_training_test.sql` (NO migration arg now)
-   and `supabase gen types typescript --linked` → byte-identical after
-   `scripts/normalize-db-types.sh`.
+1. ~~Migration push + live smoke~~ — **done 2026-08-31**: smoke 21/21 (after the shared
+   db-query error-path fix), pgTAP 26/26 live, types byte-identical
+   (`p11-manual-verification.md` §3).
 2. ⛔ **Owner (VM):** add `SUPABASE_SERVICE_ROLE_KEY=<service-role JWT>` and
    `ARCHIVE_SALT=<64 random hex>` to `~/hourwell/.env`; pull the repo's deploy dir to the
    box and `bash ~/hourwell/deploy/install.sh` (installs `hourwell-train.timer`, adds the
@@ -84,10 +82,9 @@
 
 ## ⛔ ACTION REQUIRED (owner)
 
-- **P11 activation (new):** (1) `supabase db push`; (2) VM `.env` +
-  `SUPABASE_SERVICE_ROLE_KEY` + `ARCHIVE_SALT`, re-run `install.sh` (runbook §8/§10).
-  Until then: no live nightly run, no artifact uploads, MC backfill idle; the migration
-  gap also blocks the P11 live smoke.
+- **P11 activation — one step left:** VM `.env` + `SUPABASE_SERVICE_ROLE_KEY` +
+  `ARCHIVE_SALT`, re-run `install.sh` (runbook §8/§10). Until then: no live nightly run,
+  no artifact uploads, MC backfill idle. (Migration push + smoke: done 2026-08-31.)
 - **Erasure confirmation by e-mail?** (ADR-0014 §9; privacy README G8) — decide before
   enrollment; the consent clause currently says "no e-mail is sent".
 - **Consent clause review** — `docs/privacy/consent-clause.md` (contact block to fill).
@@ -102,6 +99,11 @@
 
 ## Gotchas (P11 additions; earlier lists still apply)
 
+- **`execFileSync` hides the CLI's error JSON**: on a raised exception `supabase db query`
+  exits nonzero with the error JSON on STDOUT — a bare exec wrapper throws "Command
+  failed …" and the server message is lost (two smoke raise-checks failed for the wrong
+  reason). `dbQuery` now captures err.stdout/err.stderr and unwraps via
+  `unwrapErrorText` — match on the server text, never on exec noise.
 - **`supabase db query` error shapes keep mutating** — now
   `{"_tag":"Error","error":{"message":"unexpected status 400: {json}"}}` (TAP text TWO
   JSON layers deep with a plain-text prefix). `pgtap-linked.sh` now uses the db-query.mjs
