@@ -34,6 +34,13 @@ services:
     env_file: .env # DATABASE_URL, SUPABASE_URL, HOURWELL_SERVICE_KEY (chmod 600, never in git)
     environment:
       PORT: '7860'
+      # P12 least-privilege DSN (runbook §18): when RECSYS_DATABASE_URL is set in .env the
+      # service connects as `recsys_service`; unset, it falls back to DATABASE_URL (postgres)
+      # so a partial rollout never breaks. Training keeps the privileged DATABASE_URL (its
+      # export/registry surface is wider by design — ADR-0015). Verify the interpolation on
+      # the box with `docker compose config` before restarting (nested defaults need v2.5+;
+      # the box runs v2.40).
+      DATABASE_URL: ${RECSYS_DATABASE_URL:-${DATABASE_URL:-}}
     expose:
       - '7860'
     # File 04 §1.5 "meeting NFR-P1 on 2 vCPU": the container is pinned to the two cores the spec
