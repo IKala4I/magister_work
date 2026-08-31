@@ -84,14 +84,14 @@
 
 ## ⛔ ACTION REQUIRED (owner)
 
-- **Push migration `20260831140000_p11_sweep_header`** (key audit, runbook §11): the P7
-  attribution sweep sent the Vault publishable key as `Authorization: Bearer` — documented-
-  invalid for new-generation keys, tolerated today only by `verify_jwt = false` + the
-  `x-service-key` gate; the migration aligns it with the P10 retention tick (apikey only).
-  One `supabase db push`, no smoke needed beyond `select public.attribution_sweep_tick();`
-  answering `posted` and a 200 in `net._http_response`.
-- **P11 activation — one step left:** VM `.env` + `SUPABASE_SERVICE_ROLE_KEY`
-  (prefer the new `sb_secret_...` key) +
+- ~~Push migration `20260831140000_p11_sweep_header`~~ — **done 2026-08-31**: owner pushed;
+  verified live same day (`attribution_sweep_tick()` → `posted`, newest
+  `net._http_response` = 200 under the apikey-only shape).
+- **P11 activation — one step left (CONFIRMED PENDING 2026-08-31):** the owner checked
+  from the serial console — no `SUPABASE_SERVICE_ROLE_KEY` on the box at all (both format
+  greps 0). They will write the keys and run `install.sh` from their own terminal when back
+  on a home network (the serial console mangles pasted input). VM `.env` +
+  `SUPABASE_SERVICE_ROLE_KEY` (prefer the new `sb_secret_...` key) +
   `ARCHIVE_SALT`, re-run `install.sh` (runbook §8/§10). Until then: no live nightly run,
   no artifact uploads, MC backfill idle. (Migration push + smoke: done 2026-08-31.)
 - **Erasure confirmation by e-mail?** (ADR-0014 §9; privacy README G8) — decide before
