@@ -275,7 +275,9 @@ laptop; rotate the credentials in `.env` (§11) because the old laptop held them
 
 ```bash
 ssh oracle-recsys 'bash ~/hourwell/deploy/install.sh'      # first run: creates ~/hourwell/.env, exit 3
-ssh oracle-recsys 'nano ~/hourwell/.env'                   # RECSYS_HOST, DATABASE_URL, HOURWELL_SERVICE_KEY
+ssh oracle-recsys 'sh -c "cat >> ~/hourwell/.env"'         # paste lines, end with Ctrl-D
+# (the Minimal image ships NO editor — no nano/vi; append with the cat>> above or a
+#  sed -i from your side, then re-check with grep -c, never by printing the file)
 ```
 
 `DATABASE_URL`: Supabase dashboard → project `uapiuehjcntilwdmpojk` → **Connect** → the
@@ -579,12 +581,19 @@ Owner steps (after the migration is pushed):
    silently stays on the postgres DSN.
 1. SQL editor: `alter role recsys_service with login password '<generated 32+ chars>';`
 2. Box `~/hourwell/.env`: add `RECSYS_DATABASE_URL` = the pooler DSN with
-   `recsys_service:<password>` in place of `postgres:<password>` (same host/port/db).
-3. `cd ~/hourwell && docker compose config recsys | grep 'DATABASE_URL:'` — the interpolated
-   value must contain `recsys_service@` (an empty or `postgres@` value means step 0 or 2 is
-   missing).
+   `recsys_service.<project-ref>:<password>` in place of `postgres.<project-ref>:<password>`
+   (same host/port/db — the pooler username always carries the tenant suffix). A hex
+   password needs no URL-encoding. Generate ONCE and fill both places from the same shell
+   variable (`PW=$(openssl rand -hex 24)`; `echo` the `alter role` statement for the SQL
+   editor; `printf` the `.env` line over ssh) — typing it twice caused a live auth
+   failure on 2026-08-31.
+3. `cd ~/hourwell && docker compose config recsys | grep -c 'recsys_service\.'` — must be
+   ≥ 1: the interpolated value contains `recsys_service.<project-ref>@` (the **pooler
+   username carries the tenant suffix**, so grepping the literal `recsys_service@` never
+   matches — found live 2026-08-31). 0 means step 0 or 2 is missing. Count, don't print:
+   the config line holds the password.
 4. `docker compose up -d recsys` → `docker compose exec recsys env | grep '^DATABASE_URL='`
-   shows `recsys_service@`; `/healthz` 200, then one
+   shows `recsys_service.` (count the match, don't print); `/healthz` 200, then one
    live plan (`p6-live-smoke.mjs 1`) and one feedback delivery
    (`select count(*) from feedback_rewards where delivered_at is null;` → 0 shortly after).
 5. Rollback if anything misbehaves: remove `RECSYS_DATABASE_URL` from `.env`,
