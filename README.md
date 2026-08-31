@@ -44,8 +44,9 @@ cd apps/mobile && npx expo start # local development (Expo dev client)
 ```
 
 `supabase start` brings up the local stack; migrations live in `supabase/migrations/`,
-pgTAP tests in `supabase/tests/`. Copy `.env.example` to `.env` for the local keys — the
-`.env` file is never committed.
+pgTAP tests in `supabase/tests/`. The app reads `EXPO_PUBLIC_SUPABASE_URL` and
+`EXPO_PUBLIC_SUPABASE_ANON_KEY` from a repo-root `.env` (never committed; the VM-side
+template is `services/recsys/deploy/.env.example`).
 
 ## Repository map
 
@@ -54,10 +55,10 @@ pgTAP tests in `supabase/tests/`. Copy `.env.example` to `.env` for the local ke
 | `specs/01–07`          | Frozen specification set (read-only; errata in `docs/thesis/spec-conflicts.md`) |
 | `PLAN.md`              | Phase plan P0–P12 with requirement mapping and the status board                 |
 | `docs/decisions/`      | ADRs 0001–0017 (+ `revisit.md`, the non-blocking findings ledger)               |
-| `docs/privacy/`        | DPIA, processor table, consent clauses, privacy policy draft                    |
+| `docs/privacy/`        | DPIA, processor table, consent clauses                                          |
 | `docs/runbooks/`       | Oracle VM operations, Google Calendar integration                               |
 | `docs/verification/`   | Per-phase manual-verification protocols, live smokes, the device checklist      |
-| `docs/store/`          | Store metadata, name search, distribution notes                                 |
+| `docs/store/`          | Store metadata, name search, privacy-policy draft, distribution notes           |
 | `docs/traceability.md` | Requirement → module → test → status                                            |
 | `CHANGELOG.md`         | Per-phase changelog (v0.1.0 rollup at the top)                                  |
 

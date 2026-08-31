@@ -36,7 +36,7 @@ apps. There are no ads and no advertising or tracking SDKs.
 Your data is stored and processed in the European Union: the database and authentication
 run in Ireland (Supabase, AWS eu-west-1); planning and learning run on a server in France
 (Oracle Cloud, eu-marseille-1). Traffic is encrypted in transit (TLS). Learning that
-combines data across users only ever uses anonymous categories — **never the text of your
+combines data across users only ever uses broad task categories and behaviour counts — **never the text of your
 tasks or calendar events**. Calendar event titles are shown only to you, on your device.
 
 Our processors (under GDPR Art. 28 agreements): Supabase (database/auth), Oracle Cloud
@@ -48,7 +48,9 @@ Google.
 ## Legal bases
 
 Operating the app for you: performance of the service you request (GDPR Art. 6(1)(b)).
-Optional features (Google Calendar, analytics): your consent, withdrawable at any time.
+Optional features (Google Calendar): your consent, withdrawable at any time. Analytics and
+crash reporting: our legitimate interest in keeping the service reliable — you can switch
+analytics off at any time in Settings → Privacy.
 Research study processing: the separate study consent form.
 
 ## Your rights

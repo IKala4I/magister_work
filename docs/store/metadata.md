@@ -12,7 +12,7 @@
 | ---------------------- | ---------------------------------------------------------------------------- | ---------------------------- |
 | App name (both stores) | `Hourwell`                                                                   | 30 ✔ (8)                     |
 | iOS subtitle           | `The planner that learns you`                                                | 30 ✔ (27)                    |
-| Play short description | `The planner that learns your best hours — and builds each day around them.` | 80 ✔ (75)                    |
+| Play short description | `The planner that learns your best hours — and builds each day around them.` | 80 ✔ (74)                    |
 | Bundle id / package    | `com.hourwell.app`                                                           | fixed in `app.json` since P2 |
 | Category               | Productivity                                                                 | both stores                  |
 | Age rating             | 4+ / Everyone (no objectionable content)                                     | questionnaire                |
@@ -28,7 +28,7 @@ the iOS subtitle is the 27-char cut above.
 planner,day planner,schedule,time blocking,focus,energy,routine,tasks,adaptive,calendar
 ```
 
-(97 chars. The description is not indexed on iOS — keywords, name and subtitle are.)
+(87 chars. The description is not indexed on iOS — keywords, name and subtitle are.)
 
 ## 3. Long description (both stores; Play indexes it)
 
@@ -60,7 +60,7 @@ WORKS THE WAY LIFE WORKS
 • At most 5 notifications a day — a hard cap, not a promise
 
 PRIVATE BY DESIGN
-Your data stays in EU data centers. Learning across users only ever sees anonymous
+Your data stays in EU data centers. Learning across users only ever sees broad task
 categories — never the text of your tasks or calendar. Export or permanently delete
 everything from Settings at any time. No ads, no trackers.
 
@@ -69,7 +69,7 @@ thesis. Study participation is separate, opt-in and consented — using the app 
 you in anything.
 ```
 
-(≈ 1 550 chars ✔.)
+(≈ 1 600 chars ✔.)
 
 ## 4. Data-safety / privacy-nutrition answers (both consoles)
 
@@ -79,7 +79,7 @@ Source of truth: `docs/privacy/dpia.md` §2.3; answers below are the console voc
 | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Data collected & linked to identity | Contact info: e-mail (account; optional — anonymous accounts exist). User content: tasks, optional calendar events (app functionality). App activity: in-app actions (app functionality, analytics — opt-out). Diagnostics: crash logs (app functionality). |
 | Data used for tracking (Apple ATT)  | **None.** No third-party ad/tracking SDKs; no cross-app identifiers. No ATT prompt.                                                                                                                                                                         |
-| Data shared with third parties      | None sold or shared for advertising. Processors only (Supabase, PostHog EU, Sentry EU — under DPA, listed in the privacy policy).                                                                                                                           |
+| Data shared with third parties      | None sold or shared for advertising. Processors only (Supabase, Oracle Cloud, PostHog EU, Sentry EU — under DPA, listed in the privacy policy).                                                                                                             |
 | Encryption in transit               | Yes (TLS 1.3).                                                                                                                                                                                                                                              |
 | Deletion mechanism                  | Yes, in-app: Settings → Delete account (synchronous, audited); export also in-app.                                                                                                                                                                          |
 | Play "Data deletion" URL            | the privacy policy URL (§5), which documents the in-app path                                                                                                                                                                                                |

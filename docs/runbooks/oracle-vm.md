@@ -391,7 +391,7 @@ telemetry and CI stay clean.
 
 - **What runs:** `ghcr.io/ikala4i/hourwell-training` (built by `deploy-training.yml`, arm64,
   in-image ALS smoke) as the one-shot compose service `training` (profile `training`, 2-cpu
-  cap). Nightly via `hourwell-train.timer` (03:00 UTC): NFR-S3 whitelisted export → EB prior
+  cap). Nightly via `hourwell-train.timer` (00:30 UTC + jitter): NFR-S3 whitelisted export → EB prior
   refresh behind the eval gate → ALS + k-means → fold-in (≥ 30 outcomes, unvisited-cell-only
   refresh) → K = 32 MC propensity backfill → the aggregate report. Artifacts + reports go to
   the private `models` Storage bucket (EU); `model_registry` records every version.
@@ -423,7 +423,7 @@ Legacy keys are scheduled for deprecation **end of 2026**. Every consumer, audit
 | Edge functions ×9, user path (`userClient`)                                | platform-INJECTED `SUPABASE_ANON_KEY` (legacy) as `createClient` key; the caller's user JWT overrides `Authorization`                        | ➖ (would need `SUPABASE_PUBLISHABLE_KEYS` JSON — see below)                                                                                                                | ✅ (in use)    | Code (`Deno.env.get('SUPABASE_ANON_KEY')` in all user-path functions); `supabase secrets list` shows the platform injects BOTH generations (`SUPABASE_PUBLISHABLE_KEYS`/`SUPABASE_SECRET_KEYS` JSON vars + the legacy pair, refreshed 2026-08-30) | legacy JWT (injected)                                                                                                                                                                       |
 | Edge functions, admin path (`auth.admin`, service writes)                  | platform-INJECTED `SUPABASE_SERVICE_ROLE_KEY` (legacy)                                                                                       | ➖ (same: would read `SUPABASE_SECRET_KEYS` JSON)                                                                                                                           | ✅ (in use)    | Code; every function has `verify_jwt = false` (9/9 in config.toml) so no gateway JWT parse anywhere                                                                                                                                               | legacy JWT (injected)                                                                                                                                                                       |
 | Cron tick — retention (P10, `retention_sweep_tick`)                        | Vault `hourwell_anon_key` on **`apikey` only** + `x-service-key` backend key                                                                 | ✅ (docs-correct)                                                                                                                                                           | ✅             | SQL read (migration 20260830120000); live: retention run succeeded                                                                                                                                                                                | **new publishable** in Vault (set 2026-08-28)                                                                                                                                               |
-| Cron tick — attribution sweep (P7, `attribution_sweep_tick`)               | Vault `hourwell_anon_key` on `Bearer` **and** `apikey` (P7 shape)                                                                            | ⚠️ tolerated only because `verify_jwt = false` and the daily path gates on `x-service-key` (handler.ts:473, constant-time) — a Bearer publishable key is documented-invalid | ✅             | SQL read; LIVE: 6 h of uniform 200s in `net._http_response`, 395 succeeded runs/7 d                                                                                                                                                               | **fixed by migration `20260831140000_p11_sweep_header`** (apikey-only, the P10 shape) — pending push                                                                                        |
+| Cron tick — attribution sweep (P7, `attribution_sweep_tick`)               | Vault `hourwell_anon_key` on `Bearer` **and** `apikey` (P7 shape)                                                                            | ⚠️ tolerated only because `verify_jwt = false` and the daily path gates on `x-service-key` (handler.ts:473, constant-time) — a Bearer publishable key is documented-invalid | ✅             | SQL read; LIVE: 6 h of uniform 200s in `net._http_response`, 395 succeeded runs/7 d                                                                                                                                                               | **fixed by migration `20260831140000_p11_sweep_header`** (apikey-only, the P10 shape) — pushed + verified live 2026-08-31 (uniform 200s)                                                    |
 | RecSys service (VM)                                                        | none — `DATABASE_URL` (Postgres password), `HOURWELL_SERVICE_KEY` (own 64-hex), JWKS URL for user JWTs                                       | n/a                                                                                                                                                                         | n/a            | `auth.py` (JWKS + service key only); Vault `hourwell_service_key` live-classified as 64-char non-key                                                                                                                                              | no Supabase API key                                                                                                                                                                         |
 | Training container (VM)                                                    | `SUPABASE_SERVICE_ROLE_KEY` env → Storage REST; `StorageConfig.auth_headers()` picks per key kind (`sb_secret_` → `apikey` only; JWT → both) | ✅ **recommended**                                                                                                                                                          | ✅             | Code + unit tests pin both header shapes (`test_registry.py`); first upload fails loudly on a bad key (no silent retry-never)                                                                                                                     | owner-set on the VM — check formats only: `ssh oracle-recsys 'grep -oc "^SUPABASE_SERVICE_ROLE_KEY=sb_secret_" ~/hourwell/.env; grep -oc "^SUPABASE_SERVICE_ROLE_KEY=eyJ" ~/hourwell/.env'` |
 | CI                                                                         | none hosted (G3); the local stack mints its own demo legacy keys                                                                             | n/a                                                                                                                                                                         | n/a            | workflow grep: no `SUPABASE_*` secret anywhere                                                                                                                                                                                                    | none                                                                                                                                                                                        |
@@ -478,14 +478,15 @@ the recovery ladder (§5) — they stay the security boundary and break-glass, u
 on; NFR-R2 is carried by the edge-function fallback, measured in `p7-manual-verification.md`
 §2c.)
 
-| Job                       | Where      | Schedule (UTC)         | Does                                                                               |
-| ------------------------- | ---------- | ---------------------- | ---------------------------------------------------------------------------------- |
-| `attribute-rewards-sweep` | pg_cron    | `*/15 * * * *`         | `attribution_sweep_tick()` → posts due users to the EF (23:55-local authority)     |
-| `gcal-sweep`              | pg_cron    | `*/5 * * * *`          | `gcal_sweep_tick()` → stale-calendar re-sync + channel renewal                     |
-| `retention-sweep`         | pg_cron    | `10 3 * * *`           | `retention_sweep_tick()` → 30-day anonymous purge via `delete-account {retention}` |
-| `hourwell-rollout.timer`  | VM systemd | every 5 min            | compose pull + up -d (both images)                                                 |
-| `hourwell-keepbusy.timer` | VM systemd | hourly                 | `bench_solve.py --runs 100` (reclaim guard — STAYS, §7)                            |
-| `hourwell-train.timer`    | VM systemd | daily 00:30 (+ jitter) | `docker compose run --rm training --nightly` (§13)                                 |
+| Job                        | Where      | Schedule (UTC)         | Does                                                                               |
+| -------------------------- | ---------- | ---------------------- | ---------------------------------------------------------------------------------- |
+| `attribute-rewards-sweep`  | pg_cron    | `*/15 * * * *`         | `attribution_sweep_tick()` → posts due users to the EF (23:55-local authority)     |
+| `gcal-sweep`               | pg_cron    | `*/5 * * * *`          | `gcal_sweep_tick()` → stale-calendar re-sync + channel renewal                     |
+| `retention-sweep`          | pg_cron    | `10 3 * * *`           | `retention_sweep_tick()` → 30-day anonymous purge via `delete-account {retention}` |
+| `hourwell-rollout.timer`   | VM systemd | every 5 min            | compose pull + up -d (both images)                                                 |
+| `hourwell-keepbusy.timer`  | VM systemd | hourly                 | `bench_solve.py --runs 100` (reclaim guard — STAYS, §7)                            |
+| `hourwell-train.timer`     | VM systemd | daily 00:30 (+ jitter) | `docker compose run --rm training --nightly` (§13)                                 |
+| `hourwell-ssh-allow.timer` | VM systemd | every minute           | syncs the host SSH allow-list from the instance tag (§0)                           |
 
 **Health checks (all row-free, privacy §7-safe):**
 
@@ -549,7 +550,9 @@ select kind, version, promoted, metrics, created_at
 -- 2. demote the bad version (idempotent; audit trail stays)
 update model_registry set promoted = false where kind = '<kind>' and version = '<v>';
 -- 3. verify the serving path (priors): the join resolves to the previous promoted version
-select public.diagnose_user('<owner-test-email>');  -- counts only
+select max(pc.version) from prior_cells pc
+  join model_registry mr on mr.kind = 'priors' and mr.promoted
+   and mr.version = pc.version::text;  -- the version new signups will receive
 ```
 
 Then force a fresh pass instead of waiting for 00:30:
@@ -570,12 +573,18 @@ surface is wider by design (ADR-0015) and it never serves client traffic.
 
 Owner steps (after the migration is pushed):
 
+0. **Ship the P12 `compose.yml` to the box first** — the override is new in P12: re-run the
+   §6 deploy-dir sync (tar-over-ssh; the Minimal image has no rsync) or `install.sh`.
+   Without this, adding `RECSYS_DATABASE_URL` to `.env` changes NOTHING and the service
+   silently stays on the postgres DSN.
 1. SQL editor: `alter role recsys_service with login password '<generated 32+ chars>';`
 2. Box `~/hourwell/.env`: add `RECSYS_DATABASE_URL` = the pooler DSN with
    `recsys_service:<password>` in place of `postgres:<password>` (same host/port/db).
-3. `cd ~/hourwell && docker compose config | grep -A2 'recsys:' | grep DATABASE_URL` —
-   confirm the interpolated value is the new DSN (nested-default check).
-4. `docker compose up -d recsys` (recreates with the new env) → `/healthz` 200, then one
+3. `cd ~/hourwell && docker compose config recsys | grep 'DATABASE_URL:'` — the interpolated
+   value must contain `recsys_service@` (an empty or `postgres@` value means step 0 or 2 is
+   missing).
+4. `docker compose up -d recsys` → `docker compose exec recsys env | grep '^DATABASE_URL='`
+   shows `recsys_service@`; `/healthz` 200, then one
    live plan (`p6-live-smoke.mjs 1`) and one feedback delivery
    (`select count(*) from feedback_rewards where delivered_at is null;` → 0 shortly after).
 5. Rollback if anything misbehaves: remove `RECSYS_DATABASE_URL` from `.env`,

@@ -63,7 +63,7 @@ drop rate per arm, personal-by-label counts, scaling-active users, interference 
 OPE table.
 
 **Deploy + CI.** `training/Dockerfile` (repo-root context, arm64, libgomp1); one-shot
-compose service `training` (profile-gated, 2-cpu cap); `hourwell-train.timer` nightly 03:00
+compose service `training` (profile-gated, 2-cpu cap); `hourwell-train.timer` nightly 00:30
 UTC — the keep-busy timer STAYS (runbook §7 forecast corrected; ADR-0015 §1); rollout pulls
 both images. `train.yml`: the same pipeline **on a synthetic cohort only** (G3 — no hosted
 secret), end-to-end asserted (registry rows, no-credentials-no-promotion, full backfill

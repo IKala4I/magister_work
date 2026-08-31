@@ -48,24 +48,30 @@ and calendar (README G7). No joint controllership exists.
 
 ≤ 42 adult participants (≥ 18 y, own smartphone, informed consent, €20 completion voucher),
 recruited in Ukraine; EU/EEA residents possible (recorded at enrollment). Plus incidental
-trial users of the researcher's own accounts. No children, no vulnerable-group targeting.
+trial users of the researcher's own accounts, and — once the store listing is public —
+ordinary app users outside the study: they are processed under the Art. 6(1)(b) row of §3
+only, with no research use absent enrollment and consent. No children, no vulnerable-group
+targeting.
 
 ### 2.3 Categories of personal data
 
-| Category                | Contents                                                                                                                       | Notes                                                                          |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
-| Account / auth          | e-mail (magic link), Google identity, or an **anonymous id**; session tokens                                                   | `auth.users`; anonymous accounts have no address at all                        |
-| Profile                 | rMEQ answers + chronotype class/score, settings (notifications, mutes, ritual time), `eu_eea_resident` flag, `research_cohort` | `profiles`                                                                     |
-| Tasks                   | **titles — the only free text** — plus category, minutes, value, deadlines, priority                                           | never trained on, never exported cross-user (NFR-S3)                           |
-| Calendar                | event ids, times, titles, busy/free from Google (opt-in)                                                                       | titles display-only (specs/07 §7); server-held refresh token, no client grants |
-| Behavioural facts       | append-only `events` (start/pause/finish/skip/move, ratings, notification responses, trade-off decisions)                      | categorical/numeric payloads by contract (tested)                              |
-| Plans & recommendations | placements, propensities (M-01), feature snapshots (numeric arrays), rationale keys, experiment flags                          | the OPE substrate                                                              |
-| Learned state           | Beta cells, bandit state, blend weights, duration estimates, cluster assignment                                                | per-user rows in Postgres                                                      |
-| Study                   | ABAB/BABA assignment, phase dates                                                                                              | `study_assignments`                                                            |
-| Erasure audit           | SHA-256 hash of the uid, reason, timestamps — **no FK, survives erasure**                                                      | `deletion_audit`                                                               |
-| Telemetry               | pseudonymous product events (PostHog EU), crash reports without PII (Sentry EU, `sendDefaultPii: false`)                       | opt-out in Settings (ADR-0014 §12)                                             |
+| Category                | Contents                                                                                                                                                                                                           | Notes                                                                          |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
+| Account / auth          | e-mail (magic link), Google identity, or an **anonymous id**; session tokens                                                                                                                                       | `auth.users`; anonymous accounts have no address at all                        |
+| Profile                 | rMEQ score + chronotype class (the per-question answers are never persisted — they exist only in the onboarding UI state), settings (notifications, mutes, ritual time), `eu_eea_resident` flag, `research_cohort` | `profiles`                                                                     |
+| Tasks                   | **titles — the only free text** — plus category, minutes, value, deadlines, priority                                                                                                                               | never trained on, never exported cross-user (NFR-S3)                           |
+| Calendar                | event ids, times, titles, busy/free from Google (opt-in)                                                                                                                                                           | titles display-only (specs/07 §7); server-held refresh token, no client grants |
+| Behavioural facts       | append-only `events` (start/pause/finish/skip/move, ratings, notification responses, trade-off decisions)                                                                                                          | categorical/numeric payloads by contract (tested)                              |
+| Plans & recommendations | placements, propensities (M-01), feature snapshots (numeric arrays), rationale keys, experiment flags                                                                                                              | the OPE substrate                                                              |
+| Learned state           | Beta cells, bandit state, blend weights, duration estimates, cluster assignment                                                                                                                                    | per-user rows in Postgres                                                      |
+| Study                   | ABAB/BABA assignment, phase dates                                                                                                                                                                                  | `study_assignments`                                                            |
+| Erasure audit           | SHA-256 hash of the uid, reason, timestamps — **no FK, survives erasure**                                                                                                                                          | `deletion_audit`                                                               |
+| Telemetry               | pseudonymous product events (PostHog EU), crash reports without PII (Sentry EU, `sendDefaultPii: false`)                                                                                                           | opt-out in Settings (ADR-0014 §12)                                             |
 
-Special categories (Art. 9): none by design. Free-text task titles COULD incidentally contain
+Special categories (Art. 9): none by design. The rMEQ sleep-timing items are not an Art. 9
+category on their face but sit close to health data (ADR-0011 §6 asked this DPIA to say so):
+only the derived score/class is stored, it seeds prior means only, and it is never exported
+cross-user. Free-text task titles COULD incidentally contain
 anything a user types — treated as risk R2 (§6), not as intended processing.
 
 ### 2.4 Systems and locations (NFR-S2)
@@ -129,13 +135,13 @@ Fixed by ADR-0014 §10; mechanisms live and audited (P10/P11):
 
 **Lawful bases.**
 
-| Processing                                                               | Basis                                                                                             |
-| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
-| App operation for a user who installs it                                 | Art. 6(1)(b) (performance of the service the user requested); Ukrainian analogue for Case U       |
-| Study enrollment, arm assignment, research use of the behavioural record | Art. 6(1)(a) informed consent (`consent-clause.md`; signed before any study processing)           |
-| Incidental operator access from Ukraine (path 4)                         | Art. 49(1)(a) explicit consent, purpose-limited, logged (consent clause §2)                       |
-| Google Calendar read / opt-in write-back                                 | user's own instruction to their own provider (Art. 6(1)(a)/(b); Google an independent controller) |
-| Telemetry (PostHog/Sentry)                                               | consent-clause disclosure; opt-out in Settings; study needs the events (File 06)                  |
+| Processing                                                               | Basis                                                                                                                                                                                                                   |
+| ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| App operation for a user who installs it                                 | Art. 6(1)(b) (performance of the service the user requested); Ukrainian analogue for Case U                                                                                                                             |
+| Study enrollment, arm assignment, research use of the behavioural record | Art. 6(1)(a) informed consent (`consent-clause.md`; signed before any study processing)                                                                                                                                 |
+| Incidental operator access from Ukraine (path 4)                         | Art. 49(1)(a) explicit consent, purpose-limited, logged (consent clause §2)                                                                                                                                             |
+| Google Calendar read / opt-in write-back                                 | user's own instruction to their own provider (Art. 6(1)(a)/(b); Google an independent controller)                                                                                                                       |
+| Telemetry (PostHog/Sentry)                                               | Art. 6(1)(f) legitimate interest in service reliability — on when keys are present, with the in-app opt-out (ADR-0014 §12); disclosed to study participants in the consent clause (the study needs the events, File 06) |
 
 **Necessity of each category:** the recommendation problem is _learned personal completion
 probability by time slot_ — behavioural facts, plans, propensities and learned state ARE the
