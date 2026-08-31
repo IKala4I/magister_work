@@ -29,22 +29,65 @@ trap 'rm -f "$scratch"' EXIT
   echo "do \$tap\$ declare t text; begin select string_agg(line, E'\\n' order by n) into t from __tap; raise exception E'TAP\\n%', t; end \$tap\$;"
 } > "$scratch"
 out="$(supabase db query --linked --output-format json -f "$scratch" 2>/dev/null || true)"
+printf '%s' "$out" > "${PGTAP_DEBUG_OUT:-/dev/null}"  # raw CLI output, for parser forensics
 # the TAP text arrives inside the error message; print it and exit non-zero on any "not ok"
 tap="$(printf '%s' "$out" | python3 -c '
 import json, sys
 raw = sys.stdin.read()
+# The CLI wraps the raised TAP text in changing, sometimes NESTED shapes (P9: {rows};
+# P10: {"message": "TAP..."}; P11: {"_tag": "Error", "error": {"message": "unexpected
+# status 400: {\"message\": \"...TAP\\n...\"}"}}). Same rule as
+# docs/verification/lib/db-query.mjs: extract the first complete JSON value quote-aware,
+# unwrap recursively, then cut at the TAP marker — never parse one shape ad hoc.
+def first_json(s):
+    start = s.find("{")
+    if start < 0:
+        return None
+    depth, in_str, esc = 0, False, False
+    for i in range(start, len(s)):
+        c = s[i]
+        if in_str:
+            if esc: esc = False
+            elif c == "\\": esc = True
+            elif c == chr(34): in_str = False
+        elif c == chr(34): in_str = True
+        elif c == "{": depth += 1
+        elif c == "}":
+            depth -= 1
+            if depth == 0:
+                try:
+                    return json.loads(s[start:i+1])
+                except Exception:
+                    return None
+    return None
+def unwrap(d, depth=6):
+    for _ in range(depth):
+        if isinstance(d, dict):
+            e = d.get("error")
+            if isinstance(e, dict) and isinstance(e.get("message"), str):
+                d = e["message"]; continue
+            if isinstance(d.get("message"), str):
+                d = d["message"]; continue
+            if "rows" in d:
+                return json.dumps(d["rows"])
+            return json.dumps(d)
+        if isinstance(d, str):
+            j = first_json(d)
+            if j is None:
+                return d
+            d = j; continue
+        return str(d)
+    return d if isinstance(d, str) else str(d)
 try:
     d = json.loads(raw)
 except Exception:
+    d = first_json(raw)
+if d is None:
     print(raw); sys.exit(2)
-msg = ""
-if isinstance(d, dict):
-    e = d.get("error") or {}
-    msg = e.get("message") if isinstance(e, dict) else str(e)
-    if not msg and isinstance(d.get("message"), str):
-        msg = d["message"]  # CLI ≥ 2.115 wraps the raised TAP text as {"message": "..."}
-    if not msg and "rows" in d:
-        msg = json.dumps(d["rows"])
+msg = unwrap(d)
+i = msg.find("TAP\n")
+if i >= 0:
+    msg = msg[i:]
 print(msg or raw)
 ')"
 printf '%s\n' "$tap" | sed -n '/^TAP$/,$p' | sed '1d'
