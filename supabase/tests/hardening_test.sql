@@ -35,7 +35,7 @@ values ('30000000-0000-0000-0000-0000000000d1', '00000000-0000-0000-0000-0000000
         'test', 'learned', 'displaced'),
        ('30000000-0000-0000-0000-0000000000d3', '00000000-0000-0000-0000-0000000000d1',
         '20000000-0000-0000-0000-0000000000d1', '10000000-0000-0000-0000-0000000000d1',
-        now() + interval '4 hours', now() + interval '5 hours', 'EV.wd.fresh', '[1]'::jsonb,
+        now() + interval '4 hours', now() + interval '5 hours', 'EV.wd', '[1]'::jsonb,
         'test', 'learned', 'accepted');
 update public.recommendations set attributed_at = now()
   where id = '30000000-0000-0000-0000-0000000000d3';

@@ -36,6 +36,8 @@ def seed_synthetic_db(
         for i in range(n_users):
             uid = _uid(i)
             klass = CLASSES[i % len(CLASSES)]
+            # rMEQ score inside the class's band (P4 CHECK profiles_chronotype_matches_score)
+            rmeq = {"DM": 24, "MM": 20, "INT": 14, "ME": 10, "DE": 6}[klass]
             cur.execute(
                 "insert into auth.users (id, instance_id, aud, role, email, encrypted_password, "
                 "created_at, updated_at) values (%s, '00000000-0000-0000-0000-000000000000', "
@@ -45,10 +47,11 @@ def seed_synthetic_db(
             cur.execute(
                 "insert into public.profiles (user_id, timezone, working_hours, rmeq_score, "
                 "chronotype_class, survey_skipped, onboarding_completed_at) values "
-                "(%s, 'Europe/Kyiv', %s, 14, %s, false, now()) on conflict do nothing",
+                "(%s, 'Europe/Kyiv', %s, %s, %s, false, now()) on conflict do nothing",
                 (
                     uid,
                     json.dumps({d: [540, 1080] for d in ("mon", "tue", "wed", "thu", "fri")}),
+                    rmeq,
                     klass,
                 ),
             )

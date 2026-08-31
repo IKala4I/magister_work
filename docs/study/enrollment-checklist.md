@@ -31,9 +31,14 @@
 
 - [ ] Take the NEXT free row of the wave's sequence list (in enrollment order) — never skip,
       never re-draw.
-- [ ] `select public.enroll_participant('<user-uuid>', '<ABAB|BABA>', <eu_eea true|false>,
-    date '<phase-1 start>');`
-      (uuid via `select id from auth.users where email = '<their-email>'` — one column, one row.)
+- [ ] Enroll (uuid via `select id from auth.users where email = '<their-email>'` — one
+      column, one row):
+
+  ```sql
+  select public.enroll_participant('<user-uuid>', '<ABAB|BABA>', <eu_eea true|false>,
+                                   date '<phase-1 start>');
+  ```
+
 - [ ] Verify: `diagnose_user` now shows `study.enrolled = true`, `first_phase`/`last_phase`
       spanning 8 weeks, and `profile.research_cohort = true`.
 - [ ] Record in the study log: participant code (their hash from `diagnose_user`), sequence
