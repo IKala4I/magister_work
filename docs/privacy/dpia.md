@@ -180,8 +180,8 @@ destroy the OPE substrate (RQ4). Proportionate.
 - **VM:** key-only SSH behind two independent address locks + Tailscale admin path
   (ADR-0017; WireGuard end-to-end, break-glass serial console); no personal data at rest;
   Docker on the unix socket; only Caddy exposes 80/443; unattended-upgrades with nightly
-  reboot window; secrets in `~/hourwell/.env` mode 600; rotation runbook §9/§11.
-- **Keys:** audited 2026-08-31 (runbook §11) — who uses which Supabase key, formats,
+  reboot window; secrets in `~/hourwell/.env` mode 600; rotation runbook §11.
+- **Keys:** audited 2026-08-31 (runbook §14) — who uses which Supabase key, formats,
   verification per cell; legacy-JWT deprecation (end-2026) tracked with a migration plan
   (revisit.md P11 line).
 - **Backups/durability:** Supabase managed backups (EU); the VM holds nothing to back up.

@@ -316,7 +316,7 @@ its visibility — anonymous pull verified 2026-08-27). If `docker compose pull`
   nightly run cannot keep the 7-day CPU p95 above the reclaim threshold, so the hourly
   keep-busy STAYS and the training run is an additional nightly timer, below.)
 - `hourwell-train.timer` → daily 00:30 UTC `docker compose run --rm training --nightly`
-  (P11, ADR-0015): the in-region training + OPE pipeline (§10). Check:
+  (P11, ADR-0015): the in-region training + OPE pipeline (§13). Check:
   `journalctl -u hourwell-train -n 20`.
 - Manual rollout: `ssh oracle-recsys 'sudo -u ubuntu /usr/local/bin/hourwell-rollout'`.
 - Pin a version: set `RECSYS_TAG=<sha12>` in `.env` (CI publishes `:sha` and `:latest`), re-run
@@ -326,7 +326,7 @@ its visibility — anonymous pull verified 2026-08-27). If `docker compose pull`
 
 | Where                         | What                                                                                                                                                                                                                                             |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Box `~/hourwell/.env`         | `HOURWELL_SERVICE_KEY`, `DATABASE_URL`, `SUPABASE_URL`, `RECSYS_HOST` (§6); **P11:** `SUPABASE_SERVICE_ROLE_KEY` = an **sb_secret\_...** key (Dashboard → API keys → Secret keys; the legacy service_role JWT also works) + `ARCHIVE_SALT` (§10) |
+| Box `~/hourwell/.env`         | `HOURWELL_SERVICE_KEY`, `DATABASE_URL`, `SUPABASE_URL`, `RECSYS_HOST` (§6); **P11:** `SUPABASE_SERVICE_ROLE_KEY` = an **sb_secret\_...** key (Dashboard → API keys → Secret keys; the legacy service_role JWT also works) + `ARCHIVE_SALT` (§13) |
 | Supabase function secrets     | from the repo root: `supabase secrets set HOURWELL_SERVICE_KEY=<key> RECSYS_URL=https://hourwell-recsys.duckdns.org` (needs `supabase login` once)                                                                                               |
 | Supabase Vault (cron tick)    | run `~/.hourwell/vault-secrets.sql` in the SQL editor (`hourwell_functions_url`, `hourwell_service_key`, `hourwell_anon_key`)                                                                                                                    |
 | GitHub → Settings → Variables | **`RECSYS_HOST`** = `hourwell-recsys.duckdns.org` (enables the workflow's rollout check). **No GitHub secrets are needed** — CI never SSHes to the box.                                                                                          |
@@ -387,7 +387,7 @@ telemetry and CI stay clean.
 [ ] unattended-upgrades dry-run clean         [ ] keep-busy timer active (journalctl -u hourwell-keepbusy)
 ```
 
-## 10. The training/analysis container (P11 — ADR-0011 option A, ADR-0015)
+## 13. The training/analysis container (P11 — ADR-0011 option A, ADR-0015)
 
 - **What runs:** `ghcr.io/ikala4i/hourwell-training` (built by `deploy-training.yml`, arm64,
   in-image ALS smoke) as the one-shot compose service `training` (profile `training`, 2-cpu
@@ -406,7 +406,7 @@ telemetry and CI stay clean.
   records `artifact_uri = NULL`, refuses to promote, and says so on stderr — CI (`train.yml`)
   runs exactly that way on a synthetic cohort (G3: no participant data near CI).
 
-## 11. Supabase key formats — who takes what (audited 2026-08-31)
+## 14. Supabase key formats — who takes what (audited 2026-08-31)
 
 The dashboard now issues **new-generation keys** (`sb_publishable_...`, `sb_secret_...`) and
 tucks the legacy anon/service_role JWTs into a "Legacy" tab. The two generations ride
@@ -434,7 +434,7 @@ the legacy keys are disabled (deprecation, end 2026): the nine edge functions mu
 the injected legacy vars to the `SUPABASE_PUBLISHABLE_KEYS`/`SUPABASE_SECRET_KEYS` JSON vars
 (one shared helper, one PR) — tracked in `docs/decisions/revisit.md`.
 
-## 12. Tailscale admin path (ADR-0017, accepted 2026-08-31) — **INSTALLED + VERIFIED 2026-08-31**
+## 15. Tailscale admin path (ADR-0017, accepted 2026-08-31) — **INSTALLED + VERIFIED 2026-08-31**
 
 > Status: tailscaled 1.102.3 on the box, node `recsys-oracle` (100.101.44.91), owner's Mac +
 > phone in the tailnet, `tailscale up --ssh` applied, **key expiry disabled** (admin console,
@@ -471,3 +471,116 @@ the recovery ladder (§5) — they stay the security boundary and break-glass, u
 8. Data-protection note recorded in `docs/privacy/README.md` §3: the coordination server
    (US) sees admin device names/keys/endpoints only; traffic is WireGuard end-to-end;
    no participant data ever transits Tailscale — not an Art. 28 processor for study data.
+
+## 16. Scheduled-job triage (P12) — every timer and cron tick in one place
+
+("Space cold starts" from the PLAN §3 P12 line are **n/a** since ADR-0009: the VM is always
+on; NFR-R2 is carried by the edge-function fallback, measured in `p7-manual-verification.md`
+§2c.)
+
+| Job                       | Where      | Schedule (UTC)         | Does                                                                               |
+| ------------------------- | ---------- | ---------------------- | ---------------------------------------------------------------------------------- |
+| `attribute-rewards-sweep` | pg_cron    | `*/15 * * * *`         | `attribution_sweep_tick()` → posts due users to the EF (23:55-local authority)     |
+| `gcal-sweep`              | pg_cron    | `*/5 * * * *`          | `gcal_sweep_tick()` → stale-calendar re-sync + channel renewal                     |
+| `retention-sweep`         | pg_cron    | `10 3 * * *`           | `retention_sweep_tick()` → 30-day anonymous purge via `delete-account {retention}` |
+| `hourwell-rollout.timer`  | VM systemd | every 5 min            | compose pull + up -d (both images)                                                 |
+| `hourwell-keepbusy.timer` | VM systemd | hourly                 | `bench_solve.py --runs 100` (reclaim guard — STAYS, §7)                            |
+| `hourwell-train.timer`    | VM systemd | daily 00:30 (+ jitter) | `docker compose run --rm training --nightly` (§13)                                 |
+
+**Health checks (all row-free, privacy §7-safe):**
+
+```sql
+-- last five cron→function posts: 200 = healthy; 401 = key/Vault problem; 5xx = function
+select status_code, left(content, 120), created
+  from net._http_response order by created desc limit 5;
+-- did each job run when it should have?
+select jobname, status, start_time from cron.job_run_details
+  order by start_time desc limit 10;
+```
+
+VM timers: `systemctl list-timers 'hourwell-*'` · `journalctl -u hourwell-train -n 20`.
+
+**Failure playbook:**
+
+- **Tick posts 401/403** → the Vault secret or the function's backend key rotated out of
+  sync — re-run `~/.hourwell/vault-secrets.sql` and check `supabase secrets list` (§8, §11).
+- **Tick posts nothing at all** (no new `net._http_response` rows) → `select * from
+cron.job;` — the job may have been unscheduled by a migration reset; re-run the migration
+  that schedules it.
+- **`hourwell-train` failed** → `journalctl -u hourwell-train -n 40`: a refused promotion or
+  "completeness refusal: 240 rows expected" is the eval gate working, NOT an outage (§13);
+  a psycopg `prepared statement` error means a connection bypassed
+  `hourwell_training.db.connect()` (PR #27 guard — treat as a bug).
+- **Timers dead after reboot** → `systemctl daemon-reload && systemctl enable --now
+hourwell-rollout.timer hourwell-keepbusy.timer hourwell-train.timer` (install.sh does this;
+  a hand-edited unit loses it).
+- **A 4xx-refused delivery batch repeats every sweep** (P9 label delivery / P7 tuples share
+  the retry contract): the sweep retries the oldest ≤ 200 undelivered rows, so a permanent
+  4xx blocks later rows for that user. Diagnose with `diagnose_user(email)` (counts only);
+  remediation today is fixing the cause (the 409 usually means cells were never
+  instantiated); the mark-and-skip contract change is tracked in revisit.md for the next
+  sync/EF migration.
+- `sync_ops` (replay ledger) grows forever by design (idempotency window). At tens of rows
+  per user-day it is a non-issue for the study; if it ever matters:
+  `delete from sync_ops where created_at < now() - interval '90 days';` — the `events`
+  UNIQUE(user_id, op_id) keeps duplicate protection regardless (revisit.md P8 line).
+
+## 17. Model-registry rollback (P12)
+
+`model_registry` rows are append-only evidence — **never delete one; demote it.** What
+"promoted" means per kind (ADR-0015):
+
+- `kind = 'priors'`: `instantiate_user_priors` follows the **highest prior_cells version
+  with a promoted registry row** (falls back to v0). Demoting takes effect for FUTURE
+  instantiations only. Nothing to undo for existing users: priors never overwrite evidence
+  (invariant 5), and existing cells keep their `prior_version` provenance.
+- `kind = 'als'`: promotion gates the nightly cluster-cells write + reassignment that
+  ALREADY ran in the same pipeline pass. Demoting after the fact does not revert that
+  night's unvisited-cell refresh — the next nightly re-fits from scratch and its own gate
+  decides again (the silhouette band compares against the latest PROMOTED metrics, so a
+  demoted outlier no longer poisons the comparison).
+
+Procedure:
+
+```sql
+-- 1. see what is promoted
+select kind, version, promoted, metrics, created_at
+  from model_registry order by created_at desc limit 10;
+-- 2. demote the bad version (idempotent; audit trail stays)
+update model_registry set promoted = false where kind = '<kind>' and version = '<v>';
+-- 3. verify the serving path (priors): the join resolves to the previous promoted version
+select public.diagnose_user('<owner-test-email>');  -- counts only
+```
+
+Then force a fresh pass instead of waiting for 00:30:
+`ssh oracle-recsys 'cd ~/hourwell && docker compose run --rm training --nightly --out-dir /tmp/out'`
+— the JSON summary shows the new version and its gate verdict. A version demoted by hand
+stays demoted (the pipeline never re-promotes an existing row — every attempt writes a
+fresh version).
+
+## 18. Least-privilege `recsys_service` role (P12) **[owner completes]**
+
+Migration `20260831150000_p12_recsys_role.sql` creates the role (NOLOGIN — a password never
+belongs in a committed migration) with grants + RLS policies for exactly the tables
+`PostgresRepo` touches: `beta_cells` (S,U), `bandit_state` (S,I,U), `blend_state` (S,I,U),
+`recsys_applied_tuples` (S,I), `feedback_rewards` (S), `belief_labels` (S,I,U). Everything
+else — `tasks`, `events`, `auth.users`, exports — is denied (pgTAP `p12_role_test.sql`).
+The **training** container keeps the privileged `DATABASE_URL`: its NFR-S3 export/registry
+surface is wider by design (ADR-0015) and it never serves client traffic.
+
+Owner steps (after the migration is pushed):
+
+1. SQL editor: `alter role recsys_service with login password '<generated 32+ chars>';`
+2. Box `~/hourwell/.env`: add `RECSYS_DATABASE_URL` = the pooler DSN with
+   `recsys_service:<password>` in place of `postgres:<password>` (same host/port/db).
+3. `cd ~/hourwell && docker compose config | grep -A2 'recsys:' | grep DATABASE_URL` —
+   confirm the interpolated value is the new DSN (nested-default check).
+4. `docker compose up -d recsys` (recreates with the new env) → `/healthz` 200, then one
+   live plan (`p6-live-smoke.mjs 1`) and one feedback delivery
+   (`select count(*) from feedback_rewards where delivered_at is null;` → 0 shortly after).
+5. Rollback if anything misbehaves: remove `RECSYS_DATABASE_URL` from `.env`,
+   `docker compose up -d recsys` — the fallback is the old DSN.
+
+Rotation note: with this role live, a leaked recsys credential no longer bypasses RLS on
+user content (tasks/events unreadable); the `postgres` DSN then exists only in the training
+container's env and the owner's tooling (§11 rotation applies unchanged).
