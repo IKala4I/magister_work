@@ -37,6 +37,21 @@ class DroppedRows(dict[str, int]):
         self[key] = self.get(key, 0) + 1
 
 
+def normalize_slice_propensity(p: float, m: int) -> float | None:
+    """Spec-conflicts L22's symbolic recovery: M-01 was float4 (`real`) until migration
+    20260827130000, so pre-P6 rows store e.g. float32(1/3) = 0.33333334… — a 6e-8 relative
+    error that would ride into every 1/p weight AND fail the harness's strict exactness
+    check (it did, on the first fixed live run 2026-08-31). A_m(x) is logged, so p is
+    recoverable as 1/|A_m(x)| exactly. Within float32 rounding (1e-6) → the exact value;
+    anything further off is corrupt → None (drop + count)."""
+    exact = 1.0 / m
+    if abs(p - exact) <= 1e-9:
+        return p
+    if abs(p - exact) <= 1e-6:
+        return exact
+    return None
+
+
 def validate_features(value: object) -> list[float] | None:
     """The features snapshot must be a flat numeric array of exactly d = 17 (specs/07
     §3.2.4) — a short/long snapshot would silently zero-pad the DM and the probe
@@ -165,6 +180,12 @@ class Exporter:
                 if row["propensity"] is None:
                     dropped.bump("slice:no_propensity")
                     continue
+                p = normalize_slice_propensity(float(row["propensity"]), len(top_m))
+                if p is None:
+                    dropped.bump("slice:corrupt_propensity")
+                    continue
+                if p != float(row["propensity"]):
+                    dropped.bump("slice:float4_propensity_normalized")
                 if row["reward"] is None or row["excluded"]:
                     dropped.bump("slice:no_usable_reward")
                     continue
@@ -184,7 +205,7 @@ class Exporter:
                         recommendation_id=str(row["id"]),
                         bucket_id=row["context_bucket"],
                         top_m=tuple(str(b) for b in top_m),
-                        propensity=float(row["propensity"]),
+                        propensity=p,
                         reward=float(row["reward"]),
                         context=context,
                     )
