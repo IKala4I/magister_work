@@ -12,8 +12,7 @@ import urllib.request
 from dataclasses import dataclass
 from typing import Any
 
-import psycopg
-
+from hourwell_training import db
 from hourwell_training.params import ARTIFACT_BUCKET
 
 __all__ = ["RegistryClient", "StorageConfig"]
@@ -80,7 +79,7 @@ class RegistryClient:
             raise ValueError(
                 "a promoted version must carry its artifact (no storage credentials?)"
             )
-        with psycopg.connect(self.conninfo) as conn:
+        with db.connect(self.conninfo) as conn:
             conn.execute(
                 """
                 insert into public.model_registry (kind, version, artifact_uri, metrics, promoted)
@@ -95,7 +94,7 @@ class RegistryClient:
             conn.commit()
 
     def next_version(self, kind: str) -> int:
-        with psycopg.connect(self.conninfo) as conn:
+        with db.connect(self.conninfo) as conn:
             row = conn.execute(
                 "select coalesce(max(version::int), -1) + 1 from public.model_registry "
                 "where kind = %s and version ~ '^[0-9]+$'",

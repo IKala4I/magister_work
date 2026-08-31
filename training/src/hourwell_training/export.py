@@ -13,11 +13,11 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
-import psycopg
 from hourwell_recsys.energy import BetaCell, decayed_evidence
 from hourwell_recsys.params import FEATURE_DIM
 from psycopg.rows import dict_row
 
+from hourwell_training import db
 from hourwell_training.als import CellObs
 from hourwell_training.ope import SliceRow
 from hourwell_training.whitelist import EVENT_TYPES, WHITELIST, select_sql
@@ -58,7 +58,7 @@ class Exporter:
     def _rows(self, table: str, extra_sql: str = "") -> Iterator[dict[str, Any]]:
         assert table in WHITELIST  # the only SQL producer is whitelist.select_sql
         with (
-            psycopg.connect(self.conninfo, row_factory=dict_row) as conn,
+            db.connect(self.conninfo, row_factory=dict_row) as conn,
             conn.cursor(name=f"exp_{table}") as cur,
         ):
             cur.execute(select_sql(table) + extra_sql)
@@ -136,7 +136,7 @@ class Exporter:
             "select user_id, count(*) as n from public.feedback_rewards "
             "where kind = 'outcome' and not excluded group by user_id"
         )
-        with psycopg.connect(self.conninfo, row_factory=dict_row) as conn:
+        with db.connect(self.conninfo, row_factory=dict_row) as conn:
             return {str(r["user_id"]): int(r["n"]) for r in conn.execute(sql)}
 
     def slice_rows(self, dropped: DroppedRows) -> list[SliceRow]:
@@ -156,7 +156,7 @@ class Exporter:
              where r.is_experiment
         """
         out: list[SliceRow] = []
-        with psycopg.connect(self.conninfo, row_factory=dict_row) as conn:
+        with db.connect(self.conninfo, row_factory=dict_row) as conn:
             for row in conn.execute(sql):
                 top_m = row["top_m"]
                 if not isinstance(top_m, list) or not top_m:
@@ -199,7 +199,7 @@ def column_types(conninfo: str, table: str, columns: Sequence[str]) -> dict[str,
         select column_name, data_type from information_schema.columns
          where table_schema = 'public' and table_name = %s and column_name = any(%s)
     """
-    with psycopg.connect(conninfo, row_factory=dict_row) as conn:
+    with db.connect(conninfo, row_factory=dict_row) as conn:
         return {
             r["column_name"]: r["data_type"]
             for r in conn.execute(sql, (table, list(columns)))
@@ -233,7 +233,7 @@ def mixed_ts_rows(exporter: Exporter, dropped: DroppedRows) -> list[SliceRow]:
          where not r.is_experiment and r.engine = 'learned' and r.propensity is not null
     """
     out: list[SliceRow] = []
-    with psycopg.connect(exporter.conninfo, row_factory=dict_row) as conn:
+    with db.connect(exporter.conninfo, row_factory=dict_row) as conn:
         for row in conn.execute(sql):
             if row["excluded"]:
                 dropped.bump("mixed:excluded_reward")

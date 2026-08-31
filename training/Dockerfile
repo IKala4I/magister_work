@@ -5,7 +5,8 @@ FROM python:3.12-slim AS base
 COPY --from=ghcr.io/astral-sh/uv:0.12.5 /uv /uvx /bin/
 ARG TRAINING_BUILD=dev
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_PROJECT_ENVIRONMENT=/opt/venv \
-    PYTHONUNBUFFERED=1 TRAINING_BUILD=$TRAINING_BUILD
+    PYTHONUNBUFFERED=1 TRAINING_BUILD=$TRAINING_BUILD \
+    OPENBLAS_NUM_THREADS=1
 # libgomp1: OpenMP runtime for `implicit` (ALS) and scikit-learn on slim images
 RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 \
     && rm -rf /var/lib/apt/lists/*
