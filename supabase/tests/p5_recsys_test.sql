@@ -8,8 +8,9 @@ select col_is_pk('public', 'recsys_applied_tuples',
   array['user_id', 'recommendation_id', 'kind'], 'composite PK (user, rec, kind)');
 select ok((select relrowsecurity from pg_class where oid = 'public.recsys_applied_tuples'::regclass),
   'RLS enabled');
-select is((select count(*)::int from pg_policies where tablename = 'recsys_applied_tuples'), 0,
-  'no client policies at all');
+select is((select count(*)::int from pg_policies where tablename = 'recsys_applied_tuples'
+             and not ('recsys_service' = any(roles))), 0,
+  'no client policies at all (the P12 backend-role policy is not a client grant)');
 
 insert into auth.users (id, email)
 values ('00000000-0000-0000-0000-0000000000f5', 'f5@test.local');
