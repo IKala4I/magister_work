@@ -84,6 +84,12 @@
 
 ## ⛔ ACTION REQUIRED (owner)
 
+- **Push migration `20260831140000_p11_sweep_header`** (key audit, runbook §11): the P7
+  attribution sweep sent the Vault publishable key as `Authorization: Bearer` — documented-
+  invalid for new-generation keys, tolerated today only by `verify_jwt = false` + the
+  `x-service-key` gate; the migration aligns it with the P10 retention tick (apikey only).
+  One `supabase db push`, no smoke needed beyond `select public.attribution_sweep_tick();`
+  answering `posted` and a 200 in `net._http_response`.
 - **P11 activation — one step left:** VM `.env` + `SUPABASE_SERVICE_ROLE_KEY`
   (prefer the new `sb_secret_...` key) +
   `ARCHIVE_SALT`, re-run `install.sh` (runbook §8/§10). Until then: no live nightly run,
@@ -99,6 +105,16 @@
   Oracle PAYG revisit (G1); Google consent screen Testing → In production; the hardware
   pass (scripted, needs a dev build); if an EU/EEA resident may enroll — designate the
   Art. 27 representative FIRST (enrollment-checklist blocks otherwise).
+
+## Key-format audit (2026-08-31)
+
+**Runbook §11 holds the full table** (who uses which Supabase key, which formats each path
+accepts, how each cell was verified, what is configured live). Headline: repo `.env` and
+Vault already carry NEW-generation publishable keys (since 2026-08-28 — every live
+verification since ran on them); edge functions run on the platform-injected LEGACY pair
+(fine until the end-2026 deprecation; switch = read the `SUPABASE_SECRET_KEYS` JSON vars,
+one helper); the training uploader takes both; recsys uses no Supabase API key at all. One
+latent mismatch found and fixed (the P7 sweep's Bearer header — migration above).
 
 ## Gotchas (P11 additions; earlier lists still apply)
 

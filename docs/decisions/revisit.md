@@ -219,3 +219,8 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
 - [P10, 2026-08-30] **`@testing-library/react-native` 14: a second `render` after `cleanup()`
   in the same test leaves the NEXT test's render empty** (found while adding the Today cases;
   one existing trade-off test had the pattern). Rule from now on: one render per test.
+- [P11, 2026-08-31] Supabase legacy anon/service_role JWTs are deprecated end-2026; the nine
+  edge functions run on the platform-INJECTED legacy vars (runbook §11). Before the cutoff:
+  one shared helper reading `SUPABASE_SECRET_KEYS`/`SUPABASE_PUBLISHABLE_KEYS` (JSON, keyed
+  by name) and a `createClient` sweep — do it well before enrollment ends so a mid-study
+  platform cutoff cannot bite.
