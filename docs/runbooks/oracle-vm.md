@@ -316,7 +316,7 @@ its visibility — anonymous pull verified 2026-08-27). If `docker compose pull`
   nightly run cannot keep the 7-day CPU p95 above the reclaim threshold, so the hourly
   keep-busy STAYS and the training run is an additional nightly timer, below.)
 - `hourwell-train.timer` → daily 00:30 UTC `docker compose run --rm training --nightly`
-  (P11, ADR-0015): the in-region training + OPE pipeline (§10). Check:
+  (P11, ADR-0015): the in-region training + OPE pipeline (§13). Check:
   `journalctl -u hourwell-train -n 20`.
 - Manual rollout: `ssh oracle-recsys 'sudo -u ubuntu /usr/local/bin/hourwell-rollout'`.
 - Pin a version: set `RECSYS_TAG=<sha12>` in `.env` (CI publishes `:sha` and `:latest`), re-run
@@ -326,7 +326,7 @@ its visibility — anonymous pull verified 2026-08-27). If `docker compose pull`
 
 | Where                         | What                                                                                                                                                                                                                                             |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Box `~/hourwell/.env`         | `HOURWELL_SERVICE_KEY`, `DATABASE_URL`, `SUPABASE_URL`, `RECSYS_HOST` (§6); **P11:** `SUPABASE_SERVICE_ROLE_KEY` = an **sb_secret\_...** key (Dashboard → API keys → Secret keys; the legacy service_role JWT also works) + `ARCHIVE_SALT` (§10) |
+| Box `~/hourwell/.env`         | `HOURWELL_SERVICE_KEY`, `DATABASE_URL`, `SUPABASE_URL`, `RECSYS_HOST` (§6); **P11:** `SUPABASE_SERVICE_ROLE_KEY` = an **sb_secret\_...** key (Dashboard → API keys → Secret keys; the legacy service_role JWT also works) + `ARCHIVE_SALT` (§13) |
 | Supabase function secrets     | from the repo root: `supabase secrets set HOURWELL_SERVICE_KEY=<key> RECSYS_URL=https://hourwell-recsys.duckdns.org` (needs `supabase login` once)                                                                                               |
 | Supabase Vault (cron tick)    | run `~/.hourwell/vault-secrets.sql` in the SQL editor (`hourwell_functions_url`, `hourwell_service_key`, `hourwell_anon_key`)                                                                                                                    |
 | GitHub → Settings → Variables | **`RECSYS_HOST`** = `hourwell-recsys.duckdns.org` (enables the workflow's rollout check). **No GitHub secrets are needed** — CI never SSHes to the box.                                                                                          |
@@ -387,11 +387,11 @@ telemetry and CI stay clean.
 [ ] unattended-upgrades dry-run clean         [ ] keep-busy timer active (journalctl -u hourwell-keepbusy)
 ```
 
-## 10. The training/analysis container (P11 — ADR-0011 option A, ADR-0015)
+## 13. The training/analysis container (P11 — ADR-0011 option A, ADR-0015)
 
 - **What runs:** `ghcr.io/ikala4i/hourwell-training` (built by `deploy-training.yml`, arm64,
   in-image ALS smoke) as the one-shot compose service `training` (profile `training`, 2-cpu
-  cap). Nightly via `hourwell-train.timer` (03:00 UTC): NFR-S3 whitelisted export → EB prior
+  cap). Nightly via `hourwell-train.timer` (00:30 UTC + jitter): NFR-S3 whitelisted export → EB prior
   refresh behind the eval gate → ALS + k-means → fold-in (≥ 30 outcomes, unvisited-cell-only
   refresh) → K = 32 MC propensity backfill → the aggregate report. Artifacts + reports go to
   the private `models` Storage bucket (EU); `model_registry` records every version.
@@ -406,7 +406,7 @@ telemetry and CI stay clean.
   records `artifact_uri = NULL`, refuses to promote, and says so on stderr — CI (`train.yml`)
   runs exactly that way on a synthetic cohort (G3: no participant data near CI).
 
-## 11. Supabase key formats — who takes what (audited 2026-08-31)
+## 14. Supabase key formats — who takes what (audited 2026-08-31)
 
 The dashboard now issues **new-generation keys** (`sb_publishable_...`, `sb_secret_...`) and
 tucks the legacy anon/service_role JWTs into a "Legacy" tab. The two generations ride
@@ -423,7 +423,7 @@ Legacy keys are scheduled for deprecation **end of 2026**. Every consumer, audit
 | Edge functions ×9, user path (`userClient`)                                | platform-INJECTED `SUPABASE_ANON_KEY` (legacy) as `createClient` key; the caller's user JWT overrides `Authorization`                        | ➖ (would need `SUPABASE_PUBLISHABLE_KEYS` JSON — see below)                                                                                                                | ✅ (in use)    | Code (`Deno.env.get('SUPABASE_ANON_KEY')` in all user-path functions); `supabase secrets list` shows the platform injects BOTH generations (`SUPABASE_PUBLISHABLE_KEYS`/`SUPABASE_SECRET_KEYS` JSON vars + the legacy pair, refreshed 2026-08-30) | legacy JWT (injected)                                                                                                                                                                       |
 | Edge functions, admin path (`auth.admin`, service writes)                  | platform-INJECTED `SUPABASE_SERVICE_ROLE_KEY` (legacy)                                                                                       | ➖ (same: would read `SUPABASE_SECRET_KEYS` JSON)                                                                                                                           | ✅ (in use)    | Code; every function has `verify_jwt = false` (9/9 in config.toml) so no gateway JWT parse anywhere                                                                                                                                               | legacy JWT (injected)                                                                                                                                                                       |
 | Cron tick — retention (P10, `retention_sweep_tick`)                        | Vault `hourwell_anon_key` on **`apikey` only** + `x-service-key` backend key                                                                 | ✅ (docs-correct)                                                                                                                                                           | ✅             | SQL read (migration 20260830120000); live: retention run succeeded                                                                                                                                                                                | **new publishable** in Vault (set 2026-08-28)                                                                                                                                               |
-| Cron tick — attribution sweep (P7, `attribution_sweep_tick`)               | Vault `hourwell_anon_key` on `Bearer` **and** `apikey` (P7 shape)                                                                            | ⚠️ tolerated only because `verify_jwt = false` and the daily path gates on `x-service-key` (handler.ts:473, constant-time) — a Bearer publishable key is documented-invalid | ✅             | SQL read; LIVE: 6 h of uniform 200s in `net._http_response`, 395 succeeded runs/7 d                                                                                                                                                               | **fixed by migration `20260831140000_p11_sweep_header`** (apikey-only, the P10 shape) — pending push                                                                                        |
+| Cron tick — attribution sweep (P7, `attribution_sweep_tick`)               | Vault `hourwell_anon_key` on `Bearer` **and** `apikey` (P7 shape)                                                                            | ⚠️ tolerated only because `verify_jwt = false` and the daily path gates on `x-service-key` (handler.ts:473, constant-time) — a Bearer publishable key is documented-invalid | ✅             | SQL read; LIVE: 6 h of uniform 200s in `net._http_response`, 395 succeeded runs/7 d                                                                                                                                                               | **fixed by migration `20260831140000_p11_sweep_header`** (apikey-only, the P10 shape) — pushed + verified live 2026-08-31 (uniform 200s)                                                    |
 | RecSys service (VM)                                                        | none — `DATABASE_URL` (Postgres password), `HOURWELL_SERVICE_KEY` (own 64-hex), JWKS URL for user JWTs                                       | n/a                                                                                                                                                                         | n/a            | `auth.py` (JWKS + service key only); Vault `hourwell_service_key` live-classified as 64-char non-key                                                                                                                                              | no Supabase API key                                                                                                                                                                         |
 | Training container (VM)                                                    | `SUPABASE_SERVICE_ROLE_KEY` env → Storage REST; `StorageConfig.auth_headers()` picks per key kind (`sb_secret_` → `apikey` only; JWT → both) | ✅ **recommended**                                                                                                                                                          | ✅             | Code + unit tests pin both header shapes (`test_registry.py`); first upload fails loudly on a bad key (no silent retry-never)                                                                                                                     | owner-set on the VM — check formats only: `ssh oracle-recsys 'grep -oc "^SUPABASE_SERVICE_ROLE_KEY=sb_secret_" ~/hourwell/.env; grep -oc "^SUPABASE_SERVICE_ROLE_KEY=eyJ" ~/hourwell/.env'` |
 | CI                                                                         | none hosted (G3); the local stack mints its own demo legacy keys                                                                             | n/a                                                                                                                                                                         | n/a            | workflow grep: no `SUPABASE_*` secret anywhere                                                                                                                                                                                                    | none                                                                                                                                                                                        |
@@ -434,7 +434,7 @@ the legacy keys are disabled (deprecation, end 2026): the nine edge functions mu
 the injected legacy vars to the `SUPABASE_PUBLISHABLE_KEYS`/`SUPABASE_SECRET_KEYS` JSON vars
 (one shared helper, one PR) — tracked in `docs/decisions/revisit.md`.
 
-## 12. Tailscale admin path (ADR-0017, accepted 2026-08-31) — **INSTALLED + VERIFIED 2026-08-31**
+## 15. Tailscale admin path (ADR-0017, accepted 2026-08-31) — **INSTALLED + VERIFIED 2026-08-31**
 
 > Status: tailscaled 1.102.3 on the box, node `recsys-oracle` (100.101.44.91), owner's Mac +
 > phone in the tailnet, `tailscale up --ssh` applied, **key expiry disabled** (admin console,
@@ -471,3 +471,125 @@ the recovery ladder (§5) — they stay the security boundary and break-glass, u
 8. Data-protection note recorded in `docs/privacy/README.md` §3: the coordination server
    (US) sees admin device names/keys/endpoints only; traffic is WireGuard end-to-end;
    no participant data ever transits Tailscale — not an Art. 28 processor for study data.
+
+## 16. Scheduled-job triage (P12) — every timer and cron tick in one place
+
+("Space cold starts" from the PLAN §3 P12 line are **n/a** since ADR-0009: the VM is always
+on; NFR-R2 is carried by the edge-function fallback, measured in `p7-manual-verification.md`
+§2c.)
+
+| Job                        | Where      | Schedule (UTC)         | Does                                                                               |
+| -------------------------- | ---------- | ---------------------- | ---------------------------------------------------------------------------------- |
+| `attribute-rewards-sweep`  | pg_cron    | `*/15 * * * *`         | `attribution_sweep_tick()` → posts due users to the EF (23:55-local authority)     |
+| `gcal-sweep`               | pg_cron    | `*/5 * * * *`          | `gcal_sweep_tick()` → stale-calendar re-sync + channel renewal                     |
+| `retention-sweep`          | pg_cron    | `10 3 * * *`           | `retention_sweep_tick()` → 30-day anonymous purge via `delete-account {retention}` |
+| `hourwell-rollout.timer`   | VM systemd | every 5 min            | compose pull + up -d (both images)                                                 |
+| `hourwell-keepbusy.timer`  | VM systemd | hourly                 | `bench_solve.py --runs 100` (reclaim guard — STAYS, §7)                            |
+| `hourwell-train.timer`     | VM systemd | daily 00:30 (+ jitter) | `docker compose run --rm training --nightly` (§13)                                 |
+| `hourwell-ssh-allow.timer` | VM systemd | every minute           | syncs the host SSH allow-list from the instance tag (§0)                           |
+
+**Health checks (all row-free, privacy §7-safe):**
+
+```sql
+-- last five cron→function posts: 200 = healthy; 401 = key/Vault problem; 5xx = function
+select status_code, left(content, 120), created
+  from net._http_response order by created desc limit 5;
+-- did each job run when it should have?
+select jobname, status, start_time from cron.job_run_details
+  order by start_time desc limit 10;
+```
+
+VM timers: `systemctl list-timers 'hourwell-*'` · `journalctl -u hourwell-train -n 20`.
+
+**Failure playbook:**
+
+- **Tick posts 401/403** → the Vault secret or the function's backend key rotated out of
+  sync — re-run `~/.hourwell/vault-secrets.sql` and check `supabase secrets list` (§8, §11).
+- **Tick posts nothing at all** (no new `net._http_response` rows) → `select * from
+cron.job;` — the job may have been unscheduled by a migration reset; re-run the migration
+  that schedules it.
+- **`hourwell-train` failed** → `journalctl -u hourwell-train -n 40`: a refused promotion or
+  "completeness refusal: 240 rows expected" is the eval gate working, NOT an outage (§13);
+  a psycopg `prepared statement` error means a connection bypassed
+  `hourwell_training.db.connect()` (PR #27 guard — treat as a bug).
+- **Timers dead after reboot** → `systemctl daemon-reload && systemctl enable --now
+hourwell-rollout.timer hourwell-keepbusy.timer hourwell-train.timer` (install.sh does this;
+  a hand-edited unit loses it).
+- **A 4xx-refused delivery batch repeats every sweep** (P9 label delivery / P7 tuples share
+  the retry contract): the sweep retries the oldest ≤ 200 undelivered rows, so a permanent
+  4xx blocks later rows for that user. Diagnose with `diagnose_user(email)` (counts only);
+  remediation today is fixing the cause (the 409 usually means cells were never
+  instantiated); the mark-and-skip contract change is tracked in revisit.md for the next
+  sync/EF migration.
+- `sync_ops` (replay ledger) grows forever by design (idempotency window). At tens of rows
+  per user-day it is a non-issue for the study; if it ever matters:
+  `delete from sync_ops where created_at < now() - interval '90 days';` — the `events`
+  UNIQUE(user_id, op_id) keeps duplicate protection regardless (revisit.md P8 line).
+
+## 17. Model-registry rollback (P12)
+
+`model_registry` rows are append-only evidence — **never delete one; demote it.** What
+"promoted" means per kind (ADR-0015):
+
+- `kind = 'priors'`: `instantiate_user_priors` follows the **highest prior_cells version
+  with a promoted registry row** (falls back to v0). Demoting takes effect for FUTURE
+  instantiations only. Nothing to undo for existing users: priors never overwrite evidence
+  (invariant 5), and existing cells keep their `prior_version` provenance.
+- `kind = 'als'`: promotion gates the nightly cluster-cells write + reassignment that
+  ALREADY ran in the same pipeline pass. Demoting after the fact does not revert that
+  night's unvisited-cell refresh — the next nightly re-fits from scratch and its own gate
+  decides again (the silhouette band compares against the latest PROMOTED metrics, so a
+  demoted outlier no longer poisons the comparison).
+
+Procedure:
+
+```sql
+-- 1. see what is promoted
+select kind, version, promoted, metrics, created_at
+  from model_registry order by created_at desc limit 10;
+-- 2. demote the bad version (idempotent; audit trail stays)
+update model_registry set promoted = false where kind = '<kind>' and version = '<v>';
+-- 3. verify the serving path (priors): the join resolves to the previous promoted version
+select max(pc.version) from prior_cells pc
+  join model_registry mr on mr.kind = 'priors' and mr.promoted
+   and mr.version = pc.version::text;  -- the version new signups will receive
+```
+
+Then force a fresh pass instead of waiting for 00:30:
+`ssh oracle-recsys 'cd ~/hourwell && docker compose run --rm training --nightly --out-dir /tmp/out'`
+— the JSON summary shows the new version and its gate verdict. A version demoted by hand
+stays demoted (the pipeline never re-promotes an existing row — every attempt writes a
+fresh version).
+
+## 18. Least-privilege `recsys_service` role (P12) **[owner completes]**
+
+Migration `20260831150000_p12_recsys_role.sql` creates the role (NOLOGIN — a password never
+belongs in a committed migration) with grants + RLS policies for exactly the tables
+`PostgresRepo` touches: `beta_cells` (S,U), `bandit_state` (S,I,U), `blend_state` (S,I,U),
+`recsys_applied_tuples` (S,I), `feedback_rewards` (S), `belief_labels` (S,I,U). Everything
+else — `tasks`, `events`, `auth.users`, exports — is denied (pgTAP `p12_role_test.sql`).
+The **training** container keeps the privileged `DATABASE_URL`: its NFR-S3 export/registry
+surface is wider by design (ADR-0015) and it never serves client traffic.
+
+Owner steps (after the migration is pushed):
+
+0. **Ship the P12 `compose.yml` to the box first** — the override is new in P12: re-run the
+   §6 deploy-dir sync (tar-over-ssh; the Minimal image has no rsync) or `install.sh`.
+   Without this, adding `RECSYS_DATABASE_URL` to `.env` changes NOTHING and the service
+   silently stays on the postgres DSN.
+1. SQL editor: `alter role recsys_service with login password '<generated 32+ chars>';`
+2. Box `~/hourwell/.env`: add `RECSYS_DATABASE_URL` = the pooler DSN with
+   `recsys_service:<password>` in place of `postgres:<password>` (same host/port/db).
+3. `cd ~/hourwell && docker compose config recsys | grep 'DATABASE_URL:'` — the interpolated
+   value must contain `recsys_service@` (an empty or `postgres@` value means step 0 or 2 is
+   missing).
+4. `docker compose up -d recsys` → `docker compose exec recsys env | grep '^DATABASE_URL='`
+   shows `recsys_service@`; `/healthz` 200, then one
+   live plan (`p6-live-smoke.mjs 1`) and one feedback delivery
+   (`select count(*) from feedback_rewards where delivered_at is null;` → 0 shortly after).
+5. Rollback if anything misbehaves: remove `RECSYS_DATABASE_URL` from `.env`,
+   `docker compose up -d recsys` — the fallback is the old DSN.
+
+Rotation note: with this role live, a leaked recsys credential no longer bypasses RLS on
+user content (tasks/events unreadable); the `postgres` DSN then exists only in the training
+container's env and the owner's tooling (§11 rotation applies unchanged).

@@ -296,3 +296,17 @@ and engine = 'learned';` → 0 (privacy §7 aggregate). Simulator/CI cannot sett
 - ⬜ **Rollout picks up the training image** — `docker compose --profile training pull`
   path via `hourwell-rollout` on the box; check `docker image ls | grep hourwell-training`
   after a main-branch push.
+
+## Release builds — EAS (added P12)
+
+- ⬜ **EAS preview build installs and runs on both devices** (added P12). After the owner's
+  `eas login`/`init`/credentials: `eas build --profile preview` for both platforms, install
+  on the two study-class devices, run one full day loop (plan → focus → skip → sync). Why
+  the simulator can't settle it: every measurement so far ran in Expo Go / dev client or the
+  iOS Release simulator build — an EAS-built standalone binary (Hermes bytecode, app
+  signing, no dev server) has never existed, and notification categories + deep links behave
+  differently in standalone.
+- ⬜ **Store screenshots captured on hardware** (added P12). The `docs/store/metadata.md` §6
+  capture list, on the real devices in light + dark. Why: simulator screenshots at the
+  wrong device class misrepresent the product on mid-range hardware (same honesty rule as
+  the perf numbers).

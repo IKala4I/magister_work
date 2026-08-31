@@ -1,5 +1,35 @@
 # Changelog
 
+## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
+
+Everything below condenses P0–P11 for release notes and the thesis; per-phase detail follows.
+
+- **Plan your day around your real energy.** Tasks are placed by learned personal completion
+  probability (decayed Beta energy cells + a LinUCB/TS contextual bandit, blended), solved
+  under hard calendar constraints by CP-SAT; every placement carries a one-sentence rationale;
+  uncertain blocks literally render less solid, experiment blocks are labeled.
+- **Zero-guilt loop.** Focus sessions, one-tap ratings, skip/move/finish facts; a skip is a
+  data point (never red); lapses return tasks to the Inbox; corrections ("actually did it",
+  7 days) rebuild model state from stored tuples; duration estimates learn (EWMA ≥ 3 sessions).
+- **Quick-add in plain language** (dates chrono-node, durations an on-device grammar),
+  offline-first everything (SQLite + op outbox, push-then-pull sync, field-level merge),
+  Google Calendar (server-held OAuth, push + 5-min sweep, optional write-back, displacement
+  without false rewards).
+- **Trust surfaces:** energy heatmap (OKLCH, text alternative), "what Hourwell believes"
+  with ✓/✗ corrections (one prior's worth, full rebuild), weekly review on facts-only PAR,
+  trade-off sheet on over-committed days.
+- **Notifications with a hard ≤ 5/day cap** (conservative delivered-ledger), evening
+  "plan tomorrow" ritual, per-category mute — all local, no push relay.
+- **Privacy:** EU-only processing, RLS everywhere, in-app export + synchronous audited
+  erasure (cascade pgTAP-proven), 30-day anonymous retention, analytics opt-out; cross-user
+  training sees categorical features only — never task text.
+- **Research substrate:** exact logged propensities on the randomized slice (both arms,
+  matched randomization), nightly in-region training (EB priors behind an eval gate, ALS +
+  k-means + fold-in ≥ 30), K=32 MC propensity backfill, OPE family (replay/IPS/clip/SNIPS/DR,
+  ESS gate), aggregate nightly report (min cell 5), ABAB/BABA study mode.
+- **Ops:** Supabase (eu-west-1) + Oracle A1 VM (eu-marseille-1) with pull-based rollout,
+  hardened SSH + Tailscale admin path, nightly training timer, runbooks for every timer.
+
 ## P11 — Training pipeline + OPE + study mode (2026-08-31, phase/P11-training)
 
 **Database (ADR-0015).** Migration `20260831120000_p11_training`: `cluster_cells`
@@ -33,7 +63,7 @@ drop rate per arm, personal-by-label counts, scaling-active users, interference 
 OPE table.
 
 **Deploy + CI.** `training/Dockerfile` (repo-root context, arm64, libgomp1); one-shot
-compose service `training` (profile-gated, 2-cpu cap); `hourwell-train.timer` nightly 03:00
+compose service `training` (profile-gated, 2-cpu cap); `hourwell-train.timer` nightly 00:30
 UTC — the keep-busy timer STAYS (runbook §7 forecast corrected; ADR-0015 §1); rollout pulls
 both images. `train.yml`: the same pipeline **on a synthetic cohort only** (G3 — no hosted
 secret), end-to-end asserted (registry rows, no-credentials-no-promotion, full backfill

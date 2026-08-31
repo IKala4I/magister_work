@@ -4,7 +4,7 @@
 - **Status:** **accepted — owner decision 2026-08-31: option T** (Tailscale for daily
   admin; allow-lists + serial console stay the security boundary and break-glass).
   Implementation rides the owner's home-session VM work (P11 keys + install.sh) —
-  runbook §12 is written and ready; nothing runs until then.
+  runbook §15 is written and ready; nothing runs until then.
 - **Anchors:** ADR-0009 §Decision 4–5 (hardening: port 22 behind two address locks);
   runbook §0 (access model), §4 (locks), §5 (recovery ladder); privacy README §3
   (self-hosted VM responsibilities).

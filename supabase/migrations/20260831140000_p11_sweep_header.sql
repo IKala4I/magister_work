@@ -1,4 +1,4 @@
--- P11 key audit (runbook §11): the P7 attribution sweep sent the Vault anon key as
+-- P11 key audit (runbook §14): the P7 attribution sweep sent the Vault anon key as
 -- `Authorization: Bearer` AND `apikey`. The key in Vault is a NEW-generation publishable key
 -- (sb_publishable_...), and per the Supabase key migration guide new keys are NOT JWTs and
 -- must ride the `apikey` header only — a Bearer publishable key causes JWT parsing errors in
@@ -41,4 +41,4 @@ begin
   return 'posted';
 end $$;
 comment on function public.attribution_sweep_tick() is
-  'Appendix A attribution cron: every 15 min, POST {"mode":"daily"} to the attribute-rewards edge function. Vault secrets hourwell_functions_url, hourwell_service_key, hourwell_anon_key (apikey header ONLY — new-generation keys are not JWTs and never ride Authorization: Bearer; runbook §11). Without url/key the tick is a no-op.';
+  'Appendix A attribution cron: every 15 min, POST {"mode":"daily"} to the attribute-rewards edge function. Vault secrets hourwell_functions_url, hourwell_service_key, hourwell_anon_key (apikey header ONLY — new-generation keys are not JWTs and never ride Authorization: Bearer; runbook §14). Without url/key the tick is a no-op.';

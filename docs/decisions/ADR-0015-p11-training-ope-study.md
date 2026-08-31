@@ -158,7 +158,7 @@ export whitelist. The rest is routine under the standard Definition of Done.
 - New: `training/` grows the pipeline + OPE package, Dockerfile, compose service, systemd
   units, `train.yml`, `deploy-training.yml`; migration `20260831120000_p11_training.sql`
   (bucket, `cluster_cells`, RPCs, promoted-version gate) + pgTAP; enrollment checklist;
-  runbook §7 correction + §10 (training container); privacy README G3 note (implemented).
+  runbook §7 correction + §13 (training container); privacy README G3 note (implemented).
 - ⛔ owner (end of phase): push the migration; add `SUPABASE_SERVICE_ROLE_KEY` (+
   `ARCHIVE_SALT`) to the VM `.env`; re-run `install.sh` on the box (new timer + compose).
 - Appendix A rows fixed by this ADR: IPS clip M = 10; ALS factors 32 / λ 0.1 / α_conf 40;

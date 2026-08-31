@@ -217,3 +217,12 @@ No new Python or Deno dependencies. `ANONYMOUS_RETENTION_DAYS = 30` added to the
 | psycopg[binary]            | 3.3.4                | same pin as the service                                                                                                                                                                                                              |
 | hourwell-recsys (path dep) | `../services/recsys` | ONE scoring implementation for the MC backfill (bandit/blend/contexts/energy imported, `py.typed` added); uv `[tool.uv.sources]` path dependency, locked                                                                             |
 | scipy-stubs (dev)          | ≥ 1.18.1.0           | mypy strict over scipy.sparse                                                                                                                                                                                                        |
+
+## Release prep — P12 (verified 2026-08-31)
+
+| Tool / fact             | Version / value                             | Notes                                                                                                                                              |
+| ----------------------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| eas-cli                 | 23.1.0                                      | `npm view eas-cli version` 2026-08-31; not a repo dependency — `eas.json` pins `cli.version >= 23.1.0`, `appVersionSource: remote`                 |
+| Expo SDK 57 patch drift | expo 57.0.18 · RN 0.86.3 · jest-expo 57.0.5 | current `apps/mobile/package.json` as of 2026-08-31 (the P7 row recorded .17; `expo install --fix` drift since — expo-doctor 21/21 unchanged)      |
+| Store listing limits    | Apple 30/30/100/4000/170 · Play 30/80/4000  | name/subtitle/keywords/description/promo (Apple), title/short/full (Play) — verified 2026-08-31, `docs/store/metadata.md`                          |
+| Store account economics | Play $25 one-time · Apple $99/yr            | owner decision re-raised in the P12 report (`docs/store/metadata.md` §7); Apple free tier (3 devices / 7-day builds) unusable for the 8-week study |
