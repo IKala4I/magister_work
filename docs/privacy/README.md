@@ -80,7 +80,9 @@ re-verifiable with `deploy/verify.sh`):
   secret). GitHub is DPF-certified (Art. 45), the DPF is under appeal (C-703/25 P), HF Hub's DPF
   status is unverified, and under Ukrainian law the US is not adequate regardless. ADR-0011
   option A keeps participant data off CI entirely (training on the VM; `train.yml` on synthetic
-  data; registry in Supabase Storage).
+  data; registry in Supabase Storage). **Implemented in P11** (ADR-0015): `train.yml` seeds a
+  synthetic cohort into the CI-local stack and runs the same pipeline; the nightly run is a
+  systemd timer on the VM; artifacts live in the private `models` bucket (EU).
 - **G4 — Edge Functions region — closed in P8.** Every `functions.invoke` goes through
   `apps/mobile/src/sync/invoke.ts`, pinned to `FunctionRegion.EuWest1` (`plan-request`,
   `sync-resolve`, `gcal-connect`); verified live on the hosted project by the
@@ -190,8 +192,8 @@ erasure, a bug that only reproduces on their data):
 'x-service-key: …' -H 'apikey: <anon>' -d '{"mode":"operator","user_id":"<uid>"}'` (the
    backend key from `~/.hourwell`, never from the repo); resolve the uid with
    `select id from auth.users where email = '…'` (one id, no other column) and log the access.
-   The response is the audit reference only. `diagnose_user(email)` returning counts/timestamps —
-   add in P11 if a support case needs it.
+   The response is the audit reference only. `diagnose_user(email)` (P11, service-only)
+   returns counts/timestamps for exactly this case — run it instead of any row-level select.
 2. If a row must be seen: minimum columns, that participant only, from the VM
    (`docker compose exec recsys …` / `psql` inside the compose network) — the screen is still a
    transfer, so this is the case the consent form's Art. 49(1)(a) clause covers.
