@@ -15,7 +15,8 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   §11: deferred wipe, Today banner Keep/Discard, owner sign-back-in cancels).
 - [P4, 2026-08-26] ADR-0005 §6 (instantiate from max prior_cells version) — fine while only v0
   exists; once P11's empirical-Bayes refresh lands, "highest version" should probably become
-  "highest PROMOTED version" via model_registry. — decide in P11 with the registry gate.
+  "highest PROMOTED version" via model_registry. — **DONE P11** (ADR-0015 §7; migration
+  20260831: promoted-version join with fallback; pgTAP proves an unpromoted refresh is inert).
 - [P5, 2026-08-26] Appendix A λ_f = 0.5 (fragmentation penalty) — equals the whole weight of a
   v = 1, q̂ = 0.5 task, so such tasks are deferred rather than split (spec-conflicts L15). — P7:
   retune λ_f against observed q̂ scales (e.g. proportional to v·q̂) with an ADR.
@@ -36,7 +37,8 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
 - [P5, 2026-08-26] Slice selection — every INFEASIBLE-after-pin drop and every UNKNOWN rung is a
   selection on the randomized slice; `experiment_dropped`/`degradation`/`tick_minutes` live only
   in /plan telemetry. — P6: persist plan telemetry per recommendation row; P11: report drop rate.
-  — **DONE P6:** persisted in `plans.telemetry.ef` (one experiment per plan); P11 reports drops.
+  — **DONE P6:** persisted in `plans.telemetry.ef` (one experiment per plan). — **DONE P11:**
+  the nightly report emits `experiment_drop_rate_by_arm` (min cell 5).
 - [P6, 2026-08-26] Appendix A "/plan EF fallback budget 1.9 s" — calibrated for the DAY horizon
   (P5 day p90 170 ms on a Mac); the week horizon takes 1.5–2 s in the service (M8) and would
   fall back most of the time. — P9/P10: if a week view is built, add an async plan path or a
@@ -57,26 +59,32 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   systematically different (a residual blinding cue). — P9/P11: compare rendered solidity
   distributions across arms; consider rendering learned rows in a compressed band. — P9: the
   Insights beliefs render solidity from the belief's own confidence (both arms see the same
-  model document — the tab is not arm-specific), so no new cue; the Today comparison stays P11.
+  model document — the tab is not arm-specific), so no new cue; the Today comparison stays —
+  **re-dated 2026-08-31**: needs real per-arm rendering data; run at the first-real-data review
+  (pre-OSF-freeze), not in P11 (no participants exist).
 - [P6, 2026-08-26] `persist.ts` writes plans + recommendations + supersede as three PostgREST
   calls with a compensating delete (ADR-0008 §4). — P8 (sync-resolve needs transactional writes
   anyway): one `security definer` RPC, service-role only, for plan persistence. — **DONE P8**
   (`persist_plan()`; pgTAP proves atomicity).
 - [P6, 2026-08-26] Drop rates on the randomized slice differ by arm by construction (the EF drops
-  only on pinned occupancy; the service on any INFEASIBLE). — P11: report `experiment_dropped`
-  per arm and condition the replay on the arm.
+  only on pinned occupancy; the service on any INFEASIBLE). — **DONE P11:** the report groups
+  the drop rate per arm; slice rows carry `arm` in context so every estimator conditions on it
+  (the File 06 analysis filters; `ope.py` policies see the arm).
 - [P7, 2026-08-27] Appendix A λ_f = 0.5 retune (the P5 line above, scheduled "P7") — no live
   feedback exists yet (the service host is the open ADR-0009 decision), so there are no observed
-  q̂ scales to retune against; retuning on synthetic data would be invention. — P11 first data
-  review: retune λ_f (e.g. ∝ v·q̂) by ADR once real tuples exist; keep 0.5 until then.
+  q̂ scales to retune against; retuning on synthetic data would be invention. — **re-dated
+  2026-08-31 (P11 has no participants):** first-real-data review, pre-OSF-freeze; keep 0.5.
 - [P7, 2026-08-27] ADR-0010 §6 one override pair per placement — a user who moves a block twice
   teaches only the first move; the second is logged but unrewarded. — P9/P11: decide whether a
   second move should replace the pair (correction semantics) once override frequency is known.
-  — P9: unchanged (no override data yet); P11 first data review.
+  — P9: unchanged (no override data yet). — **re-dated 2026-08-31:** first-real-data review
+  (P11 has no participants).
 - [P7, 2026-08-27] ADR-0010 §9 duration multiplier applied to est_minutes for both engines — this
   changes the task's feature 11 (log duration) and its feasibility, i.e. the planner's inputs
   drift with learning even for arm A. Symmetric by design, but the pre-registration should say
-  so. — OSF freeze: add one sentence; P11: report how often scaling was active per arm.
+  so. — OSF freeze: add one sentence. — **P11:** the nightly report counts scaling-active
+  users (`duration_estimates.n >= 3`); the per-arm split runs in the File 06 analysis where
+  arm-days are known.
 - [P7, 2026-08-27] `attribution_sweep_tick()` posts to the function with the backend key from
   Vault; a leaked Vault read (postgres role) equals a leaked service key. — P12 runbook: rotate
   `HOURWELL_SERVICE_KEY` when the service host is set up; consider a cron-only key.
@@ -152,8 +160,8 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   evidence, and a labelled cell counts as personal for the rung-2 badge. With few outcomes a
   user who labels many cells drops the learning-mode badge on labels alone. — **DONE 2026-08-30**
   (live smoke: one ✓ on a day-0 user switched the badge off): labelled cells are outside the
-  badge's count on both sides; per-cell phrasing unchanged. P11 still reports the share of
-  personal-by-label cells.
+  badge's count on both sides; per-cell phrasing unchanged. — **DONE P11:** the report's
+  `label_and_scaling` block counts labeled cells vs evidence-personal cells.
 - [P9, 2026-08-29] A trade-off decision is a fact on the deciding device; `events` are not
   pulled, so a second device of the same account shows the sheet again for the same plan until
   its own decision (or the re-plan replaces the plan — the usual case within seconds). — P10
