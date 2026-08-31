@@ -17,12 +17,12 @@ trap 'rm -f "$scratch"' EXIT
   echo "create extension if not exists pgtap with schema extensions;"
   for m in "$@"; do cat "$m"; echo; done
   echo "create temp table __tap (n serial, line text);"
-  echo "grant insert on __tap to anon, authenticated; grant usage on sequence __tap_n_seq to anon, authenticated;"
+  echo "grant insert on __tap to public; grant usage on sequence __tap_n_seq to public;"
   # drop the file's own begin/rollback; route every assertion + plan/finish into __tap
   sed -E \
     -e '/^begin;[[:space:]]*$/d' \
     -e '/^rollback;[[:space:]]*$/d' \
-    -e 's/^select (plan|is|isnt|ok|has_[a-z_]+|hasnt_[a-z_]+|matches|throws_ok|lives_ok|results_eq|col_[a-z_]+|is_empty|isa_ok|cmp_ok|bag_eq|set_eq|diag)\(/insert into __tap (line) select \1(/' \
+    -e 's/^select (plan|is|isnt|ok|has_[a-z_]+|hasnt_[a-z_]+|matches|throws_ok|lives_ok|results_eq|col_[a-z_]+|is_empty|isa_ok|cmp_ok|bag_eq|set_eq|diag|[a-z_]+_are)\(/insert into __tap (line) select \1(/' \
     -e 's/^select \* from finish\(\);/insert into __tap (line) select * from finish();/' \
     "$test_file"
   echo "reset role;"
@@ -93,6 +93,12 @@ print(msg or raw)
 printf '%s\n' "$tap" | sed -n '/^TAP$/,$p' | sed '1d'
 if printf '%s' "$tap" | grep -q '^TAP$'; then
   if printf '%s' "$tap" | grep -qE '^not ok|^# Looks like you failed|^# Looks like you planned'; then exit 1; fi
+  plan_n="$(printf '%s\n' "$tap" | sed -n 's/^1\.\.\([0-9][0-9]*\)$/\1/p' | head -1)"
+  got_n="$(printf '%s\n' "$tap" | grep -cE '^(not )?ok [0-9]' || true)"
+  if [ -n "$plan_n" ] && [ "$got_n" -ne "$plan_n" ]; then
+    echo "MISMATCH: plan says $plan_n but only $got_n assertion lines were captured — a pgTAP function used by the test is missing from the rewrite allowlist" >&2
+    exit 2
+  fi
   exit 0
 fi
 echo "--- no TAP block in the response (SQL error?) ---" >&2
