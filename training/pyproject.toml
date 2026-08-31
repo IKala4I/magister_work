@@ -13,6 +13,9 @@ dependencies = [
     "scipy>=1.18.1",
 ]
 
+[project.scripts]
+hourwell-train = "hourwell_training.cli:main"
+
 [dependency-groups]
 dev = [
     "ruff>=0.12",
