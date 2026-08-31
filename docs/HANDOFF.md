@@ -2,148 +2,140 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-08-30, **P10 — Notifications, privacy, a11y, performance: complete; PR #19
-> merged; migration applied by the owner and the full export/erasure round trip verified live
-> (25/25, incl. the dead-session check); follow-up PR (smoke close: session fix + shared
-> db-query parser) — see "P10 status". P11 — Training pipeline + OPE + study mode opens
-> next.** Standing rules live in CLAUDE.md: "Working mode", "Context efficiency", "Simulator
-> evidence".
+> Last update: 2026-08-31, **P11 — Training pipeline + OPE + study mode: complete; PR #21
+> merged on green. Live verification of the P11 surface is BLOCKED on the ⛔ owner steps
+> below (migration push → smoke; VM `.env` keys → first nightly run). P12 — Release prep
+> opens next; the owner-run hardware pass sits before it.** Standing rules live in
+> CLAUDE.md: "Working mode", "Context efficiency", "Simulator evidence".
 
 ## Where we are
 
-- **P0–P10 merged** (PRs #1–#19; the P10 smoke-close PR follows the P9 precedent). Migration
-  `20260830120000_p10_privacy.sql` **applied by the owner 2026-08-30**; functions live at the
-  smoke-close state (`export-data`/`delete-account` with the server-side session check;
-  `attribute-rewards`/`gcal-webhook` with the shared key check). `p10-live-smoke.mjs` **25/25**
-  — the full export/erasure round trip observed service-side, incl. the dead session
-  (verification §2.2.1). The retention tick (`retention-sweep`, 03:10 UTC) is live.
-- **What P10 built** (ADR-0014; CHANGELOG "P10"): local notifications only — a pure planner
-  (`src/notifications/plan.ts`) over a conservative delivered-ledger (`ledger.ts`, MMKV) keeps
-  FR-50's ≤ 5/day a ceiling under any re-plan sequence (storm tests); the scheduler runs on
-  mount/foreground/table change (invariant 7); block reminders at slot − 10 min, per-category
-  mute + ritual time in `profiles.settings` (the replay RPC now merges `settings`); the FR-26
-  ritual (Accept plans tomorrow via `plan-request` +1 d with trigger `evening_ritual`; Adjust →
-  Inbox; Sunday → Insights); every tap/action a `notification_response` fact (FR-32); the UC-03
-  trigger asks "is today planned". FR-42: `export-data` (RLS-filtered whitelist, titles
-  stripped, share sheet) and `delete-account` (self / operator / retention → Google teardown →
-  `deletion_audit` → `auth.admin.deleteUser` cascade → in-app confirmation with the reference);
-  retention fixed (anonymous 30 d inactive, daily tick); SDK opt-outs; a11y source audit with
-  three real AA fixes; Maestro sweep + `scripts/device-pass.sh`; perf probe from Node.
-- **Gates at the close:** typecheck/lint/Prettier clean · jest **461** (56 suites) · Deno
-  **187** · pytest **149** (8 skipped) · pgTAP **36/36** (linked, rolled back) · expo-doctor
-  21/21 · CI on PR #19 all green · live smoke pre-migration: export **13/13**, erasure blocked
-  (expected) — `p10-manual-verification.md` §2.2.
-- **Perf (Node → eu-west-1):** REST read/write 88/82 ms p95 ✅ NFR-P3; `sync-resolve` 477 ms,
-  `insights` 714 ms, `export-data` 736 ms p95 ❌ (composite; revisit); `plan-request` 965 ms
-  p95 ✅ NFR-P1. No device numbers claimed.
-- **Docs current:** ADR-0014, `p10-manual-verification.md` (§1–§3; §4 adversarial), `p10-a11y-audit.md`,
-  traceability (10 P10 rows), CHANGELOG, PLAN board + P10 status line, device checklist
-  "Notifications, privacy, performance (added P10)", revisit (P10-tagged lines closed/re-dated +
-  6 new), spec-conflicts L34–L39, thesis-corrections #43–#47, versions (P10), privacy README
-  G8/G9 + §5/§6/§7, consent clause §3 (export live; in-app confirmation), explainer (P10
-  section, decisions 20–23, status row).
-
-## P10 status
-
-- **Adversarial pass done** (`p10-manual-verification.md` §4): 2 MAJOR + 12 MINOR; both
-  MAJORs and 10 MINORs fixed the same day (settings survive the profile-conflict merge; the
-  analytics opt-out really opts out and lifecycle capture is off; sign-out/switch/erasure
-  cancel notifications; ritual plans the day after its own plan day; Today follows the 06:00
-  anchor; cancel-before-settle; no ritual without a profile; tolerant audit stamp; constant-time
-  key compare; permission re-read on foreground; radio `checked`; brace-aware audit scanner).
-  Two MINORs documented (cap per install; non-preset ritual time shows no chip).
+- **P0–P11 merged** (PRs #1–#21). The P11 migration `20260831120000_p11_training.sql` is
+  **NOT yet on the hosted project** — everything server-side P11 (cluster_cells, `models`
+  bucket, φ CHECK, promoted-version gate, `enroll_participant`, `diagnose_user`) is proven
+  by pgTAP 26/26 against the linked project (applied in-transaction, rolled back) and by
+  the CI synthetic e2e, but nothing is live until the owner pushes.
+- **What P11 built** (ADR-0015; CHANGELOG "P11"): the nightly in-region training container
+  (ADR-0011 option A) — NFR-S3 whitelist-as-data as the only producer of cross-user
+  export/archive SQL (closed-vocab text columns CHECK-pinned in schema, client event
+  vocabulary pinned to `CLIENT_EVENT_TYPES`, guarded `pg_input_is_valid` casts on
+  client-writable payloads); EB prior refresh (moments + guards) behind a held-out
+  log-loss gate, 240-row completeness refusal, fresh registry version per attempt;
+  `instantiate_user_priors` follows the highest PROMOTED version; ALS (`implicit`, one
+  confidence convention, decayed-as-of-now input) + silhouette k-means (0.05 promotion
+  band) + closed-form fold-in gated ONLY on ≥30 attributed outcomes; nightly reassignment
+  refreshes UNVISITED cells only (`succ = 0 and fail = 0`, prior_version untouched) from
+  maturity-filtered cluster aggregates; K=32 MC propensity backfill scoring through
+  `hourwell_recsys` itself (path dep, `py.typed`); OPE: replay slice-only with STRICT
+  p = 1/|A_m(x)| (ε = 1 pinned), IPS/clip(10)/SNIPS/DR over slice + MC-labeled TS rows
+  (`SliceRow.exact`), ESS on every estimate, recovery proven on synthetic ground truth;
+  aggregate report (min cell 5): per-arm×phase PAR (facts only — H2), drop rate per arm,
+  DM sensitivity, interference probe, label/scaling counts, dropped-row ledger; study
+  mode: `enroll_participant` (ABAB/BABA, 4×14 d, G6 answer), blocked-randomization script,
+  `docs/study/enrollment-checklist.md`; deploy: training image (arm64 + in-image ALS
+  smoke), profile-gated compose service, `hourwell-train.timer` 00:30 UTC (keep-busy
+  STAYS — runbook §7 corrected), rollout pulls both images; CI: `train.yml` synthetic-only
+  (G3), `deploy-training.yml`.
+- **Gates at the close:** typecheck/lint/format clean · jest **461** · Deno **187** ·
+  pytest **149 (8 skipped)** recsys + **74** training · pgTAP **26/26** (linked, rolled
+  back) + full local suite green in CI · expo-doctor 21/21 · PR #21 all 7 checks green
+  incl. the synthetic e2e (round 1 caught 3 real defects — see gotchas).
+- **Adversarial pass** (`p11-manual-verification.md` §4): **6 MAJOR + 13 MINOR, all 19
+  fixed same day** (worst: the systemd unit passed `--nightly`, which the CLI rejected —
+  the nightly deploy would have died on first invocation and CI was structurally blind to
+  it). Verified solid: PAR mirror parity, invariant-5 guard incl. labels,
+  exact-propensity untouchability, slice provenance, NFR-S3/G3 hygiene, all
+  hand-checkable math.
+- **Docs current:** ADR-0015 (amended same-day: 00:30 UTC timer, 240-row completeness),
+  `p11-manual-verification.md` (§1–§4), `p11-live-smoke.mjs`, traceability (10 P11 rows),
+  CHANGELOG, PLAN board + tail, device checklist ("Service environment — training
+  container", 3 items), revisit (4 closed, 3 re-dated to first-real-data),
+  `docs/study/enrollment-checklist.md`, privacy README (G3 implemented; §7 diagnose_user
+  real), runbook §7/§8/§10, versions (P11 stack), explainer P11 section + decisions 24–28.
 
 ## Exact next actions (next session, in order)
 
-1. ~~Migration push + live smoke~~ — **done 2026-08-30**: owner pushed the migration; smoke
-   25/25 (verification §2.2.1); types regenerated from the linked project — byte-identical to
-   the committed file; the smoke-close PR carries the session fix + the shared parser.
-2. `git checkout main && git pull`; `gh run list --branch main -L 1` green.
-3. **Hardware verification pass (owner-run, before P12)** is now fully scripted:
-   `scripts/device-pass.sh ios|android` (Maestro sweeps incl. `p10-a11y-sweep.yaml`, cold start,
-   fps, the manual notification/export/erasure protocol). Needs a development build with the
-   `hourwell` scheme (Expo Go has no notification categories/channels) — an EAS or local build
-   is a ⛔ owner step when the pass is scheduled.
-4. `git checkout -b phase/P11-training` and open the P11 PR early.
-5. **P11 reading list** (read nothing else to orient): PLAN §3 P11 (as amended by ADR-0011 option
-   A); specs/04 §2.3 (OPE: IPS/SNIPS/DR, ESS, MC propensities K = 32), §3.2–§3.5 (ALS, k-means,
-   fold-in, empirical-Bayes prior refresh, `model_registry`); specs/06 §1.2 (ABAB/BABA
-   assignment), §5 (archive); specs/07 §3.2.2–§3.2.3, §4.1 `model_registry` / `cluster_assignments`
-   / `study_assignments`, Appendix A rows P11; ADR-0011 (training on the EU VM, `train.yml` on
-   synthetic data, registry in Supabase Storage, `eu_eea_resident` in enrollment); ADR-0009 +
-   `docs/runbooks/oracle-vm.md` (the box, compose, keep-busy slot); `docs/privacy/README.md` §7
-   (aggregates only to the researcher) + G6 (Art. 27 trigger); `training/` (P0 scaffold);
-   `services/recsys/src/hourwell_recsys/{repo,energy,bandit}.py` (state the export/refresh
-   reads/writes); revisit.md lines tagged P11 (drop rate report, personal-by-label share,
-   `diagnose_user`, week-horizon budget).
-6. **P11 scope** (PLAN §3): nightly training container on the VM (pseudonymized categorical
-   export — CI-tested whitelist, NFR-S3; ALS fit; k-means with silhouette; fold-in ≥ 30
-   outcomes; EB prior refresh as `kind='priors'` registry rows; eval gate; artefacts to Supabase
-   Storage EU); `train.yml` on synthetic data only; OPE harness (replay on the randomized slice,
-   IPS/clipped/SNIPS/DR, ESS < 100 = non-evidence, MC propensities K = 32); study mode
-   (ABAB/BABA assignment, enrollment checklist with the EU/EEA question, arm labels in the UI —
-   FR-22 already). Thesis-critical: OPE estimators + ESS gate + the export whitelist (NFR-S3).
-7. Keep `docs/thesis/pojasnennia.uk.md` in the same commits; add device-checklist entries during
-   the phase; refresh this file at the end and close with `HANDOFF WRITTEN — safe to /clear`.
+1. ⛔ **Owner: `supabase db push`** (applies `20260831120000_p11_training`). Then the
+   session runs `node docs/verification/p11-live-smoke.mjs` (from `apps/mobile`) — 19
+   checks: objects, live promoted-version instantiation, the full enroll round trip,
+   diagnose_user leak checks, self-cleanup. Also re-run
+   `scripts/pgtap-linked.sh supabase/tests/p11_training_test.sql` (NO migration arg now)
+   and `supabase gen types typescript --linked` → byte-identical after
+   `scripts/normalize-db-types.sh`.
+2. ⛔ **Owner (VM):** add `SUPABASE_SERVICE_ROLE_KEY=<service-role JWT>` and
+   `ARCHIVE_SALT=<64 random hex>` to `~/hourwell/.env`; pull the repo's deploy dir to the
+   box and `bash ~/hourwell/deploy/install.sh` (installs `hourwell-train.timer`, adds the
+   training image to the rollout pull). First green `journalctl -u hourwell-train` +
+   `models/reports/<date>/report.json` in the bucket flips the three device-checklist
+   "Service environment — training container" items.
+3. `git checkout main && git pull`; `gh run list --branch main -L 2` green (ci + the
+   training image build/rollout on the main push).
+4. **P12 reading list** (read nothing else to orient): PLAN §3 P12; specs/02 store/release
+   requirements it names; `docs/privacy/README.md` whole (DPIA input) + ADR-0011 §Decision
+   (DPIA §transfers = its §2); ADR-0014 §9–§10 (retention/erasure text for the DPIA);
+   `docs/verification/device-checklist.md` (the hardware pass gates P12 claims);
+   `docs/thesis/thesis-corrections.md` (rollup into the draft); CHANGELOG (release-notes
+   substrate); `docs/decisions/revisit.md` OSF-freeze-tagged lines.
+5. **Before P12 proper:** the owner-run hardware verification pass
+   (`scripts/device-pass.sh ios|android`; needs a development build — EAS or local, ⛔) and
+   the pre-enrollment list below.
+6. Keep `docs/thesis/pojasnennia.uk.md` in the same commits; refresh this file at the end;
+   close with `HANDOFF WRITTEN — safe to /clear`.
 
 ## ⛔ ACTION REQUIRED (owner)
 
-- **Erasure confirmation by e-mail?** (ADR-0014 §9; privacy README G8): keep the in-app
-  reference (current), or approve an EU mail processor (cost + Art. 28 entry) — decide before
+- **P11 activation (new):** (1) `supabase db push`; (2) VM `.env` +
+  `SUPABASE_SERVICE_ROLE_KEY` + `ARCHIVE_SALT`, re-run `install.sh` (runbook §8/§10).
+  Until then: no live nightly run, no artifact uploads, MC backfill idle; the migration
+  gap also blocks the P11 live smoke.
+- **Erasure confirmation by e-mail?** (ADR-0014 §9; privacy README G8) — decide before
   enrollment; the consent clause currently says "no e-mail is sent".
-- **Consent clause review** — `docs/privacy/consent-clause.md` (§3 reworded in P10; contact block
-  to fill).
-- **Google OAuth _sign-in_ (FR-01, P4 leftover):** second Web OAuth client with redirect
-  `https://uapiuehjcntilwdmpojk.supabase.co/auth/v1/callback`, id + secret into Supabase
-  Dashboard → Authentication → Providers → Google; the session then runs the P4 smoke.
-- Earlier gates unchanged: magic-link E2E with a real mailbox, OSF-freeze text items.
-- **Pre-enrollment list** (`docs/decisions/revisit.md`): Oracle PAYG (deferred); Google consent
-  screen **Testing → In production**; the device verification pass before P12 (now scripted:
-  `scripts/device-pass.sh`; needs a development build).
+- **Consent clause review** — `docs/privacy/consent-clause.md` (contact block to fill).
+- **Google OAuth sign-in (FR-01, P4 leftover):** second Web OAuth client, id+secret into
+  Dashboard → Auth → Providers → Google; then the P4 smoke.
+- Earlier gates unchanged: magic-link E2E with a real mailbox; OSF-freeze text items
+  (spec-conflicts H1 conditions, power recompute per ADR-0008/M9, corrections #34–36).
+- **Pre-enrollment list:** G6 representative decision path if any EU/EEA participant;
+  Oracle PAYG revisit (G1); Google consent screen Testing → In production; the hardware
+  pass (scripted, needs a dev build); if an EU/EEA resident may enroll — designate the
+  Art. 27 representative FIRST (enrollment-checklist blocks otherwise).
 
-## Gotchas (P10 additions; earlier lists still apply)
+## Gotchas (P11 additions; earlier lists still apply)
 
-- **`supabase db query --output-format json` output shape varies by CLI version** (object with
-  `rows` → pretty-printed top-level ARRAY since ≈ 2.115, notices before the JSON either way) —
-  it broke the P9 and then the P10 smoke. Rule: NEVER parse it ad hoc; use the shared
-  `docs/verification/lib/db-query.mjs` (`dbQuery(repoRoot, sql)` — extracts the first complete
-  JSON value quote-aware, normalises every shape, throws with the raw text instead of returning
-  `[]`). Any new verification script imports it.
-- **A stateless JWT outlives a deleted account** until it expires (refresh dies with the
-  cascade). Account-gated functions must verify the session server-side (`auth.getUser`), not
-  by local JWKS (`getClaims`); other functions may keep the cheap check because the rows are
-  gone. Found by the P10 live smoke; ADR-0014 §8.
-- **A fact for another account after sign-out**: reminders are now cancelled on sign-out /
-  account switch / erasure (`clearAllNotifications` lives in `notifications/setup.ts` — no DB
-  import, safe to call from `auth/`); any new "identity changes" path must call it too.
-- **Migration before smoke, again.** `delete-account` inserts `deletion_audit.reason`; without
-  the P10 migration the self-erasure is a 500 and the test user stays (the retention tick
-  purges it after 30 d once the migration is in). `export-data` works pre-migration.
-- **`@testing-library/react-native` 14: one render per test.** A second `render` after
-  `cleanup()`/`unmount()` in the same test leaves the NEXT test's render empty (tree `null`,
-  zero hook calls). Split into separate `it`s (done for the trade-off test and the P10 cases).
-- **jest mock factories must not reference out-of-scope consts** — build the in-memory SQLite
-  inside the `jest.mock('../../db/client', () => {...})` factory with `jest.requireActual`
-  (`scheduler.test.ts`); read the handle back via the mocked import.
-- **CI lint ≠ local `pnpm -s lint | tail -1`** — the silent flag hid the error count once;
-  check the exit code (`pnpm lint; echo $?`) or grep `problem`. Typed jest mocks
-  (`jest.fn<Promise<T>, [unknown]>`) avoid `_arg` unused-var errors.
-- **`.expo/types/router.d.ts` is a local cache, not CI's truth**: a new route (`account-deleted`)
-  fails local `tsc` until `expo start` regenerates it (or patch the union by hand); CI types
-  routes loosely without the file.
-- **`supabase db query` now wraps a raised TAP text as `{"message": …}`** — `pgtap-linked.sh`
-  handles it; the TAP lines are still complete inside the "400" body.
-- **A plan for tomorrow ≠ latest plan is today's.** `decidePlanTrigger` needs
-  `hasPlanForToday`; any new caller that only passes `latestPlanDate` will re-plan today after
-  an evening ritual.
-- **Day-0 users have no `blend_state` row** (the service writes it at the first feedback) —
-  the export shows `blend_state: null`; the cluster row exists from onboarding.
-- **The perf probe's REST series needs `prefer: return=minimal`** for PATCH to avoid a body;
-  `x-region` is only honoured by functions.
-- Run jest from `apps/mobile`; the shell cwd persists across tool calls (bit twice this phase —
-  use absolute paths after any `cd`).
+- **`supabase db query` error shapes keep mutating** — now
+  `{"_tag":"Error","error":{"message":"unexpected status 400: {json}"}}` (TAP text TWO
+  JSON layers deep with a plain-text prefix). `pgtap-linked.sh` now uses the db-query.mjs
+  rule (first complete JSON value, quote-aware, recursive unwrap, cut at the TAP marker)
+  - an env-gated raw tee (`PGTAP_DEBUG_OUT=<file>`). Fourth occurrence of this class —
+    never parse a new shape ad hoc.
+- **The φ CHECK bites fixtures:** `recommendations.context_bucket` only accepts the 14
+  vocabulary ids (fresh/fatigued exists ONLY for weekday MO/AF). Round-1 CI caught five
+  invented ids in P1/P7 pgTAP fixtures. NOT VALID = new rows only; the hosted project's
+  historical rows are unvalidated (export re-checks values).
+- **`| tee` in GitHub Actions steps swallows exit codes** (bash -e without pipefail) —
+  the seed crash "passed" and the assert step failed on an empty JSON. Any piped step
+  needs `set -o pipefail` first. Same trap locally: `uv run pytest | tail` returns tail's
+  0 — one commit landed with a red test and needed amending.
+- **Two propensity meanings, one flag:** `SliceRow.exact` — exact rows must have p equal
+  1/|A_m(x)| to 1e-9 (ε=1 pinned; anything else raises), MC rows carry the day-type
+  candidate set and feed ONLY the IPS family. Never widen replay to non-exact rows.
+- **`implicit`'s user factors are half-step stale** (Y updates after users; CG solver):
+  library-parity tests get a 2% band, exactness comes from the k=1 closed-form hand case.
+- **`prior_version` on beta_cells means prior_cells versions only** — cluster refreshes
+  must not stamp it (provenance = cluster_assignments + cluster_cells).
+- **cwd persists across tool calls AND parallel calls interleave** — a doc edit ran
+  against training/ and a sed hit a missing path. Absolute paths, always.
+- **prettier is unstable on list-item continuation lines holding long inline code** —
+  format → check flip-flopped until the SQL moved into a fenced block. If format:check
+  fails right after `pnpm format`, suspect idempotency, not staleness.
+- **`ruff --fix` may drop imports your NEXT edit needs** (it removed FOLD_IN_MIN_OUTCOMES
+  right before a replace targeting the import line silently no-opped) — re-grep after
+  fix+edit rounds; the missing-anchor assert pattern catches it.
+- **Day-0/synthetic users:** profiles CHECK `profiles_chronotype_matches_score` — any
+  seeded (score, class) pair must sit in the P4 bands (DM 22–25 … DE 4–7).
 
 ## Open questions (owner)
 
-- E-mail confirmation of erasure (above). Two-device ritual (each device fires its own
-  "Plan tomorrow?") — fine for the study unless two-device use matters (revisit).
+- E-mail confirmation of erasure (above). Two-device ritual (unchanged from P10).
+- OSF freeze bundle: H1 text conditions, the M9 power recompute, corrections #34–36
+  wording, G5 dataset decision — one sitting, before enrollment.
