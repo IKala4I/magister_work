@@ -53,6 +53,9 @@ select ok(exists (select 1 from pg_policies
 -- schema, whose usage is granted to Supabase's roles but not to PUBLIC — grant it to the
 -- test role for the duration of this (rolled-back) transaction only.
 grant usage on schema extensions to recsys_service;
+-- PG 16+: a CREATEROLE creator gets ADMIN on the new role but SET membership only via
+-- createrole_self_grant — grant it explicitly so `set role` works everywhere (rolls back).
+grant recsys_service to postgres;
 set local role recsys_service;
 select lives_ok('select count(*) from public.beta_cells',
   'recsys_service can read beta_cells');
