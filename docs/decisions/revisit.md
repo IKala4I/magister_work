@@ -250,3 +250,9 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   one shared helper reading `SUPABASE_SECRET_KEYS`/`SUPABASE_PUBLISHABLE_KEYS` (JSON, keyed
   by name) and a `createClient` sweep — do it well before enrollment ends so a mid-study
   platform cutoff cannot bite.
+- [P12-ladder, 2026-08-31] **Store accounts — owner decided to buy neither** (Play $25 /
+  Apple $99/yr, metadata §7): the pack stays prepared-but-unsubmitted; recruitment is
+  Android-only (sideloaded release APK). Revisit the Apple membership ONLY if N=30
+  completers cannot be reached on Android alone — reversal costs the fee + the metadata §8
+  steps plus a categories/deep-link re-verify on a store-signed iOS binary
+  (device-checklist "Release builds" residual); no new build work.
