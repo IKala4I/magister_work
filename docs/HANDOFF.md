@@ -54,9 +54,12 @@
 1. ✅ **Migration push** — done 2026-08-31; the remote migration list shows
    `20260831150000` and the linked pgTAP re-check is green (all 20 role assertions;
    `pgtap-linked.sh` allowlist extended to capture `table_privs_are` — see Gotchas).
-2. **Role activation** (runbook **§18** — step 0 FIRST: ship the P12 compose.yml via the
-   §6 tar-sync; then password → `RECSYS_DATABASE_URL` → `docker compose config recsys`
-   check → restart → live smoke). Rollback = remove the env var.
+2. ✅ **Role activation** — done live 2026-08-31 (runbook §18): compose shipped via
+   tar-sync + install.sh, role password set, `RECSYS_DATABASE_URL` on the box, container
+   DSN = `recsys_service.<ref>` (count-verified), `/healthz` ok/postgres, **live plan
+   `engine=learned model=recsys-p5.0`** through the new role, undelivered rewards 0. One
+   live failure found+fixed: double-typed password → auth fail (set both sides from one
+   variable — runbook §18). Rollback stays = remove the env var.
 3. **DPIA sign-off** (`docs/privacy/dpia.md` §10) + the consent contact block
    (`consent-clause.md` §5) — same sitting.
 4. ✅ **Store economics — DECIDED 2026-08-31: no accounts.** Nothing left in this step:
@@ -106,6 +109,11 @@
   missing, so 10 of the 20 P12 assertions went silently uncaptured on the first run; fixed
   2026-08-31 (`[a-z_]+_are` in the allowlist + a plan-vs-captured mismatch guard that
   exits 2). If a new test uses an exotic assertion, the guard now fails loudly.
+- **§18 activation, live findings (2026-08-31):** the Minimal image ships NO editor
+  (runbook §6 now says `cat >>`/sed, not nano); the documented `recsys_service@` grep can
+  never match — the pooler username carries the tenant suffix (`recsys_service.<ref>@`,
+  runbook §18 fixed); a double-typed password caused a live auth failure — generate once
+  and fill the SQL editor + `.env` from the same shell variable (runbook §18).
 
 ## Open questions (owner)
 
