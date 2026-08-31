@@ -110,7 +110,7 @@ export function dbQuery(repoRoot, sql, { prefix = 'db-query' } = {}) {
     } catch {
       text = raw || String(err.message ?? err);
     }
-    throw new Error(`db query error: ${text}`);
+    throw new Error(`db query error: ${text}`, { cause: err });
   }
   return rowsOf(extractJson(out));
 }
