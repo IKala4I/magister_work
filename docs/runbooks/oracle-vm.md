@@ -324,12 +324,12 @@ its visibility — anonymous pull verified 2026-08-27). If `docker compose pull`
 
 ## 8. Wire the secrets (three places, one key) **[owner]**
 
-| Where                         | What                                                                                                                                                                                     |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Box `~/hourwell/.env`         | `HOURWELL_SERVICE_KEY`, `DATABASE_URL`, `SUPABASE_URL`, `RECSYS_HOST` (§6); **P11:** `SUPABASE_SERVICE_ROLE_KEY` (artifact uploads — without it nothing promotes) + `ARCHIVE_SALT` (§10) |
-| Supabase function secrets     | from the repo root: `supabase secrets set HOURWELL_SERVICE_KEY=<key> RECSYS_URL=https://hourwell-recsys.duckdns.org` (needs `supabase login` once)                                       |
-| Supabase Vault (cron tick)    | run `~/.hourwell/vault-secrets.sql` in the SQL editor (`hourwell_functions_url`, `hourwell_service_key`, `hourwell_anon_key`)                                                            |
-| GitHub → Settings → Variables | **`RECSYS_HOST`** = `hourwell-recsys.duckdns.org` (enables the workflow's rollout check). **No GitHub secrets are needed** — CI never SSHes to the box.                                  |
+| Where                         | What                                                                                                                                                                                                                                             |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Box `~/hourwell/.env`         | `HOURWELL_SERVICE_KEY`, `DATABASE_URL`, `SUPABASE_URL`, `RECSYS_HOST` (§6); **P11:** `SUPABASE_SERVICE_ROLE_KEY` = an **sb_secret\_...** key (Dashboard → API keys → Secret keys; the legacy service_role JWT also works) + `ARCHIVE_SALT` (§10) |
+| Supabase function secrets     | from the repo root: `supabase secrets set HOURWELL_SERVICE_KEY=<key> RECSYS_URL=https://hourwell-recsys.duckdns.org` (needs `supabase login` once)                                                                                               |
+| Supabase Vault (cron tick)    | run `~/.hourwell/vault-secrets.sql` in the SQL editor (`hourwell_functions_url`, `hourwell_service_key`, `hourwell_anon_key`)                                                                                                                    |
+| GitHub → Settings → Variables | **`RECSYS_HOST`** = `hourwell-recsys.duckdns.org` (enables the workflow's rollout check). **No GitHub secrets are needed** — CI never SSHes to the box.                                                                                          |
 
 Set `RECSYS_URL` and the GitHub variable only after `https://<host>/healthz` answers, so fallback
 telemetry and CI stay clean.

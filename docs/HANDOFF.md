@@ -60,7 +60,9 @@
 1. ~~Migration push + live smoke~~ — **done 2026-08-31**: smoke 21/21 (after the shared
    db-query error-path fix), pgTAP 26/26 live, types byte-identical
    (`p11-manual-verification.md` §3).
-2. ⛔ **Owner (VM):** add `SUPABASE_SERVICE_ROLE_KEY=<service-role JWT>` and
+2. ⛔ **Owner (VM):** add `SUPABASE_SERVICE_ROLE_KEY=<sb_secret_... key>` (Dashboard → API keys →
+   Secret keys; the legacy service_role JWT also works — the uploader picks the right
+   header per key kind) and
    `ARCHIVE_SALT=<64 random hex>` to `~/hourwell/.env`; pull the repo's deploy dir to the
    box and `bash ~/hourwell/deploy/install.sh` (installs `hourwell-train.timer`, adds the
    training image to the rollout pull). First green `journalctl -u hourwell-train` +
@@ -82,7 +84,8 @@
 
 ## ⛔ ACTION REQUIRED (owner)
 
-- **P11 activation — one step left:** VM `.env` + `SUPABASE_SERVICE_ROLE_KEY` +
+- **P11 activation — one step left:** VM `.env` + `SUPABASE_SERVICE_ROLE_KEY`
+  (prefer the new `sb_secret_...` key) +
   `ARCHIVE_SALT`, re-run `install.sh` (runbook §8/§10). Until then: no live nightly run,
   no artifact uploads, MC backfill idle. (Migration push + smoke: done 2026-08-31.)
 - **Erasure confirmation by e-mail?** (ADR-0014 §9; privacy README G8) — decide before
