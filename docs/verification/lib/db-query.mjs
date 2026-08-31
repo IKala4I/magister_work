@@ -52,17 +52,65 @@ export function rowsOf(value) {
 }
 
 /**
+ * Unwrap the CLI's NESTED error shapes to the server's own message (P11: a raised exception
+ * arrives as `{"_tag":"Error","error":{"message":"unexpected status 400: {\"message\":
+ * \"Failed to run sql query: ERROR: P0001: ...\"}"}}` — the text sits two JSON layers deep).
+ * Same rule as extractJson: never parse one shape ad hoc; descend through error/message and
+ * embedded JSON until only text remains.
+ */
+export function unwrapErrorText(value, depth = 6) {
+  let v = value;
+  for (let i = 0; i < depth; i += 1) {
+    if (v !== null && typeof v === 'object') {
+      if (v.error !== undefined) v = v.error;
+      else if (typeof v.message === 'string') v = v.message;
+      else return JSON.stringify(v);
+      continue;
+    }
+    if (typeof v === 'string') {
+      let inner;
+      try {
+        inner = extractJson(v);
+      } catch {
+        return v;
+      }
+      v = inner;
+      continue;
+    }
+    return String(v);
+  }
+  return typeof v === 'string' ? v : JSON.stringify(v);
+}
+
+/**
  * Service-side read through the CLI (postgres role), from `repoRoot`. Returns the rows.
  * A parse failure THROWS with the raw output attached — never a silent `[]` (the P9 smoke-gate
  * lesson: a helper that returns empty on error makes its checks fail with the wrong reason).
+ * A SERVER error (raised exception → CLI exits nonzero with the error JSON on stdout) throws
+ * with the UNWRAPPED server message, so callers can match on e.g. /already enrolled/ — before
+ * P11's fix the exec failure hid it behind a bare "Command failed: supabase db query ..."
+ * (stderr was discarded and stdout never parsed), which failed two live-smoke raise-checks
+ * for the wrong reason.
  */
 export function dbQuery(repoRoot, sql, { prefix = 'db-query' } = {}) {
   const file = join(tmpdir(), `${prefix}-${globalThis.crypto.randomUUID()}.sql`);
   writeFileSync(file, sql);
-  const out = execFileSync(
-    'supabase',
-    ['db', 'query', '--linked', '--output-format', 'json', '-f', file],
-    { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] },
-  );
+  let out;
+  try {
+    out = execFileSync(
+      'supabase',
+      ['db', 'query', '--linked', '--output-format', 'json', '-f', file],
+      { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+    );
+  } catch (err) {
+    const raw = `${err.stdout ?? ''}\n${err.stderr ?? ''}`.trim();
+    let text;
+    try {
+      text = unwrapErrorText(extractJson(raw));
+    } catch {
+      text = raw || String(err.message ?? err);
+    }
+    throw new Error(`db query error: ${text}`);
+  }
   return rowsOf(extractJson(out));
 }
