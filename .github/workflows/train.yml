@@ -33,7 +33,7 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
         run: |
           set -o pipefail
-          uv run hourwell-train --synthetic --seed 42 --out-dir /tmp/train-out | tee /tmp/summary.json
+          uv run hourwell-train --synthetic --nightly --seed 42 --out-dir /tmp/train-out | tee /tmp/summary.json
       - name: Assert registry rows, gate behaviour, backfill coverage, report shape
         working-directory: training
         env:

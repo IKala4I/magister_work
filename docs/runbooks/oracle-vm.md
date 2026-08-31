@@ -315,7 +315,7 @@ its visibility — anonymous pull verified 2026-08-27). If `docker compose pull`
   would replace this load "on the same timer slot" — **corrected by ADR-0015 §1**: a single
   nightly run cannot keep the 7-day CPU p95 above the reclaim threshold, so the hourly
   keep-busy STAYS and the training run is an additional nightly timer, below.)
-- `hourwell-train.timer` → daily 03:00 UTC `docker compose run --rm training --nightly`
+- `hourwell-train.timer` → daily 00:30 UTC `docker compose run --rm training --nightly`
   (P11, ADR-0015): the in-region training + OPE pipeline (§10). Check:
   `journalctl -u hourwell-train -n 20`.
 - Manual rollout: `ssh oracle-recsys 'sudo -u ubuntu /usr/local/bin/hourwell-rollout'`.

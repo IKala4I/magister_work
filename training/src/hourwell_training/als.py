@@ -124,15 +124,19 @@ def fit_als(
 
 
 def fold_in(
-    model: AlsModel, cells: list[CellObs], *, min_outcomes: int = FOLD_IN_MIN_OUTCOMES
+    model: AlsModel,
+    cells: list[CellObs],
+    *,
+    outcomes: int | None = None,
+    min_outcomes: int = FOLD_IN_MIN_OUTCOMES,
 ) -> NDArray[np.float64] | None:
-    """File 04 §3.4: x_u = (YᵀC_uY + λI)⁻¹ YᵀC_u p_u with fixed Y; None below the gate.
+    """File 04 §3.4: x_u = (YᵀC_uY + λI)⁻¹ YᵀC_u p_u with fixed Y.
 
-    The gate counts ATTRIBUTED OUTCOMES (the caller passes that count via the cells'
-    evidence sum — decayed, so a long-idle user can fall back under it, which is the
-    conservative reading of "≥ 30 attributed outcomes").
-    """
-    if sum(c.evidence for c in cells) < min_outcomes:
+    ONE gate, the spec's: `outcomes` = the caller's count of attributed, non-excluded
+    outcome tuples; below `min_outcomes` → None. Passing None skips the gate (tests,
+    ad-hoc analysis). Decayed cell evidence is NOT a gate — it double-counted labels and
+    silently raised the threshold for long-idle users (adversarial finding 7)."""
+    if outcomes is not None and outcomes < min_outcomes:
         return None
     y = model.item_factors  # (48, k)
     k = y.shape[1]

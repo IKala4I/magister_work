@@ -26,7 +26,9 @@ export whitelist. The rest is routine under the standard Definition of Done.
 
 1. **Scheduling on the VM.** The training/analysis container is a **one-shot compose service**
    (`training`, `profiles: ["training"]`, `cpus: 2`, own image from GHCR) run by
-   `hourwell-train.timer` **daily at 03:00 UTC** (RandomizedDelaySec 10 min). The
+   `hourwell-train.timer` **daily at 00:30 UTC** (RandomizedDelaySec 10 min; amended
+   same-day by the adversarial pass — 03:00 UTC + delay lands on the 06:00 Kyiv plan-day
+   boundary under EEST, the study's most plan-heavy minute on a 2-OCPU box). The
    **keep-busy timer stays hourly**: ADR-0009 Q2's reclamation math needs sustained CPU duty
    that a single nightly run cannot provide, so the runbook §7 forecast ("training will replace
    the synthetic load on the same timer slot") is corrected, not followed — the nightly job

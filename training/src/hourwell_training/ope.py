@@ -34,9 +34,13 @@ __all__ = [
 
 @dataclass(frozen=True)
 class SliceRow:
-    """One logged randomized-slice decision (File 04 §1.4): the chosen bucket, its exact
-    within-slice propensity p = ε/|A_m(x)|, the logged candidate set A_m(x), the realized
-    reward, and the feature/context payload policies score with."""
+    """One logged decision. `exact = True` (the randomized slice, File 04 §1.4): the chosen
+    bucket, its EXACT within-slice propensity p = 1/|A_m(x)| (ε = 1 is pinned by the service
+    and its arm-A mirror — spec-conflicts M2; anything else raises rather than silently
+    mixing propensity meanings), the logged A_m(x), the realized reward. `exact = False`
+    (TS traffic with nightly MC propensities, File 04 §2.3): the candidate set is the
+    day-type vocabulary and p is the Laplace-smoothed MC estimate — usable by the IPS
+    family (spec §2.3 "all logged traffic"), NEVER by replay."""
 
     recommendation_id: str
     bucket_id: str
@@ -44,6 +48,7 @@ class SliceRow:
     propensity: float
     reward: float
     context: dict[str, float | str | bool | None]
+    exact: bool = True
 
     def validate_slice(self) -> None:
         if not self.top_m:
@@ -56,12 +61,10 @@ class SliceRow:
             raise ValueError(
                 f"{self.recommendation_id}: propensity {self.propensity} not in (0, 1]"
             )
-        expected = 1.0 / len(self.top_m)
-        # within-slice conditional propensity is 1/|A_m(x)| for ε = 1 (spec-conflicts M2);
-        # for ε < 1 the logged value is ε/|A_m(x)| — accept any exact multiple
-        if self.propensity > expected + 1e-9:
+        if self.exact and abs(self.propensity - 1.0 / len(self.top_m)) > 1e-9:
             raise ValueError(
-                f"{self.recommendation_id}: propensity {self.propensity} exceeds 1/|A_m(x)|"
+                f"{self.recommendation_id}: slice propensity {self.propensity} != "
+                f"1/{len(self.top_m)} — a corrupt exact propensity poisons every 1/p weight"
             )
 
 
@@ -95,6 +98,11 @@ def replay(rows: Sequence[SliceRow], policy: DeterministicPolicy) -> Estimate:
     sample is the matched subset, so ESS = #matches (unit weights)."""
     matched: list[float] = []
     for row in _checked(rows):
+        if not row.exact:
+            raise ValueError(
+                f"{row.recommendation_id}: replay is slice-only (File 04 §2.2) — "
+                "MC-propensity rows have no uniform-logging guarantee"
+            )
         pick = policy(row)
         if pick not in row.top_m:
             raise ValueError(f"policy chose {pick} outside A_m(x) for {row.recommendation_id}")

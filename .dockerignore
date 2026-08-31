@@ -1,0 +1,15 @@
+# Repo-root build context (training/Dockerfile): ship ONLY what the image needs.
+# Allowlist style — everything is excluded unless re-included below.
+*
+!services/recsys
+!training
+# and inside the allowed trees, never local state or secrets
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+**/.env
+**/.env.*
+!**/.env.example
+services/recsys/deploy

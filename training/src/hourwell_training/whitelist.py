@@ -1,4 +1,10 @@
-"""The NFR-S3 export surface — the ONLY per-user data cross-user training and the archive read.
+"""The NFR-S3 export surface — the only producer of CROSS-USER export/archive SQL.
+
+Scope, precisely: everything that feeds cross-user training or the Parquet archive flows
+through `select_sql` below. The pipeline additionally makes (a) per-user state reads for the
+MC backfill (bandit/blend/beta rows of one user at a time — the same data the service itself
+serves that user) and (b) privacy-§7 aggregate COUNT queries for the report; both are
+enumerated in `pipeline.py`, neither feeds cross-user training or leaves the region.
 
 specs/07 §7: "The training-export query selects an explicit column whitelist; a CI test asserts
 the whitelist contains no text-typed columns." Rule as decided by ADR-0015 §2: every column here
@@ -215,9 +221,13 @@ DERIVED: tuple[Derived, ...] = (
     Derived(
         "events",
         "focus_started_at",
-        "case when type = 'focus_end' then (payload ->> 'started_at')::timestamptz end",
+        "case when type = 'focus_end' "
+        "and pg_input_is_valid(payload ->> 'started_at', 'timestamptz') "
+        "then (payload ->> 'started_at')::timestamptz end",
         "timestamp",
-        "PAR needs the session start (File 06 §1.4 ±15 min rule)",
+        "PAR needs the session start (File 06 §1.4 ±15 min rule); the payload is "
+        "client-writable and events are append-only, so an unguarded cast could brick "
+        "every future export on one bad row (adversarial finding 9)",
     ),
     Derived(
         "events",
@@ -230,16 +240,20 @@ DERIVED: tuple[Derived, ...] = (
     Derived(
         "events",
         "focused_ms",
-        "case when type = 'focus_end' then (payload ->> 'focused_ms')::double precision end",
+        "case when type = 'focus_end' "
+        "and pg_input_is_valid(payload ->> 'focused_ms', 'double precision') "
+        "then (payload ->> 'focused_ms')::double precision end",
         "numeric",
-        "PAR >=50% rule numerator",
+        "PAR >=50% rule numerator (guarded: client-writable payload)",
     ),
     Derived(
         "events",
         "planned_minutes",
-        "case when type = 'focus_end' then (payload ->> 'planned_minutes')::double precision end",
+        "case when type = 'focus_end' "
+        "and pg_input_is_valid(payload ->> 'planned_minutes', 'double precision') "
+        "then (payload ->> 'planned_minutes')::double precision end",
         "numeric",
-        "PAR >=50% rule denominator override (mirrors _shared/par.ts)",
+        "PAR >=50% rule denominator override (mirrors _shared/par.ts; guarded)",
     ),
 )
 

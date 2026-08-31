@@ -21,7 +21,11 @@ from hourwell_training.whitelist import WHITELIST
 
 __all__ = ["hash_uid", "write_archive"]
 
-_ID_COLUMNS = ("user_id",)
+def _is_id_column(name: str) -> bool:
+    """EVERY identifier is hashed — a raw recommendation/task/event id joins the deposit
+    back to the live database just as surely as a user id (adversarial finding 3).
+    Same salt everywhere, so joins BETWEEN archive tables survive."""
+    return name == "id" or name.endswith("_id")
 
 
 def hash_uid(uid: str, salt: str) -> str:
@@ -38,8 +42,8 @@ def write_archive(exporter: Exporter, out_dir: Path, salt: str) -> dict[str, Any
     for table in sorted(WHITELIST):
         rows: list[dict[str, Any]] = []
         for row in exporter.table(table, dropped):
-            for col in _ID_COLUMNS:
-                if col in row and row[col] is not None:
+            for col in list(row):
+                if _is_id_column(col) and row[col] is not None:
                     row[col] = hash_uid(str(row[col]), salt)
             for k, v in row.items():
                 if isinstance(v, list):

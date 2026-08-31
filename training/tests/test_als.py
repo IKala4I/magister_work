@@ -55,19 +55,19 @@ def test_fold_in_lands_on_the_library_user_factors() -> None:
     users = synthetic_users()
     model = als.fit_als(users, iterations=60, seed=3)
     uid = model.user_ids[0]
-    x = als.fold_in(model, users[uid], min_outcomes=1)
+    x = als.fold_in(model, users[uid])
     assert x is not None
     lib = model.user_factors[0]
     assert np.linalg.norm(x - lib) / (np.linalg.norm(lib) + 1e-12) < 0.02
 
 
-def test_fold_in_gate_returns_none_below_30_outcomes() -> None:
+def test_fold_in_gate_counts_attributed_outcomes_not_evidence() -> None:
     users = synthetic_users()
     model = als.fit_als(users, seed=3)
-    thin = [obs("deep", "MO", "weekday", 5, 4)]  # 9 < 30
-    assert als.fold_in(model, thin) is None
-    thick = [obs("deep", "MO", "weekday", 20, 10)]  # exactly 30
-    assert als.fold_in(model, thick) is not None
+    cells = [obs("deep", "MO", "weekday", 5, 4)]
+    assert als.fold_in(model, cells, outcomes=29) is None
+    assert als.fold_in(model, cells, outcomes=30) is not None  # SPEC-FIXED boundary
+    assert als.fold_in(model, cells) is not None  # no gate when the caller has none
 
 
 def test_fold_in_hand_case_one_factor() -> None:
@@ -103,7 +103,7 @@ def test_nearest_centroid_assigns_a_folded_in_user() -> None:
     model = als.fit_als(users, iterations=30, seed=3)
     clu = clusters.fit_clusters(model.user_factors, k_range=(2, 4), seed=0)
     assert clu is not None
-    x = als.fold_in(model, users[model.user_ids[4]], min_outcomes=1)
+    x = als.fold_in(model, users[model.user_ids[4]])
     assert x is not None
     assert clusters.nearest_centroid(clu, x) == clu.labels[4]
 

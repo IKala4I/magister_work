@@ -49,10 +49,24 @@ def test_chosen_bucket_outside_candidate_set_raises() -> None:
         ope.replay([row(bucket="EM.wd")], logged)
 
 
-def test_propensity_above_uniform_raises() -> None:
-    # p must be eps/|A_m| <= 1/|A_m|: 0.5 over a 4-set is not a slice propensity
-    with pytest.raises(ValueError, match="exceeds"):
+def test_slice_propensity_must_equal_one_over_m_exactly() -> None:
+    # ε = 1 is pinned (M2): both 0.5 and 0.125 over a 4-set are corrupt slice rows
+    with pytest.raises(ValueError, match="!= 1/4"):
         ope.replay([row(p=0.5)], logged)
+    with pytest.raises(ValueError, match="!= 1/4"):
+        ope.replay([row(p=0.125)], logged)
+
+
+def test_mixed_rows_feed_ips_but_never_replay() -> None:
+    mc = ope.SliceRow(
+        recommendation_id="ts1", bucket_id="MO.wd.fresh",
+        top_m=("EM.wd", "MO.wd.fresh", "MD.wd", "EV.wd"), propensity=0.4, reward=1.0,
+        context={}, exact=False,
+    )
+    est = ope.ips([mc], lambda r, b: 1.0 / len(r.top_m))
+    assert est.value == pytest.approx(0.25 / 0.4)
+    with pytest.raises(ValueError, match="slice-only"):
+        ope.replay([mc], lambda r: r.bucket_id)
 
 
 def test_zero_or_negative_propensity_raises() -> None:

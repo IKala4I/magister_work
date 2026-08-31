@@ -39,6 +39,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--database-url", default=os.environ.get("DATABASE_URL"))
     ap.add_argument("--out-dir", default="out", type=Path)
     ap.add_argument("--seed", default=0, type=int)
+    ap.add_argument("--nightly", action="store_true",
+                    help="run the nightly pipeline (the default mode; the systemd unit "
+                         "passes it explicitly)")
     ap.add_argument("--synthetic", action="store_true",
                     help="seed the target database with the synthetic cohort first (CI only)")
     ap.add_argument("--archive", action="store_true",

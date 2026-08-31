@@ -106,6 +106,10 @@ select results_eq(
   $$values (48::bigint)$$,
   'baseline: the pre-refresh user sits on seed v0');
 
+-- v99 is a deliberately MINIMAL fixture (one cell) to isolate the gate mechanics; a real
+-- refresh is always the full 240-row table — the pipeline refuses to promote an incomplete
+-- one (ADR-0015 §6, adversarial finding 19), so the single-cell instantiation below can
+-- never occur live.
 insert into public.prior_cells (version, chronotype_class, category, daypart, day_type, mu0, n0)
 values (99, 'INT', 'deep', 'MO', 'weekday', 0.7, 8);
 insert into public.model_registry (kind, version, artifact_uri, metrics, promoted)

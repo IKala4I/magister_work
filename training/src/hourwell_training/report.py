@@ -43,22 +43,29 @@ def ope_table(
     rows: Sequence[ope.SliceRow],
     policies: dict[str, tuple[ope.DeterministicPolicy, ope.StochasticPolicy]],
     model: ope.RewardModel,
+    *,
+    include_replay: bool = True,
 ) -> list[dict[str, Any]]:
-    """estimator × policy with the ESS gate rendered, not just stored."""
+    """estimator × policy with the ESS gate rendered, not just stored. `include_replay`
+    is False for MC-propensity (mixed TS) rows — replay would rightly raise on them."""
     out: list[dict[str, Any]] = []
     for name, (det, sto) in sorted(policies.items()):
-        entries: list[tuple[str, ope.Estimate]] = [
-            ("replay", ope.replay(rows, det)),
+        entries: list[tuple[str, ope.Estimate]] = (
+            [("replay", ope.replay(rows, det))] if include_replay else []
+        ) + [
             ("ips", ope.ips(rows, sto)),
             ("ips_clip", ope.ips_clipped(rows, sto)),
             ("snips", ope.snips(rows, sto)),
             ("dr", ope.doubly_robust(rows, sto, model)),
         ]
         for est_name, est in entries:
+            import math
+
+            valid = est.n > 0 and not math.isnan(est.value)
             out.append({
                 "policy": name,
                 "estimator": est_name,
-                "value": round(est.value, 4) if est.n else None,
+                "value": round(est.value, 4) if valid else None,
                 "ess": round(est.ess, 1),
                 "n": est.n,
                 "evidence": est.is_evidence,
@@ -91,11 +98,13 @@ def interference_probe(
             continue
         m = 1.0 if is_morning(r.bucket_id) else 0.0
         xs.append([m, float(load), m * float(load)])
-        ys.append(r.reward)
+        # real rewards are partial-credit floats (specs/07 §3.4.1); an unbinarized fit
+        # would be a silent multiclass model (adversarial finding 6)
+        ys.append(1.0 if r.reward >= 0.5 else 0.0)
     n = len(ys)
     if n < REPORT_MIN_CELL * 2 or len(set(ys)) < 2:
         return ProbeResult(None, n, "insufficient data for the probe")
-    fit = LogisticRegression(penalty=None, max_iter=1000).fit(np.asarray(xs), np.asarray(ys))
+    fit = LogisticRegression(C=1e6, max_iter=1000).fit(np.asarray(xs), np.asarray(ys))
     return ProbeResult(round(float(fit.coef_[0][2]), 4), n, "")
 
 
