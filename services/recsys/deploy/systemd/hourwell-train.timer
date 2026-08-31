@@ -1,0 +1,11 @@
+[Unit]
+Description=Run the Hourwell training pipeline nightly at 00:30 UTC
+
+[Timer]
+OnCalendar=*-*-* 00:30:00 UTC
+RandomizedDelaySec=10min
+Persistent=true
+Unit=hourwell-train.service
+
+[Install]
+WantedBy=timers.target

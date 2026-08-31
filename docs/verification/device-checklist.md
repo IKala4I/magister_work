@@ -280,3 +280,19 @@ never substituted. Command: runbook `docs/runbooks/oracle-vm.md` §7.
   is always on (no sleep, no wake probe); what remains is the warm p95 through the edge function
   (HANDOFF ⛔ 7, `p6-manual-verification.md` §3) and the DB pool's first connection, covered by
   the first-vs-second-run comparison there.
+
+## Service environment — training container (added P11, ADR-0015; VM-run, before enrollment)
+
+- ⬜ **Nightly training run live on the VM** — after the owner adds
+  `SUPABASE_SERVICE_ROLE_KEY` + `ARCHIVE_SALT` to `.env` and re-runs `install.sh`:
+  `journalctl -u hourwell-train -n 20` shows a completed run; the report appears under
+  `models/reports/<date>/` and `model_registry` gains gated rows. Why not settled here:
+  needs the P11 migration applied and the VM's env — CI proves the pipeline only on the
+  synthetic cohort (train.yml), never the real path end-to-end.
+- ⬜ **MC backfill on live rows** — after the first nightly run on the migrated project:
+  `select count(*) from recommendations where propensity is null and not is_experiment
+and engine = 'learned';` → 0 (privacy §7 aggregate). Simulator/CI cannot settle it: the
+  live rows carry real bandit state the synthetic cohort does not.
+- ⬜ **Rollout picks up the training image** — `docker compose --profile training pull`
+  path via `hourwell-rollout` on the box; check `docker image ls | grep hourwell-training`
+  after a main-branch push.

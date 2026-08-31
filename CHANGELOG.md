@@ -1,5 +1,53 @@
 # Changelog
 
+## P11 — Training pipeline + OPE + study mode (2026-08-31, phase/P11-training)
+
+**Database (ADR-0015).** Migration `20260831120000_p11_training`: `cluster_cells`
+(versioned per-cluster EB aggregates; RLS on, no policies — service only); private Storage
+bucket `models` (ADR-0011: EU artifact home); `recommendations.context_bucket` CHECK pinned
+to the 14 φ ids (NOT VALID — new rows only; five out-of-vocabulary ids in old test fixtures
+surfaced and were corrected); seed priors v0 got a promoted `model_registry` row and
+`instantiate_user_priors` now follows the **highest PROMOTED priors version** (the eval
+gate, closing the ADR-0005 §6 note); `enroll_participant` (File 06 §1.2: 4 × 2-week phases
+from ABAB|BABA, stamps `research_cohort` + the G6 EU/EEA answer, raises on re-enrollment);
+`diagnose_user` (privacy §7: counts/timestamps only). pgTAP `p11_training_test.sql` (26):
+NFR-S3 closed-vocab rule (every whitelisted text column CHECK-constrained), the
+unpromoted-refresh-inert / promoted-takes-over pair, the full BABA phase table, leak checks.
+
+**Training package** (`training/`, 73 pytest). NFR-S3 whitelist as data — the ONLY SQL
+producer, pinned four ways (pgTAP fixture, forbidden names, SQL reconstruction, the
+client's `CLIENT_EVENT_TYPES`); export gates count refused rows (`DroppedRows`) and never
+let them leave the DB. OPE (File 04 §2): replay hard-restricted to the randomized slice
+(no logged A_m(x) / exact propensity ⇒ raise), IPS / clipped (M=10) / SNIPS / DR; **every
+estimate carries ESS, < 100 rendered NON-EVIDENCE**; on synthetic ground truth the
+estimators RECOVER the closed-form value (DR stays unbiased under a deliberately wrong
+reward model). PAR mirror of `_shared/par.ts` (H2; AST source lock). ALS on decayed cell
+aggregates (items = 48 cells, `implicit`, one confidence convention — k=1 hand case exact,
+library parity within the honest 2 % bound), silhouette k-means, closed-form fold-in ≥ 30
+outcomes; cluster switches refresh **unvisited cells only** (invariant 5, `succ = 0 and
+fail = 0` in SQL). EB refresh (moments + guards) behind a held-out log-loss gate — no
+artifact, no promotion. MC propensity backfill (K = 32) scoring **through the service's own
+modules** (path dependency + `py.typed`); Laplace floor, deterministic per-row seeds,
+LinUCB skipped (L3), exact slice propensities never touched. Aggregate report (min cell 5):
+drop rate per arm, personal-by-label counts, scaling-active users, interference probe (L4),
+OPE table.
+
+**Deploy + CI.** `training/Dockerfile` (repo-root context, arm64, libgomp1); one-shot
+compose service `training` (profile-gated, 2-cpu cap); `hourwell-train.timer` nightly 03:00
+UTC — the keep-busy timer STAYS (runbook §7 forecast corrected; ADR-0015 §1); rollout pulls
+both images. `train.yml`: the same pipeline **on a synthetic cohort only** (G3 — no hosted
+secret), end-to-end asserted (registry rows, no-credentials-no-promotion, full backfill
+coverage, M-01 row = telemetry cross-check). `deploy-training.yml`: native arm64 build with
+an in-image `implicit` ALS smoke (the ADR-0011 wheel check).
+
+**Study mode.** Blocked randomization (block 4, seeded audit list) +
+`docs/study/enrollment-checklist.md` with the G6 gate (an EU/EEA resident cannot be
+enrolled before a Union representative exists).
+
+**Tooling.** `pgtap-linked.sh` parser rewritten to the shared db-query rule (the CLI now
+nests the TAP text two JSON layers deep) + env-gated raw tee.
+
+
 ## P10 — Notifications, privacy, a11y, performance (2026-08-30, phase/P10-notify)
 
 **Database (ADR-0014).** Migration `20260830120000_p10_privacy`: `deletion_audit.reason`

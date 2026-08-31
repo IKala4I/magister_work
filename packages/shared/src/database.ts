@@ -235,6 +235,39 @@ export type Database = {
         }
         Relationships: []
       }
+      cluster_cells: {
+        Row: {
+          category: string
+          cluster_id: number
+          created_at: string
+          day_type: string
+          daypart: string
+          mu0: number
+          n0: number
+          version: number
+        }
+        Insert: {
+          category: string
+          cluster_id: number
+          created_at?: string
+          day_type: string
+          daypart: string
+          mu0: number
+          n0: number
+          version: number
+        }
+        Update: {
+          category?: string
+          cluster_id?: number
+          created_at?: string
+          day_type?: string
+          daypart?: string
+          mu0?: number
+          n0?: number
+          version?: number
+        }
+        Relationships: []
+      }
       deletion_audit: {
         Row: {
           completed_at: string | null
@@ -932,6 +965,16 @@ export type Database = {
       }
       attribution_sweep_tick: { Args: never; Returns: string }
       chronotype_seed_cluster: { Args: { p_class: string }; Returns: number }
+      diagnose_user: { Args: { p_email: string }; Returns: Json }
+      enroll_participant: {
+        Args: {
+          p_eu_eea: boolean
+          p_phase1_start: string
+          p_sequence: string
+          p_user_id: string
+        }
+        Returns: number
+      }
       gcal_sweep_tick: { Args: never; Returns: string }
       instantiate_user_priors: { Args: { p_user_id: string }; Returns: number }
       persist_plan: {
