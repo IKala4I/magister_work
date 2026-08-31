@@ -27,6 +27,19 @@ class StorageConfig:
     def object_url(self, path: str) -> str:
         return f"{self.supabase_url}/storage/v1/object/{ARTIFACT_BUCKET}/{path}"
 
+    def auth_headers(self) -> dict[str, str]:
+        """Both key generations work, on the headers each one is DOCUMENTED for
+        (supabase.com/docs/guides/getting-started/migrating-to-new-api-keys, verified
+        2026-08-31): the new `sb_secret_...` keys are not JWTs and are REJECTED on
+        `Authorization: Bearer` — apikey header only; the legacy service_role JWT is
+        accepted on both, and Bearer is where its role claim is read."""
+        if self.service_role_key.startswith("sb_secret_"):
+            return {"apikey": self.service_role_key}
+        return {
+            "authorization": f"Bearer {self.service_role_key}",
+            "apikey": self.service_role_key,
+        }
+
 
 @dataclass
 class RegistryClient:
@@ -42,8 +55,7 @@ class RegistryClient:
             data=payload,
             method="POST",
             headers={
-                "authorization": f"Bearer {self.storage.service_role_key}",
-                "apikey": self.storage.service_role_key,
+                **self.storage.auth_headers(),
                 "content-type": content_type,
                 "x-upsert": "true",
             },
