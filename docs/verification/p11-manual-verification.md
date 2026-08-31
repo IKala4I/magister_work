@@ -72,10 +72,21 @@ adversarial-fix round): recorded in the PR checks at merge.
    (no migration arg — the applied schema) → **26/26**, rolled back.
 4. ✅ **Types**: `supabase gen types typescript --linked` byte-identical to the committed
    `database.ts` after `normalize-db-types.sh` on both sides.
-5. ⛔ **Owner (VM), still open:** add `SUPABASE_SERVICE_ROLE_KEY` + `ARCHIVE_SALT` to
-   `~/hourwell/.env`; pull the deploy dir → `bash ~/hourwell/deploy/install.sh`; then
-   `journalctl -u hourwell-train -n 20` after 00:30 UTC or run the container once
-   (runbook §10). Flips the three device-checklist "Service environment" items.
+5. ✅ **VM activation (owner keys 2026-08-31; session ran the rest same day).** Deploy dir
+   tar-synced (the Minimal image has no rsync), `install.sh` installed + enabled
+   `hourwell-train.timer` (next fire 2026-09-01 00:36 UTC). The first nightly was run
+   MANUALLY three times, each peeling a real latent defect:
+   - run 1: `DuplicatePreparedStatement` — the transaction pooler rejects psycopg's
+     auto-prepare (the recsys service's own P7 lesson); fixed with the shared
+     `hourwell_training.db.connect()` (PR #27);
+   - run 2: the strict slice check refused a pre-P6 row storing float32(1/3) — exactly
+     spec-conflicts L22; fixed by symbolic recovery to 1/|A_m(x)| in the export adapter
+     (PR #28); the same run proved the pooler fix (MC backfill filled 96 live rows);
+   - **run 3: clean.** Summary: priors carry-over (refit guards refused — < 5 mature
+     contributors per cell in the test cohort), ALS skip (1 distinct cluster), backfill
+     0 left / 7 skipped-by-design (day-0 users without bandit state), report written and
+     **uploaded: `reports/2026-08-31/report.json` in the `models` bucket** — the
+     sb_secret apikey-only path verified live. Device-checklist items flipped.
 
 ## §4 Adversarial pass (fresh-context subagent, 2026-08-31)
 

@@ -434,7 +434,12 @@ the legacy keys are disabled (deprecation, end 2026): the nine edge functions mu
 the injected legacy vars to the `SUPABASE_PUBLISHABLE_KEYS`/`SUPABASE_SECRET_KEYS` JSON vars
 (one shared helper, one PR) — tracked in `docs/decisions/revisit.md`.
 
-## 12. Tailscale admin path (ADR-0017, accepted 2026-08-31) **[owner — ride along with the §8/§10 key write]**
+## 12. Tailscale admin path (ADR-0017, accepted 2026-08-31) — **INSTALLED + VERIFIED 2026-08-31**
+
+> Status: tailscaled 1.102.3 on the box, node `recsys-oracle` (100.101.44.91), owner's Mac +
+> phone in the tailnet, `tailscale up --ssh` applied, **key expiry disabled** (admin console,
+> owner-verified), tailnet `ssh ubuntu@recsys-oracle` proven from the Mac while the public
+> allow-listed path stayed live. The steps below remain as the reinstall/recovery reference.
 
 Daily administration moves to the tailnet; **nothing below touches the two SSH locks (§4) or
 the recovery ladder (§5) — they stay the security boundary and break-glass, unchanged.**

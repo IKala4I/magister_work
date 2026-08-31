@@ -2,14 +2,18 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-08-31 (late), **P11 fully closed and live-verified (PRs #21–#25):
-> smoke 21/21, pgTAP 26/26 live, types byte-identical, key-format audit in runbook §11,
-> sweep-header migration pushed + tick verified (200). Owner ACCEPTED ADR-0016 (erasure
-> confirmation in-app by design — G8 closed, texts reworded) and ADR-0017 (Tailscale for
-> daily admin — runbook §12 ready, installs with the VM keys). The ONE remaining ⛔:
-> the owner's home-session VM work (keys + install.sh + Tailscale §12). Then P12 —
-> Release prep — opens FRESH, starting with the DPIA.** Standing rules live in CLAUDE.md:
-> "Working mode", "Context efficiency", "Simulator evidence".
+> Last update: 2026-08-31 (night), **P11 FULLY CLOSED AND ACTIVATED (PRs #21–#28).**
+> Server surface live-verified (smoke 21/21, pgTAP 26/26 live, key audit runbook §11,
+> sweep tick 200). VM activated: keys on the box, `hourwell-train.timer` armed (next fire
+> 2026-09-01 00:36 UTC), the nightly proven end-to-end by manual runs — a three-run saga
+> that peeled two real latent defects (pooler prepared statements → shared `db.connect()`,
+> PR #27; pre-P6 float4 propensity → L22 symbolic recovery, PR #28) and finished clean
+> with `reports/2026-08-31/report.json` uploaded to the `models` bucket (the sb_secret
+> path proven). Tailscale installed + verified per §12 (key expiry disabled; temp IP
+> removed; public path confirmed refusing the non-home network while the tailnet path
+> stays live). **Nothing owner-blocking remains for P11. P12 — Release prep — opens
+> FRESH, starting with the DPIA.** Standing rules live in CLAUDE.md: "Working mode",
+> "Context efficiency", "Simulator evidence".
 
 ## Where we are
 
@@ -61,26 +65,25 @@
 1. ~~Migration push + live smoke~~ — **done 2026-08-31**: smoke 21/21 (after the shared
    db-query error-path fix), pgTAP 26/26 live, types byte-identical
    (`p11-manual-verification.md` §3).
-2. ⛔ **Owner (VM):** add `SUPABASE_SERVICE_ROLE_KEY=<sb_secret_... key>` (Dashboard → API keys →
-   Secret keys; the legacy service_role JWT also works — the uploader picks the right
-   header per key kind) and
-   `ARCHIVE_SALT=<64 random hex>` to `~/hourwell/.env`; pull the repo's deploy dir to the
-   box and `bash ~/hourwell/deploy/install.sh` (installs `hourwell-train.timer`, adds the
-   training image to the rollout pull). First green `journalctl -u hourwell-train` +
-   `models/reports/<date>/report.json` in the bucket flips the three device-checklist
-   "Service environment — training container" items.
-3. `git checkout main && git pull`; `gh run list --branch main -L 2` green (ci + the
-   training image build/rollout on the main push).
-4. **P12 reading list** (read nothing else to orient): PLAN §3 P12; specs/02 store/release
+2. ~~VM activation bundle~~ — **done 2026-08-31**: keys written (sb_secret format),
+   `install.sh` run (deploy dir tar-synced — the Minimal image has NO rsync), timer
+   armed, nightly proven manually (verification §3.5), Tailscale §12 installed +
+   verified, temporary IP removed and its absence behaviorally confirmed.
+3. **First scheduled nightly check** (1 min, any session): after 2026-09-01 00:36 UTC —
+   `ssh ubuntu@recsys-oracle 'journalctl -u hourwell-train -n 15'` shows the JSON summary
+   (expected on this cohort: priors carry-over, ALS skip, backfill 0/7-skipped) and
+   `reports/2026-09-01/report.json` exists in the `models` bucket (names-only query).
+4. `git checkout main && git pull`; `gh run list --branch main -L 2` green.
+5. **P12 reading list** (read nothing else to orient): PLAN §3 P12; specs/02 store/release
    requirements it names; `docs/privacy/README.md` whole (DPIA input) + ADR-0011 §Decision
    (DPIA §transfers = its §2); ADR-0014 §9–§10 (retention/erasure text for the DPIA);
    `docs/verification/device-checklist.md` (the hardware pass gates P12 claims);
    `docs/thesis/thesis-corrections.md` (rollup into the draft); CHANGELOG (release-notes
    substrate); `docs/decisions/revisit.md` OSF-freeze-tagged lines.
-5. **Before P12 proper:** the owner-run hardware verification pass
+6. **Before P12 proper:** the owner-run hardware verification pass
    (`scripts/device-pass.sh ios|android`; needs a development build — EAS or local, ⛔) and
    the pre-enrollment list below.
-6. Keep `docs/thesis/pojasnennia.uk.md` in the same commits; refresh this file at the end;
+7. Keep `docs/thesis/pojasnennia.uk.md` in the same commits; refresh this file at the end;
    close with `HANDOFF WRITTEN — safe to /clear`.
 
 ## ⛔ ACTION REQUIRED (owner)
@@ -88,15 +91,8 @@
 - ~~Push migration `20260831140000_p11_sweep_header`~~ — **done 2026-08-31**: owner pushed;
   verified live same day (`attribution_sweep_tick()` → `posted`, newest
   `net._http_response` = 200 under the apikey-only shape).
-- **The home-session VM bundle (one sitting, runbook §8 + §10 + §12):** (1) `.env` keys —
-  confirmed absent 2026-08-31 (serial-console check, both format greps 0); (2)
-  `install.sh` re-run; (3) **Tailscale install (ADR-0017 accepted — §12 is step-by-step,
-  incl. the disable-key-expiry gotcha)**. VM `.env` +
-  `SUPABASE_SERVICE_ROLE_KEY` (prefer the new `sb_secret_...` key) +
-  `ARCHIVE_SALT`, re-run `install.sh` (runbook §8/§10). Until then: no live nightly run,
-  no artifact uploads, MC backfill idle. (Migration push + smoke: done 2026-08-31.)
-- ~~Erasure confirmation by e-mail~~ — **decided 2026-08-31 (ADR-0016 accepted): in-app
-  by design; G8 closed; texts reworded (corrections #43, L35, consent cite).**
+- ~~The home-session VM bundle~~ — **done 2026-08-31** (keys, install.sh, Tailscale §12,
+  temp-IP removal verified). P11 has NO remaining activation steps.
 - **Consent clause review** — `docs/privacy/consent-clause.md` (contact block to fill).
 - **Google OAuth sign-in (FR-01, P4 leftover):** second Web OAuth client, id+secret into
   Dashboard → Auth → Providers → Google; then the P4 smoke.
@@ -118,6 +114,19 @@ one helper); the training uploader takes both; recsys uses no Supabase API key a
 latent mismatch found and fixed (the P7 sweep's Bearer header — migration above).
 
 ## Gotchas (P11 additions; earlier lists still apply)
+
+- **The VM's Minimal Ubuntu has no rsync** — deploy-dir sync is tar-over-ssh
+  (`tar -C services/recsys/deploy -czf - . | ssh … 'tar -C ~/hourwell/deploy -xzf -'`);
+  a failed rsync does NOT abort a chained install (bit once: the old deploy dir ran).
+- **Every training-package DB connection goes through `hourwell_training.db.connect()`**
+  (prepare_threshold=None — the transaction pooler rejects psycopg auto-prepare; the
+  raw-`psycopg.connect` grep in the PR #27 commit is the guard). CI cannot catch pooler
+  issues: the local stack is a direct connection.
+- **Pre-P6 M-01 rows store float4 propensities** (e.g. float32(1/3)) — the export adapter
+  normalizes within 1e-6 to the exact 1/|A_m(x)| (L22 symbolic recovery) and counts them;
+  the OPE harness itself stays strict. Never loosen the harness check instead.
+- **Tailscale SSH terminates inside tailscaled** — the HOURWELL-SSH chain never sees it;
+  plain sshd over the tailnet IP WOULD be dropped by the chain (intentional; §12).
 
 - **`execFileSync` hides the CLI's error JSON**: on a raised exception `supabase db query`
   exits nonzero with the error JSON on STDOUT — a bare exec wrapper throws "Command
