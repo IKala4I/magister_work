@@ -54,7 +54,8 @@ Deletion removes your records from the database — in practice within seconds, 
 within 30 days — and revokes any calendar access; the app shows a confirmation with a reference
 number you can keep as proof (no e-mail is sent). Aggregated study results computed before your
 deletion cannot be un-computed, but they do not identify you. An anonymous trial account that is
-not used for 30 days is deleted automatically. (P10 — UC-10; ADR-0014.)
+not used for 30 days is deleted automatically. (P10 — UC-10; ADR-0014; confirmed final by
+ADR-0016, owner decision 2026-08-31.)
 
 `[system]` **Withdrawal from the study** is deletion plus a note to the researcher; no reason
 is needed.

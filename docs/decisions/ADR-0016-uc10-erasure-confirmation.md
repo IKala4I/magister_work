@@ -1,8 +1,11 @@
 # ADR-0016 — UC-10 erasure confirmation: e-mail vs in-app (reword the spec)
 
 - **Date:** 2026-08-31
-- **Status:** **proposed — owner decision** (claim-level: it changes what UC-10's text
-  promises participants, and it is on the pre-enrollment gate list)
+- **Status:** **accepted — owner decision 2026-08-31: reword the spec.** In the owner's
+  words: the anonymous-account argument alone settles it — e-mail can never be the
+  universal mechanism, so the in-app path must exist regardless, and adding a processor to
+  duplicate a confirmation the user already saw is the wrong trade. Brevo pre-wiring stays
+  documented for a possible ethics-board ask.
 - **Spec anchors:** UC-10 (specs/02 L183: "deletion cascades … ≤ 30 days, **confirmed by
   email**"); FR-42; ADR-0014 §9 (P10 built the in-app confirmation); spec-conflicts L35
   (normative errata: in-app, no mail); thesis-corrections #43; privacy README **G8** (the

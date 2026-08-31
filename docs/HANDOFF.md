@@ -2,13 +2,14 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-08-31, **P11 — Training pipeline + OPE + study mode: complete; PR #21
-> merged; migration pushed by the owner and the live smoke is 21/21 (first run 19/21 — a
-> db-query error-path parsing gap, fixed in the shared lib; smoke-close PR follows the P9/P10
-> precedent), pgTAP 26/26 live, types byte-identical. The ONE remaining ⛔ for P11
-> activation: the VM `.env` keys + `install.sh` re-run (first nightly run). P12 — Release
-> prep opens next; the owner-run hardware pass sits before it.** Standing rules live in
-> CLAUDE.md: "Working mode", "Context efficiency", "Simulator evidence".
+> Last update: 2026-08-31 (late), **P11 fully closed and live-verified (PRs #21–#25):
+> smoke 21/21, pgTAP 26/26 live, types byte-identical, key-format audit in runbook §11,
+> sweep-header migration pushed + tick verified (200). Owner ACCEPTED ADR-0016 (erasure
+> confirmation in-app by design — G8 closed, texts reworded) and ADR-0017 (Tailscale for
+> daily admin — runbook §12 ready, installs with the VM keys). The ONE remaining ⛔:
+> the owner's home-session VM work (keys + install.sh + Tailscale §12). Then P12 —
+> Release prep — opens FRESH, starting with the DPIA.** Standing rules live in CLAUDE.md:
+> "Working mode", "Context efficiency", "Simulator evidence".
 
 ## Where we are
 
@@ -87,15 +88,15 @@
 - ~~Push migration `20260831140000_p11_sweep_header`~~ — **done 2026-08-31**: owner pushed;
   verified live same day (`attribution_sweep_tick()` → `posted`, newest
   `net._http_response` = 200 under the apikey-only shape).
-- **P11 activation — one step left (CONFIRMED PENDING 2026-08-31):** the owner checked
-  from the serial console — no `SUPABASE_SERVICE_ROLE_KEY` on the box at all (both format
-  greps 0). They will write the keys and run `install.sh` from their own terminal when back
-  on a home network (the serial console mangles pasted input). VM `.env` +
+- **The home-session VM bundle (one sitting, runbook §8 + §10 + §12):** (1) `.env` keys —
+  confirmed absent 2026-08-31 (serial-console check, both format greps 0); (2)
+  `install.sh` re-run; (3) **Tailscale install (ADR-0017 accepted — §12 is step-by-step,
+  incl. the disable-key-expiry gotcha)**. VM `.env` +
   `SUPABASE_SERVICE_ROLE_KEY` (prefer the new `sb_secret_...` key) +
   `ARCHIVE_SALT`, re-run `install.sh` (runbook §8/§10). Until then: no live nightly run,
   no artifact uploads, MC backfill idle. (Migration push + smoke: done 2026-08-31.)
-- **Erasure confirmation by e-mail?** (ADR-0014 §9; privacy README G8) — decide before
-  enrollment; the consent clause currently says "no e-mail is sent".
+- ~~Erasure confirmation by e-mail~~ — **decided 2026-08-31 (ADR-0016 accepted): in-app
+  by design; G8 closed; texts reworded (corrections #43, L35, consent cite).**
 - **Consent clause review** — `docs/privacy/consent-clause.md` (contact block to fill).
 - **Google OAuth sign-in (FR-01, P4 leftover):** second Web OAuth client, id+secret into
   Dashboard → Auth → Providers → Google; then the P4 smoke.
@@ -157,6 +158,6 @@ latent mismatch found and fixed (the P7 sweep's Bearer header — migration abov
 
 ## Open questions (owner)
 
-- E-mail confirmation of erasure (above). Two-device ritual (unchanged from P10).
+- Two-device ritual (unchanged from P10).
 - OSF freeze bundle: H1 text conditions, the M9 power recompute, corrections #34–36
   wording, G5 dataset decision — one sitting, before enrollment.

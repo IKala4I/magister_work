@@ -335,7 +335,11 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     the `deletion_audit` reference and completion time; no e-mail is sent (free tier, no
     transactional mail; a mail provider would be a new processor; anonymous accounts have no
     address). Say "confirmed in-app with a reference number"; keep "within 30 days" as the legal
-    bound, note the actual completion is synchronous (seconds). ADR-0014 §8–§9.
+    bound, note the actual completion is synchronous (seconds). ADR-0014 §8–§9. **Decision
+    final (owner, 2026-08-31, ADR-0016):** the text should present in-app as the DESIGNED
+    mechanism, not a fallback — e-mail can never be universal here (anonymous accounts have
+    no address) and Art. 12(3) asks for "without undue delay", which the synchronous in-app
+    confirmation satisfies best.
 44. **§retention ("anonymous accounts purged after 30 days unconverted"):** the rule implemented
     is **30 days of inactivity** (no sign-in, no event) — an active trial is never destroyed. Also
     say that the 24-month raw-event window starts at study end and is executed by the archive job
