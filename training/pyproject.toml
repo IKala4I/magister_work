@@ -3,10 +3,23 @@ name = "hourwell-training"
 version = "0.1.0"
 description = "Hourwell nightly training pipeline and offline policy evaluation harness (specs/04 §2, specs/06)"
 requires-python = ">=3.12,<3.13"
-dependencies = []
+dependencies = [
+    "hourwell-recsys",
+    "implicit>=0.7.3",
+    "numpy>=2.5.2",
+    "psycopg[binary]>=3.3.4",
+    "pyarrow>=25.0.1",
+    "scikit-learn>=1.9.0",
+    "scipy>=1.18.1",
+]
 
 [dependency-groups]
-dev = ["ruff>=0.12", "mypy>=1.14", "pytest>=8.3"]
+dev = [
+    "ruff>=0.12",
+    "mypy>=1.14",
+    "pytest>=8.3",
+    "scipy-stubs>=1.18.1.0",
+]
 
 [tool.ruff]
 line-length = 100
@@ -19,8 +32,15 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 strict = true
 python_version = "3.12"
 
+[[tool.mypy.overrides]]
+module = ["implicit.*", "sklearn.*", "pyarrow.*"]
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.uv.sources]
+hourwell-recsys = { path = "../services/recsys" }
 
 [build-system]
 requires = ["hatchling"]
