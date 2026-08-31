@@ -15,7 +15,6 @@
  * Reads EXPO_PUBLIC_SUPABASE_URL/_ANON_KEY from the repo .env; prints PASS/FAIL lines only.
  * Usage: node docs/verification/p11-live-smoke.mjs   (from apps/mobile so supabase-js resolves)
  */
-/* global fetch */
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
