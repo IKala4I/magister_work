@@ -11,7 +11,12 @@
 - [ ] Signed consent form (incl. the Art. 49(1)(a) clause and the FR-42 erasure text —
       `docs/privacy/consent-clause.md`); voucher terms stated (€20 on completion, paid
       regardless of outcomes).
-- [ ] ≥ 18 y; own smartphone (iOS 16+ / Android 12+); self-reports ≥ 5 schedulable tasks/week.
+- [ ] ≥ 18 y; own smartphone (**Android 12+** — sideload install; participant enables
+      "install unknown apps"); self-reports ≥ 5 schedulable tasks/week.
+      ⚠️ **iOS candidates cannot be enrolled** (owner decision 2026-08-31 — no Apple
+      Developer membership → no 8-week iOS install channel; `docs/store/metadata.md` §7).
+      Record each turned-away iOS candidate in the study log: the Android-only recruitment
+      limitation is reported, not glossed (thesis-corrections #48).
 - [ ] NOT currently using an auto-scheduling tool (Motion / Reclaim / SkedPal — contamination).
 - [ ] NOT a shift worker with employer-dictated hours (no scheduling latitude).
 - [ ] **"Are you resident in the EU/EEA?" — record the answer** (G6, Art. 27 trigger).
@@ -20,7 +25,8 @@
 
 ## 2. Install + run-in (week 0, not analyzed)
 
-- [ ] Participant installs the app, completes onboarding (rMEQ or skip) with their own account.
+- [ ] Participant installs the app (sideloaded release APK — metadata §7 decision),
+      completes onboarding (rMEQ or skip) with their own account.
 - [ ] Confirm the profile exists and onboarding completed — from the VM or via the RPC:
       `select public.diagnose_user('<their-email>');` → `profile.onboarding_completed = true`.
       (Counts only; never open their rows — privacy README §7.)

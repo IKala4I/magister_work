@@ -359,3 +359,15 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     round trip 477 ms p95 (does not). Do not present the sync round trip as the "core API", and
     do not present any of these as device numbers (the handset adds radio wake-up and mobile
     TLS; the device pass measures). `p10-manual-verification.md` §2.3.
+48. **§release / §conclusions (store submission, TestFlight, "app published"):** owner
+    decision 2026-08-31 — **neither** developer account is purchased (Play $25, Apple
+    $99/yr). Wherever the draft implies store submission, TestFlight distribution, or a
+    public listing, write instead: every release artifact is **prepared and verified but
+    deliberately unsubmitted** (DPIA, listing copy within verified limits, data-safety
+    answers, privacy-policy draft, clean name search, EAS profiles) — the system is
+    **"ready to release; only release and marketing remain."** Study distribution is
+    account-free: sideloaded release APK on Android; **no iOS participant channel exists**
+    (TestFlight needs the membership; free provisioning = 3 devices / 7 days), so
+    recruitment is Android-only unless the decision is reversed — state this as a §5
+    recruitment limitation next to the M9 power note. `docs/store/metadata.md` §7 decision
+    block; enrollment checklist §1.

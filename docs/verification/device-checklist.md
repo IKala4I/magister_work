@@ -176,7 +176,10 @@
   and FCM delivery, lead times, per-category mute, and the cap under a storm, with the app in
   every lifecycle state; Android channel behaviour and OEM battery-optimization interference.
   Simulator can't settle it: iOS simulator push is a development shim, FCM needs a real
-  device, and delivery timing under Doze/Low-Power mode only exists on hardware.
+  device, and delivery timing under Doze/Low-Power mode only exists on hardware. **P10 note:** the
+  shipped FR-50 is **local** scheduled notifications (ADR-0014) — no APNs/FCM is involved
+  and no push entitlement is needed (free-provisioned builds qualify); the concrete
+  protocol is the P10 section below.
 
 ### Trust surfaces (added P9)
 
@@ -299,14 +302,19 @@ and engine = 'learned';` → 0 (privacy §7 aggregate). Simulator/CI cannot sett
 
 ## Release builds — EAS (added P12)
 
-- ⬜ **EAS preview build installs and runs on both devices** (added P12). After the owner's
-  `eas login`/`init`/credentials: `eas build --profile preview` for both platforms, install
-  on the two study-class devices, run one full day loop (plan → focus → skip → sync). Why
-  the simulator can't settle it: every measurement so far ran in Expo Go / dev client or the
-  iOS Release simulator build — an EAS-built standalone binary (Hermes bytecode, app
-  signing, no dev server) has never existed, and notification categories + deep links behave
-  differently in standalone.
-- ⬜ **Store screenshots captured on hardware** (added P12). The `docs/store/metadata.md` §6
-  capture list, on the real devices in light + dark. Why: simulator screenshots at the
-  wrong device class misrepresent the product on mid-range hardware (same honesty rule as
-  the perf numbers).
+- ⬜ **Standalone release build installs and runs on both devices — account-free scope**
+  (added P12; re-scoped 2026-08-31 per the owner's store decision, metadata §7: no
+  developer accounts). Android: locally built release APK (`npx expo prebuild -p android`,
+  `./gradlew assembleRelease`), sideloaded. iOS: free-provisioned **Release-configuration**
+  build on the owner's iPhone (`npx expo run:ios --device --configuration Release`; 7-day
+  signature — re-sign for week-long observations). On each: one full day loop (plan →
+  focus → skip → sync). Why the simulator can't settle it: no Release/standalone binary
+  has ever run on hardware, and notification categories + deep links behave differently
+  outside the dev client. **Blocked-by-decision residual (recorded, not open work):** an
+  EAS-built, store-signed iOS binary (App Store signing, TestFlight-installed standalone
+  behaviour) cannot exist without the $99 membership — if the decision is ever reversed
+  (revisit.md), re-verify categories + deep links on that binary before any iOS
+  participant.
+- ⬜ **Store screenshots captured on hardware** (added P12; **optional** since 2026-08-31 —
+  the pack stays prepared-but-unsubmitted, metadata §7). Capture only if wanted for a
+  thesis appendix; nothing gates on it.

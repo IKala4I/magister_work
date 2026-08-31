@@ -25,21 +25,23 @@
   rotation); v0.1.0 **CHANGELOG rollup**; `docs/thesis/corrections-rollup.md` (all 47
   worklist items grouped per draft chapter); 14 revisit dispositions (done / closed-for-v1
   / re-dated with reasons).
-- **Store economics (owner decision, re-raised per PLAN §5 row 4):** Play **$25 one-time**
-  now (clean participant installs + listing); Apple **$99/yr only when iOS participants
-  are actually recruited** — TestFlight is the only viable 8-week iOS channel (free tier:
-  3 devices / 7-day builds). Facts: `docs/store/metadata.md` §7.
+- **Store economics — DECIDED (owner, 2026-08-31): buy neither.** No Play Console, no
+  Apple Developer Program. The store pack stays **prepared but unsubmitted** — framing:
+  "ready to release; only release and marketing remain" (thesis-corrections #48). Study
+  installs: Android sideload APK; **no iOS participant channel** (enrollment checklist §1
+  gate). Decision block: `docs/store/metadata.md` §7; reversal condition: revisit.md.
 - **Docs current:** PLAN board + tail (P0–P12), traceability (5 P12 rows), CHANGELOG,
   versions.md P12 pins (eas-cli 23.1.0; expo 57.0.18 drift), device-checklist (+2 P12
   entries), explainer P12 section + decisions 29–31, revisit dispositions.
 
 ## Exact next actions (next session, in order)
 
-1. **If PR #30 is not yet merged:** `gh pr checks 30` → all green → merge (squash off,
-   normal merge like prior phases), `git checkout main && git pull`.
-2. **First scheduled nightly check** (1 min, after 2026-09-01 00:36 UTC):
-   `ssh oracle-recsys 'journalctl -u hourwell-train -n 15'` → JSON summary (expected on
-   this cohort: priors carry-over, ALS skip, backfill 0/7-skipped) and
+1. ✅ PR #30 merged; `main` current (2026-08-31).
+2. **First scheduled nightly check** (1 min; timer proven armed 2026-08-31 — next fire
+   **2026-09-01 00:35:29 UTC**; check after ~00:45):
+   `ssh ubuntu@recsys-oracle 'journalctl -u hourwell-train -n 15'` (tailnet — start
+   Tailscale on the Mac first; the public `ssh oracle-recsys` is allow-list-bound) → JSON
+   summary (expected on this cohort: priors carry-over, ALS skip, backfill 0/7-skipped) and
    `reports/2026-09-01/report.json` exists in the `models` bucket (names-only query).
 3. Walk the ⛔ ladder below **one step per turn** (owner directive 2026-08-27), verifying
    each from the session side before offering the next.
@@ -49,19 +51,27 @@
 
 ## ⛔ ACTION REQUIRED (owner — ordered; one per turn)
 
-1. **Migration push:** `supabase db push` (adds `20260831150000_p12_recsys_role`; the
-   sweep-header migration is already live). Session then runs the linked pgTAP re-check.
+1. ✅ **Migration push** — done 2026-08-31; the remote migration list shows
+   `20260831150000` and the linked pgTAP re-check is green (all 20 role assertions;
+   `pgtap-linked.sh` allowlist extended to capture `table_privs_are` — see Gotchas).
 2. **Role activation** (runbook **§18** — step 0 FIRST: ship the P12 compose.yml via the
    §6 tar-sync; then password → `RECSYS_DATABASE_URL` → `docker compose config recsys`
    check → restart → live smoke). Rollback = remove the env var.
 3. **DPIA sign-off** (`docs/privacy/dpia.md` §10) + the consent contact block
    (`consent-clause.md` §5) — same sitting.
-4. **Store economics decision** ($25 / $99 — metadata §7); then accounts, `eas login` +
-   `eas init` + credentials + EAS env vars (metadata §8), privacy-policy URL hosting,
-   name-search register screenshots (name-search §3).
-5. **Hardware pass** (`scripts/device-pass.sh`; needs a dev build — EAS, so after 4):
-   the whole `docs/verification/device-checklist.md`; device-conditioned requirements
-   flip ✅ only here.
+4. ✅ **Store economics — DECIDED 2026-08-31: no accounts.** Nothing left in this step:
+   no `eas login`/credentials, no privacy-policy hosting, no register screenshots — the
+   pack stays prepared-but-unsubmitted (metadata §7 decision block; thesis-corrections
+   #48; the enrollment checklist carries the no-iOS gate; reversal condition in
+   revisit.md).
+5. **Hardware pass — account-free scope** (owner decision 2026-08-31): iOS =
+   free-provisioned **Release-configuration** build on the owner's iPhone
+   (`npx expo run:ios --device --configuration Release`; 7-day signature — re-sign for
+   week-long items); Android = locally built release APK sideloaded
+   (`npx expo prebuild -p android` + `./gradlew assembleRelease`). `scripts/device-pass.sh`
+   unchanged. Closes every device-checklist item except the blocked-by-decision iOS
+   standalone/EAS residual (re-scoped in "Release builds — EAS (added P12)"); numbers are
+   reported for the actual devices used (simulator-evidence rule).
 6. Earlier gates unchanged: Google OAuth second Web client (FR-01, P4) + P4 smoke;
    magic-link E2E with a real mailbox; PostHog EU + Sentry EU accounts (keys env-gated).
 7. **Pre-enrollment list:** G6 Art. 27 representative if any EU/EEA participant (STOP
@@ -89,10 +99,16 @@
 - **Deploy-dir changes reach the box only via install.sh/tar-sync** — never assume the
   5-min rollout ships compose.yml (it pulls images only). §18 step 0 exists because of
   exactly this.
+- **SSH to the VM:** the public `ssh oracle-recsys` path is allow-list-bound (runbook §0)
+  and timed out from the 2026-08-31 session network; daily admin is the tailnet — start
+  Tailscale on the Mac, then `ssh ubuntu@recsys-oracle` (runbook §15).
+- **`pgtap-linked.sh` captures only allowlisted pgTAP functions** — `table_privs_are` was
+  missing, so 10 of the 20 P12 assertions went silently uncaptured on the first run; fixed
+  2026-08-31 (`[a-z_]+_are` in the allowlist + a plan-vs-captured mismatch guard that
+  exits 2). If a new test uses an exotic assertion, the guard now fails loudly.
 
 ## Open questions (owner)
 
 - Two-device ritual (unchanged from P10; several revisit lines wait on it).
-- Store economics (ladder step 4) — decision, not question: recorded here so it isn't lost.
 - OSF freeze bundle: H1 text conditions, M9 power recompute, corrections #34–36 wording,
   G5 dataset decision — one sitting, before enrollment.

@@ -122,6 +122,23 @@ recruitment. Under invariant 11 (free tier, cost needs approval) this is the own
 recommendation: **$25 Play now** (one-time, unblocks clean Android installs and the listing),
 **$99 Apple only when/if iOS participants are actually recruited**.
 
+**Decision (owner, 2026-08-31): buy neither.** No Play Console ($25) and no Apple Developer
+Program ($99/yr). The pack above stays **prepared but unsubmitted**; the system is presented
+as **"ready to release; only release and marketing remain"** (thesis-corrections #48).
+Consequences, recorded rather than glossed:
+
+- **Study installs are account-free.** Android: direct sideload of a locally built release
+  APK ($0; participant enables "install unknown apps"). iOS: **no viable 8-week participant
+  channel** — free provisioning is 3 devices / 7-day signatures (owner's own device only),
+  so **iOS candidates cannot be enrolled** unless this decision is reversed (enrollment
+  checklist §1; reversal condition in `docs/decisions/revisit.md`).
+- **The hardware pass (HANDOFF ladder step 5) runs on account-free builds:** a
+  free-provisioned Release-configuration build on the owner's iPhone + a locally built
+  release APK on Android (device-checklist "Release builds" re-scoped 2026-08-31).
+- `eas submit`, TestFlight, Play internal testing and the listings stay unused; the §8
+  owner steps are moot (EAS cloud iOS signing needs the paid membership; a local Android
+  release build needs no account at all).
+
 ## 8. Release configuration state (P12)
 
 - `apps/mobile/eas.json`: development / preview / production profiles (remote version
@@ -130,3 +147,5 @@ recommendation: **$25 Play now** (one-time, unblocks clean Android installs and 
   `EXPO_PUBLIC_SUPABASE_URL` + `EXPO_PUBLIC_SUPABASE_ANON_KEY` before the first
   `eas build --profile production`.
 - Store submission itself (`eas submit`) is gated on the developer accounts (§7).
+- **Moot under the §7 decision (2026-08-31):** none of the owner steps above run; builds
+  for the hardware pass are local (device-checklist "Release builds").
