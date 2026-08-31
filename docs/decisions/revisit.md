@@ -23,9 +23,13 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
 - [P5, 2026-08-26] File 04 §1.5 "4·10⁴ literals" trigger — measured presolve-bound UNKNOWN at
   ~10⁴ on the P5 model (spec-conflicts M8); the service uses a practical 8·10³ threshold plus
   UNKNOWN escalation. — P6/P12: re-measure on the 2 vCPU Space and fix the threshold by ADR.
+  — **DONE P7.1** (re-fitted 3·10³ on the deployment box, ADR-0007 §11 addendum; corrections
+  #37); closed.
 - [P5, 2026-08-26] PostgresRepo connects as the pooler's `postgres` role (RLS-bypassing). Fine
   for a trusted backend, but least privilege wants a dedicated `recsys_service` role limited to
-  model-state tables. — P12 runbook: create the role + grants, rotate the DSN.
+  model-state tables. — P12 runbook: create the role + grants, rotate the DSN. — **DONE P12**
+  (migration `20260831150000_p12_recsys_role.sql` + pgTAP `p12_role_test.sql` + compose
+  fallback override; runbook §18); ⛔ owner: push, role password, `RECSYS_DATABASE_URL`.
 - [P5, 2026-08-26] ADR-0007 §5 eligibility "≥ m feasible buckets" — on a plain 09–18 weekday
   without busy blocks only tasks ≤ 45 min have four reachable buckets (EV.wd holds ≤ 3 ticks +
   buffer), so the "1 slot/day" default often yields no experiment: an RQ4 data-rate risk
@@ -44,7 +48,9 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   fall back most of the time. — P9/P10: if a week view is built, add an async plan path or a
   horizon-specific budget by ADR; re-measure on the 2 vCPU Space first. — **P9: no week view
   was built** (the trust surfaces render the model, not a week plan); stays open for P10/P12.
-  — **P10: no week view either** (notifications and privacy); P12.
+  — **P10: no week view either** (notifications and privacy); P12. — **P12: closed for v1** —
+  no week view ships (PLAN §3 defers FR-27/weekly UI); the budget decision travels with the
+  feature; the capacity limit is recorded for the thesis (corrections #37).
 - [P6, 2026-08-26] Task-push bridge (`apps/mobile/src/sync/taskPush.ts`) is last-write-wins by
   design (ADR-0008 §5). — P8: replace with op replay (base_version checks) and delete the bridge.
   — **DONE P8** (bridges deleted; `sync_replay()` + `src/sync/engine.ts`).
@@ -54,6 +60,9 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   (the phase's only canvas candidate) went to native Views for per-cell font scaling and a
   one-element screen-reader summary (ADR-0013 §5), so Skia still has no consumer; re-evaluate
   in P12 with the focus ring, or drop the proportional timeline as a product-only nicety.
+  — **P12: dropped for v1** (owner-visible): Skia gained no consumer through P11 (heatmap =
+  native Views, ADR-0013 §5); the row list passes NFR-A1/A2 and ships; a proportional canvas
+  stays product roadmap.
 - [P6, 2026-08-26] `NULL_CONFIDENCE_RENDER = 0.7` — chosen to match day-0 learned confidence
   under the flat prior; once real confidence distributions exist, arm-A blocks may look
   systematically different (a residual blinding cue). — P9/P11: compare rendered solidity
@@ -87,11 +96,16 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   arm-days are known.
 - [P7, 2026-08-27] `attribution_sweep_tick()` posts to the function with the backend key from
   Vault; a leaked Vault read (postgres role) equals a leaked service key. — P12 runbook: rotate
-  `HOURWELL_SERVICE_KEY` when the service host is set up; consider a cron-only key.
+  `HOURWELL_SERVICE_KEY` when the service host is set up; consider a cron-only key. — **P12:**
+  rotation is runbook §11, triage §16; a cron-only key NOT added — it doubles the rotation
+  surface for zero blast-radius gain (a Vault reader holds the postgres role anyway);
+  revisit only on an actual leak.
 - [P7, 2026-08-27] Expo SDK 57 patch drift (expo 57.0.16→.17, RN 0.86.2→.3, jest-expo 57.0.4→.5,
   @expo/metro-runtime pinned directly) applied via `expo install --fix` to keep expo-doctor green;
   jest-expo 57.0.5 tightened the `jest.mock` factory scope rule (mock objects must be
   `mock`-prefixed or lazily referenced). — device pass: nothing; P12: re-verify versions.md.
+  — **DONE P12** (versions.md P12 section: drift to expo 57.0.18/RN 0.86.3 recorded; eas-cli
+  pinned).
 - [P7, 2026-08-27] `gatePatches` (adversarial #6) closes the daily/instant race by re-reading the
   stored tuple before patching; a per-user `pg_advisory_xact_lock` RPC around map+write would be
   the stronger answer. — P8: when sync-resolve shares the path, move map+write into one RPC.
@@ -126,7 +140,8 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   (adversarial #1): the sweep skips leased users; every patch is a compare-and-set on the status
   read. Residual: a writer that waits > 3 s for the lease proceeds without it (logged) — the
   `server_seq` commit-order hole (adversarial #14) is then closed only by the CAS, not by
-  ordering. P12: measure lease wait times; consider a lagged re-scan in `sync_pull`.
+  ordering. P12: measure lease wait times; consider a lagged re-scan in `sync_pull`. — **re-dated P12 →
+  first-real-data review:** wait times need real concurrent traffic (no participants exist).
 - [P8, 2026-08-28] Write-back events stay in the user's Google Calendar after `disconnect`
   (the token is revoked before they could be deleted). — **DONE 2026-08-29** (adversarial #11:
   `clearWriteBack` before the revoke and on write-back off).
@@ -135,7 +150,8 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   Verify on the first live calendar (runbook §3); fall back to "all-day never busy" if wrong.
 - [P8, 2026-08-28] `sync_ops` has no retention (idempotency window = forever). Volume is tens
   of rows per user-day. — P12 runbook: prune ledger rows older than 90 days if the table ever
-  matters; `events` keeps its own UNIQUE regardless.
+  matters; `events` keeps its own UNIQUE regardless. — **DONE P12** (runbook §16: documented
+  prune statement; deliberately no scheduled job — study volume is a non-issue).
 - [P8, 2026-08-28] A cancelled meeting never un-displaces a block (File 05 §2 says the
   replacement comes with the next plan). Fine for the study; a product would revert
   `displaced_pending` → previous status when the overlap disappears before the slot. — P9 UI
@@ -169,12 +185,15 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   mark the plan row. — **P10: unchanged**; the same holds for the evening ritual (each device
   fires its own "Plan tomorrow?" and finds the plan already made) and for the FR-50 cap, which
   is per install (two devices may remind about the same block; the adversarial pass, #8) —
-  P12 if two-device use matters.
+  P12 if two-device use matters. — **P12: owner question stands** (HANDOFF open questions);
+  intentionally not engineered around before the owner answers.
 - [P9, 2026-08-29] `drop` = "not today" (earliest_start = tomorrow 00:00 local, +1 postpone);
   a task with a deadline today that is dropped will be reported past its deadline tomorrow —
   the sheet's consequence line says "skips a task worth …", not "misses its deadline". — P10
   copy review: add a deadline warning to the drop option when `deadline < tomorrow`.
-  — **P10: not done** (the phase had no copy review); P12.
+  — **P10: not done** (the phase had no copy review); P12. — **P12: re-dated to the
+  pre-enrollment copy pass** (release prep shipped no UI changes; both copy items go
+  together).
 - [P9, 2026-08-29] The P9 migration (`belief_labels` + trigger) is on the branch and pgTAP-
   verified against the linked project in a rolled-back transaction, but **not applied** to the
   hosted project: `supabase db push --linked` was refused by the session's permission
@@ -184,22 +203,29 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   rows every pass; a batch the service refuses permanently (e.g. 409 for a user whose cells were
   never instantiated) blocks later labels — the same contract as `/feedback` tuples. — P12
   runbook: on a 4xx answer, mark the batch with the reason and skip it next pass (keep 5xx
-  retrying).
+  retrying). — **P12:** diagnosis documented (runbook §16); the mark-and-skip contract change
+  re-dated to the next sync/EF migration (release prep ships no EF changes; no participants
+  at risk meanwhile).
 - [P9, 2026-08-29] Adversarial #9 — a `belief_label` with a bad vocabulary fails the event
   insert → op outcome `error` (retried 5× then dead-lettered), not `rejected`; only a tampered
   client can reach it (the client validates the same regex). — P12: map errcode 22023 →
-  `rejected` in `sync_replay` when the next sync migration is written anyway.
+  `rejected` in `sync_replay` when the next sync migration is written anyway. — **P12:
+  unchanged** (no sync migration this phase); travels with the next one.
 - [P9, 2026-08-29] Adversarial note — ✗ on the favoured cell lowers it, the belief moves to the
   next daypart and the ✗ leaves the list (still in force on the cell, visible on the heatmap).
   — P10 copy review: show the cell's label state on the heatmap text view; consider listing the
-  labelled cell under the belief it displaced. — **P10: not done**; P12.
+  labelled cell under the belief it displaced. — **P10: not done**; P12. — **P12: re-dated to
+  the pre-enrollment copy pass** (with the drop-deadline warning above).
 - [P10, 2026-08-30] **NFR-P3 and the edge-function round trips.** From Node → eu-west-1 the
   PostgREST read/write p95 is 82–88 ms (✅ 300 ms) but `sync-resolve` (lease + replay + pull +
   release ≈ 4 hops + boot) is 477 ms p95, `insights` 714 ms (VM hop), `export-data` 736 ms. The
   client never blocks on these (offline-first), but the spec sentence is about the API. — P12:
   one RPC for lease + replay + pull (or pull inside `sync_replay`), keep-alive, and a handset
   measurement over LTE (device checklist); report both numbers in the thesis
-  (`p10-manual-verification.md` §2.3).
+  (`p10-manual-verification.md` §2.3). — **P12: deferred with reasons** — the
+  lease+replay+pull RPC is a sync-engine change out of release-prep scope and untestable
+  without live traffic; the handset half sits on the device checklist; both numbers already
+  reported honestly (corrections #47). Re-open at first-real-data if 477 ms p95 matters.
 - [P10, 2026-08-30] **E-mail confirmation of erasure** (UC-10 "confirmed by email") is an in-app
   confirmation with the `deletion_audit` reference (ADR-0014 §9: no transactional mail on the
   free tier, a mail provider = a new processor, anonymous accounts have no address). — Owner

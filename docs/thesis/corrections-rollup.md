@@ -1,0 +1,40 @@
+# Corrections rollup — apply `thesis-corrections.md` to the draft in one pass (P12)
+
+> The worklist (`thesis-corrections.md`, items 1–47) is chronological — appended per phase.
+> This index regroups it **by draft chapter** so the owner edits each section once. Numbers
+> reference the worklist entries, which stay the source of the exact replacement wording.
+> Rule of thumb while editing: where the draft and the system disagree, the system is right
+> and the worklist entry says why (CLAUDE.md working mode).
+
+## How to run the pass
+
+1. Work top-to-bottom through the table below with `thesis-corrections.md` open beside the
+   draft; tick items off in the worklist as applied.
+2. The five OSF-freeze-tagged items (8, 10, 21, 35, 36) must ALSO land in the
+   pre-registration text — same wording, before the freeze.
+3. Items 34–36 carry owner-approved replacement sentences (ADR-0011) — paste, don't rephrase.
+
+## By draft section
+
+| Draft section                       | Items                                                                                                                                                                                                                                                                                                     | One-line gist                                                    |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| §2 / formal model                   | 4 (chunk intervals), 17 (CP-SAT presolve result — present as empirical finding), 18 (hint tie-stability bonus), 19 (chunk weights, ≤ 4 chunks)                                                                                                                                                            | the solver chapter needs the measured story, not the assumed one |
+| §3.3–§3.4 / stack table 3.3         | 1 (jest 29.7 / ESLint 10), 2 (TS 5.9), 3 (NFR-Sc1 ~3k MAU), 13 (own `useLiveRows`, not drizzle `useLiveQuery`), 29 (blend SGD, River = oracle)                                                                                                                                                            | tool versions + two named mechanisms                             |
+| §3.6–§3.8 / client behaviour        | 14 (chrono = dates only; durations own grammar), 15 (silent defaults), 16 (weekday chips only), 24 (lazy plan trigger, not a 06:00 job), 25 (row-list timeline), 28 (Move… picker, not drag), 31 (duration EWMA in the EF)                                                                                | quick-add, Today, override — as built                            |
+| §3.x hosting / cost                 | 26 (HF Spaces withdrawn → Oracle A1 Marseille; keep cost envelope; add external-dependency threat), 37 (report container numbers: day p90 487 ms; threshold 3·10³; week ≈ 60 % FEASIBLE)                                                                                                                  | the hosting story + the honest numbers                           |
+| §3.x privacy / legal                | 27 (EU claim now true; self-hosted responsibility), 33 (processors as built), 34 (Chapter V transfer analysis → option A sentence), 35 (population + Art. 27 sentence — approved wording), 43 (in-app erasure confirmation BY DESIGN, ADR-0016), 44 (30-day inactivity retention; archive ≠ delete sweep) | paste the approved sentences; cite DPIA                          |
+| §3.x sync / calendar                | 38 (≤ 5 min is server-side; device eventually consistent), 39 (field-level merge rules, op replay, idempotency)                                                                                                                                                                                           | File 05 §2 as implemented and proven                             |
+| §3.4 / §4.5 learning stack          | 9 (SASRec-lite deferred to future work), 40 (labels = one prior's worth, energy model only), 6 (Redis/entity list per Додаток SQL — cell-level relational reads: bandit_state + beta_cells + blend_state)                                                                                                 | rung-3 honesty + label semantics                                 |
+| §4 / feedback robustness            | 30 (attribution rules incl. 23:55 SQL boundary), 32 (store-then-deliver tuples)                                                                                                                                                                                                                           | concrete rules, DST-tested                                       |
+| §5 study design                     | 8 (matched randomization — all five sub-edits), 10 (H4: learning during A), 21 (experiment-rate → power recompute, M9), 22 (arm A concrete definition, EDF/list-scheduling citations), 23 (fallback labeling ties to reason; outage days excluded)                                                        | the blinding + power story                                       |
+| §UC / FR appendices                 | 5 (Додаток Г schema fragment), 7 (Додаток Ж /plan example shape), 42 (PAR from facts, not "completion rate"), 45 (static 10-min lead; cap mechanism; no displacement push), 46 (AA exceptions as measured), 47 (NFR-P3: two numbers)                                                                      | appendix accuracy                                                |
+| Typography / visuals                | 12 (static Inter, not variable), 41 (heatmap = native Views + OKLCH, not Skia; resolution honesty)                                                                                                                                                                                                        |                                                                  |
+| Measurement honesty (cross-cutting) | 11 (NFR-P2 simulator caveat — until the hardware pass flips it), 37 (already above), 47 (already above)                                                                                                                                                                                                   | never quote a simulator number against a device condition        |
+
+## Sanity checks after the pass
+
+- Grep the draft for: "Jest 30", "Inter Variable", "Hugging Face", "bandit_cpsat",
+  "anonymized dataset", "confirmed by email", "4·10⁴" — each should be gone or qualified.
+- The pre-registration carries items 8/10/21/35/36 verbatim where applicable.
+- Nothing in the draft quotes a Mac/simulator number against a device-conditioned
+  requirement (items 11/37/47; `docs/verification/device-checklist.md` is the ledger).
