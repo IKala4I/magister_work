@@ -1,0 +1,70 @@
+# Training image → GHCR (ADR-0015 §1). Mirrors deploy-recsys.yml: native arm64 build with an
+# in-image smoke (the aarch64 wheel check ADR-0011 asked for: implicit + scikit-learn import
+# and a real ALS fit), push :sha + :latest; the VM's rollout timer pulls within 5 minutes.
+# No secrets beyond GITHUB_TOKEN; the package is public like the recsys image.
+name: Training image → GHCR → VM rollout
+
+on:
+  push:
+    branches: [main]
+    paths: ['training/**', 'services/recsys/**', '.github/workflows/deploy-training.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    name: Build linux/arm64, verify ALS inside, push
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build (load for verification)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: training/Dockerfile
+          platforms: linux/arm64
+          load: true
+          tags: ghcr.io/ikala4i/hourwell-training:${{ github.sha }}
+          build-args: TRAINING_BUILD=${{ github.sha }}
+      - name: Verify the aarch64 wheels — import + a real ALS fit inside the image
+        run: |
+          docker run --rm --entrypoint /opt/venv/bin/python \
+            ghcr.io/ikala4i/hourwell-training:${{ github.sha }} - <<'PY'
+          import numpy as np
+          from hourwell_training import als
+          rng = np.random.default_rng(0)
+          users = {}
+          for i in range(12):
+              cells = []
+              for dp in als.DAYPARTS:
+                  good = (i % 2 == 0) == (dp in ("EM", "MO"))
+                  cells.append(als.CellObs("deep", dp, "weekday",
+                                           float(rng.integers(8, 15)) if good else 1.0,
+                                           1.0 if good else float(rng.integers(8, 15))))
+              users[f"u{i}"] = cells
+          model = als.fit_als(users, iterations=5, seed=0)
+          assert model.item_factors.shape == (48, 32)
+          x = als.fold_in(model, users["u0"], min_outcomes=1)
+          assert x is not None and x.shape == (32,)
+          print("arm64 ALS OK")
+          PY
+      - name: Push :sha and :latest
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: training/Dockerfile
+          platforms: linux/arm64
+          push: true
+          tags: |
+            ghcr.io/ikala4i/hourwell-training:${{ github.sha }}
+            ghcr.io/ikala4i/hourwell-training:latest
+          build-args: TRAINING_BUILD=${{ github.sha }}

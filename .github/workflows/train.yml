@@ -1,0 +1,39 @@
+# P11 (ADR-0011 option A / ADR-0015 §16): CI exercises the SAME nightly pipeline the EU VM
+# runs — on SYNTHETIC data only. No hosted-project secret exists in this workflow (G3):
+# the database is the local supabase stack, the cohort is generated, artifacts stay local.
+name: Training pipeline (synthetic)
+
+on:
+  pull_request:
+    paths:
+      ['training/**', 'services/recsys/**', 'supabase/migrations/**', '.github/workflows/train.yml']
+  push:
+    branches: [main]
+    paths:
+      ['training/**', 'services/recsys/**', 'supabase/migrations/**', '.github/workflows/train.yml']
+  workflow_dispatch:
+
+jobs:
+  synthetic-e2e:
+    name: Seed synthetic cohort → nightly pipeline → assertions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.115.0
+      - name: Start local database with migrations
+        run: supabase db start && supabase db reset
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --locked
+        working-directory: training
+      - name: Run the pipeline on the synthetic cohort
+        working-directory: training
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: uv run hourwell-train --synthetic --seed 42 --out-dir /tmp/train-out | tee /tmp/summary.json
+      - name: Assert registry rows, gate behaviour, backfill coverage, report shape
+        working-directory: training
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: uv run python scripts/assert_synthetic_run.py /tmp/summary.json /tmp/train-out
