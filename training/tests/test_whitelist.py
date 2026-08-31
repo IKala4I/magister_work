@@ -118,3 +118,16 @@ def test_tables_are_a_subset_of_the_known_schema() -> None:
     assert set(wl.WHITELIST) <= known
     # and the riskiest tables are wholly absent
     assert "tasks" not in wl.WHITELIST and "calendar_events" not in wl.WHITELIST
+
+
+def test_float4_slice_propensities_are_recovered_symbolically() -> None:
+    """L22: pre-P6 rows stored float32(1/3); the adapter recovers the exact 1/|A_m(x)|,
+    keeps genuinely exact values untouched, and refuses anything further off."""
+    import struct
+
+    from hourwell_training.export import normalize_slice_propensity
+
+    f32_third = struct.unpack("f", struct.pack("f", 1.0 / 3.0))[0]  # 0.3333333432674408
+    assert normalize_slice_propensity(f32_third, 3) == 1.0 / 3.0
+    assert normalize_slice_propensity(0.25, 4) == 0.25
+    assert normalize_slice_propensity(0.5, 4) is None  # corrupt, not rounding
