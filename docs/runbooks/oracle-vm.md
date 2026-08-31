@@ -433,3 +433,36 @@ Legacy keys are scheduled for deprecation **end of 2026**. Every consumer, audit
 the legacy keys are disabled (deprecation, end 2026): the nine edge functions must switch from
 the injected legacy vars to the `SUPABASE_PUBLISHABLE_KEYS`/`SUPABASE_SECRET_KEYS` JSON vars
 (one shared helper, one PR) — tracked in `docs/decisions/revisit.md`.
+
+## 12. Tailscale admin path (ADR-0017, accepted 2026-08-31) **[owner — ride along with the §8/§10 key write]**
+
+Daily administration moves to the tailnet; **nothing below touches the two SSH locks (§4) or
+the recovery ladder (§5) — they stay the security boundary and break-glass, unchanged.**
+
+1. **Create the tailnet** (once, any browser): tailscale.com → sign up (free Personal plan:
+   6 users, unlimited devices, Tailscale SSH included). Install the client on your laptop
+   (and phone — it is the recovery device when the laptop's network is hostile).
+2. **Install on the VM** (over today's SSH path, or the serial console if needed):
+   `curl -fsSL https://tailscale.com/install.sh | sh` (the official installer; Ubuntu 24.04
+   arm64 is supported).
+3. **Bring it up with Tailscale SSH:**
+   `sudo tailscale up --ssh --hostname recsys-oracle`
+   — authenticate via the printed URL, logged in as YOUR account (do not tag the node:
+   an owner-owned device works with the tailnet's default policy; tags need extra ACL
+   work for zero benefit here).
+4. **Key expiry — the one server gotcha:** node keys expire after ~180 days and an expired
+   server key means the tailnet path silently dies mid-study. Admin console → Machines →
+   `recsys-oracle` → **Disable key expiry**. Do it immediately.
+5. **Connect:** `ssh ubuntu@recsys-oracle` from a tailnet device. Note: **Tailscale SSH
+   terminates inside tailscaled**, so the `HOURWELL-SSH` iptables chain never sees it —
+   the chain keeps guarding public port 22 exactly as before. (Plain sshd over the tailnet
+   IP WOULD hit the chain and be dropped — that is fine and intentional; use Tailscale
+   SSH.)
+6. **Verify both paths** (implementing session): tailnet `ssh` works from a network NOT on
+   the allow-list; the old `ssh oracle-recsys` (allow-listed network) still works;
+   `verify.sh` unchanged.
+7. **Explicitly deferred** (ADR-0017): narrowing the public 22 Security-List rule. Revisit
+   only after weeks of tailnet comfort, and never before the study ends.
+8. Data-protection note recorded in `docs/privacy/README.md` §3: the coordination server
+   (US) sees admin device names/keys/endpoints only; traffic is WireGuard end-to-end;
+   no participant data ever transits Tailscale — not an Art. 28 processor for study data.

@@ -369,7 +369,9 @@ real log as a restricted-access OSF deposit (Frankfurt storage). Text: thesis-co
   mail on the free tier (the auth mailer sends only its templates), a mail provider is a new
   Art. 28 processor, and anonymous accounts have no address. Normative: erasure completes
   synchronously and is confirmed **in-app** with the `deletion_audit` reference; the consent
-  clause says so. ADR-0014 §9; thesis-corrections #43; owner decision if e-mail is wanted.
+  clause says so. ADR-0014 §9; thesis-corrections #43. **Closed by owner decision
+  2026-08-31 (ADR-0016): reword the spec — in-app is the designed mechanism; Brevo (EU,
+  free, DPA) stays pre-wired should an ethics board ever require mail.**
 - **L36.** (P10) Appendix A / §4.4 "anonymous-trial accounts purged after 30 days unconverted"
   ([INFERRED]) would delete an active trial user's data mid-trial. Normative: purge after **30
   days of inactivity** (no sign-in, no event), through the same audited erasure path
