@@ -26,3 +26,41 @@ directory are from this physical device — never a simulator (CLAUDE.md "Simula
    accessibility label; Android exposes plain "Inbox" (role via node class). All 11 tab
    selectors in the four e2e flows matched nothing on Android. Fixed: `'Name(, tab.*)?'`
    full-regex form, unambiguous because tabs are only ever tapped from a different screen.
+
+## Phase 1 results (2026-09-01 evening, continued)
+
+- **NFR-P2 cold start — PASS on the named device class.** Protocol: 20× `am force-stop` +
+  `am start -W`, TotalTime (process start → first frame; JS hydration lands after — the
+  metric device-pass.sh names). Two runs, both ≤ 2 s:
+  - `cold-start-defaults.txt`: **p90 = 1582 ms** (1091–1754), default font/display,
+    **immediately after a reboot** (cold OS caches) — the conservative headline number.
+  - `cold-start.txt`: p90 = 552 ms (519–688) — earlier run, warm OS caches, but taken with
+    max font + display scale still applied (sequencing slip, kept as a labeled data point).
+  Steady-state UX likely sits between the two; both are Pixel 7a hardware numbers.
+- **NFR-S1 session survives reboot — PASS.** `adb reboot`, relaunch: straight into the
+  shell with the trial session intact (Keystore-backed storage; no PIN set on the device).
+- **P3 quick-add on hardware — partial PASS.** NL preview ('report draft 2h by fri' →
+  '120 min', 'by Fri…'), reactive row, full-sheet edit all verified via the p3 flow. The
+  flow's tail (delete → undo-bar self-expiry ≤ 10 s) failed on device — the undo bar
+  outlived the flow's wait. OPEN: human check in the attended block whether the 6 s
+  auto-dismiss (File 02 §3) actually happens on hardware; then re-run the p3 tail.
+- **Learned path — healthy; one transient fallback observed.** p6-live-smoke from the Mac:
+  ALL PASS 15/15, `engine=learned model=recsys-p5.0`, OPTIMAL ×5 (~18:04 UTC). The phone's
+  20:40 auto-plan (UC-03 trigger on foreground) hit `fallback` once (banner shown); VM and
+  public healthz were healthy at probe time (200, 262 ms, container up 21 h). Later phone
+  attempts were the **evening-empty case by design** (no feasible slot before day end → no
+  plan row persisted → the ritual "Plan tomorrow?" card is the offered path); the fallback
+  banner remained from the 20:40 attempt. WATCH: if fallbacks appear in the mid-day NFR-P1
+  series, pull the plan-request EF logs.
+
+## Device findings (continued)
+
+4. **The a11y sweeps assumed a virgin 'No plan yet' Today** — on hardware the UC-03
+   lazy trigger auto-plans on first foreground, and the evening empty state shows the
+   ritual card instead. p2/p10 made state-tolerant (date-line assert; conditional
+   'Plan my day' + wait for 'Re-plan'). The sweeps had never run on a device (P10 note).
+5. **Undo-bar expiry timing differs on hardware** (see P3 above) — open, attended block.
+6. **Stale fallback banner**: after a fallback attempt that yields no plan, the banner
+   persists across later attempts that also yield no plan. Observation, arguably correct
+   (it describes the shown state's provenance); noted for the owner's judgment, not filed
+   as a defect.
