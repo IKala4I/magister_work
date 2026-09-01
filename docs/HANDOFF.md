@@ -60,8 +60,12 @@
    `engine=learned model=recsys-p5.0`** through the new role, undelivered rewards 0. One
    live failure found+fixed: double-typed password → auth fail (set both sides from one
    variable — runbook §18). Rollback stays = remove the env var.
-3. **DPIA sign-off** (`docs/privacy/dpia.md` §10) + the consent contact block
-   (`consent-clause.md` §5) — same sitting.
+3. ✅ **DPIA signed + consent contact block filled** (2026-09-01): §10 = signed by the
+   owner with a status note — the assessment is complete but **the processing it
+   describes has not commenced; no field study will run** (owner statement at signing).
+   Any future enrollment re-reads the DPIA against triggers 1–7 first. R4 cell updated
+   (role rotation done 2026-08-31). Steps 6–7 below are pre-enrollment items and are now
+   **conditional on that decision reversing**.
 4. ✅ **Store economics — DECIDED 2026-08-31: no accounts.** Nothing left in this step:
    no `eas login`/credentials, no privacy-policy hosting, no register screenshots — the
    pack stays prepared-but-unsubmitted (metadata §7 decision block; thesis-corrections
