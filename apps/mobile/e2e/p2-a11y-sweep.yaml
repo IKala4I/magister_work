@@ -11,13 +11,13 @@ appId: com.hourwell.app
     stopApp: true
 - assertVisible: 'No plan yet'
 - takeScreenshot: today
-- tapOn: 'Inbox, tab.*'
+- tapOn: 'Inbox(, tab.*)?'
 - assertVisible: 'Inbox is clear'
 - takeScreenshot: inbox
-- tapOn: 'Focus, tab.*'
+- tapOn: 'Focus(, tab.*)?'
 - assertVisible: 'Nothing running'
 - takeScreenshot: focus
-- tapOn: 'Insights, tab.*'
+- tapOn: 'Insights(, tab.*)?'
 - assertVisible: 'Still learning'
 - takeScreenshot: insights
 - tapOn: 'Open settings'
@@ -31,7 +31,7 @@ appId: com.hourwell.app
 # dismissing returns to the tab that was active before the modal (Insights)
 - assertVisible: 'Still learning'
 - takeScreenshot: insights-dark-override
-- tapOn: 'Today, tab.*'
+- tapOn: 'Today(, tab.*)?'
 - assertVisible: 'No plan yet'
 - takeScreenshot: today-dark-override
 - tapOn: 'Open settings'

@@ -11,7 +11,7 @@ appId: com.hourwell.app
 ---
 - launchApp:
     stopApp: true
-- tapOn: 'Inbox, tab.*'
+- tapOn: 'Inbox(, tab.*)?'
 - assertVisible: 'Inbox is clear'
 - tapOn: 'Quick add task'
 - inputText: 'report draft 2h by fri'

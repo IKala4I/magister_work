@@ -13,7 +13,7 @@ appId: com.hourwell.app
     stopApp: true
 - assertVisible: 'No plan yet'
 - takeScreenshot: p10-today-empty
-- tapOn: 'Inbox, tab.*'
+- tapOn: 'Inbox(, tab.*)?'
 - takeScreenshot: p10-inbox
 - tapOn: 'New task'
 - assertVisible: 'Title'
@@ -22,7 +22,7 @@ appId: com.hourwell.app
 - tapOn: 'Save'
 - assertVisible: 'Write the thesis intro'
 - takeScreenshot: p10-inbox-with-task
-- tapOn: 'Today, tab.*'
+- tapOn: 'Today(, tab.*)?'
 - tapOn: 'Plan my day'
 - extendedWaitUntil:
     visible: 'Write the thesis intro'
@@ -35,9 +35,9 @@ appId: com.hourwell.app
     commands:
       - takeScreenshot: p10-today-reminders-card
       - tapOn: 'Not now'
-- tapOn: 'Focus, tab.*'
+- tapOn: 'Focus(, tab.*)?'
 - takeScreenshot: p10-focus
-- tapOn: 'Insights, tab.*'
+- tapOn: 'Insights(, tab.*)?'
 - extendedWaitUntil:
     visible: 'Insights'
     timeout: 10000
@@ -67,7 +67,7 @@ appId: com.hourwell.app
 - swipe:
     start: 50%, 15%
     end: 50%, 85%
-- tapOn: 'Today, tab.*'
+- tapOn: 'Today(, tab.*)?'
 - takeScreenshot: p10-today-dark
 - tapOn: 'Open settings'
 - scrollUntilVisible:

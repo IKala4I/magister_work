@@ -32,13 +32,11 @@ appId: com.hourwell.app
 - tapOn: 'Definitely a morning type'
 - scrollUntilVisible:
     element: 'Continue'
-    centerElement: true
 - tapOn: 'Continue'
 - assertVisible: 'Your hours'
 - assertVisible: 'Monday.*'
 - scrollUntilVisible:
     element: 'Continue'
-    centerElement: true
 - tapOn: 'Continue'
 - assertVisible: 'What fills your days?'
 - tapOn: 'Deep work'
@@ -48,10 +46,12 @@ appId: com.hourwell.app
 - inputText: 'thesis intro 90m'
 - tapOn: 'Add'
 - assertVisible: '1 added'
+# device: the soft keyboard stays up after Add and covers the button (no-op on simulator)
+- hideKeyboard
 - tapOn: 'Finish setup'
 # landed in the shell
 - assertVisible: 'No plan yet'
-- tapOn: 'Inbox, tab.*'
+- tapOn: 'Inbox(, tab.*)?'
 # quick-add default category is Admin (P3: categories are form-edited, never NL-guessed)
 - assertVisible: 'thesis intro, Admin, 90 minutes'
 # anonymous trial session reached Settings (FR-01)
