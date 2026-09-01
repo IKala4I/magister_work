@@ -64,3 +64,26 @@ directory are from this physical device — never a simulator (CLAUDE.md "Simula
    persists across later attempts that also yield no plan. Observation, arguably correct
    (it describes the shown state's provenance); noted for the owner's judgment, not filed
    as a defect.
+
+## Attended slice — FR-11 IME quick-add (owner, 2026-09-01 ~21:10)
+
+Real on-screen keyboard, autocorrect on; English + Ukrainian IMEs. Inbox left clear.
+
+7. **DEFECT (layout, FR-11 surface): quick-add placeholder clips.** "Add a task — try
+   \"report draft 2h by Fri\"" wraps to two lines and the second line is cut off
+   vertically (owner also reports the input border looks off at the sides on the real
+   screen). Session screenshots: `fr11-placeholder-clipped.png`, `fr11-owner-ime-rows.png`.
+   First genuine app defect of the pass. **Fix strategy (recorded now, applied at
+   end-of-pass):** UI fixes batch into one commit after the Android pass so the measured
+   binary stays constant mid-pass; after the fix build: re-run cold start ×20 and
+   re-verify the affected screens visually.
+8. **OPEN (scheduled, attended block day 2): autocorrect acceptance.** Underline +
+   suggestions confirmed on hardware ("gymm sesion" → session/…); whether accepting a
+   suggestion updates the NL preview chips was not exercised — scripted retry: type
+   misspelled input, tap the suggestion, watch the chips.
+9. **STATED LIMITATION (not a bug): non-English NL degrades silently to plain title.**
+   "документ до 12 годин в п'ятницю" → whole string kept as title, no duration/deadline
+   extracted (chrono-node is English-only; durations use the app's own English grammar —
+   thesis-corrections #14 territory). To record with the i18n scaffolding decision as a
+   documented limitation; verify tomorrow that the preview shows NO chips in this case
+   (must not imply a parse that didn't happen).
