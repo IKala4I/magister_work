@@ -59,6 +59,10 @@ checks; semantic conflicts go to `sync-resolve` domain rules.
 heuristic promoted to primary with pixel-identical UI and template rationales; the ε-slice is a
 nested micro-randomized trial. Engineering consequence: condition flags and arm-switching must be
 first-class, and every recommendation event carries model version + feature snapshot (NFR-O1).
+**Status (owner decision 2026-09-01): the study is designed, instrumented and verified end to
+end but NOT executed — a resource boundary, not a shortfall (thesis-corrections #49,
+spec-conflicts overlay); the evidence that exists is OPE on synthetic ground truth plus the
+researcher's own use.**
 
 ---
 
@@ -334,4 +338,8 @@ model_registry columns; ALS λ and confidence weighting; River blend target.
 
 ---
 
-_P0–P12 built. P12 (release prep) closed the build plan: what remains before enrollment is owner-run — the hardware verification pass (device-checklist, account-free scope — the 2026-08-31 store decision bought no developer accounts; the pack stays prepared-but-unsubmitted), DPIA signature + consent contact block, the recsys_service DSN rotation, the Google consent screen to production, and the OSF-freeze bundle. docs/HANDOFF.md carries the ordered list._
+_P0–P12 built; the post-P12 ladder is walked: `recsys_service` DSN live, DPIA signed, store
+decision (no accounts), first scheduled nightly run proven. **The field study is not executed**
+(owner, 2026-09-01 — a resource boundary, not a shortfall; thesis-corrections #49): remaining
+owner-run work is the account-free hardware pass and the thesis-text pass; enrollment-conditioned
+gates are retired unless the decision reverses. docs/HANDOFF.md carries the state._

@@ -371,3 +371,38 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     recruitment is Android-only unless the decision is reversed — state this as a §5
     recruitment limitation next to the M9 power note. `docs/store/metadata.md` §7 decision
     block; enrollment checklist §1.
+49. **§5 evaluation / §conclusions / abstract (the field study, N = 30, H1–H4 "results"):**
+    owner decision 2026-09-01 (recorded at the DPIA signature): **the field study is not
+    executed.** State the reason as a boundary, not a shortfall: running it requires
+    resources outside a master's project — platform developer accounts, a recruitment
+    budget, and eight weeks of volunteer retention that engineering effort cannot
+    substitute for. The protocol is **designed, instrumented, and verified end to end**
+    (exact per-row propensities M-01, first-class arm switching, blocked ABAB/BABA
+    randomization, PAR from facts, the aggregate report, the OSF-freeze bundle prepared —
+    "pre-registration-ready"; registering it is an optional owner step that would make
+    "pre-registered" literally true) and the deployed system is ready to run it. Rewrite
+    every passage that asserts or implies empirical results from real users:
+    - **What stands as evidence:** (a) OPE on synthetic ground-truth data — the estimator
+      family (replay, IPS/clipped, SNIPS, DR with the ESS < 100 non-evidence rule)
+      RECOVERS closed-form truth, which validates the estimators and the logging
+      substrate; (b) the researcher's own live use of the deployed system — the full loop
+      (plan → facts → rewards → nightly training → scheduled runs) demonstrated in
+      production, including the first timer-fired training run (2026-09-01).
+    - **What simulation and own-use CANNOT establish — the thesis must say this
+      explicitly:** no behavioural claim about humans is tested, let alone falsified.
+      H1–H4 remain untested hypotheses; adherence effects, learning-during-A, and
+      chronotype-prior benefits are NOT findings, and no sentence may report them as
+      outcomes.
+    - **Why the unexecuted protocol is itself a contribution — argue it precisely:** the
+      protocol is an executable, auditable artifact: a within-subject design with matched
+      randomization and a nested micro-randomized ε-slice, exact propensities logged by a
+      live system (not a simulator), an OPE harness proven against ground truth, a power
+      analysis (M9), and an operational enrollment/consent/privacy apparatus (DPIA
+      signed) — such that a lab with recruitment resources can run the study without
+      further engineering. This claim holds ONLY while the thesis claims system
+      correctness, protocol readiness, and estimator validity — never user outcomes; the
+      two bullets above are the boundary of the claim.
+      Tense change throughout §5: from reporting/future-promising ("the study will show")
+      to design ("the protocol specifies"). Cross-refs: DPIA §10 status note;
+      spec-conflicts "Post-P12 status overlay"; enrollment checklist header; #48 for the
+      release framing.
