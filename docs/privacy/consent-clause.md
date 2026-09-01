@@ -75,10 +75,13 @@ obligation to designate a representative in the Union before your participation 
 
 ## 5. Contact
 
-`[legal]` Controller and researcher: <name, university, e-mail — owner to fill in>. Data
-protection questions: <e-mail>. Supervisory authority: <the participant's national DPA>.
+`[legal]` Controller and researcher: Vladyslav Pershko, NUBIP — Faculty of Information
+Technologies, Department of Computer Science, Software Engineering;
+ipz25-v.pershko@nubip.edu.ua. Data protection questions: ipz25-v.pershko@nubip.edu.ua.
+Supervisory authority: the participant's national DPA.
 
 ---
 
-_Owner decisions still open on this text: the exact contact block; whether to name the
-consent-form version number in the app's enrollment screen; the Ukrainian translation review._
+_Owner decisions still open on this text: whether to name the consent-form version number
+in the app's enrollment screen; the Ukrainian translation review. (Contact block filled
+2026-09-01.)_
