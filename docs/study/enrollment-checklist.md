@@ -1,5 +1,11 @@
 # Enrollment checklist — one participant (File 06 §1.3; ADR-0011; ADR-0015 §12)
 
+> **NOT IN FORCE — the field study will not run** (owner, 2026-09-01; thesis-corrections
+> #49: a resource boundary — developer accounts, a recruitment budget, eight weeks of
+> volunteer retention — outside a master's project). This checklist stands as part of the
+> executable protocol artifact; it re-enters force only if the decision reverses, after
+> the DPIA re-read (`dpia.md` §11).
+>
 > Operator-run, one pass per participant, in order. Nothing here shows participant rows
 > (privacy README §7): identification is by e-mail → `diagnose_user`, enrollment is one RPC.
 > Prerequisites (once per wave): ethics-board approval on file; OSF pre-registration frozen;

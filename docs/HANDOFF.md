@@ -5,8 +5,8 @@
 > Last update: 2026-09-01 — **post-P12 owner ladder** (P12 merged, PR #30). Ladder 1–4
 > done/decided: `recsys_service` role live (§18), DPIA signed as a completed assessment —
 > **no field study will run** (owner, 2026-09-01), store: no accounts. First scheduled
-> nightly run proven clean. Remaining: hardware pass (step 5, account-free scope);
-> steps 6–7 conditional on the no-study decision reversing.
+> nightly run proven clean. #49 + the repo-wide no-study sweep done (2026-09-01). Remaining: hardware
+> pass (step 5, account-free); steps 6–7 retired-conditional.
 > Adversarial pass: 5 MAJOR + 11 MINOR, all 16 fixed in-branch. Gates: typecheck/lint/
 > format clean · jest 461 · expo-doctor 21/21 · recsys 149 (8 skipped) · training 78 ·
 > pgTAP `p12_role_test.sql` proves on the PR's db job (no Docker on the dev Mac).
@@ -49,9 +49,10 @@
    in the `models` bucket. All three training-container checklist items flipped.
 3. Walk the ⛔ ladder below **one step per turn** (owner directive 2026-08-27), verifying
    each from the session side before offering the next.
-4. No further build phases exist in PLAN. Session work from here: verification support,
-   first-real-data reviews (revisit.md re-dated items), OSF-freeze bundle support,
-   enrollment support (`docs/study/enrollment-checklist.md`).
+4. No further build phases exist in PLAN. Session work from here: hardware-pass support
+   (ladder 5), thesis-text support (corrections 1–49 + rollup), and — only if the owner
+   opts to register the unexecuted protocol — OSF-freeze support. Enrollment support and
+   first-real-data reviews are retired-conditional (#49).
 
 ## ⛔ ACTION REQUIRED (owner — ordered; one per turn)
 
@@ -83,12 +84,14 @@
    unchanged. Closes every device-checklist item except the blocked-by-decision iOS
    standalone/EAS residual (re-scoped in "Release builds — EAS (added P12)"); numbers are
    reported for the actual devices used (simulator-evidence rule).
-6. Earlier gates unchanged: Google OAuth second Web client (FR-01, P4) + P4 smoke;
-   magic-link E2E with a real mailbox; PostHog EU + Sentry EU accounts (keys env-gated).
-7. **Pre-enrollment list:** G6 Art. 27 representative if any EU/EEA participant (STOP
-   rule in the enrollment checklist); Oracle PAYG revisit (G1); Google consent screen
-   Testing → In production; OSF-freeze bundle (H1 conditions, M9 power recompute,
-   corrections #34–36 wording, G5 dataset decision) — one sitting.
+6. **Hardware-pass prerequisites only** (re-scoped by #49): the Google OAuth second Web
+   client and a real mailbox matter only for the device-checklist auth/calendar items;
+   PostHog EU / Sentry EU are optional (keys env-gated; own-use telemetry).
+7. ~~Pre-enrollment list~~ — **retired-conditional** (#49, no field study): Art. 27
+   representative, Oracle PAYG revisit, consent screen → production re-arm only if the
+   decision reverses (after the DPIA §11 re-read). The OSF freeze is now **optional** —
+   registering the unexecuted protocol would strengthen the artifact claim; the H1/M9/
+   #34–36/G5 material stays staged in the rollup.
 
 ## Gotchas (P12 additions; earlier lists in git history of this file still apply)
 
@@ -126,5 +129,6 @@
 ## Open questions (owner)
 
 - Two-device ritual (unchanged from P10; several revisit lines wait on it).
-- OSF freeze bundle: H1 text conditions, M9 power recompute, corrections #34–36 wording,
-  G5 dataset decision — one sitting, before enrollment.
+- OSF freeze — now optional (#49): register the unexecuted protocol (makes the thesis's
+  "pre-registered" literally true and strengthens the artifact claim) or keep the text at
+  "pre-registration-ready". Flagged 2026-09-01; material staged in the rollup.

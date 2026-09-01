@@ -6,10 +6,13 @@ _learned personal completion probability_, solves the day under hard calendar co
 explains every placement in one sentence, and learns from every outcome — a skip is a data
 point, not a failure.
 
-This repository is also the engineering artifact of a Master's thesis: an 8-week
-within-subject field study (ABAB/BABA) of a contextual-bandit day planner, with exact logged
-propensities on a randomized slice and an off-policy-evaluation harness (replay, IPS/clipped,
-SNIPS, DR with ESS gating). The specification set in `specs/` uses the internal codename
+This repository is the engineering artifact of a Master's thesis: a contextual-bandit day
+planner with an 8-week within-subject field-study protocol (ABAB/BABA) that is designed,
+instrumented and verified end to end — exact logged propensities on a randomized slice and an
+off-policy-evaluation harness (replay, IPS/clipped, SNIPS, DR with ESS gating) proven to
+recover ground truth on synthetic data. The study itself is deliberately not executed (a
+resource boundary of a master's project — see `docs/thesis/`); the system is release-ready
+and the protocol is runnable as designed. The specification set in `specs/` uses the internal codename
 **Kairos**; the public product name is **Hourwell** (`docs/naming.md`).
 
 ## Architecture (four tiers, one loop)
@@ -72,8 +75,9 @@ training pipeline runs on the EU VM, CI sees synthetic data only. The full asses
 
 ## Status
 
-P0–P11 built and merged (bootstrap → data layer → app shell → tasks → onboarding → RecSys
+P0–P12 built and merged (bootstrap → data layer → app shell → tasks → onboarding → RecSys
 service → plan E2E → feedback loop → sync + Google Calendar → trust surfaces →
-notifications/privacy → training + OPE + study mode). P12 (release prep) in progress.
-Device-conditioned requirements await the owner-run hardware pass
+notifications/privacy → training + OPE + study mode → release prep). The system is
+release-ready — only release and marketing remain; the field study is deliberately not
+executed (`docs/thesis/`). Device-conditioned requirements await the owner-run hardware pass
 (`docs/verification/device-checklist.md`).

@@ -389,3 +389,18 @@ real log as a restricted-access OSF deposit (Frankfurt storage). Text: thesis-co
   fills only (heatmap with a text alternative), body text uses `textPrimary`/`textSecondary`,
   on-primary text is white in light and the dark surface colour in dark; pinned by
   `a11yAudit.test.ts`. ADR-0014 §11.
+
+## Post-P12 status overlay (2026-09-01) — File 06 is design, not report
+
+Owner decision, recorded at the DPIA signature (`dpia.md` §10) and as thesis-corrections
+#49: **the field study File 06 specifies is not executed.** The reason is a resource
+boundary, not an engineering shortfall — platform developer accounts, a recruitment
+budget, and eight weeks of volunteer retention sit outside a master's project. Normative
+reading of File 06 from here on: every statement about participants, arms, waves, power
+(N = 30) and hypotheses H1–H4 describes the **designed, instrumented and end-to-end
+verified protocol**, not events that occurred. The H1 blinding resolution above and the
+OSF-freeze conditions attach to the artifact; the freeze itself is now optional (doing it
+strengthens the protocol-as-artifact claim). Evidence that exists: OPE on synthetic
+ground-truth data (the estimator family recovers closed-form truth) and the researcher's
+own live use of the deployed system. Neither can test — let alone falsify — a behavioural
+claim about humans; H1–H4 remain untested hypotheses.

@@ -256,3 +256,9 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   completers cannot be reached on Android alone — reversal costs the fee + the metadata §8
   steps plus a categories/deep-link re-verify on a store-signed iOS binary
   (device-checklist "Release builds" residual); no new build work.
+- [#49, 2026-09-01] **The field study is not executed (owner)** — enrollment-conditioned
+  lines above (consent screen → production, PAYG "before enrollment", the mail-processor
+  decision, `sync_ops` prune "for the study", two-device items tied to study use) lose
+  their study deadline and re-arm only if the decision reverses (after the DPIA §11
+  re-read). Exception: the Supabase legacy-key migration keeps its own **platform**
+  deadline (end-2026) regardless of any study.

@@ -5,6 +5,11 @@
 > from this text once the owner has approved it. Wording that names a legal basis is marked
 > `[legal]`; wording that names a system behaviour is marked `[system]` and is tested or
 > measured in the phase named.
+>
+> **Status update (2026-09-01):** the field study will not run (thesis-corrections #49);
+> this document stands as part of the executable protocol artifact, not an active consent
+> instrument. The open items (version number, Ukrainian translation) matter only for the
+> artifact's completeness.
 
 ## 1. What Hourwell stores about you
 
