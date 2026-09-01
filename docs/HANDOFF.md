@@ -2,7 +2,11 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-08-31 (late night), **P12 — Release prep — BUILT (PR #30).**
+> Last update: 2026-09-01 — **post-P12 owner ladder** (P12 merged, PR #30). Ladder 1–4
+> done/decided: `recsys_service` role live (§18), DPIA signed as a completed assessment —
+> **no field study will run** (owner, 2026-09-01), store: no accounts. First scheduled
+> nightly run proven clean. Remaining: hardware pass (step 5, account-free scope);
+> steps 6–7 conditional on the no-study decision reversing.
 > Adversarial pass: 5 MAJOR + 11 MINOR, all 16 fixed in-branch. Gates: typecheck/lint/
 > format clean · jest 461 · expo-doctor 21/21 · recsys 149 (8 skipped) · training 78 ·
 > pgTAP `p12_role_test.sql` proves on the PR's db job (no Docker on the dev Mac).
@@ -37,12 +41,12 @@
 ## Exact next actions (next session, in order)
 
 1. ✅ PR #30 merged; `main` current (2026-08-31).
-2. **First scheduled nightly check** (1 min; timer proven armed 2026-08-31 — next fire
-   **2026-09-01 00:35:29 UTC**; check after ~00:45):
-   `ssh ubuntu@recsys-oracle 'journalctl -u hourwell-train -n 15'` (tailnet — start
-   Tailscale on the Mac first; the public `ssh oracle-recsys` is allow-list-bound) → JSON
-   summary (expected on this cohort: priors carry-over, ALS skip, backfill 0/7-skipped) and
-   `reports/2026-09-01/report.json` exists in the `models` bucket (names-only query).
+2. ✅ **First scheduled nightly run — timer proven** (fired 2026-09-01, ran
+   00:33:28–00:33:38 UTC, clean finish): summary matches the cohort expectations —
+   priors carry-over (240 cells, 0 refit), ALS skip (1 distinct cluster), mc_backfill
+   1 filled / 9 skipped-by-design (aggregate check: all 9 nulls belong to users with no
+   `bandit_state` — the P11 run-3 day-0 class); `reports/2026-09-01/report.json` exists
+   in the `models` bucket. All three training-container checklist items flipped.
 3. Walk the ⛔ ladder below **one step per turn** (owner directive 2026-08-27), verifying
    each from the session side before offering the next.
 4. No further build phases exist in PLAN. Session work from here: verification support,

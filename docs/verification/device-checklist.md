@@ -286,19 +286,21 @@ never substituted. Command: runbook `docs/runbooks/oracle-vm.md` §7.
 
 ## Service environment — training container (added P11, ADR-0015; VM-run, before enrollment)
 
-- ⬜ **Nightly training run live on the VM** — after the owner adds
-  `SUPABASE_SERVICE_ROLE_KEY` + `ARCHIVE_SALT` to `.env` and re-runs `install.sh`:
-  `journalctl -u hourwell-train -n 20` shows a completed run; the report appears under
-  `models/reports/<date>/` and `model_registry` gains gated rows. Why not settled here:
-  needs the P11 migration applied and the VM's env — CI proves the pipeline only on the
-  synthetic cohort (train.yml), never the real path end-to-end.
-- ⬜ **MC backfill on live rows** — after the first nightly run on the migrated project:
-  `select count(*) from recommendations where propensity is null and not is_experiment
-and engine = 'learned';` → 0 (privacy §7 aggregate). Simulator/CI cannot settle it: the
-  live rows carry real bandit state the synthetic cohort does not.
-- ⬜ **Rollout picks up the training image** — `docker compose --profile training pull`
-  path via `hourwell-rollout` on the box; check `docker image ls | grep hourwell-training`
-  after a main-branch push.
+- ✅ **Nightly training run live on the VM** (manual runs 3× 2026-08-31 —
+  `p11-manual-verification.md` §2; **first timer-fired run 2026-09-01 00:33 UTC**, clean
+  finish): `journalctl -u hourwell-train` shows the completed scheduled run;
+  `reports/2026-09-01/report.json` in the `models` bucket (names-only query);
+  `model_registry` gated rows proven on the 2026-08-31 manual runs (the 2026-09-01 run
+  recorded nothing by design — no cell cleared the refit guards).
+- ✅ **MC backfill on live rows** (2026-09-01, first scheduled run on the migrated
+  project): 1 filled through the service's own scoring (under the P12 `recsys_service`
+  role), 9 remaining nulls — **all 9 belong to users with no `bandit_state`** (privacy §7
+  aggregate), i.e. the skipped-by-design day-0 class of `p11-manual-verification.md` §2
+  run 3. The original "→ 0" expectation assumed a cohort without day-0 users; the real
+  invariant — **zero eligible rows left unfilled** — holds.
+- ✅ **Rollout picks up the training image** (2026-09-01): the installed
+  `hourwell-rollout` runs `docker compose --profile training pull`;
+  `ghcr.io/ikala4i/hourwell-training:latest` is present on the box via that path.
 
 ## Release builds — EAS (added P12)
 
