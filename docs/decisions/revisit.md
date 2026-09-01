@@ -262,3 +262,8 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   their study deadline and re-arm only if the decision reverses (after the DPIA §11
   re-read). Exception: the Supabase legacy-key migration keeps its own **platform**
   deadline (end-2026) regardless of any study.
+- [post-P12, 2026-09-01] **OSF freeze — DECIDED (owner): register the unexecuted
+  protocol**, sequenced strictly after the hardware pass (ladder step 5) closes; the
+  thesis phrasing then flips "pre-registration-ready" → "pre-registered" (corrections
+  #49 update; rollup "How to run the pass" step 2). Material: items 8/10/21/35/36
+  verbatim + H1/M9/G5 in the rollup.

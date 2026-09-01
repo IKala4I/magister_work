@@ -379,8 +379,11 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     substitute for. The protocol is **designed, instrumented, and verified end to end**
     (exact per-row propensities M-01, first-class arm switching, blocked ABAB/BABA
     randomization, PAR from facts, the aggregate report, the OSF-freeze bundle prepared —
-    "pre-registration-ready"; registering it is an optional owner step that would make
-    "pre-registered" literally true) and the deployed system is ready to run it. Rewrite
+    "pre-registration-ready"; **owner decision 2026-09-01: the OSF freeze WILL run,
+    sequenced after the hardware pass closes — once registered, replace
+    "pre-registration-ready" with "pre-registered" wherever this item applies and cite
+    the registration id in §5 and in the artifact statement, item 36**) and the deployed
+    system is ready to run it. Rewrite
     every passage that asserts or implies empirical results from real users:
     - **What stands as evidence:** (a) OPE on synthetic ground-truth data — the estimator
       family (replay, IPS/clipped, SNIPS, DR with the ESS < 100 non-evidence rule)

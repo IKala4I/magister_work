@@ -50,8 +50,8 @@
 3. Walk the ⛔ ladder below **one step per turn** (owner directive 2026-08-27), verifying
    each from the session side before offering the next.
 4. No further build phases exist in PLAN. Session work from here: hardware-pass support
-   (ladder 5), thesis-text support (corrections 1–49 + rollup), and — only if the owner
-   opts to register the unexecuted protocol — OSF-freeze support. Enrollment support and
+   (ladder 5), thesis-text support (corrections 1–49 + rollup), and OSF-freeze support (owner
+   opted in, 2026-09-01 — runs strictly after the hardware pass closes). Enrollment support and
    first-real-data reviews are retired-conditional (#49).
 
 ## ⛔ ACTION REQUIRED (owner — ordered; one per turn)
@@ -89,9 +89,11 @@
    PostHog EU / Sentry EU are optional (keys env-gated; own-use telemetry).
 7. ~~Pre-enrollment list~~ — **retired-conditional** (#49, no field study): Art. 27
    representative, Oracle PAYG revisit, consent screen → production re-arm only if the
-   decision reverses (after the DPIA §11 re-read). The OSF freeze is now **optional** —
-   registering the unexecuted protocol would strengthen the artifact claim; the H1/M9/
-   #34–36/G5 material stays staged in the rollup.
+   decision reverses (after the DPIA §11 re-read). The OSF freeze is **DECIDED
+   (owner, 2026-09-01): register — but only after the hardware pass (step 5) closes**;
+   "pre-registration-ready" then becomes "pre-registered" in the thesis text. The H1/M9/
+   #34–36/G5 material stays staged in the rollup; do not start the freeze before step 5
+   is closed.
 
 ## Gotchas (P12 additions; earlier lists in git history of this file still apply)
 
@@ -129,6 +131,6 @@
 ## Open questions (owner)
 
 - Two-device ritual (unchanged from P10; several revisit lines wait on it).
-- OSF freeze — now optional (#49): register the unexecuted protocol (makes the thesis's
-  "pre-registered" literally true and strengthens the artifact claim) or keep the text at
-  "pre-registration-ready". Flagged 2026-09-01; material staged in the rollup.
+- ~~OSF freeze~~ — **DECIDED (owner, 2026-09-01): register**, sequenced strictly after
+  the hardware pass closes; "pre-registration-ready" → "pre-registered" once the
+  registration exists. Material staged in the rollup (items 8/10/21/35/36 + H1/M9/G5).

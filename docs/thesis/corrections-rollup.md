@@ -11,8 +11,9 @@
 1. Work top-to-bottom through the table below with `thesis-corrections.md` open beside the
    draft; tick items off in the worklist as applied.
 2. The five OSF-freeze-tagged items (8, 10, 21, 35, 36) must ALSO land in the
-   pre-registration text — same wording, before the freeze. (Conditional since #49: the
-   freeze is optional now; doing it would strengthen the protocol-as-artifact claim.)
+   pre-registration text — same wording, before the freeze. (Decided 2026-09-01: the
+   freeze runs after the hardware pass closes — these five items must be in the
+   pre-registration text before it.)
 3. Items 34–36 carry owner-approved replacement sentences (ADR-0011) — paste, don't rephrase.
 
 ## By draft section
