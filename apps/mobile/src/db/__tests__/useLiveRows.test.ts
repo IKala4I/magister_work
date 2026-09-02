@@ -28,7 +28,7 @@ jest.mock('expo-sqlite', () => ({
 
 import { act, renderHook } from '@testing-library/react-native';
 
-import { useLiveRows } from '../useLiveRows';
+import { useLiveRows, useLiveRowsState } from '../useLiveRows';
 
 /** RNTL v14 / React 19: state updates flush only inside an awaited async act. */
 async function emit(tableName: string): Promise<void> {
@@ -99,5 +99,73 @@ describe('useLiveRows', () => {
     expect(mockRemove).toHaveBeenCalledTimes(1);
     await emit('tasks');
     expect(build).toHaveBeenCalledTimes(1); // mount read only
+  });
+});
+
+describe('useLiveRowsState — "not read yet" is distinguishable from "empty" (hardware pass #15)', () => {
+  it('the first render is not ready with no rows; the mount read flips it', async () => {
+    const seen: Array<{ rows: unknown[]; ready: boolean }> = [];
+    const build = jest.fn(() => ({ all: () => [{ id: 'a' }] }));
+    const { result } = await renderHook(() => {
+      const state = useLiveRowsState(build, ['plans']);
+      seen.push(state);
+      return state;
+    });
+    expect(seen[0]).toEqual({ rows: [], ready: false });
+    expect(result.current).toEqual({ rows: [{ id: 'a' }], ready: true });
+  });
+
+  it('an empty table still reports ready after the read (empty ≠ unread)', async () => {
+    const build = jest.fn(() => ({ all: () => [] }));
+    const { result } = await renderHook(() => useLiveRowsState(build, ['plans']));
+    expect(result.current).toEqual({ rows: [], ready: true });
+  });
+
+  it('stays ready and re-reads on a watched change', async () => {
+    let rows: Array<{ id: string }> = [];
+    const build = jest.fn(() => ({ all: () => rows }));
+    const { result } = await renderHook(() => useLiveRowsState(build, ['plans']));
+    rows = [{ id: 'p1' }];
+    await emit('plans');
+    expect(result.current).toEqual({ rows: [{ id: 'p1' }], ready: true });
+  });
+
+  it('useLiveRows is the same subscription, rows only', async () => {
+    const build = jest.fn(() => ({ all: () => [{ id: 'a' }] }));
+    const { result } = await renderHook(() => useLiveRows(build, ['plans']));
+    expect(result.current).toEqual([{ id: 'a' }]);
+    expect(listeners).toHaveLength(1);
+  });
+
+  it('a deps change drops ready until the re-read for the NEW inputs lands (review F1e)', async () => {
+    const seen: Array<{ rows: Array<{ id: string }>; ready: boolean }> = [];
+    const readFor = jest.fn((user: string) => ({ all: () => [{ id: `plan-of-${user}` }] }));
+    const { result, rerender } = await renderHook(
+      ({ user }: { user: string }) => {
+        const state = useLiveRowsState(() => readFor(user), ['plans'], [user]);
+        seen.push(state);
+        return state;
+      },
+      { initialProps: { user: 'u1' } },
+    );
+    expect(result.current).toEqual({ rows: [{ id: 'plan-of-u1' }], ready: true });
+    seen.length = 0;
+    await rerender({ user: 'u2' });
+    // the render that first sees the new user still holds u1's rows — and says so
+    expect(seen[0]).toEqual({ rows: [{ id: 'plan-of-u1' }], ready: false });
+    expect(result.current).toEqual({ rows: [{ id: 'plan-of-u2' }], ready: true });
+    expect(readFor).toHaveBeenLastCalledWith('u2');
+    expect(listeners).toHaveLength(1); // the old subscription was removed, one new one
+  });
+
+  it('a re-render with the SAME inputs stays ready (element-wise comparison, not identity)', async () => {
+    const build = jest.fn(() => ({ all: () => [{ id: 'a' }] }));
+    const { result, rerender } = await renderHook(
+      ({ day }: { day: string }) => useLiveRowsState(build, ['plans'], [day]),
+      { initialProps: { day: '2026-09-02' } },
+    );
+    await rerender({ day: '2026-09-02' });
+    expect(result.current).toEqual({ rows: [{ id: 'a' }], ready: true });
+    expect(build).toHaveBeenCalledTimes(1);
   });
 });

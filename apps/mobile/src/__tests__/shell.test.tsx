@@ -21,7 +21,10 @@ jest.mock('../domain/notificationActions', () => ({
 }));
 jest.mock('../privacy/exportData', () => ({ exportDataAction: jest.fn() }));
 jest.mock('../privacy/deleteAccount', () => ({ deleteAccountAction: jest.fn() }));
-jest.mock('../db/useLiveRows', () => ({ useLiveRows: () => [] }));
+jest.mock('../db/useLiveRows', () => ({
+  useLiveRows: () => [],
+  useLiveRowsState: () => ({ rows: [], ready: true }),
+}));
 // P7: the Today tab runs the lazy lapse scan on mount — a DB write path, mocked here like the DB
 jest.mock('../sync/useLapseScan', () => ({
   useLapseScan: () => ({ diagnosticTask: null, dismissDiagnostic: () => {} }),
@@ -43,7 +46,7 @@ jest.mock('@react-native-community/datetimepicker', () => ({
 }));
 
 import { renderRouter, screen } from 'expo-router/testing-library';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, within } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import type { ReactElement } from 'react';
 
@@ -143,5 +146,35 @@ describe('router shell', () => {
     expect(screen.getByText(en['tabs.inbox'])).toBeTruthy();
     expect(screen.getByText(en['tabs.focus'])).toBeTruthy();
     expect(screen.getByText(en['tabs.insights'])).toBeTruthy();
+  });
+
+  it('a tab exposes its name only — the icon glyph is hidden from assistive tech (NFR-A1, hardware pass #8)', async () => {
+    await renderRouter(
+      {
+        '(tabs)/_layout': TabsLayout,
+        '(tabs)/index': TodayScreen,
+        '(tabs)/inbox': InboxScreen,
+        '(tabs)/focus': FocusScreen,
+        '(tabs)/insights': InsightsScreen,
+        settings: SettingsScreen,
+      },
+      { initialUrl: '/' },
+    );
+    for (const name of [
+      en['tabs.today'],
+      en['tabs.inbox'],
+      en['tabs.focus'],
+      en['tabs.insights'],
+    ]) {
+      // jest runs as iOS, where bottom-tabs composes "<name>, tab, n of 4" itself; Android
+      // composes from the children, so what matters is which children are accessible
+      const tab = screen.getByRole('button', { name: new RegExp(`^${name}, tab`) });
+      const spoken = within(tab).getAllByText(/\S/);
+      expect(spoken.map((node) => node.props.children)).toEqual([name]);
+      // the glyph Texts are still rendered — they are hidden, not gone
+      expect(
+        within(tab).getAllByText(/\S/, { includeHiddenElements: true }).length,
+      ).toBeGreaterThan(1);
+    }
   });
 });

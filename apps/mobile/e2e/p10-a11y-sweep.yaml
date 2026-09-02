@@ -11,22 +11,34 @@ appId: com.hourwell.app
 ---
 - launchApp:
     stopApp: true
-- assertVisible: 'No plan yet'
+# Today's header is the date line ("Wednesday, September 2") whatever the plan state (UC-03 may
+# have auto-planned). Double quotes: YAML unescapes "\\w" to \w — single quotes would hand
+# Maestro a literal backslash-w regex that never matches (review F5).
+# device: a cold start at 200 % font + largest display size renders after Maestro's default assert window
+- extendedWaitUntil:
+    visible: "\\w+day, \\w+ \\d+"
+    timeout: 30000
 - takeScreenshot: p10-today-empty
-- tapOn: 'Inbox, tab.*'
+- tapOn: 'Inbox(, tab.*)?'
 - takeScreenshot: p10-inbox
 - tapOn: 'New task'
 - assertVisible: 'Title'
 - takeScreenshot: p10-task-form
 - inputText: 'Write the thesis intro'
 - tapOn: 'Save'
-- assertVisible: 'Write the thesis intro'
+- assertVisible: '(?i)Write the thesis intro'
 - takeScreenshot: p10-inbox-with-task
-- tapOn: 'Today, tab.*'
-- tapOn: 'Plan my day'
+- tapOn: 'Today(, tab.*)?'
+# device: UC-03 may have auto-planned on foreground already — plan only if the button exists,
+# then wait for the planned state (the button becomes 'Re-plan') rather than for one task name
+- runFlow:
+    when:
+      visible: 'Plan my day'
+    commands:
+      - tapOn: 'Plan my day'
 - extendedWaitUntil:
-    visible: 'Write the thesis intro'
-    timeout: 15000
+    visible: 'Re-plan'
+    timeout: 20000
 - takeScreenshot: p10-today-plan
 # the reminders card (only when the OS permission is still undetermined)
 - runFlow:
@@ -35,9 +47,9 @@ appId: com.hourwell.app
     commands:
       - takeScreenshot: p10-today-reminders-card
       - tapOn: 'Not now'
-- tapOn: 'Focus, tab.*'
+- tapOn: 'Focus(, tab.*)?'
 - takeScreenshot: p10-focus
-- tapOn: 'Insights, tab.*'
+- tapOn: 'Insights(, tab.*)?'
 - extendedWaitUntil:
     visible: 'Insights'
     timeout: 10000
@@ -67,7 +79,7 @@ appId: com.hourwell.app
 - swipe:
     start: 50%, 15%
     end: 50%, 85%
-- tapOn: 'Today, tab.*'
+- tapOn: 'Today(, tab.*)?'
 - takeScreenshot: p10-today-dark
 - tapOn: 'Open settings'
 - scrollUntilVisible:

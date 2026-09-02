@@ -46,6 +46,114 @@ Everything below condenses P0–P11 for release notes and the thesis; per-phase 
   File 04 §2 (H1 — arm B must be reachable on every device).
 - **chore(mobile): Expo SDK 57 patch drift** — `expo install --fix` (9 packages, expo 57.0.19) so expo-doctor passes CI again; the device APK under measurement stays the 57.0.18 build (`docs/versions.md`).
 
+## Post-P12 — hardware pass client fixes (2026-09-02, fix/mobile-hardware-pass-batch)
+
+Client-side batch from the Pixel 7a pass (`docs/verification/device-pass/android-2026090[12]-*/notes.md`);
+the measured APK stays constant until the batch lands, then cold start ×20 and the affected
+screens are re-verified on the device.
+
+- **fix(mobile): every cold start re-planned (UC-03 "exactly one plan request per plan day";
+  thesis-critical, broke in P6).** Server rows showed one `trigger=first_open` plan per cold
+  start while today's plan was persisted (day 2 #15; day 1's 30 zero-block rows had the same
+  cause and tripped the 30/24 h limit). Root cause: `useLiveRows` starts as `[]` and reads in
+  an effect, the Today screen passed `latestAnyRows[0]?.planDate ?? null` (null = "never
+  planned") into `usePlanTrigger`, whose mount effect decided before the first read — and the
+  per-day dedup key lived only in the ephemeral Zustand store. Fix at the root:
+  `useLiveRowsState` exposes `{ rows, ready }` (false until the first read resolves, and again
+  for the render after the read's inputs — user, plan day — change until the re-read for the
+  new inputs lands, review F1e; the plain `useLiveRows` signature stays), `decidePlanTrigger`
+  takes `ready` and decides nothing until
+  both plan reads are ready, and the dedup key moved to MMKV (`plan.lastRequestedDay`,
+  `src/sync/planRequestDay.ts`) so a cold start on a day that already requested does not
+  request again even when the read is slow or the plan had zero blocks. The key is written
+  only once the server has answered the day's request (`planned` / `empty_inbox` /
+  `rate_limited`); `offline`, `no-session`, `failed` and `profile_missing` leave it unwritten
+  so the next foreground retries (review F1a — otherwise an offline first open locked the day
+  out of auto-planning until a manual re-plan). Manual re-plan still bypasses the dedup; the
+  evening ritual (FR-26's request, not UC-03's) never writes the key — not even at 00:30, when
+  the coming plan day is the current calendar date (review F1c); an account change clears it. Tests: `planTrigger.test.ts` (not ready → no request),
+  `usePlanTrigger.test.ts` (persisted plan → no request on mount; dedup survives a simulated
+  cold start; manual still requests; ritual leaves the key alone), `useLiveRows.test.ts`
+  (unread ≠ empty). Refs: UC-03, NFR-R2, FR-26.
+- **fix(ui): Today time gutter scales with the font scale (NFR-A2 / FR-22).** At font scale 2.0
+  the fixed 64 px gutter broke "12:00 PM" into "12:0" / "0 PM" (day 2 #14a). New
+  `useFontScale()` (the OS multiplier clamped to the ThemedText cap, live via
+  `useWindowDimensions`) drives `gutterWidthFor(scale) = ceil(64 × scale)` as the gutter's
+  `minWidth` (`flexShrink: 0`; a longer locale clock widens its own gutter instead of
+  clipping), and the clock text is `numberOfLines={1}`. Tests: `useFontScale.test.ts` (clamp),
+  `today.test.tsx` (64 px at 1×, ≥ 128 px at 2×, one-line clock).
+- **fix(ui): Insights heatmap weekday header no longer wraps mid-word (FR-40 / NFR-A2).** At
+  font scale 2.0 the seven "Mon…Sun" columns wrapped as "M/on", "Tu/e", "W/ed" (day 2 #14b).
+  From `COMPACT_WEEKDAY_FONT_SCALE = 1.5` the header uses two-letter catalog labels
+  (`weekday.short.*`: Mo…Su); every header label is `numberOfLines={1}`; the grid's accessible
+  summary label is untouched (the header stays `importantForAccessibility="no"`). Test:
+  `insights.test.tsx` (Mon at 1× and 1.3×, We at 2×, summary label unchanged).
+- **fix(ui): quick-add placeholder no longer clips (FR-11 surface, day 1 #7).** On the Pixel 7a
+  the placeholder 'Add a task — try "report draft 2h by Fri"' wrapped to two lines inside the
+  single-line input and the second line was cut off (Android wraps a long hint; at 200 % no
+  example fits one line on any phone). The placeholder is now `Add a task` and the NL example
+  moved to its own catalog key (`inbox.quickAdd.example`: 'Try "report draft 2h by Fri"'),
+  rendered as a wrapping caption under the input while it is empty and swapped for the live
+  preview row once typing starts (`showExample` prop, default on; off on the onboarding seed
+  step whose intro already teaches the example, so a screen reader hears it once — review F4).
+  The input border is 1 px instead of hairline (Android draws a
+  sub-pixel border unevenly around rounded corners — the "border looks off at the sides" note).
+  Test: `inbox.test.tsx` (short quote-free placeholder, example caption ↔ preview swap).
+- **fix(mobile): tab-bar icon glyphs hidden from assistive tech (NFR-A1, Android).** TalkBack
+  composed each tab's label from its children, so the icon-font code point was read before the
+  name ("<glyph>, Today" — day 2 #8; iOS composes "Today, tab, 1 of 4" itself). The four
+  `tabBarIcon`s render through `TabIcon`, an `Ionicons` with
+  `importantForAccessibility="no-hide-descendants"` + `accessibilityElementsHidden`, so the
+  announced label is the tab name only. Test: `shell.test.tsx` (each tab's accessible text is
+  exactly its name; the glyphs are still rendered, hidden).
+- **test(mobile): e2e title selectors tolerate IME capitalisation.** On hardware Gboard
+  auto-capitalised a typed title ("offline note" → "Offline note", day 2 #7) while the app
+  keeps what was typed; the selectors that match typed titles in `p3-tasks-flow`,
+  `p4-onboarding-flow` and `p10-a11y-sweep` carry the `(?i)` regex prefix. The flows are taken
+  at their hardware-pass state (b92a4d9 + the p10 state-tolerance edits) so the branches merge
+  cleanly; only p4 (and p3's body) have passed on the device — the p10 sweep has NOT run green
+  on hardware yet.
+- **test(mobile): the Today date-line assertion in the a11y sweeps could never match (review
+  F5, MAJOR).** `p2-a11y-sweep` and `p10-a11y-sweep` asserted `'\\w+day, \\w+ \\d+'` in
+  single-quoted YAML, which does no escape processing — Maestro received a literal
+  backslash-w regex, and the device junit shows exactly that string failing. Now double-quoted
+  (`"\\w+day, \\w+ \\d+"` → `\w+day, \w+ \d+`) in both sweeps; p10's first assert is an
+  `extendedWaitUntil` (30 s) because a cold start at 200 % font + largest display size renders
+  after Maestro's default assert window. No other single-quoted `\\` escape exists in
+  `apps/mobile/e2e`.
+- **fix(notifications): stale block reminders leave the shade (FR-50).** Delivered reminders
+  were never dismissed, so the Pixel 7a shade accumulated "email replies · Starts at 12:45 PM"
+  at 14:28 plus two more after their blocks had started or lapsed (owner observation, day 2
+  14:18/14:28). On every scheduler run — mount, foreground, and (debounced) after every plan
+  apply / re-plan, status change or profile change (`useNotificationScheduler`) — the app reads
+  the presented notifications (`getPresentedNotificationsAsync`) and dismisses
+  (`dismissNotificationAsync`) every `block_reminder` whose `slot_start` is ≤ now, whose
+  recommendation is no longer an OPEN placement (`shown / accepted / pinned / moved`, within the
+  scheduler's horizon, AND with a live task — the planner's own filter, so a deleted task's
+  reminder goes too), or whose payload names a different start than the plan (a block moved
+  with UC-07 keeps its id: the old-time reminder is dismissed and the new time re-scheduled in
+  the same pass) — done, skipped, lapsed, deleted, moved or re-planned-away blocks all lose
+  their stale reminder. The payload now carries `slot_start`; older payloads fall back to the
+  plan's slot start. Rituals are untouched; the delivered ledger and the ≤ 5/day cap are
+  neither consulted nor freed (a dismissed reminder still counts as delivered). Pure decision
+  `staleReminderIds` in `src/notifications/dismiss.ts` (`dismiss.test.ts`: started / ahead /
+  not open / no `slot_start` / rituals / malformed; OS wrapper never throws, ledger untouched)
+  and a scheduler integration test against real SQLite (`scheduler.test.ts`).
+- **fix(ui): Settings scrolls (FR-42 / NFR-A2, MAJOR on hardware).** `app/settings.tsx`
+  rendered every section straight inside `Screen` (a plain `flex: 1` View), so on the Pixel 7a
+  at 1× the content ended at "Block reminders" / the mute chips and the ritual time, My data
+  (Export / Delete account), Privacy and Appearance were unreachable — uiautomator saw no
+  scrollable node, drags did nothing, Maestro's `scrollUntilVisible: 'Export my data'` timed out
+  (day 2, 16:2x). The p10 sweep never caught it because it never ran green anywhere. Fix at the
+  root: the sections sit in a `ScrollView` (`testID="settings-scroll"`,
+  `keyboardShouldPersistTaps="handled"`, content padding; `Screen` keeps the bottom safe-area
+  inset outside it; the vertical scroll indicator stays ON — this is the one screen whose
+  defect was that nothing told the owner the content continued, review 2 #4) — a plain
+  ScrollView, so the native-stack modal's swipe-down dismiss keeps
+  working with no nested gesture container, the same pattern Insights, the task sheet and the
+  onboarding screens already use. Test: `settings.test.tsx` asserts the sections render inside
+  the ScrollView host and that My data, Export and Appearance are its descendants.
+
 ## P11 — Training pipeline + OPE + study mode (2026-08-31, phase/P11-training)
 
 **Database (ADR-0015).** Migration `20260831120000_p11_training`: `cluster_cells`

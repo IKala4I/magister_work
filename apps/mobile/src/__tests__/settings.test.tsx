@@ -62,7 +62,7 @@ jest.mock('../observability/analytics', () => ({
   track: jest.fn(),
 }));
 
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
 import type { ReactElement } from 'react';
 import { Alert } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -305,6 +305,26 @@ describe('Settings — my data (FR-42, P10)', () => {
     expect(screen.getByText(en['settings.data.delete.failed'])).toBeTruthy();
     expect(mockRouter.replace).not.toHaveBeenCalled();
     alert.mockRestore();
+  });
+});
+
+describe('Settings — reachability (hardware pass 2026-09-02: the screen could not scroll)', () => {
+  it('every section renders inside a real ScrollView — My data, Export and Appearance included', async () => {
+    await render(withSafeArea(<SettingsScreen />));
+    // the bug was reachability, not rendering: the sections were there, in a flex View that
+    // no gesture could move — so the container itself is asserted, not only the copy
+    const scroll = screen.getByTestId('settings-scroll');
+    expect(scroll.type).toBe('RCTScrollView');
+    expect(scroll.props.keyboardShouldPersistTaps).toBe('handled');
+    for (const key of [
+      'settings.notifications.title',
+      'settings.data.title',
+      'settings.data.export',
+      'settings.privacy.title',
+      'settings.appearance.title',
+    ] as const) {
+      expect(within(scroll).getByText(en[key])).toBeTruthy();
+    }
   });
 });
 

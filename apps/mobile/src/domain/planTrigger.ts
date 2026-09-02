@@ -38,6 +38,13 @@ export type TriggerDecision =
 
 export function decidePlanTrigger(input: {
   now: Date;
+  /**
+   * Whether the plan reads behind `latestPlanDate` / `hasPlanForToday` have resolved. A live
+   * read starts empty, and an empty FIRST render must not pass for "never planned": on the
+   * Pixel 7a every cold start re-planned with `first_open` while today's plan was persisted
+   * (hardware pass 2026-09-02 #15). Not ready → no decision at all.
+   */
+  ready: boolean;
   /** plan_date of the user's most recent plan of ANY date, if any (names the trigger). */
   latestPlanDate: string | null;
   /**
@@ -46,10 +53,14 @@ export function decidePlanTrigger(input: {
    * decides. Defaults to `latestPlanDate === today` for callers that have no separate read.
    */
   hasPlanForToday?: boolean;
-  /** Plan day of the last request this session made (dedup across foregrounds). */
+  /**
+   * Plan day of the last request this DEVICE made for its own day (dedup across foregrounds
+   * AND cold starts — the key is durable, src/sync/planRequestDay.ts).
+   */
   lastRequestedDay: string | null;
   inFlight: boolean;
 }): TriggerDecision {
+  if (!input.ready) return { request: false };
   if (input.inFlight) return { request: false };
   const today = localDayOf(input.now);
   // before 06:00 yesterday's plan still stands; the new day is planned on the first open after it

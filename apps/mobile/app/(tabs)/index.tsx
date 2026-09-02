@@ -32,7 +32,7 @@ import {
 } from '../../src/db/plans';
 import { activeTasksQuery } from '../../src/db/tasks';
 import type { TaskRow } from '../../src/db/tasks';
-import { useLiveRows } from '../../src/db/useLiveRows';
+import { useLiveRows, useLiveRowsState } from '../../src/db/useLiveRows';
 import type { LocalDb } from '../../src/db/writes';
 import {
   correctLapseAction,
@@ -103,7 +103,9 @@ export default function TodayScreen() {
   // Display: today's plan if one exists; before 06:00 fall back to the previous plan day's plan.
   const todayDay = requestPlanDayOf(now);
   const planDay = planDayOf(now);
-  const todayRows = useLiveRows<PlanRow>(
+  // The two reads the UC-03 trigger decides on carry a ready flag: their first render is empty
+  // before the read resolves, and "empty" must not pass for "no plan" (hardware pass #15).
+  const { rows: todayRows, ready: todayReady } = useLiveRowsState<PlanRow>(
     () => latestPlanQuery(localDb, userId, todayDay),
     PLAN_TABLES,
     [userId, todayDay],
@@ -113,7 +115,7 @@ export default function TodayScreen() {
     PLAN_TABLES,
     [userId, planDay],
   );
-  const latestAnyRows = useLiveRows<PlanRow>(
+  const { rows: latestAnyRows, ready: latestReady } = useLiveRowsState<PlanRow>(
     () => latestPlanAnyQuery(localDb, userId),
     PLAN_TABLES,
     [userId],
@@ -189,10 +191,11 @@ export default function TodayScreen() {
   const titles = useMemo(() => new Map(taskRows.map((task) => [task.id, task.title])), [taskRows]);
   const status = usePlanStore((s) => s.status);
   const emptyInbox = usePlanStore((s) => s.emptyInbox);
-  const { requestManual } = usePlanTrigger(
-    latestAnyRows[0]?.planDate ?? null,
-    todayRows[0]?.planDate ?? null,
-  );
+  const { requestManual } = usePlanTrigger({
+    latestPlanDate: latestAnyRows[0]?.planDate ?? null,
+    todayPlanDate: todayRows[0]?.planDate ?? null,
+    ready: todayReady && latestReady,
+  });
   const lapse = useLapseScan();
 
   const [moving, setMoving] = useState<RecommendationRow | null>(null);
