@@ -36,7 +36,7 @@ directory are from this physical device — never a simulator (CLAUDE.md "Simula
     **immediately after a reboot** (cold OS caches) — the conservative headline number.
   - `cold-start.txt`: p90 = 552 ms (519–688) — earlier run, warm OS caches, but taken with
     max font + display scale still applied (sequencing slip, kept as a labeled data point).
-  Steady-state UX likely sits between the two; both are Pixel 7a hardware numbers.
+    Steady-state UX likely sits between the two; both are Pixel 7a hardware numbers.
 - **NFR-S1 session survives reboot — PASS.** `adb reboot`, relaunch: straight into the
   shell with the trial session intact (Keystore-backed storage; no PIN set on the device).
 - **P3 quick-add on hardware — partial PASS.** NL preview ('report draft 2h by fri' →
@@ -87,3 +87,13 @@ Real on-screen keyboard, autocorrect on; English + Ukrainian IMEs. Inbox left cl
    thesis-corrections #14 territory). To record with the i18n scaffolding decision as a
    documented limitation; verify tomorrow that the preview shows NO chips in this case
    (must not imply a parse that didn't happen).
+
+## Day 2 pointer (2026-09-02)
+
+Continues in `../android-20260902-1030/notes.md`. Closed there: open item 5 (undo bar — PASS,
+6 s holds on hardware) and item 9 (Ukrainian NL — no chips, verified). Item 8 (autocorrect
+acceptance) stays attended. **Correction to the "learned path" paragraph above:** the 20:40
+attempt was not "one transient fallback" — every day-1 request from the device fell back
+(service 422 on the legacy timezone id `Europe/Kiev`; fixed in PR #37, day-2 item 4), and the
+"no plan row persisted" reading was also wrong: 30 zero-block rows were persisted server-side
+and later tripped the 30/24 h rate limit (day-2 item 3).

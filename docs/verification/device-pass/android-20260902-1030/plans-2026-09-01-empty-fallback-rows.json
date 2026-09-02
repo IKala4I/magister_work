@@ -1,0 +1,302 @@
+[
+  {
+    "generated_at": "2026-09-01 17:40:50.069+00",
+    "id": "886e4f73-1293-4dd1-9e2c-9db807b01128",
+    "reason": "fallback:http",
+    "service_ms": "223",
+    "service_status": "422",
+    "total_ms": "400",
+    "trigger": "first_open",
+    "unplaced_reason": "no_feasible_start"
+  },
+  {
+    "generated_at": "2026-09-01 17:41:30.935+00",
+    "id": "055374ef-5044-4974-a63e-bee0f0c4ef1d",
+    "reason": "fallback:http",
+    "service_ms": "189",
+    "service_status": "422",
+    "total_ms": "401",
+    "trigger": "first_open",
+    "unplaced_reason": "no_feasible_start"
+  },
+  {
+    "generated_at": "2026-09-01 17:42:22.492+00",
+    "id": "aed91079-9f01-4c4b-a7be-6b590f63d0bc",
+    "reason": "fallback:http",
+    "service_ms": "222",
+    "service_status": "422",
+    "total_ms": "382",
+    "trigger": "first_open",
+    "unplaced_reason": "no_feasible_start"
+  },
+  {
+    "generated_at": "2026-09-01 17:46:10.547+00",
+    "id": "d3a004c7-9408-463c-a06b-ddb94e11c305",
+    "reason": "fallback:http",
+    "service_ms": "224",
+    "service_status": "422",
+    "total_ms": "465",
+    "trigger": "first_open",
+    "unplaced_reason": "no_feasible_start"
+  },
+  {
+    "generated_at": "2026-09-01 17:46:13.279+00",
+    "id": "7c5b4971-b482-4201-ba1d-b4a261892990",
+    "reason": "fallback:http",
+    "service_ms": "224",
+    "service_status": "422",
+    "total_ms": "381",
+    "trigger": "first_open",
+    "unplaced_reason": "no_feasible_start"
+  },
+  {
+    "generated_at": "2026-09-01 17:46:16.995+00",
+    "id": "cb892136-9dc6-4ed0-a09d-a836f6fc5c57",
+    "reason": "fallback:http",
+    "service_ms": "185",
+    "service_status": "422",
+    "total_ms": "351",
+    "trigger": "first_open",
+    "unplaced_reason": "no_feasible_start"
+  },
+  {
+    "generated_at": "2026-09-01 17:46:20.932+00",
+    "id": "2ed30147-a3fd-4299-9c4b-14c43c76cf97",
+    "reason": "fallback:http",
+    "service_ms": "221",
+    "service_status": "422",
+    "total_ms": "400",
+    "trigger": "first_open",
+    "unplaced_reason": "no_feasible_start"
+  },
+  {
+    "generated_at": "2026-09-01 17:46:24.561+00",
+    "id": "165fb1ec-7ffa-4f54-a72e-f770f3bee4ba",
+    "reason": "fallback:http",
+    "service_ms": "222",
+    "service_status": "422",
+    "total_ms": "392",
+    "trigger": "first_open",
+    "unplaced_reason": "no_feasible_start"
+  },
+  {
+    "generated_at": "2026-09-01 17:46:28.223+00",
+    "id": "28c62a50-eefd-4eab-af3b-e012d8de7cf1",
+    "reason": "fallback:http",
+    "service_ms": "221",
+    "service_status": "422",
+    "total_ms": "524",
+    "trigger": "first_open",
+    "unplaced_reason": "no_feasible_start"
+  },
+  {
+    "generated_at": "2026-09-01 17:46:31.942+00",
+    "id": "dcb264c9-50eb-4288-9585-65ddfb2113db",
+    "reason": "fallback:http",
+    "service_ms": "220",
+    "service_status": "422",
+    "total_ms": "377",
+    "trigger": "first_open",
+    "unplaced_reason": "no_feasible_start"
+  },
+  {
+    "generated_at": "2026-09-01 17:46:35.684+00",
+    "id": "9bd6a514-6a70-4f36-aa94-20e4ac3a395a",
+    "reason": "fallback:http",
+    "service_ms": "183",
+    "service_status": "422",
+    "total_ms": "335",
+    "trigger": "first_open",
+    "unplaced_reason": "no_feasible_start"
+  },
+  {
+    "generated_at": "2026-09-01 17:46:39.472+00",
+    "id": "52fa5803-7b46-40be-acf9-3404c8ebdebf",
+    "reason": "fallback:http",
+    "service_ms": "223",
+    "service_status": "422",
+    "total_ms": "380",
+    "trigger": "first_open",
+    "unplaced_reason": "no_feasible_start"
+  },
+  {
+    "generated_at": "2026-09-01 17:46:43.17+00",
+    "id": "5f34d387-5270-452c-8a2d-db4633e54ca2",
+    "reason": "fallback:http",
+    "service_ms": "224",
+    "service_status": "422",
+    "total_ms": "408",
+    "trigger": "first_open",
+    "unplaced_reason": "no_feasible_start"
+  },
+  {
+    "generated_at": "2026-09-01 17:46:46.92+00",
+    "id": "bce3d816-0f8c-4762-8c1a-e07cb3b5a2e0",
+    "reason": "fallback:http",
+    "service_ms": "116",
+    "service_status": "422",
+    "total_ms": "256",
+    "trigger": "first_open",
+    "unplaced_reason": "no_feasible_start"
+  },
+  {
+    "generated_at": "2026-09-01 17:46:50.824+00",
+    "id": "a488ef75-9632-4a50-9b28-ece3e5a94dae",
+    "reason": "fallback:http",
+    "service_ms": "221",
+    "service_status": "422",
+    "total_ms": "401",
+    "trigger": "first_open",
+    "unplaced_reason": "no_feasible_start"
+  },
+  {
+    "generated_at": "2026-09-01 17:46:54.5+00",
+    "id": "7dd453ac-ea77-4a4d-8dad-2c9eb2a8c8e6",
+    "reason": "fallback:http",
+    "service_ms": "223",
+    "service_status": "422",
+    "total_ms": "422",
+    "trigger": "first_open",
+    "unplaced_reason": "no_feasible_start"
+  },
+  {
+    "generated_at": "2026-09-01 17:46:58.345+00",
+    "id": "b3132d2e-fa7d-4842-bf57-669c7a825511",
+    "reason": "fallback:http",
+    "service_ms": "219",
+    "service_status": "422",
+    "total_ms": "421",
+    "trigger": "first_open",
+    "unplaced_reason": "no_feasible_start"
+  },
+  {
+    "generated_at": "2026-09-01 17:47:02.007+00",
+    "id": "8cd5684c-b17e-4277-9a1d-24d13b933d54",
+    "reason": "fallback:http",
+    "service_ms": "224",
+    "service_status": "422",
+    "total_ms": "381",
+    "trigger": "first_open",
+    "unplaced_reason": "no_feasible_start"
+  },
+  {
+    "generated_at": "2026-09-01 17:47:05.827+00",
+    "id": "634a437b-6c39-4154-a63f-644de1f721d1",
+    "reason": "fallback:http",
+    "service_ms": "185",
+    "service_status": "422",
+    "total_ms": "335",
+    "trigger": "first_open",
+    "unplaced_reason": "no_feasible_start"
+  },
+  {
+    "generated_at": "2026-09-01 17:47:09.548+00",
+    "id": "d6e5405f-db77-44ac-a411-be2de235fbd9",
+    "reason": "fallback:http",
+    "service_ms": "220",
+    "service_status": "422",
+    "total_ms": "439",
+    "trigger": "first_open",
+    "unplaced_reason": "no_feasible_start"
+  },
+  {
+    "generated_at": "2026-09-01 17:47:13.353+00",
+    "id": "98cb2736-891c-4dd5-97a6-4332c4600c19",
+    "reason": "fallback:http",
+    "service_ms": "185",
+    "service_status": "422",
+    "total_ms": "376",
+    "trigger": "first_open",
+    "unplaced_reason": "no_feasible_start"
+  },
+  {
+    "generated_at": "2026-09-01 17:47:16.934+00",
+    "id": "c68e8371-1f4e-4ff1-9275-7ce111aaa906",
+    "reason": "fallback:http",
+    "service_ms": "225",
+    "service_status": "422",
+    "total_ms": "463",
+    "trigger": "first_open",
+    "unplaced_reason": "no_feasible_start"
+  },
+  {
+    "generated_at": "2026-09-01 17:47:20.677+00",
+    "id": "31c9efb7-9144-4e93-bbc9-ae147b842a42",
+    "reason": "fallback:http",
+    "service_ms": "222",
+    "service_status": "422",
+    "total_ms": "392",
+    "trigger": "first_open",
+    "unplaced_reason": "no_feasible_start"
+  },
+  {
+    "generated_at": "2026-09-01 17:49:02.895+00",
+    "id": "2d2a1c74-b5d9-4af4-9062-6efe2546214f",
+    "reason": "fallback:http",
+    "service_ms": "243",
+    "service_status": "422",
+    "total_ms": "439",
+    "trigger": "first_open",
+    "unplaced_reason": "no_feasible_start"
+  },
+  {
+    "generated_at": "2026-09-01 17:50:14.529+00",
+    "id": "2be3213c-ecc1-4af1-b3dd-8b17137d2aab",
+    "reason": "fallback:http",
+    "service_ms": "227",
+    "service_status": "422",
+    "total_ms": "417",
+    "trigger": "first_open",
+    "unplaced_reason": "no_feasible_start"
+  },
+  {
+    "generated_at": "2026-09-01 17:50:19.433+00",
+    "id": "b04f3a02-3b57-44c8-98eb-526a65904e49",
+    "reason": "fallback:http",
+    "service_ms": "225",
+    "service_status": "422",
+    "total_ms": "373",
+    "trigger": "first_open",
+    "unplaced_reason": "no_feasible_start"
+  },
+  {
+    "generated_at": "2026-09-01 17:50:24.318+00",
+    "id": "936dc956-04d0-4d9c-82b2-bb8e6c103f21",
+    "reason": "fallback:http",
+    "service_ms": "222",
+    "service_status": "422",
+    "total_ms": "411",
+    "trigger": "first_open",
+    "unplaced_reason": "no_feasible_start"
+  },
+  {
+    "generated_at": "2026-09-01 17:50:29.51+00",
+    "id": "7c82f67e-d4d7-49b8-a8d4-6c29a47deae0",
+    "reason": "fallback:http",
+    "service_ms": "188",
+    "service_status": "422",
+    "total_ms": "356",
+    "trigger": "first_open",
+    "unplaced_reason": "no_feasible_start"
+  },
+  {
+    "generated_at": "2026-09-01 17:50:34.125+00",
+    "id": "e910052a-345e-4ae4-88a2-9f55f65db580",
+    "reason": "fallback:http",
+    "service_ms": "230",
+    "service_status": "422",
+    "total_ms": "377",
+    "trigger": "first_open",
+    "unplaced_reason": "no_feasible_start"
+  },
+  {
+    "generated_at": "2026-09-01 17:50:39.019+00",
+    "id": "8c148060-2108-4ea4-8c35-cf2f0a7bd503",
+    "reason": "fallback:http",
+    "service_ms": "222",
+    "service_status": "422",
+    "total_ms": "532",
+    "trigger": "first_open",
+    "unplaced_reason": "no_feasible_start"
+  }
+]
