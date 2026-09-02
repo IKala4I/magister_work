@@ -18,8 +18,9 @@ import { notificationSettingsOf } from '../domain/notificationSettings';
 import { t } from '../i18n';
 import { track } from '../observability/analytics';
 
+import { dismissStaleReminders } from './dismiss';
 import { commitScheduled, settleLedger } from './ledger';
-import { type NotificationSpec, planNotifications } from './plan';
+import { type NotificationSpec, OPEN_STATUSES, planNotifications } from './plan';
 import {
   CATEGORY_BLOCK,
   CATEGORY_RITUAL,
@@ -38,6 +39,8 @@ export interface NotificationData {
   recommendation_id?: string;
   task_id?: string;
   scheduled_for: number;
+  /** Block reminders: the block's slot start (epoch ms) — the stale-dismissal key (dismiss.ts). */
+  slot_start?: number;
   variant?: NotificationSpec['variant'];
   [key: string]: unknown;
 }
@@ -56,6 +59,7 @@ function contentOf(
     recommendation_id: spec.recommendationId,
     task_id: spec.taskId,
     scheduled_for: spec.fireAt,
+    slot_start: spec.slotStart,
     variant: spec.variant,
   };
   if (spec.kind === 'block_reminder') {
@@ -130,6 +134,20 @@ async function pass(now: Date): Promise<void> {
   const tasks = new Map(
     taskRows.map((r) => [r.id, { id: r.id, category: r.category, deletedAt: r.deletedAt }]),
   );
+  // stale block reminders leave the shade (FR-50; hardware pass: "Starts at 12:45 PM" still
+  // posted at 14:28) — decided against the open placements just read, with the planner's own
+  // task filter (a deleted task closes its placement), never against the ledger
+  await dismissStaleReminders({
+    now,
+    openSlotStarts: new Map(
+      recs
+        .filter((r) => {
+          const task = tasks.get(r.taskId);
+          return OPEN_STATUSES.has(r.status) && task !== undefined && task.deletedAt === null;
+        })
+        .map((r) => [r.id, r.slotStart.getTime()]),
+    ),
+  });
   const titles = new Map(taskRows.map((r) => [r.id, r.title]));
   const inboxCount = inboxTasksQuery(localDb)
     .all()

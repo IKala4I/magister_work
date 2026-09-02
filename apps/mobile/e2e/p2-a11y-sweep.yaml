@@ -9,7 +9,7 @@ appId: com.hourwell.app
 ---
 - launchApp:
     stopApp: true
-- assertVisible: '\\w+day, \\w+ \\d+'
+- assertVisible: "\\w+day, \\w+ \\d+"
 - takeScreenshot: today
 - tapOn: 'Inbox(, tab.*)?'
 - assertVisible: 'Inbox is clear'
@@ -32,7 +32,7 @@ appId: com.hourwell.app
 - assertVisible: 'Still learning'
 - takeScreenshot: insights-dark-override
 - tapOn: 'Today(, tab.*)?'
-- assertVisible: '\\w+day, \\w+ \\d+'
+- assertVisible: "\\w+day, \\w+ \\d+"
 - takeScreenshot: today-dark-override
 - tapOn: 'Open settings'
 - tapOn: 'System'

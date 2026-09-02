@@ -27,6 +27,11 @@ export const StorageKeys = {
   remindersPromptDismissed: 'notify.promptDismissed',
   /** Last notification response handled (id@date) — cold-start dedup (P10). */
   lastNotificationResponse: 'notify.lastResponse',
+  /**
+   * Plan day of the last UC-03 request for the current day — the once-per-plan-day dedup
+   * (src/sync/planRequestDay.ts). Durable so a cold start cannot re-request (hardware pass).
+   */
+  lastPlanRequestDay: 'plan.lastRequestedDay',
   /** Privacy opt-outs (P10, ADR-0014 §12): '1' when the user switched the SDK off. */
   analyticsOptOut: 'privacy.analyticsOptOut',
   crashReportsOptOut: 'privacy.crashOptOut',

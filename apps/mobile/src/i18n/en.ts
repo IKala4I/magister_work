@@ -151,6 +151,14 @@ export const en = {
   'weekday.4': 'Fri',
   'weekday.5': 'Sat',
   'weekday.6': 'Sun',
+  // heatmap column headers at large font scales (NFR-A2): two letters never wrap mid-word
+  'weekday.short.0': 'Mo',
+  'weekday.short.1': 'Tu',
+  'weekday.short.2': 'We',
+  'weekday.short.3': 'Th',
+  'weekday.short.4': 'Fr',
+  'weekday.short.5': 'Sa',
+  'weekday.short.6': 'Su',
 
   'beliefs.title': 'What Hourwell believes about you',
   'beliefs.subtitle': 'Tap ✓ if a belief is right, ✗ if it is wrong. Corrections count a lot.',
@@ -220,7 +228,10 @@ export const en = {
   'block.experiment': 'Experiment',
   'block.confidence.a11y': 'Confidence {percent} percent',
 
-  'inbox.quickAdd.placeholder': 'Add a task — try "report draft 2h by Fri"',
+  // The NL example is a caption under the input, not part of the placeholder: a single-line
+  // Android TextInput wraps a long hint and clips the second line (hardware pass 2026-09-01 #7)
+  'inbox.quickAdd.placeholder': 'Add a task',
+  'inbox.quickAdd.example': 'Try "report draft 2h by Fri"',
   'inbox.quickAdd.add': 'Add',
   'inbox.quickAdd.input.a11y': 'Quick add task',
   'inbox.quickAdd.noTitleHint': 'Add a few words for the title',

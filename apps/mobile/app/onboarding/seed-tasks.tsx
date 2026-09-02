@@ -50,7 +50,9 @@ export default function SeedTasksScreen() {
         <ThemedText variant="h1">{t('onboarding.seedTasks.title')}</ThemedText>
         <ThemedText style={styles.intro}>{t('onboarding.seedTasks.intro')}</ThemedText>
 
+        {/* the intro above already teaches the NL example — no second caption (review F4) */}
         <QuickAddBar
+          showExample={false}
           onSubmit={(draft, nlParseUsed) => {
             createTaskAction(draft, { source: 'quick_add', nlParseUsed });
             countSeedTask();

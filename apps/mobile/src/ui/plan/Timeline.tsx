@@ -16,6 +16,7 @@ import type { RecommendationRow } from '../../db/plans';
 import { t } from '../../i18n';
 import { ThemedText } from '../primitives';
 import { useTheme } from '../theme';
+import { useFontScale } from '../useFontScale';
 
 import { formatClock, RecommendationCard } from './RecommendationCard';
 
@@ -38,6 +39,18 @@ type Row =
 
 export const GAP_PX_PER_MINUTE = 0.4;
 export const GAP_MAX_PX = 48;
+/** Time-gutter width at 1× — fits the widest en-US clock ("12:00 PM") in the caption mono. */
+export const GUTTER_WIDTH_PX = 64;
+
+/**
+ * The gutter grows with the (capped) font scale so the clock string never wraps mid-token:
+ * at 200 % a fixed 64 px gutter broke "12:00 PM" into "12:0" / "0 PM" on the Pixel 7a
+ * (hardware pass 2026-09-02 #14, NFR-A2). A minimum, not a fixed width: a longer locale
+ * clock widens its own gutter rather than clipping.
+ */
+export function gutterWidthFor(fontScale: number): number {
+  return Math.ceil(GUTTER_WIDTH_PX * fontScale);
+}
 
 type Item =
   | { kind: 'block'; start: Date; end: Date; rec: RecommendationRow }
@@ -94,6 +107,7 @@ export function Timeline({
   renderActions,
 }: TimelineProps) {
   const theme = useTheme();
+  const gutterStyle = { minWidth: gutterWidthFor(useFontScale()) };
   const rows = buildRows(recommendations, now, busy);
   return (
     <FlashList
@@ -128,8 +142,8 @@ export function Timeline({
                   end: formatClock(item.event.endAt),
                 })}
               >
-                <View style={styles.gutter}>
-                  <ThemedText variant="caption" tone="secondary" mono>
+                <View style={[styles.gutter, gutterStyle]} testID={`timeline-gutter-${item.key}`}>
+                  <ThemedText variant="caption" tone="secondary" mono numberOfLines={1}>
                     {formatClock(item.event.startAt)}
                   </ThemedText>
                 </View>
@@ -151,8 +165,8 @@ export function Timeline({
         return (
           <View style={{ marginTop: Math.min(item.gapMinutes * GAP_PX_PER_MINUTE, GAP_MAX_PX) }}>
             <View style={styles.row}>
-              <View style={styles.gutter}>
-                <ThemedText variant="caption" tone="secondary" mono>
+              <View style={[styles.gutter, gutterStyle]} testID={`timeline-gutter-${item.key}`}>
+                <ThemedText variant="caption" tone="secondary" mono numberOfLines={1}>
                   {formatClock(item.rec.slotStart)}
                 </ThemedText>
               </View>
@@ -179,7 +193,8 @@ export function Timeline({
 const styles = StyleSheet.create({
   list: { paddingBottom: 24 },
   row: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 },
-  gutter: { width: 64, paddingTop: 16 },
+  // width comes from gutterWidthFor(fontScale) at render; never shrinks under the card
+  gutter: { flexShrink: 0, paddingTop: 16 },
   card: { flex: 1 },
   busyCard: {
     flex: 1,

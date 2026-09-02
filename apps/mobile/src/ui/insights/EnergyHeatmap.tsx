@@ -22,6 +22,7 @@ import {
 import { t, type MessageKey } from '../../i18n';
 import { Button, ThemedText } from '../primitives';
 import { useTheme } from '../theme';
+import { useFontScale } from '../useFontScale';
 import { CONFIDENCE_OPACITY_MAX, CONFIDENCE_OPACITY_MIN } from '../tokens/confidence';
 import { blendOverHex } from '../tokens/contrast';
 import { interpolateOklch } from '../tokens/oklch';
@@ -46,6 +47,19 @@ const DAYPART_KEYS = {
   EV: 'daypart.EV',
   NT: 'daypart.NT',
 } as const satisfies Record<string, MessageKey>;
+/**
+ * From this font scale the weekday header uses two-letter labels: seven "Mon"-width columns
+ * no longer fit a phone at 150 %+, and the header wrapped mid-word ("M/on", "Tu/e", "W/ed") on
+ * the Pixel 7a at 200 % (hardware pass 2026-09-02 #14b, NFR-A2). The accessible summary label
+ * of the grid is untouched — the header is decorative to a screen reader.
+ */
+export const COMPACT_WEEKDAY_FONT_SCALE = 1.5;
+
+export function weekdayLabelKey(day: number, fontScale: number): MessageKey {
+  return (
+    fontScale >= COMPACT_WEEKDAY_FONT_SCALE ? `weekday.short.${day}` : `weekday.${day}`
+  ) as MessageKey;
+}
 
 /** Opaque cell colour: the OKLCH ramp at `mean`, composited at the evidence solidity. */
 export function cellColor(
@@ -75,6 +89,7 @@ function summarySentence(s: DayTypeSummary): string {
 
 export function EnergyHeatmap({ cells, category, onCategoryChange }: EnergyHeatmapProps) {
   const theme = useTheme();
+  const fontScale = useFontScale();
   const [asText, setAsText] = useState(false);
   const grid = buildHeatmapGrid(cells, category);
   const summary = heatmapTextSummary(cells, category);
@@ -157,9 +172,11 @@ export function EnergyHeatmap({ cells, category, onCategoryChange }: EnergyHeatm
                 variant="caption"
                 tone="secondary"
                 style={styles.dayLabel}
+                numberOfLines={1}
                 importantForAccessibility="no"
+                testID={`heatmap-weekday-${d}`}
               >
-                {t(`weekday.${d}` as MessageKey)}
+                {t(weekdayLabelKey(d, fontScale))}
               </ThemedText>
             ))}
           </View>

@@ -23,6 +23,13 @@ jest.mock('../observability/analytics', () => ({
   track: jest.fn(),
   initAnalytics: jest.fn(),
 }));
+// the seed step's quick-add writes through the task actions (DB path, covered in src/db tests)
+jest.mock('../domain/taskActions', () => ({
+  createTaskAction: jest.fn(),
+  updateTaskAction: jest.fn(),
+  deleteTaskAction: jest.fn(),
+  restoreTaskAction: jest.fn(),
+}));
 
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { renderRouter, screen as routerScreen } from 'expo-router/testing-library';
@@ -32,6 +39,7 @@ import type { ReactElement } from 'react';
 import TabsLayout from '../../app/(tabs)/_layout';
 import OnboardingWelcome from '../../app/onboarding/index';
 import SurveyScreen from '../../app/onboarding/survey';
+import SeedTasksScreen from '../../app/onboarding/seed-tasks';
 import { completeOnboardingAction } from '../domain/onboarding';
 import { saveProfile } from '../db/profile';
 import { emptyRmeqAnswers } from '../domain/rmeq';
@@ -99,6 +107,21 @@ describe('rMEQ survey screen', () => {
   it('shows the neutral skip note while any item is blank, never guilt copy', async () => {
     await render(withSafeArea(<SurveyScreen />));
     expect(screen.getByText(en['onboarding.survey.skipNote'])).toBeOnTheScreen();
+  });
+});
+
+describe('seed-tasks step (UC-01 step 4)', () => {
+  it('teaches the NL example once — in the intro, not again under the quick-add (review F4)', async () => {
+    await render(withSafeArea(<SeedTasksScreen />));
+    expect(screen.getByText(en['onboarding.seedTasks.intro'])).toBeTruthy();
+    expect(screen.queryByText(en['inbox.quickAdd.example'])).toBeNull();
+    expect(screen.queryByTestId('quick-add-example')).toBeNull();
+    // the example phrase appears exactly once on the screen (TalkBack reads it once)
+    expect(screen.getAllByText(/report draft 2h by fri/i)).toHaveLength(1);
+    // the quick-add itself is still there with its short placeholder
+    expect(screen.getByLabelText(en['inbox.quickAdd.input.a11y']).props.placeholder).toBe(
+      en['inbox.quickAdd.placeholder'],
+    );
   });
 });
 

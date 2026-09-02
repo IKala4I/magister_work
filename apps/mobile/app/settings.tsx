@@ -13,6 +13,7 @@ import {
   AppState,
   Linking,
   Pressable,
+  ScrollView,
   StyleSheet,
   Switch,
   TextInput,
@@ -610,63 +611,76 @@ export default function SettingsScreen() {
 
   return (
     <Screen>
-      <ThemedText variant="h2" style={styles.sectionTitle}>
-        {t('settings.account.title')}
-      </ThemedText>
-      <AccountSection />
-      {isAuthAvailable() ? (
-        <>
-          <ThemedText variant="h2" style={styles.sectionTitle}>
-            {t('settings.sync.title')}
-          </ThemedText>
-          <SyncSection />
-          <ThemedText variant="h2" style={styles.sectionTitle}>
-            {t('settings.gcal.title')}
-          </ThemedText>
-          <CalendarSection />
-        </>
-      ) : null}
-      <ThemedText variant="h2" style={styles.sectionTitle}>
-        {t('settings.notifications.title')}
-      </ThemedText>
-      <NotificationsSection />
-      {isAuthAvailable() ? (
-        <>
-          <ThemedText variant="h2" style={styles.sectionTitle}>
-            {t('settings.data.title')}
-          </ThemedText>
-          <DataSection />
-        </>
-      ) : null}
-      <ThemedText variant="h2" style={styles.sectionTitle}>
-        {t('settings.privacy.title')}
-      </ThemedText>
-      <PrivacySection />
-      <ThemedText variant="h2" style={styles.sectionTitle}>
-        {t('settings.appearance.title')}
-      </ThemedText>
-      <View accessibilityRole="radiogroup">
-        {SCHEME_PREFERENCES.map((option) => (
-          <Pressable
-            key={option}
-            accessibilityRole="radio"
-            accessibilityState={{ checked: option === preference }}
-            accessibilityLabel={t(PREFERENCE_LABELS[option])}
-            onPress={() => setPreference(option)}
-            style={styles.row}
-          >
-            <ThemedText>{t(PREFERENCE_LABELS[option])}</ThemedText>
-            {option === preference ? (
-              <Ionicons name="checkmark" size={20} color={theme.colors.primary} />
-            ) : null}
-          </Pressable>
-        ))}
-      </View>
+      {/* A real scroll container (hardware pass 2026-09-02 16:2x, FR-42 / NFR-A2): the sections
+          overflow every phone — on the Pixel 7a at 1× the content ended at the mute chips and
+          My data / Privacy / Appearance were unreachable, with no scrollable node at all. Plain
+          ScrollView: the native-stack modal keeps its swipe-down dismiss, no nested gesture
+          container. Screen already pads the bottom safe area around it. */}
+      <ScrollView
+        testID="settings-scroll"
+        contentContainerStyle={styles.scroll}
+        keyboardShouldPersistTaps="handled"
+      >
+        <ThemedText variant="h2" style={styles.sectionTitle}>
+          {t('settings.account.title')}
+        </ThemedText>
+        <AccountSection />
+        {isAuthAvailable() ? (
+          <>
+            <ThemedText variant="h2" style={styles.sectionTitle}>
+              {t('settings.sync.title')}
+            </ThemedText>
+            <SyncSection />
+            <ThemedText variant="h2" style={styles.sectionTitle}>
+              {t('settings.gcal.title')}
+            </ThemedText>
+            <CalendarSection />
+          </>
+        ) : null}
+        <ThemedText variant="h2" style={styles.sectionTitle}>
+          {t('settings.notifications.title')}
+        </ThemedText>
+        <NotificationsSection />
+        {isAuthAvailable() ? (
+          <>
+            <ThemedText variant="h2" style={styles.sectionTitle}>
+              {t('settings.data.title')}
+            </ThemedText>
+            <DataSection />
+          </>
+        ) : null}
+        <ThemedText variant="h2" style={styles.sectionTitle}>
+          {t('settings.privacy.title')}
+        </ThemedText>
+        <PrivacySection />
+        <ThemedText variant="h2" style={styles.sectionTitle}>
+          {t('settings.appearance.title')}
+        </ThemedText>
+        <View accessibilityRole="radiogroup">
+          {SCHEME_PREFERENCES.map((option) => (
+            <Pressable
+              key={option}
+              accessibilityRole="radio"
+              accessibilityState={{ checked: option === preference }}
+              accessibilityLabel={t(PREFERENCE_LABELS[option])}
+              onPress={() => setPreference(option)}
+              style={styles.row}
+            >
+              <ThemedText>{t(PREFERENCE_LABELS[option])}</ThemedText>
+              {option === preference ? (
+                <Ionicons name="checkmark" size={20} color={theme.colors.primary} />
+              ) : null}
+            </Pressable>
+          ))}
+        </View>
+      </ScrollView>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  // the last row clears the modal's bottom edge (Screen adds the safe-area inset outside)
+  scroll: { paddingBottom: 24 },
   sectionTitle: { marginTop: 8, marginBottom: 12 },
   block: { gap: 10, marginBottom: 12 },
   emailInput: {

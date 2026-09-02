@@ -20,6 +20,11 @@ RUN uv sync --locked --no-dev --no-install-project
 COPY training/src ./src
 COPY training/scripts ./scripts
 RUN uv sync --locked --no-dev
+# Legacy IANA ids (Android reports 'Europe/Kiev' for Ukraine) must resolve: python:3.12-slim
+# ships backward links only in tzdata-legacy, so the `tzdata` wheel carries them — fail the
+# image build, never a device (hardware pass 2026-09-02: every /plan from a Pixel 7a got 422
+# → the edge function's heuristic fallback; the learned engine was unreachable).
+RUN /opt/venv/bin/python -c "from zoneinfo import ZoneInfo; ZoneInfo('Europe/Kiev'); ZoneInfo('Europe/Kyiv')"
 RUN useradd -m -u 1000 app && chown -R app:app /app
 USER app
 ENTRYPOINT ["/opt/venv/bin/hourwell-train"]
