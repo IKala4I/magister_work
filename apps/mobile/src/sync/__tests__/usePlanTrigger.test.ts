@@ -19,7 +19,7 @@ import { act, renderHook } from '@testing-library/react-native';
 import { AppState } from 'react-native';
 
 import { localDayOf } from '../../domain/localDay';
-import { requestPlanDayOf, tomorrowOf } from '../../domain/planTrigger';
+import { nextPlanDayOf, requestPlanDayOf, tomorrowOf } from '../../domain/planTrigger';
 import { usePlanStore } from '../../state/plan';
 import { appStorage, StorageKeys } from '../../storage/mmkv';
 import { lastRequestedPlanDay } from '../planRequestDay';
@@ -207,6 +207,20 @@ describe('runPlanRequest — the evening ritual plans tomorrow and leaves today�
     });
     expect(lastRequestedPlanDay()).toBeNull();
     expect(usePlanStore.getState().status).toBe('idle');
+  });
+
+  it('a ritual tapped at 00:30 plans the current calendar day and STILL leaves the key alone (review F1c)', async () => {
+    // 00:30 sits before the 06:00 anchor: the coming plan day is today's calendar date, so the
+    // ritual's planDate equals requestPlanDayOf(now) — the one case the date check alone missed
+    const lateNight = new Date(NOW.getFullYear(), NOW.getMonth(), NOW.getDate(), 0, 30);
+    const comingDay = nextPlanDayOf(lateNight);
+    expect(comingDay).toBe(requestPlanDayOf(lateNight));
+    await runPlanRequest('evening_ritual', lateNight, comingDay);
+    expect(mockRequestPlan.mock.calls[0]?.[0]).toMatchObject({
+      trigger: 'evening_ritual',
+      planDate: comingDay,
+    });
+    expect(lastRequestedPlanDay()).toBeNull();
   });
 
   it('a rate-limited answer for today still writes the key (the server answered) and drives the UI status', async () => {

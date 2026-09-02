@@ -33,9 +33,14 @@ export async function runPlanRequest(
   // The dedup key is written only once the server has actually ANSWERED today's request
   // (planned / empty inbox / rate-limited). Offline, no session, a missing profile or a failure
   // leave it unwritten so the next foreground retries (the in-flight guard prevents a double
-  // fire; a process death mid-request costs at most one duplicate request). Only a request for
-  // the current calendar day may write it — a plan for tomorrow must not block today's.
-  if (planDate === requestPlanDayOf(now) && ANSWERED_OUTCOMES.has(outcome.kind)) {
+  // fire; a process death mid-request costs at most one duplicate request). The evening ritual
+  // is FR-26's request, not UC-03's, and never writes it — not even at 00:30, when the coming
+  // plan day IS the current calendar day (06:00 anchor); every other trigger plans today.
+  if (
+    trigger !== 'evening_ritual' &&
+    planDate === requestPlanDayOf(now) &&
+    ANSWERED_OUTCOMES.has(outcome.kind)
+  ) {
     rememberRequestedPlanDay(planDate);
   }
   switch (outcome.kind) {

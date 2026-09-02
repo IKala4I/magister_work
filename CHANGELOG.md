@@ -68,7 +68,8 @@ screens are re-verified on the device.
   `rate_limited`); `offline`, `no-session`, `failed` and `profile_missing` leave it unwritten
   so the next foreground retries (review F1a — otherwise an offline first open locked the day
   out of auto-planning until a manual re-plan). Manual re-plan still bypasses the dedup; the
-  evening ritual (plans tomorrow) never writes today's key; an account change clears it. Tests: `planTrigger.test.ts` (not ready → no request),
+  evening ritual (FR-26's request, not UC-03's) never writes the key — not even at 00:30, when
+  the coming plan day is the current calendar date (review F1c); an account change clears it. Tests: `planTrigger.test.ts` (not ready → no request),
   `usePlanTrigger.test.ts` (persisted plan → no request on mount; dedup survives a simulated
   cold start; manual still requests; ritual leaves the key alone), `useLiveRows.test.ts`
   (unread ≠ empty). Refs: UC-03, NFR-R2, FR-26.
