@@ -267,3 +267,15 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   thesis phrasing then flips "pre-registration-ready" → "pre-registered" (corrections
   #49 update; rollup "How to run the pass" step 2). Material: items 8/10/21/35/36
   verbatim + H1/M9/G5 in the rollup.
+- [hardware pass, 2026-09-02] **Learned path runs at the fallback budget's edge on a full
+  inbox.** Pixel 7a, 14 tasks, day window 12:00–18:00: CP-SAT hits the 1.5 s `SOLVER_TIME_CAP_S`
+  (FEASIBLE) on 8 of 10 re-plans, so service ≈ 1.5 s + function/network ≈ 0.2–0.4 s brushes the
+  1.9 s `PLAN_FALLBACK_BUDGET_MS`; 1/10 came back `fallback:timeout`. Both are Appendix A
+  parameters (cap SPEC-FIXED). Revisit before any thesis claim about the fallback rate: either
+  raise the EF budget toward the 2.5 s NFR-P1 ceiling, lower the cap on `day` horizons, or
+  report the measured ≈ 10 % fallback rate on tight days as a property of the deployment.
+- [hardware pass, 2026-09-02] **Zero-block fallback plans count toward the 30-per-24 h plan
+  limit** (`countPlansLast24h`). Harmless once the client's cold-start re-request loop is fixed
+  (day-2 defect 15), so the limiter stays as designed; re-check the day-0/evening-empty case
+  after that fix — if a user can still lock themselves out by opening the app, exclude
+  zero-recommendation rows from the count.
