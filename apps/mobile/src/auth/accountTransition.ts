@@ -35,6 +35,7 @@ import { appStorage, StorageKeys } from '../storage/mmkv';
 import { clearInsightsCache } from '../sync/insights';
 import { resetSyncCursor } from '../sync/cursor';
 import { isLocalUserId, LOCAL_USER_PREFIX } from '../sync/localUser';
+import { forgetRequestedPlanDay } from '../sync/planRequestDay';
 
 const USER_TABLES = [
   tasks,
@@ -103,6 +104,7 @@ export function wipeLocalMirror(db: LocalDb): void {
   });
   resetSyncCursor();
   clearInsightsCache(); // the previous account's beliefs never render for the next (P9 adversarial #2)
+  forgetRequestedPlanDay(); // the previous account's plan request must not gate the next one's
 }
 
 /** Unacked ops that belong to `userId` (payload user_id; status ops carry none and count for nobody). */
@@ -143,6 +145,7 @@ export function transitionToAccount(db: LocalDb, previousUserId: string): void {
     return;
   }
   resetSyncCursor();
+  forgetRequestedPlanDay();
   appStorage.set(StorageKeys.pendingWipeUserId, previousUserId);
   useSyncStore.setState({ pendingWipe: { userId: previousUserId, ops: pending } });
 }

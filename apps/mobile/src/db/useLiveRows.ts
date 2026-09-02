@@ -8,26 +8,37 @@
  * wrong into an error state callers rarely read, leaving the list silently stale.
  * This hook subscribes directly and builds a FRESH query per refresh, so every read is a
  * clean prepared statement and a failure would throw where tests can see it.
+ *
+ * The first read happens in an effect, so the FIRST render carries no rows yet. Callers that
+ * must not mistake "not read yet" for "empty" (the UC-03 trigger: an empty plan read looks
+ * like "never planned" — hardware pass 2026-09-02 finding #15) use `useLiveRowsState`, which
+ * says whether the read has resolved; `useLiveRows` keeps the plain-rows signature.
  */
 import { addDatabaseChangeListener } from 'expo-sqlite';
 import { useEffect, useRef, useState } from 'react';
 
 type SyncQuery<T> = { all(): T[] };
 
-export function useLiveRows<T>(
+export interface LiveRows<T> {
+  rows: T[];
+  /** False until the first read for this subscription has resolved (rows = [] meanwhile). */
+  ready: boolean;
+}
+
+export function useLiveRowsState<T>(
   buildQuery: () => SyncQuery<T>,
   tables: readonly string[],
   /** Builder inputs that must re-run the query when they change (e.g. the plan day). */
   deps: readonly unknown[] = [],
-): T[] {
+): LiveRows<T> {
   const buildRef = useRef(buildQuery);
   buildRef.current = buildQuery;
-  const [rows, setRows] = useState<T[]>([]);
+  const [state, setState] = useState<LiveRows<T>>(() => ({ rows: [], ready: false }));
 
   useEffect(() => {
     let alive = true;
     const refresh = () => {
-      if (alive) setRows(buildRef.current().all());
+      if (alive) setState({ rows: buildRef.current().all(), ready: true });
     };
     refresh();
     const subscription = addDatabaseChangeListener(({ tableName }) => {
@@ -42,5 +53,13 @@ export function useLiveRows<T>(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [...tables, ...deps]);
 
-  return rows;
+  return state;
+}
+
+export function useLiveRows<T>(
+  buildQuery: () => SyncQuery<T>,
+  tables: readonly string[],
+  deps: readonly unknown[] = [],
+): T[] {
+  return useLiveRowsState(buildQuery, tables, deps).rows;
 }

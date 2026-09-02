@@ -21,7 +21,10 @@ jest.mock('../domain/notificationActions', () => ({
 }));
 jest.mock('../privacy/exportData', () => ({ exportDataAction: jest.fn() }));
 jest.mock('../privacy/deleteAccount', () => ({ deleteAccountAction: jest.fn() }));
-jest.mock('../db/useLiveRows', () => ({ useLiveRows: () => [] }));
+jest.mock('../db/useLiveRows', () => ({
+  useLiveRows: () => [],
+  useLiveRowsState: () => ({ rows: [], ready: true }),
+}));
 // P7: the Today tab runs the lazy lapse scan on mount — a DB write path, mocked here like the DB
 jest.mock('../sync/useLapseScan', () => ({
   useLapseScan: () => ({ diagnosticTask: null, dismissDiagnostic: () => {} }),

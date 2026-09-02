@@ -10,6 +10,12 @@ const mockUseLiveRows = jest.fn();
 jest.mock('../db/useLiveRows', () => ({
   useLiveRows: (build: unknown, tables: readonly string[], deps?: readonly unknown[]) =>
     mockUseLiveRows(build, tables, deps),
+  // the trigger's two reads: resolved at once here (the wait itself is pinned in
+  // src/sync/__tests__/usePlanTrigger.test.ts)
+  useLiveRowsState: (build: unknown, tables: readonly string[], deps?: readonly unknown[]) => ({
+    rows: mockUseLiveRows(build, tables, deps),
+    ready: true,
+  }),
 }));
 // P10: the reminder-permission card and the FR-26 tomorrow line/card
 const mockNotify = {
@@ -237,7 +243,7 @@ beforeEach(() => {
   });
   mockLapse.diagnosticTask = null;
   mockBlockActions.skipBlockAction.mockImplementation(() => ({ task: null, diagnosticDue: false }));
-  usePlanStore.setState({ status: 'idle', lastRequestedDay: null, emptyInbox: false });
+  usePlanStore.setState({ status: 'idle', emptyInbox: false });
   rows({});
 });
 

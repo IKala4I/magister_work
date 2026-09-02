@@ -19,13 +19,20 @@ describe('decidePlanTrigger — lazy UC-03 (invariant 7: no background dependenc
   const now = new Date(2026, 7, 26, 9, 0);
   it('requests first_open when nothing was ever planned', () => {
     expect(
-      decidePlanTrigger({ now, latestPlanDate: null, lastRequestedDay: null, inFlight: false }),
+      decidePlanTrigger({
+        now,
+        ready: true,
+        latestPlanDate: null,
+        lastRequestedDay: null,
+        inFlight: false,
+      }),
     ).toEqual({ request: true, trigger: 'first_open' });
   });
   it('requests new_day when the latest plan is stale', () => {
     expect(
       decidePlanTrigger({
         now,
+        ready: true,
         latestPlanDate: '2026-08-25',
         lastRequestedDay: '2026-08-25',
         inFlight: false,
@@ -36,6 +43,7 @@ describe('decidePlanTrigger — lazy UC-03 (invariant 7: no background dependenc
     expect(
       decidePlanTrigger({
         now,
+        ready: true,
         latestPlanDate: '2026-08-26',
         lastRequestedDay: null,
         inFlight: false,
@@ -44,13 +52,42 @@ describe('decidePlanTrigger — lazy UC-03 (invariant 7: no background dependenc
     expect(
       decidePlanTrigger({
         now,
+        ready: true,
         latestPlanDate: null,
         lastRequestedDay: '2026-08-26',
         inFlight: false,
       }),
     ).toEqual({ request: false });
     expect(
-      decidePlanTrigger({ now, latestPlanDate: null, lastRequestedDay: null, inFlight: true }),
+      decidePlanTrigger({
+        now,
+        ready: true,
+        latestPlanDate: null,
+        lastRequestedDay: null,
+        inFlight: true,
+      }),
+    ).toEqual({ request: false });
+  });
+  it('decides nothing until the plan reads have resolved (hardware pass #15: an empty first read is not "never planned")', () => {
+    // exactly the cold-start shape that re-planned on every launch: no rows yet, nothing requested
+    expect(
+      decidePlanTrigger({
+        now,
+        ready: false,
+        latestPlanDate: null,
+        lastRequestedDay: null,
+        inFlight: false,
+      }),
+    ).toEqual({ request: false });
+    expect(
+      decidePlanTrigger({
+        now,
+        ready: false,
+        latestPlanDate: '2026-08-25',
+        hasPlanForToday: false,
+        lastRequestedDay: null,
+        inFlight: false,
+      }),
     ).toEqual({ request: false });
   });
   it('a 02:00 open never auto-requests; a manual request plans the current calendar day', () => {
@@ -58,6 +95,7 @@ describe('decidePlanTrigger — lazy UC-03 (invariant 7: no background dependenc
     expect(
       decidePlanTrigger({
         now: night,
+        ready: true,
         latestPlanDate: '2026-08-26',
         lastRequestedDay: null,
         inFlight: false,
@@ -66,6 +104,7 @@ describe('decidePlanTrigger — lazy UC-03 (invariant 7: no background dependenc
     expect(
       decidePlanTrigger({
         now: night,
+        ready: true,
         latestPlanDate: null,
         lastRequestedDay: null,
         inFlight: false,
@@ -82,6 +121,7 @@ describe('decidePlanTrigger — an evening plan for tomorrow (FR-26, ADR-0014 §
     expect(
       decidePlanTrigger({
         now: tonight,
+        ready: true,
         latestPlanDate: '2026-08-27',
         hasPlanForToday: true,
         lastRequestedDay: null,
@@ -93,6 +133,7 @@ describe('decidePlanTrigger — an evening plan for tomorrow (FR-26, ADR-0014 §
     expect(
       decidePlanTrigger({
         now: new Date(2026, 7, 27, 8, 0),
+        ready: true,
         latestPlanDate: '2026-08-27',
         hasPlanForToday: true,
         lastRequestedDay: null,
@@ -104,6 +145,7 @@ describe('decidePlanTrigger — an evening plan for tomorrow (FR-26, ADR-0014 §
     expect(
       decidePlanTrigger({
         now: new Date(2026, 7, 27, 8, 0),
+        ready: true,
         latestPlanDate: '2026-08-26',
         hasPlanForToday: false,
         lastRequestedDay: null,

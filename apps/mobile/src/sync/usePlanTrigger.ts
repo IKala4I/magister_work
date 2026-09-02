@@ -1,6 +1,8 @@
 /**
  * UC-03 trigger hook: on mount and on every foreground, ask for today's plan when none exists
- * (src/domain/planTrigger.ts decides; this file only wires AppState and the UI store).
+ * (src/domain/planTrigger.ts decides; this file only wires AppState, the UI store and the
+ * durable per-plan-day dedup key). It decides nothing until the plan reads have resolved —
+ * the first render of a live read is empty, not "no plan" (hardware pass 2026-09-02 #15).
  * Manual re-plan bypasses the dedup. Imports the bridge, so component tests mock this module.
  */
 import { useCallback, useEffect } from 'react';
@@ -11,6 +13,7 @@ import { decidePlanTrigger, requestPlanDayOf } from '../domain/planTrigger';
 import { usePlanStore } from '../state/plan';
 
 import { isPlanRequestInFlight, requestPlan } from './planRequest';
+import { lastRequestedPlanDay, rememberRequestedPlanDay } from './planRequestDay';
 
 export async function runPlanRequest(
   trigger: PlanTrigger,
@@ -19,11 +22,8 @@ export async function runPlanRequest(
   planDate: string = requestPlanDayOf(now),
 ): Promise<void> {
   // the dedup key is only ever today's request — a plan for tomorrow must not block today's
-  usePlanStore.setState(
-    planDate === requestPlanDayOf(now)
-      ? { status: 'planning', lastRequestedDay: planDate }
-      : { status: 'planning' },
-  );
+  if (planDate === requestPlanDayOf(now)) rememberRequestedPlanDay(planDate);
+  usePlanStore.setState({ status: 'planning' });
   const outcome = await requestPlan({ planDate, trigger, now });
   switch (outcome.kind) {
     case 'planned':
@@ -50,24 +50,32 @@ export async function runPlanRequest(
   }
 }
 
-export function usePlanTrigger(
-  latestPlanDate: string | null,
+export interface PlanTriggerInput {
+  /** plan_date of the latest plan of any date; null = never planned (names the trigger). */
+  latestPlanDate: string | null;
   /** plan_date of today's plan if one exists (ADR-0014 §3); omitted = derive from the latest. */
-  todayPlanDate?: string | null,
-): { requestManual: () => void } {
+  todayPlanDate?: string | null;
+  /** Both plan reads have resolved — until then the trigger waits (no decision on `[]`). */
+  ready: boolean;
+}
+
+export function usePlanTrigger({ latestPlanDate, todayPlanDate, ready }: PlanTriggerInput): {
+  requestManual: () => void;
+} {
   const check = useCallback(() => {
     const now = new Date();
     const decision = decidePlanTrigger({
       now,
+      ready,
       latestPlanDate,
       ...(todayPlanDate !== undefined
         ? { hasPlanForToday: todayPlanDate === requestPlanDayOf(now) }
         : {}),
-      lastRequestedDay: usePlanStore.getState().lastRequestedDay,
+      lastRequestedDay: lastRequestedPlanDay(),
       inFlight: isPlanRequestInFlight(),
     });
     if (decision.request) void runPlanRequest(decision.trigger);
-  }, [latestPlanDate, todayPlanDate]);
+  }, [latestPlanDate, todayPlanDate, ready]);
 
   useEffect(() => {
     check();

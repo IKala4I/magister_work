@@ -46,6 +46,30 @@ Everything below condenses P0–P11 for release notes and the thesis; per-phase 
   File 04 §2 (H1 — arm B must be reachable on every device).
 - **chore(mobile): Expo SDK 57 patch drift** — `expo install --fix` (9 packages, expo 57.0.19) so expo-doctor passes CI again; the device APK under measurement stays the 57.0.18 build (`docs/versions.md`).
 
+## Post-P12 — hardware pass client fixes (2026-09-02, fix/mobile-hardware-pass-batch)
+
+Client-side batch from the Pixel 7a pass (`docs/verification/device-pass/android-2026090[12]-*/notes.md`);
+the measured APK stays constant until the batch lands, then cold start ×20 and the affected
+screens are re-verified on the device.
+
+- **fix(mobile): every cold start re-planned (UC-03 "exactly one plan request per plan day";
+  thesis-critical, broke in P6).** Server rows showed one `trigger=first_open` plan per cold
+  start while today's plan was persisted (day 2 #15; day 1's 30 zero-block rows had the same
+  cause and tripped the 30/24 h limit). Root cause: `useLiveRows` starts as `[]` and reads in
+  an effect, the Today screen passed `latestAnyRows[0]?.planDate ?? null` (null = "never
+  planned") into `usePlanTrigger`, whose mount effect decided before the first read — and the
+  per-day dedup key lived only in the ephemeral Zustand store. Fix at the root:
+  `useLiveRowsState` exposes `{ rows, ready }` (false until the first read resolves; the plain
+  `useLiveRows` signature stays), `decidePlanTrigger` takes `ready` and decides nothing until
+  both plan reads are ready, and the dedup key moved to MMKV (`plan.lastRequestedDay`,
+  `src/sync/planRequestDay.ts`) so a cold start on a day that already requested does not
+  request again even when the read is slow or the plan had zero blocks. Manual re-plan still
+  bypasses the dedup; the evening ritual (plans tomorrow) never writes today's key; an account
+  change clears it. Tests: `planTrigger.test.ts` (not ready → no request),
+  `usePlanTrigger.test.ts` (persisted plan → no request on mount; dedup survives a simulated
+  cold start; manual still requests; ritual leaves the key alone), `useLiveRows.test.ts`
+  (unread ≠ empty). Refs: UC-03, NFR-R2, FR-26.
+
 ## P11 — Training pipeline + OPE + study mode (2026-08-31, phase/P11-training)
 
 **Database (ADR-0015).** Migration `20260831120000_p11_training`: `cluster_cells`
