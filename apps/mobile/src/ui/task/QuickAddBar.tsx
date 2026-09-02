@@ -6,6 +6,11 @@
  * shows it in the preview. Quick-add fills what the text carries; unstated FR-10 fields
  * take the documented defaults (category admin, priority normal, 30 min) and stay
  * editable in the task sheet afterwards.
+ *
+ * The NL example lives in a caption UNDER the input while it is empty (it swaps with the
+ * preview row once typing starts), not in the placeholder: on Android a single-line
+ * TextInput wraps a long hint and clips the second line, and at 200 % font scale no example
+ * fits one line on any phone (hardware pass 2026-09-01 #7, NFR-A2).
  */
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
@@ -140,7 +145,11 @@ export function QuickAddBar({ onSubmit }: QuickAddBarProps) {
         </Pressable>
       </View>
 
-      {text.trim().length > 0 ? (
+      {text.trim().length === 0 ? (
+        <ThemedText variant="caption" tone="secondary" testID="quick-add-example">
+          {t('inbox.quickAdd.example')}
+        </ThemedText>
+      ) : (
         <View style={styles.previewRow}>
           {canSubmit ? (
             <ThemedText variant="caption" numberOfLines={1} style={styles.previewTitle}>
@@ -158,7 +167,7 @@ export function QuickAddBar({ onSubmit }: QuickAddBarProps) {
             <PreviewChip label={t('inbox.preview.deadline', { date: formatDeadline(deadline) })} />
           ) : null}
         </View>
-      ) : null}
+      )}
 
       {deadlineOverride === null
         ? parsed.ambiguities.map((ambiguity) => {
@@ -241,9 +250,12 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     minHeight: 48,
-    borderWidth: StyleSheet.hairlineWidth,
+    // 1 px, not hairline: Android draws a sub-pixel border unevenly around rounded corners
+    // (the "border looks off at the sides" note from the same attended slice)
+    borderWidth: 1,
     paddingHorizontal: 14,
     fontSize: 16,
+    textAlignVertical: 'center',
   },
   addButton: { minHeight: 44, minWidth: 44, justifyContent: 'center', paddingHorizontal: 18 },
   previewRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },

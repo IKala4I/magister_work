@@ -118,6 +118,24 @@ describe('quick add (FR-11)', () => {
     expect(meta).toEqual({ source: 'quick_add', nlParseUsed: true });
   });
 
+  it('the NL example is a wrapping caption under the input, never the placeholder (hardware pass #7)', async () => {
+    // an Android single-line TextInput wraps a long hint and clips the second line, so the
+    // placeholder must stay short and the example lives in its own catalog key
+    expect(en['inbox.quickAdd.placeholder']).not.toMatch(/["“]/);
+    expect(en['inbox.quickAdd.placeholder'].length).toBeLessThanOrEqual(16);
+    expect(en['inbox.quickAdd.example']).toMatch(/report draft 2h by Fri/);
+    await render(withSafeArea(<InboxScreen />));
+    const input = screen.getByLabelText(en['inbox.quickAdd.input.a11y']);
+    expect(input.props.placeholder).toBe(en['inbox.quickAdd.placeholder']);
+    expect(screen.getByText(en['inbox.quickAdd.example'])).toBeTruthy();
+    // typing swaps the example for the live preview; clearing brings it back
+    await fireEvent.changeText(input, 'report draft 2h');
+    expect(screen.queryByText(en['inbox.quickAdd.example'])).toBeNull();
+    expect(screen.getByText('120 min')).toBeTruthy();
+    await fireEvent.changeText(input, '');
+    expect(screen.getByText(en['inbox.quickAdd.example'])).toBeTruthy();
+  });
+
   it('does not submit when only structure was typed (no title)', async () => {
     await render(withSafeArea(<InboxScreen />));
     const input = screen.getByLabelText(en['inbox.quickAdd.input.a11y']);

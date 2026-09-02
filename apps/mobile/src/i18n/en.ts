@@ -228,7 +228,10 @@ export const en = {
   'block.experiment': 'Experiment',
   'block.confidence.a11y': 'Confidence {percent} percent',
 
-  'inbox.quickAdd.placeholder': 'Add a task — try "report draft 2h by Fri"',
+  // The NL example is a caption under the input, not part of the placeholder: a single-line
+  // Android TextInput wraps a long hint and clips the second line (hardware pass 2026-09-01 #7)
+  'inbox.quickAdd.placeholder': 'Add a task',
+  'inbox.quickAdd.example': 'Try "report draft 2h by Fri"',
   'inbox.quickAdd.add': 'Add',
   'inbox.quickAdd.input.a11y': 'Quick add task',
   'inbox.quickAdd.noTitleHint': 'Add a few words for the title',

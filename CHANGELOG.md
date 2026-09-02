@@ -82,6 +82,15 @@ screens are re-verified on the device.
   (`weekday.short.*`: Mo…Su); every header label is `numberOfLines={1}`; the grid's accessible
   summary label is untouched (the header stays `importantForAccessibility="no"`). Test:
   `insights.test.tsx` (Mon at 1× and 1.3×, We at 2×, summary label unchanged).
+- **fix(ui): quick-add placeholder no longer clips (FR-11 surface, day 1 #7).** On the Pixel 7a
+  the placeholder 'Add a task — try "report draft 2h by Fri"' wrapped to two lines inside the
+  single-line input and the second line was cut off (Android wraps a long hint; at 200 % no
+  example fits one line on any phone). The placeholder is now `Add a task` and the NL example
+  moved to its own catalog key (`inbox.quickAdd.example`: 'Try "report draft 2h by Fri"'),
+  rendered as a wrapping caption under the input while it is empty and swapped for the live
+  preview row once typing starts. The input border is 1 px instead of hairline (Android draws a
+  sub-pixel border unevenly around rounded corners — the "border looks off at the sides" note).
+  Test: `inbox.test.tsx` (short quote-free placeholder, example caption ↔ preview swap).
 
 ## P11 — Training pipeline + OPE + study mode (2026-08-31, phase/P11-training)
 
