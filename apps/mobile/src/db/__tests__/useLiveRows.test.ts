@@ -136,4 +136,36 @@ describe('useLiveRowsState — "not read yet" is distinguishable from "empty" (h
     expect(result.current).toEqual([{ id: 'a' }]);
     expect(listeners).toHaveLength(1);
   });
+
+  it('a deps change drops ready until the re-read for the NEW inputs lands (review F1e)', async () => {
+    const seen: Array<{ rows: Array<{ id: string }>; ready: boolean }> = [];
+    const readFor = jest.fn((user: string) => ({ all: () => [{ id: `plan-of-${user}` }] }));
+    const { result, rerender } = await renderHook(
+      ({ user }: { user: string }) => {
+        const state = useLiveRowsState(() => readFor(user), ['plans'], [user]);
+        seen.push(state);
+        return state;
+      },
+      { initialProps: { user: 'u1' } },
+    );
+    expect(result.current).toEqual({ rows: [{ id: 'plan-of-u1' }], ready: true });
+    seen.length = 0;
+    await rerender({ user: 'u2' });
+    // the render that first sees the new user still holds u1's rows — and says so
+    expect(seen[0]).toEqual({ rows: [{ id: 'plan-of-u1' }], ready: false });
+    expect(result.current).toEqual({ rows: [{ id: 'plan-of-u2' }], ready: true });
+    expect(readFor).toHaveBeenLastCalledWith('u2');
+    expect(listeners).toHaveLength(1); // the old subscription was removed, one new one
+  });
+
+  it('a re-render with the SAME inputs stays ready (element-wise comparison, not identity)', async () => {
+    const build = jest.fn(() => ({ all: () => [{ id: 'a' }] }));
+    const { result, rerender } = await renderHook(
+      ({ day }: { day: string }) => useLiveRowsState(build, ['plans'], [day]),
+      { initialProps: { day: '2026-09-02' } },
+    );
+    await rerender({ day: '2026-09-02' });
+    expect(result.current).toEqual({ rows: [{ id: 'a' }], ready: true });
+    expect(build).toHaveBeenCalledTimes(1);
+  });
 });

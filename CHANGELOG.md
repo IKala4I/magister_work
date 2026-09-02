@@ -59,8 +59,10 @@ screens are re-verified on the device.
   an effect, the Today screen passed `latestAnyRows[0]?.planDate ?? null` (null = "never
   planned") into `usePlanTrigger`, whose mount effect decided before the first read — and the
   per-day dedup key lived only in the ephemeral Zustand store. Fix at the root:
-  `useLiveRowsState` exposes `{ rows, ready }` (false until the first read resolves; the plain
-  `useLiveRows` signature stays), `decidePlanTrigger` takes `ready` and decides nothing until
+  `useLiveRowsState` exposes `{ rows, ready }` (false until the first read resolves, and again
+  for the render after the read's inputs — user, plan day — change until the re-read for the
+  new inputs lands, review F1e; the plain `useLiveRows` signature stays), `decidePlanTrigger`
+  takes `ready` and decides nothing until
   both plan reads are ready, and the dedup key moved to MMKV (`plan.lastRequestedDay`,
   `src/sync/planRequestDay.ts`) so a cold start on a day that already requested does not
   request again even when the read is slow or the plan had zero blocks. The key is written
