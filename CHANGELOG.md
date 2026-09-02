@@ -44,6 +44,7 @@ Everything below condenses P0–P11 for release notes and the thesis; per-phase 
   Dockerfiles, and tests that empty TZPATH so a runner's system tzdata cannot mask a missing
   wheel. The training image's `iso_week` (PAR) had the same exposure. Refs: NFR-R2, UC-03,
   File 04 §2 (H1 — arm B must be reachable on every device).
+- **chore(mobile): Expo SDK 57 patch drift** — `expo install --fix` (9 packages, expo 57.0.19) so expo-doctor passes CI again; the device APK under measurement stays the 57.0.18 build (`docs/versions.md`).
 
 ## P11 — Training pipeline + OPE + study mode (2026-08-31, phase/P11-training)
 
