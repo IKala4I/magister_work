@@ -298,3 +298,10 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   an optimality-proof stall on ≈ 300-literal models). Decide: `relative_gap_limit` / early stop,
   parallel context reads, budget → 2.5 s − client overhead, or co-location — and which of these
   is reported as a result rather than fixed. Supersedes the "≈ 10 % on tight days" wording above.
+- [hardware pass, 2026-09-02 — DECIDED (owner)] **Learned-path budget levers:** CP-SAT
+  `relative_gap_limit` / early stop — **yes** (implement, with an ADR pinning the value and the
+  re-measured fallback rate); a bigger `PLAN_FALLBACK_BUDGET_MS` — **no**; moving the VM /
+  co-location — **no**; parallel context reads in the edge function — **only if cheap** (one
+  bounded attempt; drop it if it needs more than a small refactor). The measured shape above
+  (round-trip floor, function overhead, 1.0 s slice, proof stalls) is reported as a thesis
+  result either way; the gap-limit run re-measures with the same sweep script.

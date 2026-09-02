@@ -2,14 +2,37 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-02 evening — **hardware pass, Android day 2 closing** (branch
-> `post-p12/hardware-pass`, Pixel 7a). Read first: `docs/verification/device-pass/
-android-20260902-1030/notes.md` (items 1–29 + "Results by build" + owner observations) and
-> `android-20260901-2030/notes.md`; then the "Hardware pass — live state" block below.
-> Merged to main today: **PR #37** (legacy timezone id → the learned engine was unreachable from
-> Android; tzdata wheel + build-time assertion) and **PR #38** (client fix batch F1–F8: cold-start
-> re-plan, Settings scroll, stale reminders, 200 % layout, a11y, e2e quoting). The phone runs
-> **build 3** (`ee920100ba66…`, main 3f1159d source), gated on the bundle host + a backend proof.
+> Last update: 2026-09-02 night — **hardware pass, Android day 2 closed; day 3 queue below.**
+> Read first: `docs/verification/device-pass/android-20260902-1030/notes.md` (items 1–30, "Results
+> by build", "Plan-budget sweep") and the "Day 3 — open with these" block. Merged today: PR #37
+> (legacy timezone id → learned engine unreachable from Android) and PR #38 (client fix batch
+> F1–F8). The phone runs **build 3** (`ee920100ba66…`, main 3f1159d source). Branch state at the
+> end of the night: everything committed and pushed (`post-p12/hardware-pass` tracks origin).
+
+## Day 3 — open with these (2026-09-03)
+
+1. **PostHog CSV (owner, ⛔ 5b, no key):** eu.posthog.com → Hourwell project → Activity → date
+   2 Sep 2026 → event `plan_requested` → columns `trigger`, `outcome`, `engine`, `duration_ms` +
+   timestamp (≈ 16 rows: ten `manual` 11:38–11:40, the `first_open` ones, the `evening_ritual`
+   20:22); optionally `sync_completed` with `reason`, `duration_ms`. Session: compute p50/p95 per
+   trigger and per outcome, write the device column of `p10-manual-verification.md` §2.3 and the
+   NFR-P1 checklist entry; compare with the server-side series (ef total p50 1662 / p95 1908 ms).
+2. **CP-SAT gap limit — DECIDED (owner, 2026-09-02): yes.** Levers: gap limit **yes**; bigger
+   budget **no**; VM move **no**; parallel context reads **only if cheap**. Session: add
+   `relative_gap_limit` (and/or an early stop once a solution exists and the bound gap is small)
+   in `services/recsys/src/hourwell_recsys/solver.py` (standard CP-SAT parameter — cite it), pin
+   the value in an ADR + `params.py` + `docs/versions.md`, unit-test that a capped instance now
+   returns before the slice, deploy via main (image rebuild + rollout), then **re-run
+   `docs/verification/hw-plan-budget-sweep.mjs 2`** and the device's own re-plan series; report the
+   fallback rate before/after in the day-3 notes and the revisit entry. The measured shape (day-2
+   notes, "Plan-budget sweep") is a thesis result regardless.
+3. Then the device queue: first open adds NO request (tomorrow's plan exists); offline first
+   open → retries on the next foreground (F1); a delivered reminder for a started/moved block
+   leaves the shade (F7); cold start ×20 **after a reboot** on build 3; gutter / heatmap /
+   quick-add at 2.0 on build 3 (`a11y-max.sh` pattern); TalkBack tab label; the killed-app
+   ritual at 20:00 with an adb-driven tap on the notification's **action button** (owner does NOT
+   tap it) → `notification_response.action = accept`; FR-42 erasure LAST. Owner-attended:
+   off-grid move snap (type 5:37), TalkBack listening, the three `owner-*` screenshots.
 
 ## Where we are
 
