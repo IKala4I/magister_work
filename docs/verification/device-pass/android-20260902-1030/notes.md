@@ -212,3 +212,24 @@ ritual (`RTC_WAKEUP`, `window=+1h`). All numbers here are from this physical dev
 17. `dumpsys notification` keeps no post times once a notification is dismissed; the `events`
     logcat buffer keeps `notification_visibility`/`notification_canceled` only — capture the shade
     while it is posted, or enable Notification history on the phone before a delivery test.
+
+## Fix batch → rebuild (evening)
+
+25. **Fix batch merged (PR #38, main 3f1159d):** 16 commits from a fresh-context agent, two
+    adversarial passes (2 MAJOR + 3 MINOR; 1 MAJOR + 4 MINOR), all applied; 513 jest. Covers
+    UC-03 cold-start re-plan (F1), gutter (F2), heatmap header (F3), quick-add placeholder (F4),
+    `(?i)` + YAML-quoting of the sweeps (F5), tab glyph (F6), stale-reminder dismissal incl.
+    moved/deleted blocks (F7), Settings ScrollView (F8). Main merged into this branch (56935e0;
+    the two sweep files taken from main).
+26. **Build 2 (43bfade, built in the agent's worktree) — VOID.** Installed 16:46; its bundle
+    carried no project URL (the `.env` copy in the worktree did not reach the bundle), so
+    `isAuthAvailable()` was false: no backend, no Sync/Calendar/My data sections, no requests.
+    Consequently the "0 new plan rows across 20 cold starts" observed on it proves nothing and
+    is withdrawn; the cold-start p90 516 ms (warm caches) is a valid number for that binary but
+    is not reported. Lesson (in `build3-checks.sh`): gate an APK on the project host string in
+    the bundle, then prove the backend with a Settings write read back from the server, before
+    any behavioural check. What build 2 did show validly: Settings scrolls to Privacy and
+    Appearance (F8), and after four delivered reminders only the two ritual alarms remain
+    scheduled (the ≤ 5/day cap on hardware).
+27. **Build 3** = main checkout at 56935e0 (same app source as 3f1159d), `expo prebuild --clean`
+    - `assembleRelease`, debug-keystore signing, Sentry upload disabled — results below.
