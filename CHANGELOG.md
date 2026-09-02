@@ -69,6 +69,13 @@ screens are re-verified on the device.
   `usePlanTrigger.test.ts` (persisted plan → no request on mount; dedup survives a simulated
   cold start; manual still requests; ritual leaves the key alone), `useLiveRows.test.ts`
   (unread ≠ empty). Refs: UC-03, NFR-R2, FR-26.
+- **fix(ui): Today time gutter scales with the font scale (NFR-A2 / FR-22).** At font scale 2.0
+  the fixed 64 px gutter broke "12:00 PM" into "12:0" / "0 PM" (day 2 #14a). New
+  `useFontScale()` (the OS multiplier clamped to the ThemedText cap, live via
+  `useWindowDimensions`) drives `gutterWidthFor(scale) = ceil(64 × scale)` as the gutter's
+  `minWidth` (`flexShrink: 0`; a longer locale clock widens its own gutter instead of
+  clipping), and the clock text is `numberOfLines={1}`. Tests: `useFontScale.test.ts` (clamp),
+  `today.test.tsx` (64 px at 1×, ≥ 128 px at 2×, one-line clock).
 
 ## P11 — Training pipeline + OPE + study mode (2026-08-31, phase/P11-training)
 

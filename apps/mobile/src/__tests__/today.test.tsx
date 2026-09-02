@@ -17,6 +17,10 @@ jest.mock('../db/useLiveRows', () => ({
     ready: true,
   }),
 }));
+// jest's react-native preset reports fontScale 2; the screen tests run at 1× unless a test
+// sets the scale itself (the NFR-A2 gutter test below)
+let mockFontScale = 1;
+jest.mock('../ui/useFontScale', () => ({ useFontScale: () => mockFontScale }));
 // P10: the reminder-permission card and the FR-26 tomorrow line/card
 const mockNotify = {
   permission: jest.fn(() => Promise.resolve('granted')),
@@ -79,9 +83,9 @@ jest.mock('../auth/accountTransition', () => ({
   keepPendingWipe: () => mockWipe.keep(),
 }));
 
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
 import type { ReactElement } from 'react';
-import { Alert } from 'react-native';
+import { Alert, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import TodayScreen from '../../app/(tabs)/index';
@@ -692,5 +696,37 @@ describe('P10 — reminders card (FR-50) and the evening ritual on Today (FR-26)
     expect(planDay).toBe(nextPlanDayOf(new Date()));
     await fireEvent.press(screen.getByLabelText(en['today.tomorrow.adjust']));
     expect(mockNavigate).toHaveBeenCalledWith('/(tabs)/inbox');
+  });
+});
+
+describe('Today timeline at 200 % font scale (NFR-A2 / FR-22 — hardware pass #14)', () => {
+  afterEach(() => {
+    mockFontScale = 1;
+  });
+  function noonRec() {
+    const start = new Date(today);
+    start.setHours(12, 0, 0, 0);
+    const end = new Date(start);
+    end.setHours(13, 0, 0, 0);
+    return rec({ slotStart: start, slotEnd: end });
+  }
+  it('the time gutter is 64 px at 1× and scales with the font so "12:00 PM" never wraps', async () => {
+    rows({ plans: [plan()], recs: [noonRec()], tasks: [task()] });
+    await render(withSafeArea(<TodayScreen />));
+    const gutter = screen.getByTestId('timeline-gutter-rec-1');
+    expect(StyleSheet.flatten(gutter.props.style)).toMatchObject({ minWidth: 64, flexShrink: 0 });
+    // the clock is one line by contract: a too-narrow gutter would show as an ellipsis, never
+    // as "12:0" / "0 PM"
+    const clock = within(gutter).getByText(/12:00/);
+    expect(clock.props.numberOfLines).toBe(1);
+  });
+  it('at fontScale 2 the gutter is at least 128 px wide', async () => {
+    mockFontScale = 2;
+    rows({ plans: [plan()], recs: [noonRec()], tasks: [task()] });
+    await render(withSafeArea(<TodayScreen />));
+    const gutter = screen.getByTestId('timeline-gutter-rec-1');
+    const style = StyleSheet.flatten(gutter.props.style) as { minWidth: number };
+    expect(style.minWidth).toBeGreaterThanOrEqual(128);
+    expect(within(gutter).getByText(/12:00/).props.numberOfLines).toBe(1);
   });
 });
