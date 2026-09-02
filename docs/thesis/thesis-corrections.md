@@ -409,3 +409,11 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
       to design ("the protocol specifies"). Cross-refs: DPIA §10 status note;
       spec-conflicts "Post-P12 status overlay"; enrollment checklist header; #48 for the
       release framing.
+50. **§verification / §deployment (learned path "verified live end to end"):** add the
+    hardware-pass finding of 2026-09-02: on a real Ukrainian Android device the learned engine
+    was unreachable until that day — the device reports the legacy IANA id `Europe/Kiev`, the
+    service rejected it (422) and every plan fell back to the heuristic, while the Mac-side
+    verification (`Europe/Kyiv`) passed. State it as evidence for the simulator-vs-device rule
+    (item 11): the live verification chain was correct and still blind to a device-only input.
+    Fixed the same day (tzdata wheel + build-time assertion; CHANGELOG "Post-P12 — hardware
+    pass fixes"); the field-study framing (#49) is unaffected.

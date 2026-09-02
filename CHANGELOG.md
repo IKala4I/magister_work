@@ -30,6 +30,22 @@ Everything below condenses P0–P11 for release notes and the thesis; per-phase 
 - **Ops:** Supabase (eu-west-1) + Oracle A1 VM (eu-marseille-1) with pull-based rollout,
   hardened SSH + Tailscale admin path, nightly training timer, runbooks for every timer.
 
+## Post-P12 — hardware pass fixes (2026-09-02, fix/recsys-legacy-tz)
+
+- **fix(recsys, training): legacy IANA timezone ids resolve inside the containers.** Found on
+  the Pixel 7a (hardware pass, day 2): Android reports `Europe/Kiev` (a tzdata backward link)
+  and the service validates the id with `ZoneInfo`; `python:3.12-slim` ships those links only
+  in `tzdata-legacy`, so every `/plan` from the device answered 422 and the edge function served
+  the `fallback:http` heuristic — the learned engine was unreachable from a real Ukrainian
+  Android device while the Mac smoke (`Europe/Kyiv`) passed (30 zero-block plan rows on
+  2026-09-01; reproduced live with two throwaway users, `docs/verification/hw-tz-repro.mjs`).
+  Fix: the `tzdata` wheel (2026.3) as an unconditional dependency of both Python projects
+  (zoneinfo consults it after TZPATH), a build-time `ZoneInfo('Europe/Kiev')` assertion in both
+  Dockerfiles, and tests that empty TZPATH so a runner's system tzdata cannot mask a missing
+  wheel. The training image's `iso_week` (PAR) had the same exposure. Refs: NFR-R2, UC-03,
+  File 04 §2 (H1 — arm B must be reachable on every device).
+- **chore(mobile): Expo SDK 57 patch drift** — `expo install --fix` (9 packages, expo 57.0.19) so expo-doctor passes CI again; the device APK under measurement stays the 57.0.18 build (`docs/versions.md`).
+
 ## P11 — Training pipeline + OPE + study mode (2026-08-31, phase/P11-training)
 
 **Database (ADR-0015).** Migration `20260831120000_p11_training`: `cluster_cells`
