@@ -270,6 +270,28 @@
   `sync_completed` durations from PostHog for `sync-resolve`, and time one `export-data` from
   Settings). Why: the Node numbers exclude radio wake-up and mobile TLS.
 
+### Fix-batch re-verification (added post-P12 hardware pass, 2026-09-02 — after the APK rebuild)
+
+- ⬜ **UC-03 — exactly one automatic plan request per plan day across cold starts** (fix batch
+  F1: `ready` gate on the live reads + durable MMKV dedup). On the rebuilt APK with today's plan
+  persisted: `am force-stop` + launch ×20 → the server shows NO new `first_open`/`new_day` row;
+  then the overnight case: backgrounded across midnight → the first foreground after 06:00 adds
+  exactly one `new_day` row. Why the simulator can't settle it: the defect only shows on a real
+  cold start of the release process (the first render of the live read is empty).
+- ⬜ **NFR-P2 — cold start ×20 on the rebuilt APK** (the day-1 protocol; the p90 must be
+  re-stated for the binary that ships the fixes and the Expo patch bump).
+- ⬜ **FR-22 / NFR-A2 — Today time gutter at 200 % + largest display** (F2): the clock stays
+  on one line, the gutter grows, cards do not overlap. Take the same `a11y-maxscale/` screenshots.
+- ⬜ **FR-40 / NFR-A2 — heatmap weekday header at 200 %** (F3): two-letter labels, one line,
+  the summary label unchanged.
+- ⬜ **FR-11 — quick-add at default and 200 % scale** (F4): the short placeholder and the example
+  caption fit, the border renders evenly, the caption swaps for the preview chips while typing.
+- ⬜ **NFR-A1 — TalkBack reads the tab as its name only** (F6): the tree label is "Today", not the
+  icon glyph first; the owner's listening pass confirms the announcement.
+- ⬜ **Maestro p3/p4/p10 flows on hardware** (F5): the `(?i)` title selectors pass end to end on
+  the rebuilt APK (p3 tail incl. the undo expiry; p10 at max scale needs adb screenshots — see
+  day-2 finding 14).
+
 ## Service environment (Oracle A1 VM, container pinned to `cpus: 2` — ADR-0009) — same honesty rule, different box
 
 Timing measured on the development Mac is a smoke check, not evidence for the container File 04
