@@ -87,16 +87,60 @@ describe('usePlanTrigger — waits for the plan reads', () => {
 });
 
 describe('usePlanTrigger — durable per-plan-day dedup (MMKV)', () => {
-  it('writes the plan day to MMKV when a request starts', async () => {
+  it('writes the plan day to MMKV only once the server has answered (not when the request starts)', async () => {
+    let settle: (outcome: unknown) => void = () => {};
+    mockRequestPlan.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          settle = resolve;
+        }),
+    );
     await mount({ latestPlanDate: null, todayPlanDate: null, ready: true });
     expect(mockRequestPlan).toHaveBeenCalledTimes(1);
+    // in flight: nothing written yet — a process death here costs at most one duplicate request
+    expect(lastRequestedPlanDay()).toBeNull();
+    await act(async () => {
+      settle({ kind: 'planned', plan: {}, durationMs: 1 });
+    });
     expect(appStorage.getString(StorageKeys.lastPlanRequestDay)).toBe(today);
     expect(lastRequestedPlanDay()).toBe(today);
+  });
+
+  it.each([
+    ['offline', 'offline'],
+    ['no-session', 'no_session'],
+    ['failed', 'error'],
+    ['profile_missing', 'idle'],
+  ])(
+    'an unanswered request (%s) leaves the key unwritten so the next foreground retries',
+    async (kind, status) => {
+      mockRequestPlan.mockResolvedValue(kind === 'failed' ? { kind, detail: 'boom' } : { kind });
+      const first = await mount({ latestPlanDate: null, todayPlanDate: null, ready: true });
+      await act(async () => {});
+      expect(mockRequestPlan).toHaveBeenCalledTimes(1);
+      expect(lastRequestedPlanDay()).toBeNull();
+      expect(usePlanStore.getState().status).toBe(status);
+      await first.unmount();
+      // the next open / foreground on the same day asks again (main's behaviour, kept)
+      await mount({ latestPlanDate: null, todayPlanDate: null, ready: true });
+      expect(mockRequestPlan).toHaveBeenCalledTimes(2);
+    },
+  );
+
+  it('an empty inbox is an answer: the key is written and the day is not re-asked', async () => {
+    mockRequestPlan.mockResolvedValue({ kind: 'empty_inbox', durationMs: 1 });
+    const first = await mount({ latestPlanDate: null, todayPlanDate: null, ready: true });
+    await act(async () => {});
+    expect(lastRequestedPlanDay()).toBe(today);
+    await first.unmount();
+    await mount({ latestPlanDate: null, todayPlanDate: null, ready: true });
+    expect(mockRequestPlan).toHaveBeenCalledTimes(1);
   });
 
   it('survives a cold start: a second mount on the same day does not request again, even with no plan rows', async () => {
     const first = await mount({ latestPlanDate: null, todayPlanDate: null, ready: true });
     expect(mockRequestPlan).toHaveBeenCalledTimes(1);
+    await act(async () => {}); // the answer lands before the process dies
     await first.unmount();
     simulateColdStart();
     // the request produced no plan row (evening-empty / fallback / still syncing): reads say "no plan"
@@ -165,7 +209,7 @@ describe('runPlanRequest — the evening ritual plans tomorrow and leaves today�
     expect(usePlanStore.getState().status).toBe('idle');
   });
 
-  it('a request for today writes the key and drives the UI status', async () => {
+  it('a rate-limited answer for today still writes the key (the server answered) and drives the UI status', async () => {
     mockRequestPlan.mockResolvedValue({ kind: 'rate_limited' });
     await runPlanRequest('manual');
     expect(lastRequestedPlanDay()).toBe(today);

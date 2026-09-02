@@ -12,8 +12,15 @@ import type { PlanTrigger } from '../db/plans';
 import { decidePlanTrigger, requestPlanDayOf } from '../domain/planTrigger';
 import { usePlanStore } from '../state/plan';
 
-import { isPlanRequestInFlight, requestPlan } from './planRequest';
+import { isPlanRequestInFlight, type PlanRequestOutcome, requestPlan } from './planRequest';
 import { lastRequestedPlanDay, rememberRequestedPlanDay } from './planRequestDay';
+
+/** Outcomes in which the server answered the day's request — the only ones that dedup it. */
+const ANSWERED_OUTCOMES: ReadonlySet<PlanRequestOutcome['kind']> = new Set([
+  'planned',
+  'empty_inbox',
+  'rate_limited',
+]);
 
 export async function runPlanRequest(
   trigger: PlanTrigger,
@@ -21,10 +28,16 @@ export async function runPlanRequest(
   /** P10 (FR-26): the evening ritual plans TOMORROW; every other trigger plans the current day. */
   planDate: string = requestPlanDayOf(now),
 ): Promise<void> {
-  // the dedup key is only ever today's request — a plan for tomorrow must not block today's
-  if (planDate === requestPlanDayOf(now)) rememberRequestedPlanDay(planDate);
   usePlanStore.setState({ status: 'planning' });
   const outcome = await requestPlan({ planDate, trigger, now });
+  // The dedup key is written only once the server has actually ANSWERED today's request
+  // (planned / empty inbox / rate-limited). Offline, no session, a missing profile or a failure
+  // leave it unwritten so the next foreground retries (the in-flight guard prevents a double
+  // fire; a process death mid-request costs at most one duplicate request). Only a request for
+  // the current calendar day may write it — a plan for tomorrow must not block today's.
+  if (planDate === requestPlanDayOf(now) && ANSWERED_OUTCOMES.has(outcome.kind)) {
+    rememberRequestedPlanDay(planDate);
+  }
   switch (outcome.kind) {
     case 'planned':
       usePlanStore.setState({ status: 'idle', emptyInbox: false });

@@ -63,9 +63,12 @@ screens are re-verified on the device.
   `useLiveRows` signature stays), `decidePlanTrigger` takes `ready` and decides nothing until
   both plan reads are ready, and the dedup key moved to MMKV (`plan.lastRequestedDay`,
   `src/sync/planRequestDay.ts`) so a cold start on a day that already requested does not
-  request again even when the read is slow or the plan had zero blocks. Manual re-plan still
-  bypasses the dedup; the evening ritual (plans tomorrow) never writes today's key; an account
-  change clears it. Tests: `planTrigger.test.ts` (not ready → no request),
+  request again even when the read is slow or the plan had zero blocks. The key is written
+  only once the server has answered the day's request (`planned` / `empty_inbox` /
+  `rate_limited`); `offline`, `no-session`, `failed` and `profile_missing` leave it unwritten
+  so the next foreground retries (review F1a — otherwise an offline first open locked the day
+  out of auto-planning until a manual re-plan). Manual re-plan still bypasses the dedup; the
+  evening ritual (plans tomorrow) never writes today's key; an account change clears it. Tests: `planTrigger.test.ts` (not ready → no request),
   `usePlanTrigger.test.ts` (persisted plan → no request on mount; dedup survives a simulated
   cold start; manual still requests; ritual leaves the key alone), `useLiveRows.test.ts`
   (unread ≠ empty). Refs: UC-03, NFR-R2, FR-26.
