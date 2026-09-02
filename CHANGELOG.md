@@ -136,6 +136,18 @@ screens are re-verified on the device.
   `staleReminderIds` in `src/notifications/dismiss.ts` (`dismiss.test.ts`: started / ahead /
   not open / no `slot_start` / rituals / malformed; OS wrapper never throws, ledger untouched)
   and a scheduler integration test against real SQLite (`scheduler.test.ts`).
+- **fix(ui): Settings scrolls (FR-42 / NFR-A2, MAJOR on hardware).** `app/settings.tsx`
+  rendered every section straight inside `Screen` (a plain `flex: 1` View), so on the Pixel 7a
+  at 1× the content ended at "Block reminders" / the mute chips and the ritual time, My data
+  (Export / Delete account), Privacy and Appearance were unreachable — uiautomator saw no
+  scrollable node, drags did nothing, Maestro's `scrollUntilVisible: 'Export my data'` timed out
+  (day 2, 16:2x). The p10 sweep never caught it because it never ran green anywhere. Fix at the
+  root: the sections sit in a `ScrollView` (`testID="settings-scroll"`,
+  `keyboardShouldPersistTaps="handled"`, content padding; `Screen` keeps the bottom safe-area
+  inset outside it) — a plain ScrollView, so the native-stack modal's swipe-down dismiss keeps
+  working with no nested gesture container, the same pattern Insights, the task sheet and the
+  onboarding screens already use. Test: `settings.test.tsx` asserts the sections render inside
+  the ScrollView host and that My data, Export and Appearance are its descendants.
 
 ## P11 — Training pipeline + OPE + study mode (2026-08-31, phase/P11-training)
 
