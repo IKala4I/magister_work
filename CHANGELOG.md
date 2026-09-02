@@ -91,6 +91,13 @@ screens are re-verified on the device.
   preview row once typing starts. The input border is 1 px instead of hairline (Android draws a
   sub-pixel border unevenly around rounded corners — the "border looks off at the sides" note).
   Test: `inbox.test.tsx` (short quote-free placeholder, example caption ↔ preview swap).
+- **fix(mobile): tab-bar icon glyphs hidden from assistive tech (NFR-A1, Android).** TalkBack
+  composed each tab's label from its children, so the icon-font code point was read before the
+  name ("<glyph>, Today" — day 2 #8; iOS composes "Today, tab, 1 of 4" itself). The four
+  `tabBarIcon`s render through `TabIcon`, an `Ionicons` with
+  `importantForAccessibility="no-hide-descendants"` + `accessibilityElementsHidden`, so the
+  announced label is the tab name only. Test: `shell.test.tsx` (each tab's accessible text is
+  exactly its name; the glyphs are still rendered, hidden).
 
 ## P11 — Training pipeline + OPE + study mode (2026-08-31, phase/P11-training)
 

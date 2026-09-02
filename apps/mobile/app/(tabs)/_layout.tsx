@@ -4,6 +4,7 @@
  */
 import { Ionicons } from '@expo/vector-icons';
 import { Link, Redirect, Tabs } from 'expo-router';
+import type { ComponentProps } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 
 import { useOnboardingComplete } from '../../src/db/useProfile';
@@ -41,6 +42,28 @@ function SettingsButton() {
         <Ionicons name="settings-outline" size={22} color={theme.colors.textPrimary} />
       </Pressable>
     </Link>
+  );
+}
+
+/**
+ * Tab-bar glyph hidden from assistive tech (NFR-A1): the icon font renders a Text whose
+ * private-use code point precedes the name when TalkBack composes the tab's label from its
+ * children ("<glyph>, Today" on the Pixel 7a — hardware pass 2026-09-02 #8). iOS composes
+ * "Today, tab, 1 of 4" itself; hiding the glyph there is a no-op.
+ */
+function TabIcon({
+  name,
+  color,
+  size,
+}: Pick<ComponentProps<typeof Ionicons>, 'name' | 'color' | 'size'>) {
+  return (
+    <Ionicons
+      name={name}
+      color={color}
+      size={size}
+      importantForAccessibility="no-hide-descendants"
+      accessibilityElementsHidden
+    />
   );
 }
 
@@ -82,7 +105,7 @@ export default function TabsLayout() {
           options={{
             title: t('tabs.today'),
             tabBarIcon: ({ color, size }) => (
-              <Ionicons name="today-outline" color={color} size={size} />
+              <TabIcon name="today-outline" color={color} size={size} />
             ),
           }}
         />
@@ -92,7 +115,7 @@ export default function TabsLayout() {
             title: t('tabs.inbox'),
             headerLeft: () => <NewTaskButton />,
             tabBarIcon: ({ color, size }) => (
-              <Ionicons name="file-tray-outline" color={color} size={size} />
+              <TabIcon name="file-tray-outline" color={color} size={size} />
             ),
           }}
         />
@@ -101,7 +124,7 @@ export default function TabsLayout() {
           options={{
             title: t('tabs.focus'),
             tabBarIcon: ({ color, size }) => (
-              <Ionicons name="timer-outline" color={color} size={size} />
+              <TabIcon name="timer-outline" color={color} size={size} />
             ),
           }}
         />
@@ -110,7 +133,7 @@ export default function TabsLayout() {
           options={{
             title: t('tabs.insights'),
             tabBarIcon: ({ color, size }) => (
-              <Ionicons name="sparkles-outline" color={color} size={size} />
+              <TabIcon name="sparkles-outline" color={color} size={size} />
             ),
           }}
         />
