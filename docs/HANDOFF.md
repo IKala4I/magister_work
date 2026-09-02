@@ -2,17 +2,16 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-01 — **post-P12 owner ladder** (P12 merged, PR #30). Ladder 1–4
-> done/decided: `recsys_service` role live (§18), DPIA signed as a completed assessment —
-> **no field study will run** (owner, 2026-09-01), store: no accounts. First scheduled
-> nightly run proven clean. #49 + the repo-wide no-study sweep done (2026-09-01). Remaining: hardware
-> pass (step 5, account-free); steps 6–7 retired-conditional.
-> Adversarial pass: 5 MAJOR + 11 MINOR, all 16 fixed in-branch. Gates: typecheck/lint/
-> format clean · jest 461 · expo-doctor 21/21 · recsys 149 (8 skipped) · training 78 ·
-> pgTAP `p12_role_test.sql` proves on the PR's db job (no Docker on the dev Mac).
-> **P0–P12 = the whole build plan. What remains is owner-run: the ⛔ ladder below, the
-> hardware pass, enrollment prerequisites, and first-real-data reviews.** Standing rules
-> live in CLAUDE.md: "Working mode", "Context efficiency", "Simulator evidence".
+> Last update: 2026-09-02 — **hardware pass in progress** (branch `post-p12/hardware-pass`,
+> Pixel 7a, day 2). Day-1 and day-2 running notes: `docs/verification/device-pass/
+android-20260901-2030/notes.md` and `android-20260902-1030/notes.md` — read those two files
+> first; everything below them is the post-P12 ladder context (unchanged). **Thesis-critical
+> finding 2026-09-02:** the learned engine was unreachable from the Android device (legacy
+> timezone id → service 422 → heuristic fallback) — fixed in **PR #37** (`fix/recsys-legacy-tz`,
+>
+> - the Expo patch-drift chore); after the merge the images rebuild and the VM rolls out within
+>   5 min; re-verify with `node docs/verification/hw-tz-repro.mjs` (expects Kiev → learned).
+>   Gates on that PR: recsys 156 pytest · training 79 · jest 461 · expo-doctor 21/21.
 
 ## Where we are
 
@@ -54,6 +53,24 @@
    opted in, 2026-09-01 — runs strictly after the hardware pass closes). Enrollment support and
    first-real-data reviews are retired-conditional (#49).
 
+## Hardware pass — live state (2026-09-02, read before touching the phone)
+
+- **The phone is the session's while a step runs** (day-2 finding 11: a Telegram foreground
+  mid-flow sent two Maestro flows into the wrong app). Ask for it back explicitly.
+- **Blocked on the owner:** the device account hit the 30-per-24 h plan limit (day-2 item 3)
+  from day 1's 30 zero-block fallback rows — delete them (see ⛔ 5a) or wait until 20:40 local.
+- **Done on hardware (day 2):** undo bar 6 s ✓ · Ukrainian quick-add no chips ✓ · offline
+  task reached the server once after reconnect ✓ (Settings status texts still to capture).
+- **Next on the device, in order:** first learned plan on hardware (after PR #37 rolls out
+  and the limit is cleared) → NFR-P1 series (10 re-plans; client durations are in PostHog)
+  → gfxinfo scroll (≥ 10 blocks) → NFR-A2 sweeps at max font/display over adb → TalkBack
+  tree dumps → FR-30 focus across lock/kill + lazy lapse after > 30 min → FR-50 delivery and
+  the 20:00 ritual drift → UC-07 Move picker → FR-42 export sheet → overnight `new_day`.
+- **Fix batch after the Android pass** (binary stays constant until then): quick-add
+  placeholder clip (day-1 #7), `(?i)` e2e selectors (day-2 #7), tab glyph in the a11y label
+  (day-2 #8), zero-block rows counting toward the plan limit + cold-start re-request loop
+  (day-2 #3), then rebuild the APK on the bumped Expo patches and re-run cold start ×20.
+
 ## ⛔ ACTION REQUIRED (owner — ordered; one per turn)
 
 1. ✅ **Migration push** — done 2026-08-31; the remote migration list shows
@@ -76,14 +93,16 @@
    pack stays prepared-but-unsubmitted (metadata §7 decision block; thesis-corrections
    #48; the enrollment checklist carries the no-iOS gate; reversal condition in
    revisit.md).
-5. **Hardware pass — account-free scope** (owner decision 2026-08-31): iOS =
-   free-provisioned **Release-configuration** build on the owner's iPhone
-   (`npx expo run:ios --device --configuration Release`; 7-day signature — re-sign for
-   week-long items); Android = locally built release APK sideloaded
-   (`npx expo prebuild -p android` + `./gradlew assembleRelease`). `scripts/device-pass.sh`
-   unchanged. Closes every device-checklist item except the blocked-by-decision iOS
-   standalone/EAS residual (re-scoped in "Release builds — EAS (added P12)"); numbers are
-   reported for the actual devices used (simulator-evidence rule).
+5. **Hardware pass — account-free scope** (owner decision 2026-08-31) — **in progress on
+   the Pixel 7a** (days 1–2 done: onboarding E2E, cold start p90 1582 ms, reboot session,
+   quick-add, undo, offline; iOS not started). Protocol unchanged: iOS = free-provisioned
+   Release build (`npx expo run:ios --device --configuration Release`), Android = sideloaded
+   release APK. **5a (now):** clear the plan-limit lockout on the device account — run in this
+   session (the `!` prefix), it deletes only the 30 zero-recommendation rows of 2026-09-01:
+   `! node docs/verification/hw-unblock.mjs --apply` (dry run without the flag) — or wait until
+   20:40 local. **5b:** PostHog read for the NFR-P1 client durations (`plan_requested`
+   `duration_ms`, 2026-09-02) — either read the EU project UI or drop a read-only personal API
+   key + project id into `.env` as `POSTHOG_PERSONAL_API_KEY` / `POSTHOG_PROJECT_ID`.
 6. **Hardware-pass prerequisites only** (re-scoped by #49): the Google OAuth second Web
    client and a real mailbox matter only for the device-checklist auth/calendar items;
    PostHog EU / Sentry EU are optional (keys env-gated; own-use telemetry).
