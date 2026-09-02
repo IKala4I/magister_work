@@ -279,3 +279,13 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   (day-2 defect 15), so the limiter stays as designed; re-check the day-0/evening-empty case
   after that fix — if a user can still lock themselves out by opening the app, exclude
   zero-recommendation rows from the count.
+- [hardware pass, 2026-09-02] **A re-plan while a focus session is running drops that block
+  from Today.** The 16:16 relaunch re-planned (cold-start defect, since fixed) and the new plan
+  omitted "dataset cleanup" (its 16:15 start was already past); the old recommendation stayed
+  `accepted` (ADR-0010 held — not lapsed) and Focus kept the session, but Today no longer showed
+  the block. A manual re-plan during a session hits the same path. Revisit in the service/EF:
+  carry a recommendation with a running session as a fixed assignment (previous_assignments
+  with status `accepted` + an open session) so Today and Focus never disagree.
+- [hardware pass, 2026-09-02] jest prints "A worker process has failed to exit gracefully" on
+  the fix-batch branch (second adversarial pass, unattributed — likely the SQLite suites, not
+  verified against main). Run `pnpm test -- --detectOpenHandles` once and close the handle.
