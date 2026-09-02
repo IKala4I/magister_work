@@ -620,7 +620,6 @@ export default function SettingsScreen() {
         testID="settings-scroll"
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
       >
         <ThemedText variant="h2" style={styles.sectionTitle}>
           {t('settings.account.title')}

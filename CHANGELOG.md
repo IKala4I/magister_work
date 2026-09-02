@@ -147,7 +147,9 @@ screens are re-verified on the device.
   (day 2, 16:2x). The p10 sweep never caught it because it never ran green anywhere. Fix at the
   root: the sections sit in a `ScrollView` (`testID="settings-scroll"`,
   `keyboardShouldPersistTaps="handled"`, content padding; `Screen` keeps the bottom safe-area
-  inset outside it) — a plain ScrollView, so the native-stack modal's swipe-down dismiss keeps
+  inset outside it; the vertical scroll indicator stays ON — this is the one screen whose
+  defect was that nothing told the owner the content continued, review 2 #4) — a plain
+  ScrollView, so the native-stack modal's swipe-down dismiss keeps
   working with no nested gesture container, the same pattern Insights, the task sheet and the
   onboarding screens already use. Test: `settings.test.tsx` asserts the sections render inside
   the ScrollView host and that My data, Export and Appearance are its descendants.
