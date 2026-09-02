@@ -79,6 +79,12 @@ android-20260902-1030/notes.md` (items 1–29 + "Results by build" + owner obser
   started/moved block leaves the shade (F7); cold start ×20 post-reboot on build 3; gutter /
   heatmap / quick-add at 2.0 on build 3 (`a11y-max.sh` pattern); TalkBack tab label; the killed-app
   ritual variant at 20:00; FR-42 erasure LAST (ends the device account).
+- **Plan-budget sweep done (20:31–20:34, 45 requests, `hw-plan-budget-sweep.mjs`):** the
+  fallback has a measured shape (day-2 notes, last section; revisit.md last entry) — 0.43 s
+  round-trip floor + 0.45–0.9 s function overhead + a 1.0 s solver slice; reliable under ≈ 0.6 s
+  of solve time, a coin flip once the first rung runs to its slice. **Owner decision pending:**
+  which lever (gap limit / parallel context reads / budget / co-location) becomes a fix and which
+  is reported as a thesis result.
 - **Still open beyond Android:** everything on iOS (not started); the DST clock item; auth items
   needing the mailbox / Google client (⛔ 6); revisit entries (learned path at the fallback
   budget's edge; re-plan drops a running block; zero-block rows in the plan limit; jest open
