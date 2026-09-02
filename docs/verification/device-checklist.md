@@ -17,10 +17,12 @@
   measured on an iPhone 17 Pro simulator on an M-series Mac, which is materially faster than
   the device class the requirement names (thesis-corrections item 11) — threshold met,
   condition not.
+  **Android (Pixel 7a) ✅ 2026-09-01:** p90 1582 ms right after a reboot (1091–1754), 552 ms with warm OS caches — day-1 notes. iOS pending.
 - ⬜ **NFR-P2 — 60 fps timeline scroll** (obligation lands at P6 when the Today timeline
   exists). Profile frame pacing on both devices with a realistic day (10+ blocks, glass
   blocks, Skia ring visible). Simulator can't settle it: desktop GPU + no thermal or memory
   pressure makes simulator frame rates meaningless.
+  **Android (Pixel 7a) ✅ 2026-09-02:** 8-block Today, 59 swipes in 20 s, 1733 frames, 0 janky (legacy 0.40 %), frame time p50 5 / p90 7 / p95 8 / p99 10 ms (`device-pass/android-20260902-1030/gfxinfo-today-scroll.txt`); a ≥ 10-block morning re-run is still owed. iOS pending.
 
 - ⬜ **NFR-P1 — plan end-to-end ≤ 2.5 s p95 warm, measured from the device** (added P6). On
   hardware with the HF Space warm: trigger ten manual re-plans on a 5–8-task inbox, read the
@@ -28,6 +30,7 @@
   learned path and the fallback path. Why: the P6 numbers are Node-on-a-Mac → hosted edge
   function on the fallback path only (`docs/verification/p6-manual-verification.md`); TLS
   handshakes, radio wake-up and the JS bridge on a handset are not represented.
+  **Android 2026-09-02, server side of the device series:** 10 manual re-plans on a 14-task day — edge-function total p50 1662 / p95 1908 ms, service p50 1475 / p95 1735 ms, 9 learned + 1 `fallback:timeout` (1908 ms against the 1900 ms budget: the 1.5 s CP-SAT cap leaves 0.4 s of headroom on a FEASIBLE day). The client-measured `duration_ms` lives in PostHog (HANDOFF ⛔ 5b) — not yet a device number.
 - ⬜ **NFR-P2 — 60 fps timeline scrolling** (added P6). Scroll a 12-block Today timeline with the
   Perf Monitor open on a mid-range Android and an iPhone. Why: FlashList recycling and blur
   (`expo-blur` on iOS) cost nothing on an M-series Mac.
@@ -39,17 +42,20 @@
   quick-add chips, task sheet, undo bar) with real OS settings. Simulator can't settle it: the
   sweep ran on the iOS simulator only; Android font scaling (up to 200% + display size) and
   its reduced-motion setting behave differently and have never been exercised.
+  **Android 2026-09-02** (font 2.0, density 540, animation scales 0 over adb; screenshots in `device-pass/android-20260902-1030/a11y-maxscale/`): every screen usable; two defects — the Today time gutter wraps "12:00 PM" mid-token (fixed 64 px) and the heatmap weekday header wraps mid-word; the timeline viewport shrinks to about a third of the screen (scrolls, actions reachable). Maestro visibility asserts are unreliable under the density override, so the evidence is screenshots + tree dumps. iOS pending.
 - ⬜ **NFR-A1 — VoiceOver (iOS) and TalkBack (Android) pass on all shipped screens** (added
   P2/P3; grows each UI phase). Navigate every screen by screen reader alone: task rows (single
   a11y element incl. ", due <date>"), ambiguity chips, undo within its 6 s window. Simulator
   can't settle it: simulator VoiceOver diverges from device behaviour (focus order, gesture
   handling) and TalkBack has no simulator equivalent that counts.
+  **Android 2026-09-02, structural half (uiautomator tree):** task rows are one element with the composed label; block cards one focusable element ("title, start to end, Experiment, Confidence N percent", inner texts not focusable); Settings switch checkable + checked, mute chips CheckBox with full labels; heatmap one ImageView carrying the daypart summary. Finding: tab labels carry the icon glyph before the name. The TalkBack listening pass is the owner's.
 
 - ⬜ **FR-22 / NFR-A2 — Today timeline at 200 % font scale and with reduced motion** (added P6).
   Set the OS text size to maximum and Reduce Motion on; open Today with ≥ 6 blocks incl. one
   "Experiment" block and a two-line rationale: no clipped text, no overlapping cards, the "Now"
   marker readable, the time gutter intact. Why: the row-list timeline was designed for this but
   only exercised at 1× in jest; the simulator's Dynamic Type differs from device rendering.
+  **Android 2026-09-02:** no overlap, Now marker readable, experiment block + two-line rationale wrap; the time gutter breaks the clock mid-token (defect, fix batch); the list viewport is small under the two-line date header.
 - ⬜ **NFR-A1 — VoiceOver / TalkBack reading order on Today** (added P6). Swipe through: header
   → Plan/Re-plan button → planning banner (progressbar) → fallback notice (if any) → each block
   as ONE element announcing "title, start to end, Experiment, Confidence N percent" (no percent
@@ -62,10 +68,12 @@
   keyboard, autocorrect on, on both platforms (incl. a Ukrainian keyboard once i18n lands).
   Simulator can't settle it: development happens with the Mac hardware keyboard, which bypasses
   autocorrect, suggestion bars, and IME composition.
+  **Android ✅ 2026-09-01/02:** real Gboard with autocorrect; Ukrainian input keeps the whole string as the title and shows no chips (documented limitation); the autocorrect-acceptance chip refresh (day-1 #8) is still attended; placeholder clip defect (day-1 #7) in the fix batch.
 - ⬜ **Glass/blur recommendation blocks — Android fallback path** (obligation lands at P6,
   File 02 §3). Verify the blur (or its documented fallback) renders correctly and doesn't tank
   frame rate on the Android device. Simulator can't settle it: blur cost and fallback selection
   are GPU/driver-dependent, and Android has never run on hardware.
+  **Android ✅ 2026-09-02:** opaque dark cards render (no blur), dashed experiment outline, 60 fps held (row above).
 - ⬜ **FR-25/UC-07 — drag-to-teach gestures + haptics** (obligation lands at P7). Drag blocks
   with a finger: activation distance, long-press timing, haptic feedback on grab/snap/commit.
   Simulator can't settle it: mouse input is not touch (no finger occlusion, different velocity
@@ -79,6 +87,7 @@
   05:59 → 06:00 local and across midnight; foreground it: a new plan must be requested exactly
   once per plan day (`plan_requested` with `trigger = new_day`), never while backgrounded. Why:
   the simulator's clock and AppState transitions do not reproduce iOS background suspension.
+  **Android 2026-09-02 — DEFECT:** every cold start re-requests with `first_open` although today's plan is persisted (`useLiveRows` starts empty, so the trigger decides before the first read; the session dedup is ephemeral) — 4 extra plans in 5 minutes, the day-1 30 rows had the same cause. The overnight `new_day` check is still owed; fix batch.
 - ⬜ **NFR-R1 — Today offline** (added P6). Airplane mode after a plan exists: the plan still
   renders from SQLite; "Re-plan" shows the offline/error notice without clearing the plan. Why:
   simulator network loss is not real radio loss.
@@ -133,6 +142,7 @@
   Keystore-backed value survives an OS-forced app kill. Simulator can't settle it: simulator
   keychain is a file-backed shim without Secure Enclave/Keystore semantics or device
   lock-state interactions.
+  **Android ✅ 2026-09-01:** `adb reboot` → straight into the shell with the trial session (no PIN set).
 
 ## Sync & notifications
 
@@ -144,6 +154,7 @@
   changes waiting). Simulator can't settle it: simulated network loss is a clean socket cut on a
   stable host — no radio renegotiation, captive portals, or partial connectivity; `isConnected`
   semantics differ per platform (Android needs a validated network).
+  **Android ✅ 2026-09-02** (Wi-Fi + mobile data off, `Active default network: none`): quick-add offline → Settings "Offline — changes are queued", "2 changes waiting" → radios on → "Up to date" within 10 s with no foreground change; server `server_ts` 51 s after `client_ts`, exactly one `task_created`. Caveat: airplane mode alone is NOT offline on this Pixel (Wi-Fi stays on).
 - ⬜ **File 05 §2 on two real devices (P8).** Same account on the iPhone and the Android: edit
   one task on both while one is offline → on reconnect the field-level merge (newest edit per
   user-owned field, `done` never regresses) and no duplicate rows; complete a block on one while
@@ -189,11 +200,13 @@
   "Show as text" toggle must wrap, not truncate. Why the simulator can't settle it: Android's
   display-size + font-scale combination has never run on hardware, and iOS Dynamic Type
   rendering of the mono hour labels differs on device.
+  **Android 2026-09-02:** hour gutter and cells intact, chips wrap to two rows; the weekday header wraps mid-word ("M/on", "Tu/e") — defect, fix batch.
 - ⬜ **FR-40 / NFR-A1 — VoiceOver and TalkBack on the heatmap** (added P9). With the screen
   reader on: the grid must read as ONE element with the best/lowest daypart summary; the cells
   and hour labels must not be announced individually; "Show as text" must expose every daypart
   row. Why: `accessible` grouping and `importantForAccessibility` behave differently on real
   TalkBack (Android has never run on hardware).
+  **Android 2026-09-02, structural:** the grid is one ImageView with the best/lowest daypart summary; hour and weekday labels are non-focusable texts. Listening pass = owner.
 - ⬜ **FR-41 — ✓/✗ toggles: 44 px targets, `selected` state announced, "pending" caption read**
   (added P9). Tap each toggle by screen reader; confirm the label state sentence and the
   "Saved — applies at the next sync" caption are read; confirm nothing renders red (invariant
@@ -216,10 +229,12 @@
   a mute during the day → never a sixth notification (iOS: also with Focus modes; Android: also
   under Doze / battery saver, note the OEM). Why: the ledger is proven in jest against a faked
   OS; real delivery, coalescing and OS-side dropping only exist on hardware.
+  **Android 2026-09-02, scheduling half:** after every plan exactly 4 block alarms + the 20:00 ritual are pending (cap 5); delivery times being read from `dumpsys notification`; the phone is on USB power all day, so the Doze case needs an unplugged owner run.
 - ⬜ **FR-50 — Android exact-alarm semantics of the DATE trigger** (P10). On API 31+ confirm a
   reminder lands within a minute of `slot_start − 10 min` without `SCHEDULE_EXACT_ALARM`; if the
   OEM defers it by more, record the drift for the thesis (ADR-0014 Consequences). Why: inexact
   alarm windows are device/OEM policy.
+  **Android 2026-09-02:** the triggers are inexact `RTC_WAKEUP` alarms with Android's 75 % window — +7 m 27 s for a 10-min lead, +41 m at 55 min ahead, +1 h beyond; no `SCHEDULE_EXACT_ALARM` in the manifest. Measured drift to follow (ADR-0014 Consequences).
 - ⬜ **FR-26 — ritual actions from every app state** (P10). At the ritual time with the app
   KILLED: tap "Plan tomorrow" → the app cold-starts, plans tomorrow (one `plan_requested` with
   trigger `evening_ritual`, one `notification_response` fact), Today shows the tomorrow line;
@@ -245,9 +260,11 @@
   at max text size (Android: + display size) with Reduce Motion (+ Reduce Transparency on iOS),
   light and dark; keep the screenshots for `p10-a11y-audit.md` §2. Why: the flow was written
   in P10 but not executed — it needs a development build with the notification categories.
+  **Android 2026-09-02:** the flow's text asserts fail under the density override although the elements are on screen (tooling); evidence captured with adb screenshots instead (`a11y-maxscale/`).
 - ⬜ **NFR-P2 — cold start and 60 fps on the P10 bundle** (P10). `device-pass.sh` steps 3–4
   (Xcode App Launch / `adb am start -W`, Instruments FPS / `gfxinfo`). Why: the bundle grew
   (notifications, sharing); the only number is the P2 simulator one.
+  **Android ✅ 2026-09-01/02:** the two numbers above are on the P10+ bundle (release APK versionCode 1).
 - ⬜ **NFR-P3 from a handset** (P10). Re-run `p10-perf.mjs`'s REST read/write over LTE and Wi-Fi
   from the device network (a Node script cannot run on the handset — use the app's
   `sync_completed` durations from PostHog for `sync-resolve`, and time one `export-data` from
@@ -317,6 +334,7 @@ never substituted. Command: runbook `docs/runbooks/oracle-vm.md` §7.
   behaviour) cannot exist without the $99 membership — if the decision is ever reversed
   (revisit.md), re-verify categories + deep links on that binary before any iOS
   participant.
+  **Android 2026-09-01/02:** the locally built release APK runs the full loop (plan → focus → skip/lapse → sync) on the Pixel 7a; iOS not started.
 - ⬜ **Store screenshots captured on hardware** (added P12; **optional** since 2026-08-31 —
   the pack stays prepared-but-unsubmitted, metadata §7). Capture only if wanted for a
   thesis appendix; nothing gates on it.
