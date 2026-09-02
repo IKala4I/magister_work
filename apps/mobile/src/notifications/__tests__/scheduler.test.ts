@@ -18,6 +18,12 @@ const os = {
   cancelAll: 0,
   dismissAll: 0,
   permission: 'granted' as 'granted' | 'denied' | 'undetermined',
+  /** What the shade currently shows (FR-50 stale-dismissal input). */
+  presented: [] as Array<{
+    date: number;
+    request: { identifier: string; content: { data: Record<string, unknown> }; trigger: null };
+  }>,
+  dismissed: [] as string[],
 };
 jest.mock('expo-notifications', () => ({
   setNotificationHandler: jest.fn(),
@@ -41,6 +47,12 @@ jest.mock('expo-notifications', () => ({
   }),
   dismissAllNotificationsAsync: jest.fn(() => {
     os.dismissAll += 1;
+    return Promise.resolve();
+  }),
+  getPresentedNotificationsAsync: jest.fn(() => Promise.resolve([...os.presented])),
+  dismissNotificationAsync: jest.fn((id: string) => {
+    os.dismissed.push(id);
+    os.presented = os.presented.filter((n) => n.request.identifier !== id);
     return Promise.resolve();
   }),
   SchedulableTriggerInputTypes: { DATE: 'date' },
@@ -70,6 +82,7 @@ jest.mock('../../db/client', () => {
 });
 
 import { NOTIFICATION_DAILY_CAP } from '@hourwell/shared';
+import { eq } from 'drizzle-orm';
 
 import { db as testDb, sqlite } from '../../db/client';
 import { plans, recommendations } from '../../db/schema';
@@ -155,6 +168,8 @@ beforeEach(() => {
   os.scheduled = [];
   os.cancelAll = 0;
   os.dismissAll = 0;
+  os.presented = [];
+  os.dismissed = [];
   os.permission = 'granted';
   mockTrack.mockClear();
   appStorage.delete(StorageKeys.notificationLedger);
@@ -245,6 +260,66 @@ describe('runNotificationScheduler', () => {
     expect(os.cancelAll).toBe(1);
     expect(os.scheduled).toEqual([]);
     expect(readLedger().scheduled).toEqual([]);
+  });
+
+  it('a block reminder carries its slot start (the stale-dismissal key) in the payload', async () => {
+    seed(2);
+    await runNotificationScheduler(NOW);
+    const first = os.scheduled.find((r) => r.identifier === 'block:rec-7-0')!;
+    expect((first.content.data as { slot_start: number }).slot_start).toBe(
+      new Date(2026, 8, 7, 10, 0).getTime(),
+    );
+  });
+
+  it('dismisses presented reminders whose block started or is no longer open; the ledger and the cap are untouched (FR-50, hardware pass)', async () => {
+    seed(5); // blocks 10:00 … 14:00 (task 1 admin → muted, no reminder of its own)
+    await runNotificationScheduler(NOW); // 09:00: schedules block 0 (09:50) + the rest under the cap
+    const at = (h: number, m = 0) => new Date(2026, 8, 7, h, m).getTime();
+    const reminder = (recId: string, slotStart: number | null) => ({
+      date: at(9, 50),
+      request: {
+        identifier: `block:${recId}`,
+        content: {
+          data: {
+            kind: 'block_reminder',
+            recommendation_id: recId,
+            scheduled_for: at(9, 50),
+            ...(slotStart === null ? {} : { slot_start: slotStart }),
+          },
+        },
+        trigger: null,
+      },
+    });
+    // rec-7-3 (13:00) was skipped before its start (status `rejected`): no longer open
+    db.update(recommendations)
+      .set({ status: 'rejected' })
+      .where(eq(recommendations.id, 'rec-7-3'))
+      .run();
+    os.presented = [
+      reminder('rec-7-0', at(10)), // started at 10:00 → stale
+      reminder('rec-7-2', at(12)), // 12:00 is ahead and open → stays
+      reminder('rec-7-3', null), // skipped, older payload without slot_start → stale
+      reminder('rec-gone', at(15)), // re-planned away: not in the plan → stale
+      {
+        date: at(9),
+        request: {
+          identifier: 'ritual:2026-09-07',
+          content: { data: { kind: 'evening_ritual', scheduled_for: at(20) } },
+          trigger: null,
+        },
+      },
+    ];
+    await runNotificationScheduler(new Date(2026, 8, 7, 11, 30));
+    expect(os.dismissed.sort()).toEqual(['block:rec-7-0', 'block:rec-7-3', 'block:rec-gone']);
+    expect(os.presented.map((n) => n.request.identifier)).toEqual([
+      'block:rec-7-2',
+      'ritual:2026-09-07',
+    ]);
+    // the delivered ledger still counts block 0 (fired 09:50) — dismissing frees no budget
+    expect(readLedger().delivered['2026-09-07']).toEqual(['block:rec-7-0']);
+    expect(os.dismissAll).toBe(0);
+    expect(os.scheduled.map((r) => r.identifier)).toContain('block:rec-7-2');
+    expect(os.scheduled.map((r) => r.identifier)).not.toContain('block:rec-7-3');
   });
 
   it('concurrent runs coalesce into one follow-up pass', async () => {

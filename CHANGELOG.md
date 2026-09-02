@@ -121,6 +121,21 @@ screens are re-verified on the device.
   `extendedWaitUntil` (30 s) because a cold start at 200 % font + largest display size renders
   after Maestro's default assert window. No other single-quoted `\\` escape exists in
   `apps/mobile/e2e`.
+- **fix(notifications): stale block reminders leave the shade (FR-50).** Delivered reminders
+  were never dismissed, so the Pixel 7a shade accumulated "email replies · Starts at 12:45 PM"
+  at 14:28 plus two more after their blocks had started or lapsed (owner observation, day 2
+  14:18/14:28). On every scheduler run — mount, foreground, and (debounced) after every plan
+  apply / re-plan, status change or profile change (`useNotificationScheduler`) — the app reads
+  the presented notifications (`getPresentedNotificationsAsync`) and dismisses
+  (`dismissNotificationAsync`) every `block_reminder` whose `slot_start` is ≤ now or whose
+  recommendation is no longer an OPEN placement (`shown / accepted / pinned / moved`, within the
+  scheduler's horizon) of the current plan — done, skipped, lapsed or re-planned-away blocks
+  lose their reminder too. The payload now carries `slot_start`; older payloads fall back to
+  the plan's slot start. Rituals are untouched; the delivered ledger and the ≤ 5/day cap are
+  neither consulted nor freed (a dismissed reminder still counts as delivered). Pure decision
+  `staleReminderIds` in `src/notifications/dismiss.ts` (`dismiss.test.ts`: started / ahead /
+  not open / no `slot_start` / rituals / malformed; OS wrapper never throws, ledger untouched)
+  and a scheduler integration test against real SQLite (`scheduler.test.ts`).
 
 ## P11 — Training pipeline + OPE + study mode (2026-08-31, phase/P11-training)
 
