@@ -151,6 +151,14 @@ export const en = {
   'weekday.4': 'Fri',
   'weekday.5': 'Sat',
   'weekday.6': 'Sun',
+  // heatmap column headers at large font scales (NFR-A2): two letters never wrap mid-word
+  'weekday.short.0': 'Mo',
+  'weekday.short.1': 'Tu',
+  'weekday.short.2': 'We',
+  'weekday.short.3': 'Th',
+  'weekday.short.4': 'Fr',
+  'weekday.short.5': 'Sa',
+  'weekday.short.6': 'Su',
 
   'beliefs.title': 'What Hourwell believes about you',
   'beliefs.subtitle': 'Tap ✓ if a belief is right, ✗ if it is wrong. Corrections count a lot.',

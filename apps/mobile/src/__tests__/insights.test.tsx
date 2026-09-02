@@ -6,6 +6,10 @@
  * path is covered in src/db/__tests__/insightsDao.test.ts.
  */
 jest.mock('../db/client', () => ({ db: {} }));
+// jest's react-native preset reports fontScale 2; the screen renders at 1× unless a test sets
+// the scale itself (the NFR-A2 heatmap header test below)
+let mockFontScale = 1;
+jest.mock('../ui/useFontScale', () => ({ useFontScale: () => mockFontScale }));
 const mockUseLiveRows = jest.fn();
 jest.mock('../db/useLiveRows', () => ({
   useLiveRows: (build: unknown, tables: readonly string[]) => mockUseLiveRows(build, tables),
@@ -250,5 +254,39 @@ describe('InsightsScreen', () => {
     await renderScreen();
     expect(screen.queryByText(en['review.done'])).toBeNull();
     expect(screen.getByText(en['review.done.thanks'])).toBeTruthy();
+  });
+});
+
+describe('heatmap weekday header at large font scales (FR-40 / NFR-A2 — hardware pass #14b)', () => {
+  afterEach(() => {
+    mockFontScale = 1;
+  });
+
+  it('at 1× the header reads Mon…Sun on one line each', async () => {
+    await renderScreen();
+    const wed = screen.getByTestId('heatmap-weekday-2');
+    expect(wed.props.children).toBe(en['weekday.2']);
+    expect(wed.props.numberOfLines).toBe(1);
+  });
+
+  it('at fontScale 2 the header switches to two-letter labels and the grid summary label is unchanged', async () => {
+    mockFontScale = 2;
+    await renderScreen();
+    expect(screen.getByTestId('heatmap-weekday-2').props.children).toBe(en['weekday.short.2']);
+    expect(screen.queryByText(en['weekday.2'])).toBeNull();
+    expect(screen.getByTestId('heatmap-grid').props.accessibilityLabel).toMatch(
+      /On weekdays your best time is morning \(74 percent\)/,
+    );
+    for (let d = 0; d < 7; d += 1) {
+      const label = screen.getByTestId(`heatmap-weekday-${d}`);
+      expect(label.props.numberOfLines).toBe(1);
+      expect(label.props.importantForAccessibility).toBe('no');
+    }
+  });
+
+  it('the switch point is 150 % (below it the full labels stay)', async () => {
+    mockFontScale = 1.3;
+    await renderScreen();
+    expect(screen.getByTestId('heatmap-weekday-0').props.children).toBe(en['weekday.0']);
   });
 });

@@ -76,6 +76,12 @@ screens are re-verified on the device.
   `minWidth` (`flexShrink: 0`; a longer locale clock widens its own gutter instead of
   clipping), and the clock text is `numberOfLines={1}`. Tests: `useFontScale.test.ts` (clamp),
   `today.test.tsx` (64 px at 1×, ≥ 128 px at 2×, one-line clock).
+- **fix(ui): Insights heatmap weekday header no longer wraps mid-word (FR-40 / NFR-A2).** At
+  font scale 2.0 the seven "Mon…Sun" columns wrapped as "M/on", "Tu/e", "W/ed" (day 2 #14b).
+  From `COMPACT_WEEKDAY_FONT_SCALE = 1.5` the header uses two-letter catalog labels
+  (`weekday.short.*`: Mo…Su); every header label is `numberOfLines={1}`; the grid's accessible
+  summary label is untouched (the header stays `importantForAccessibility="no"`). Test:
+  `insights.test.tsx` (Mon at 1× and 1.3×, We at 2×, summary label unchanged).
 
 ## P11 — Training pipeline + OPE + study mode (2026-08-31, phase/P11-training)
 
