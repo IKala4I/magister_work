@@ -40,6 +40,10 @@ ritual (`RTC_WAKEUP`, `window=+1h`). All numbers here are from this physical dev
    - a build-time assertion in both Dockerfiles + TZPATH-empty tests (the training image's
      `iso_week` shared the exposure). Re-verify after the rollout with the same script, then
      from the device (the first learned plan on hardware is still pending).
+     **Merged + rolled out 11:30 local** (PR #37 → main 4ee55cd; both image workflows green incl. the
+     new build-time assertion; VM healthz `build=4ee55cd8e7d3`). Re-run of the reproduction after the
+     rollout: `Europe/Kiev` → `engine=learned` (service 592 ms, ef 1292 ms); `Europe/Kyiv` →
+     learned (490 / 1080 ms). The device's own first learned plan still needs the 429 cleared.
 5. **Undo-bar self-expiry (day-1 open item 5) — PASS.** `input tap` on "Delete call
    landlord", uiautomator polling: bar visible from 0.10 s through the 4.92 s dump, absent by
    7.23 s → the 6 s window (`UNDO_WINDOW_MS`) holds on hardware. The day-1 flow failure was
