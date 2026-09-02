@@ -11,7 +11,13 @@ appId: com.hourwell.app
 ---
 - launchApp:
     stopApp: true
-- assertVisible: '\\w+day, \\w+ \\d+'
+# Today's header is the date line ("Wednesday, September 2") whatever the plan state (UC-03 may
+# have auto-planned). Double quotes: YAML unescapes "\\w" to \w — single quotes would hand
+# Maestro a literal backslash-w regex that never matches (review F5).
+# device: a cold start at 200 % font + largest display size renders after Maestro's default assert window
+- extendedWaitUntil:
+    visible: "\\w+day, \\w+ \\d+"
+    timeout: 30000
 - takeScreenshot: p10-today-empty
 - tapOn: 'Inbox(, tab.*)?'
 - takeScreenshot: p10-inbox
