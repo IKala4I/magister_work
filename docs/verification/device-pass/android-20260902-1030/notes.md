@@ -247,11 +247,27 @@ ritual (`RTC_WAKEUP`, `window=+1h`). All numbers here are from this physical dev
     the earlier ended blocks). FR-42 export: the Maestro flow "passed" but its wait regex matched
     the word "share" in the My data hint, so the screenshot shows the section, not the sheet —
     redone below.
-29. **FR-26 on build 3:** the 20:00 ritual (`ritual:2026-09-02`, "Plan tomorrow? 14 tasks are
-    waiting — one tap plans your day.") was posted and visible in the shade by 20:14:41 (event
-    log; the alarm window is +1 h, exact post time only on the owner's screenshot), with the app
-    alive in the background. The owner taps the "Plan tomorrow" action before midnight → the
-    backgrounded variant; the killed variant is tomorrow's.
+29. **FR-26 on build 3 — PASS (backgrounded variant), one open question.** The 20:00 ritual
+    (`ritual:2026-09-02`, "Plan tomorrow? 14 tasks are waiting — one tap plans your day.") was
+    visible in the shade by 20:14:41 (+1 h inexact window; the exact post time is on the owner's
+    screenshot). Owner tap at 20:22 with the app alive in the background → server:
+    `notification_response` 20:22:36 (`kind: evening_ritual`, `latency_ms` 1 356 753 = 22.6 min
+    after `scheduled_for` 20:00, variant daily) → one `plans` row for **2026-09-03**, trigger
+    `evening_ritual`, 20:22:42, **10 blocks**; today's count unchanged (18); Today shows
+    "Tomorrow is planned: 10 blocks, first at 9:00 AM."; the notification left the shade. **Open:**
+    the fact carries `action: "open"` (the default identifier), while the "Plan tomorrow" button
+    maps to `accept` — either the tap landed on the body (the app then routes to Today, where the
+    owner accepted on the card, which is the same `evening_ritual` request) or Android delivered
+    the button tap with the default identifier (an FR-32 labelling defect). Tomorrow's killed-app
+    run settles it: expand the shade over adb, dump the tree, tap the button by its bounds, and
+    read the fact back. **Engine:** the tomorrow plan is `heuristic`, `fallback:timeout`, edge
+    function 1909 ms — the second full-inbox request today to miss the 1.9 s budget (the morning
+    series: 1/10 on a half day; this full-day instance: 1/1). Revisit entry strengthened.
+30. **FR-42 export on build 3 — PASS (device half).** Settings → My data → "Export my data" →
+    the Android intent resolver opened with Gmail, Quick Share and Telegram targets (screenshot
+    not kept: it showed contact names) → back → status line "Export ready — 14 tables shared."
+    (`build3-fr42-export-after.png`). Opening the saved JSON on the device is the owner's; the
+    document contents were verified service-side in P10.
 
 ## Results by build (which binary produced which number)
 

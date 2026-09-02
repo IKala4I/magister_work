@@ -273,7 +273,7 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   1.9 s `PLAN_FALLBACK_BUDGET_MS`; 1/10 came back `fallback:timeout`. Both are Appendix A
   parameters (cap SPEC-FIXED). Revisit before any thesis claim about the fallback rate: either
   raise the EF budget toward the 2.5 s NFR-P1 ceiling, lower the cap on `day` horizons, or
-  report the measured ≈ 10 % fallback rate on tight days as a property of the deployment.
+  report the measured ≈ 10 % fallback rate on tight days as a property of the deployment. **Evening data point (20:22, build 3):** the ritual's full-day plan for the 3rd (14 tasks, 09:00–18:00) also came back `fallback:timeout` at 1909 ms — 1 of 1 full-day request; the half-day series was 1 of 10. A full working day with a 14-task inbox may not be answerable by the learned engine inside the budget at all.
 - [hardware pass, 2026-09-02] **Zero-block fallback plans count toward the 30-per-24 h plan
   limit** (`countPlansLast24h`). Harmless once the client's cold-start re-request loop is fixed
   (day-2 defect 15), so the limiter stays as designed; re-check the day-0/evening-empty case

@@ -244,13 +244,13 @@
   "Adjust tasks" opens the Inbox; a plain tap on a Sunday opens Insights. Repeat with the app
   backgrounded. Why: `useLastNotificationResponse` vs the listener and category action buttons
   behave differently per platform and cannot be exercised in jest.
-  **Android 2026-09-02 (build 3):** the 20:00 ritual notification was delivered (visible by 20:14:41; +1 h inexact window); the backgrounded-app tap is the owner's tonight, the killed-app variant tomorrow evening.
+  **Android 2026-09-02 (build 3):** ritual delivered (visible by 20:14:41, +1 h window); owner tap at 20:22 with the app backgrounded → one `evening_ritual` plan for the 3rd (10 blocks), one `notification_response` fact, Today shows the tomorrow line — PASS for the backgrounded variant; the fact says `action: open` (button vs body — settle with the adb-driven killed-app run tomorrow).
 - ⬜ **FR-42 — export on device** (P10). Settings → Export → the share sheet offers Files/AirDrop
   (iOS) or the share targets (Android); the saved JSON opens; it contains the tasks, events, the
   48 Beta cells and no calendar `title`. Why: `expo-sharing` + the cache-directory file are
   native paths; the share sheet itself has no simulator equivalent worth counting.
   **Android 2026-09-02 — BLOCKED by a MAJOR defect:** the Settings screen has no scroll container, so "Export my data" is unreachable on a phone (day-2 notes 23; fix batch F8). Re-run on the rebuilt APK.
-  **Android 2026-09-02 (build 3):** Settings now scrolls to My data; the share-sheet screenshot is being redone (the first flow's wait matched the hint text). Erasure stays last.
+  **Android ✅ 2026-09-02 (build 3, device half):** Settings → My data → Export → the Android share sheet offered Gmail / Quick Share / Telegram; status "Export ready — 14 tables shared." Opening the JSON on the device = owner. Erasure stays last.
 - ⬜ **FR-42 — erasure on device** (P10). Settings → Delete (two confirmations) → the
   confirmation screen with a reference → relaunch → onboarding; notifications scheduled before
   the deletion never fire afterwards; the reference exists in `deletion_audit` (owner: an

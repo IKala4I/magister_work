@@ -68,10 +68,11 @@ android-20260902-1030/notes.md` (items 1–29 + "Results by build" + owner obser
   UC-07 move (snap from an off-grid minute = owner); a11y trees (TalkBack listening = owner);
   max-scale screenshots; **UC-03 dedup on build 3 (0 requests / 20 cold starts)**; Settings
   scrolls; ritual delivered at 20:00 (+1 h window, seen by 20:14).
-- **Tonight (owner):** tap the ritual's "Plan tomorrow" action before midnight → verify: one
-  `plans` row for 2026-09-03 with trigger `evening_ritual`, one `notification_response` event, no
-  new row for today, Today shows the tomorrow line. Then the export share-sheet screenshot on
-  build 3 (session; the first flow's wait regex matched hint text).
+- **Tonight — done:** ritual tapped 20:22 (backgrounded) → `evening_ritual` plan for the 3rd
+  (10 blocks, heuristic `fallback:timeout` 1909 ms), one `notification_response` (action `open` —
+  button-vs-body open question, day-2 note 29), today unchanged, tomorrow line shown. Export share
+  sheet on build 3 ✓ ("Export ready — 14 tables shared."; the sheet screenshot was dropped — it
+  showed contact names).
 - **Tomorrow (day 3):** first open must add NO request (tomorrow's plan exists — ADR-0014 §3);
   the `new_day` case needs an evening without the ritual (skip tapping it on the 3rd → check on
   the 4th); offline first open → retries on the next foreground (F1); a delivered reminder for a
