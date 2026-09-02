@@ -99,11 +99,13 @@
   Focus tab must show the session still running with the elapsed time including the locked
   minutes (the row lives in SQLite; the display re-derives from `lastResumedAt`). The simulator
   never suspends JS the way iOS does under lock/Low-Power mode.
+  **Android ✅ 2026-09-02 (Pixel 7a):** the 11:58 session outlived a 2 h lock and a cold start (164.5 focused minutes = wall time, then the designed 2 h abandon rule closed it); a second session survived `am force-stop` + relaunch within the cap (Focus still running). Day-2 notes 19.
 - ⬜ **File 05 §1 — lazy lapse scan on foreground after a real background stint** (added P7).
   Leave a block to expire while the app is in the background for > 30 min, foreground: the block
   must read "Not done — back in your Inbox" and the Inbox must list the task; then confirm the
   `lapse_observed` row reached the server (Table Editor). The simulator's AppState transitions
   are instantaneous and never involve OS-level suspension.
+  **Android ✅ 2026-09-02 (server half):** after a 103-min stint the first foreground logged `lapse_observed` for both ended blocks (0.71 h / 1.46 h after their ends); the "Not done" row was not observable because the same foreground re-planned (client defect, fix batch F1). Re-check the UI text on the rebuilt APK.
 - ⬜ **NFR-A1 — VoiceOver/TalkBack on the block action row and the rating chips** (added P7).
   Each action must announce "Skip write report" style labels; the rating chips must be
   reachable in order and announce "Rate your energy: High"; the progress bar must announce its
@@ -124,6 +126,7 @@
 - ⬜ **UC-07 Move picker on Android** (added P7). The native time picker must return a value
   snapped to the 15-min grid and the moved block must re-render in slot order; the Android
   picker was never rendered on hardware (iOS-first development).
+  **Android ✅ 2026-09-02 (partial):** Move sheet → Android TimePicker (radial + keyboard mode) → "Move here" → the block re-renders in slot order and the server row is `moved` (17:30–18:00). The snap from an off-grid minute is still attended (type 5:37 by hand; expect :30/:45).
 
 ## Auth & identity
 
@@ -245,11 +248,13 @@
   (iOS) or the share targets (Android); the saved JSON opens; it contains the tasks, events, the
   48 Beta cells and no calendar `title`. Why: `expo-sharing` + the cache-directory file are
   native paths; the share sheet itself has no simulator equivalent worth counting.
+  **Android 2026-09-02 — BLOCKED by a MAJOR defect:** the Settings screen has no scroll container, so "Export my data" is unreachable on a phone (day-2 notes 23; fix batch F8). Re-run on the rebuilt APK.
 - ⬜ **FR-42 — erasure on device** (P10). Settings → Delete (two confirmations) → the
   confirmation screen with a reference → relaunch → onboarding; notifications scheduled before
   the deletion never fire afterwards; the reference exists in `deletion_audit` (owner: an
   aggregate `count(*) where id = …` — no row browsing). Why: the local wipe + `signOut(local)`
   - cancelled notifications is a device lifecycle path.
+    **Android 2026-09-02:** same blocker as export (Settings unscrollable); deliberately last in the pass anyway.
 - ⬜ **NFR-A1 — VoiceOver / TalkBack on the P10 surfaces** (P10). Settings: switches announce
   label + state; mute chips read "checkbox, Mute reminders for Admin, checked"; ritual time
   chips read as radios in a labelled group; the export/delete status line is announced

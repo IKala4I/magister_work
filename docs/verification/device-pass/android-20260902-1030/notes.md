@@ -158,3 +158,57 @@ ritual (`RTC_WAKEUP`, `window=+1h`). All numbers here are from this physical dev
     scale on the rebuilt APK.
 15. **Settings list ignores `input swipe` scrolling** (the modal's gesture handling); use
     Maestro `scroll` for the lower Settings sections.
+
+## Established today — afternoon block (owner's phone from 12:31; session resumed 16:11)
+
+17. **Lock stint and the 12:59 open.** Screen log: my adb lock at 12:00:01 held two seconds
+    (screen back on 12:00:03); the owner locked at 12:31:02 with the app in the foreground;
+    an accidental open at 12:59 was a warm foreground (no plan row, no fact) — harmless; the
+    owner reopened at ~14:42 (cold start). Stint that counts for the lapse check: 12:59 → 14:42.
+18. **Lazy lapse scan after a real background stint — PASS (server half).** At 14:42:36 the
+    scan logged `lapse_observed` for "email replies" (1.46 h after its end) and "grant budget
+    check" (0.71 h) and, at 16:13:47, for the next plan's "references fix" (0.98 h) and "email
+    replies" (0.23 h). The UI text "Not done — back in your Inbox" was not observable: both
+    foregrounds re-planned within a second (item 15) and the new plan replaced the lapsed rows.
+19. **FR-30 — PASS both halves.** (a) Lock: the 11:58 session outlived the 12:31 lock and the
+    14:42 cold start; the scan then closed it as `abandoned` with `focused_ms` = 164.5 min —
+    exactly the wall time since start, so timekeeping survived lock + kill. That closure is the
+    designed rule (ADR-0010: abandon after planned × 2 + 60 min = 2 h for a 30-min block;
+    `STALE_SESSION_EXTRA_MS`). (b) Cold start within the cap: session on "dataset cleanup"
+    started 16:15:12 → `am force-stop` + relaunch → Focus still running
+    (`fr30-focus-after-cold-start.png`) → "Stop for now" → `focus_end` abandoned 16:16:46.
+20. **Finding: a re-plan while a session runs drops the running block from Today.** The 16:16
+    relaunch re-planned (item 15) and the new plan omitted "dataset cleanup" (its start 16:15 was
+    already past); the old recommendation stayed `accepted` (not lapsed — ADR-0010 held) and the
+    Focus tab kept the session, but Today no longer showed the block. Manual re-plans during a
+    session hit the same path. Fix batch / revisit: carry a running block as a fixed assignment.
+21. **Warm foreground also re-planned (16:13:48, `first_open`) with the process alive (pid 26392)** — the JS context was re-created without a process death, so the ephemeral dedup was
+    gone. The fix batch's durable MMKV key covers this case too. Plan rows today: 18 of 30.
+22. **UC-07 Move picker — PASS (sheet + native picker + move), snap unconfirmed.** "Move… gym"
+    → sheet "Move to · gym" with the time button, "Move here", "Cancel"; the time button opens
+    Android's TimePicker (radial + "Type in time" keyboard mode, `uc07-native-time-picker*.png`);
+    OK → the sheet shows 5:30 PM → "Move here" → Today re-renders in slot order and the server
+    row is `moved` 17:30–18:00 (also "Offline note" moved at 16:26). The typed off-grid minute
+    (:37) never reached the field, so the 15-min snap from an off-grid value is still an
+    attended check (type 5:37 by hand; expect :30 or :45).
+23. **DEFECT (MAJOR, client — fix batch F8): Settings does not scroll.** `settings.tsx` renders
+    its sections directly inside `Screen` (a plain flex View, no ScrollView); the uiautomator tree
+    has no scrollable node and drags do nothing, so on the Pixel 7a everything below the mute
+    chips — ritual time, **My data (Export / Delete account)**, Privacy, Appearance — is
+    unreachable. FR-42 export could therefore not be exercised on the device; the p10 sweep never
+    ran green anywhere, which is why P10 missed it.
+24. **FR-50 delivery — partial.** Owner screenshots (14:18, 14:28): three block reminders
+    posted for blocks that had already started ("real offline · Starts at 2:15 PM" still at
+    14:28) → delivered reminders are never dismissed (code confirms: only sign-out clears the
+    shade) → fix batch F7; the delivered-ledger is unaffected (it counts deliveries). Event log:
+    the 15:20 alarm (block 15:30) was visible in the shade by 15:23:36 and dismissed by the
+    owner 15:34:47 — within Android's +7.5 min window for a 10-min lead. Exact post times of the
+    12:35/13:20/14:05 alarms are not in the log any more; the owner's screenshots may carry them.
+
+## Device findings (day 2, afternoon)
+
+16. `input keyevent KEYCODE_SLEEP` over adb held the screen off for 2 s only (12:00:01 → 12:00:03,
+    cause unknown); the owner's lock is the one that counts. Verify `mWakefulness` after locking.
+17. `dumpsys notification` keeps no post times once a notification is dismissed; the `events`
+    logcat buffer keeps `notification_visibility`/`notification_canceled` only — capture the shade
+    while it is posted, or enable Notification history on the phone before a delivery test.
