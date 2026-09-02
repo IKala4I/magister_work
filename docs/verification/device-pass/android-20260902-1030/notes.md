@@ -149,7 +149,12 @@ ritual (`RTC_WAKEUP`, `window=+1h`). All numbers here are from this physical dev
 13. **`uiautomator dump` fails on the Focus tab** ("could not get idle state" — the ticking
     timer never idles) and silently re-served a stale file until the helper was hardened;
     Maestro screenshots are the evidence there.
-14. **Maestro visibility asserts fail under `wm density` overrides** even for on-screen text
-    (both the p10 sweep runs at max scale); tree dumps and adb screenshots are the evidence.
+14. **CORRECTED (adversarial review of the fix batch): the p10/p2 date assertion could never
+    match** — `'\\w+day, \\w+ \\d+'` sits in SINGLE-quoted YAML, which does no escape
+    processing, so Maestro received a literal backslash-w regex; the assertion was added on day
+    1 after the last p2 run and has never passed on any device. The two max-scale sweep
+    failures were this, not the density override (the earlier attribution here was wrong).
+    Fix batch F5 double-quotes the regex; to be confirmed on the device at default and max
+    scale on the rebuilt APK.
 15. **Settings list ignores `input swipe` scrolling** (the modal's gesture handling); use
     Maestro `scroll` for the lower Settings sections.

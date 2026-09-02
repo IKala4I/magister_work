@@ -42,7 +42,7 @@
   quick-add chips, task sheet, undo bar) with real OS settings. Simulator can't settle it: the
   sweep ran on the iOS simulator only; Android font scaling (up to 200% + display size) and
   its reduced-motion setting behave differently and have never been exercised.
-  **Android 2026-09-02** (font 2.0, density 540, animation scales 0 over adb; screenshots in `device-pass/android-20260902-1030/a11y-maxscale/`): every screen usable; two defects — the Today time gutter wraps "12:00 PM" mid-token (fixed 64 px) and the heatmap weekday header wraps mid-word; the timeline viewport shrinks to about a third of the screen (scrolls, actions reachable). Maestro visibility asserts are unreliable under the density override, so the evidence is screenshots + tree dumps. iOS pending.
+  **Android 2026-09-02** (font 2.0, density 540, animation scales 0 over adb; screenshots in `device-pass/android-20260902-1030/a11y-maxscale/`): every screen usable; two defects — the Today time gutter wraps "12:00 PM" mid-token (fixed 64 px) and the heatmap weekday header wraps mid-word; the timeline viewport shrinks to about a third of the screen (scrolls, actions reachable). The p10 flow itself never passed its date assertion on any device (a YAML-quoting bug in the regex, fixed in the batch — day-2 finding 14), so the evidence is adb screenshots + tree dumps. iOS pending.
 - ⬜ **NFR-A1 — VoiceOver (iOS) and TalkBack (Android) pass on all shipped screens** (added
   P2/P3; grows each UI phase). Navigate every screen by screen reader alone: task rows (single
   a11y element incl. ", due <date>"), ambiguity chips, undo within its 6 s window. Simulator
@@ -260,7 +260,7 @@
   at max text size (Android: + display size) with Reduce Motion (+ Reduce Transparency on iOS),
   light and dark; keep the screenshots for `p10-a11y-audit.md` §2. Why: the flow was written
   in P10 but not executed — it needs a development build with the notification categories.
-  **Android 2026-09-02:** the flow's text asserts fail under the density override although the elements are on screen (tooling); evidence captured with adb screenshots instead (`a11y-maxscale/`).
+  **Android 2026-09-02:** the flow fails on its date assertion regardless of scale (single-quoted YAML turned the regex into a literal backslash-w; fix batch F5) — evidence captured with adb screenshots instead (`a11y-maxscale/`); re-run on the rebuilt APK.
 - ⬜ **NFR-P2 — cold start and 60 fps on the P10 bundle** (P10). `device-pass.sh` steps 3–4
   (Xcode App Launch / `adb am start -W`, Instruments FPS / `gfxinfo`). Why: the bundle grew
   (notifications, sharing); the only number is the P2 simulator one.
