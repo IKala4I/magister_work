@@ -85,9 +85,10 @@ import { NOTIFICATION_DAILY_CAP } from '@hourwell/shared';
 import { eq } from 'drizzle-orm';
 
 import { db as testDb, sqlite } from '../../db/client';
+import { moveBlock } from '../../db/feedback';
 import { plans, recommendations } from '../../db/schema';
 import { saveProfile } from '../../db/profile';
-import { createTask } from '../../db/tasks';
+import { createTask, softDeleteTask } from '../../db/tasks';
 import type { LocalDb } from '../../db/writes';
 import { StorageKeys, appStorage } from '../../storage/mmkv';
 import { readLedger } from '../ledger';
@@ -320,6 +321,74 @@ describe('runNotificationScheduler', () => {
     expect(os.dismissAll).toBe(0);
     expect(os.scheduled.map((r) => r.identifier)).toContain('block:rec-7-2');
     expect(os.scheduled.map((r) => r.identifier)).not.toContain('block:rec-7-3');
+  });
+
+  it('a moved block (UC-07) loses the reminder that names its old time and gets one for the new time', async () => {
+    // three blocks (10:00, 11:00 admin → muted, 12:00) so the day's budget still has room for
+    // the moved block's new reminder — a dismissal frees NO budget (ADR-0014 §2), so on a full
+    // day the cap can legitimately leave a moved block without one
+    seed(3);
+    await runNotificationScheduler(NOW);
+    const at = (h: number, m = 0) => new Date(2026, 8, 7, h, m).getTime();
+    // the 12:00 block's reminder fired at 11:50; at 11:52 the user moves the block to 15:00
+    os.presented = [
+      {
+        date: at(11, 50),
+        request: {
+          identifier: 'block:rec-7-2',
+          content: {
+            data: {
+              kind: 'block_reminder',
+              recommendation_id: 'rec-7-2',
+              scheduled_for: at(11, 50),
+              slot_start: at(12),
+            },
+          },
+          trigger: null,
+        },
+      },
+    ];
+    const moveAt = new Date(2026, 8, 7, 11, 52);
+    moveBlock(db, {
+      recommendationId: 'rec-7-2',
+      toStart: new Date(2026, 8, 7, 15, 0),
+      now: moveAt,
+    });
+    await runNotificationScheduler(moveAt);
+    expect(os.dismissed).toEqual(['block:rec-7-2']);
+    expect(os.presented).toEqual([]);
+    const rescheduled = os.scheduled.find((r) => r.identifier === 'block:rec-7-2')!;
+    expect(rescheduled.trigger).toEqual({ type: 'date', date: at(14, 50) });
+    expect((rescheduled.content.data as { slot_start: number }).slot_start).toBe(at(15));
+  });
+
+  it("a soft-deleted task's presented reminder is dismissed (the planner's own task filter)", async () => {
+    seed(5);
+    await runNotificationScheduler(NOW);
+    const at = (h: number, m = 0) => new Date(2026, 8, 7, h, m).getTime();
+    const rec = db.select().from(recommendations).where(eq(recommendations.id, 'rec-7-2')).get()!;
+    os.presented = [
+      {
+        date: at(11, 50),
+        request: {
+          identifier: 'block:rec-7-2',
+          content: {
+            data: {
+              kind: 'block_reminder',
+              recommendation_id: 'rec-7-2',
+              scheduled_for: at(11, 50),
+              slot_start: at(12),
+            },
+          },
+          trigger: null,
+        },
+      },
+    ];
+    // deleted past the undo window: the placement still reads `shown`, its task is gone
+    softDeleteTask(db, { id: rec.taskId, now: new Date(2026, 8, 7, 11, 51) });
+    await runNotificationScheduler(new Date(2026, 8, 7, 11, 52));
+    expect(os.dismissed).toEqual(['block:rec-7-2']);
+    expect(os.scheduled.map((r) => r.identifier)).not.toContain('block:rec-7-2');
   });
 
   it('concurrent runs coalesce into one follow-up pass', async () => {

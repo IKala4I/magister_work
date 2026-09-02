@@ -92,6 +92,30 @@ describe('staleReminderIds (pure)', () => {
   });
 });
 
+describe('staleReminderIds — a moved block (UC-07) shows the wrong time (review 2 #1)', () => {
+  it('same recommendation id, payload 12:45, plan 15:00, now 12:38 → dismissed', () => {
+    // the 12:45 reminder fired at 12:35; at 12:38 the user moved the block to 15:00 — moveBlock
+    // keeps the id and rewrites slotStart in place (status `moved` is open)
+    const moved = new Map([['r-1245', at(15, 0)]]);
+    expect(
+      staleReminderIds(
+        [reminder('r-1245', { slot_start: at(12, 45) })],
+        moved,
+        new Date(at(12, 38)),
+      ),
+    ).toEqual(['block:r-1245']);
+  });
+
+  it('a payload that matches the plan is judged by time alone; no payload start defers to the plan', () => {
+    const open = new Map([['r-1500', at(15, 0)]]);
+    const now = new Date(at(12, 38));
+    expect(staleReminderIds([reminder('r-1500', { slot_start: at(15, 0) })], open, now)).toEqual(
+      [],
+    );
+    expect(staleReminderIds([reminder('r-1500')], open, now)).toEqual([]);
+  });
+});
+
 describe('dismissStaleReminders (OS wrapper)', () => {
   const getPresented = Notifications.getPresentedNotificationsAsync as jest.Mock;
   const dismiss = Notifications.dismissNotificationAsync as jest.Mock;

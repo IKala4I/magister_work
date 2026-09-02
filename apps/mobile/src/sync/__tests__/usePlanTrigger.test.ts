@@ -121,7 +121,8 @@ describe('usePlanTrigger — durable per-plan-day dedup (MMKV)', () => {
       expect(lastRequestedPlanDay()).toBeNull();
       expect(usePlanStore.getState().status).toBe(status);
       await first.unmount();
-      // the next open / foreground on the same day asks again (main's behaviour, kept)
+      // the next open / foreground on the same day asks again — on main the key was written at
+      // request start, so within one process a second foreground did NOT re-ask; now it does
       await mount({ latestPlanDate: null, todayPlanDate: null, ready: true });
       expect(mockRequestPlan).toHaveBeenCalledTimes(2);
     },

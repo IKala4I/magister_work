@@ -130,18 +130,24 @@ async function pass(now: Date): Promise<void> {
     now,
     new Date(now.getTime() + HORIZON_MS),
   ).all();
-  // stale block reminders leave the shade (FR-50; hardware pass: "Starts at 12:45 PM" still
-  // posted at 14:28) — decided against the open placements just read, never against the ledger
-  await dismissStaleReminders({
-    now,
-    openSlotStarts: new Map(
-      recs.filter((r) => OPEN_STATUSES.has(r.status)).map((r) => [r.id, r.slotStart.getTime()]),
-    ),
-  });
   const taskRows = activeTasksQuery(localDb, userId).all();
   const tasks = new Map(
     taskRows.map((r) => [r.id, { id: r.id, category: r.category, deletedAt: r.deletedAt }]),
   );
+  // stale block reminders leave the shade (FR-50; hardware pass: "Starts at 12:45 PM" still
+  // posted at 14:28) — decided against the open placements just read, with the planner's own
+  // task filter (a deleted task closes its placement), never against the ledger
+  await dismissStaleReminders({
+    now,
+    openSlotStarts: new Map(
+      recs
+        .filter((r) => {
+          const task = tasks.get(r.taskId);
+          return OPEN_STATUSES.has(r.status) && task !== undefined && task.deletedAt === null;
+        })
+        .map((r) => [r.id, r.slotStart.getTime()]),
+    ),
+  });
   const titles = new Map(taskRows.map((r) => [r.id, r.title]));
   const inboxCount = inboxTasksQuery(localDb)
     .all()

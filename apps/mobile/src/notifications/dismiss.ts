@@ -4,10 +4,12 @@
  * kept "email replies · Starts at 12:45 PM" at 14:28 plus two more after their blocks had
  * started or lapsed (owner observation, hardware pass day 2). The scheduler calls this on
  * every run — mount, foreground, after every plan apply / re-plan — with the open placements
- * it just read: every presented `block_reminder` whose slot start is ≤ now, or whose
- * recommendation is no longer an OPEN placement of the current plan, is dismissed. Rituals are
- * left alone. The delivered ledger and the daily cap are not consulted and not freed: a
- * dismissed reminder was still delivered and still counts (ADR-0014 §2).
+ * it just read (open status AND a live task, the planner's own notion of "open"): every
+ * presented `block_reminder` whose slot start is ≤ now, whose recommendation is no longer an
+ * open placement of the current plan, or whose payload names a different start than the plan
+ * (the block was moved), is dismissed. Rituals are left alone. The delivered ledger and the
+ * daily cap are not consulted and not freed: a dismissed reminder was still delivered and
+ * still counts (ADR-0014 §2).
  */
 import * as Notifications from 'expo-notifications';
 
@@ -43,8 +45,15 @@ export function staleReminderIds(
       stale.push(notification.identifier);
       continue;
     }
-    const slotStart = typeof data.slot_start === 'number' ? data.slot_start : planned;
-    if (slotStart <= nowMs) stale.push(notification.identifier);
+    const payloadStart = typeof data.slot_start === 'number' ? data.slot_start : null;
+    if (payloadStart !== null && payloadStart !== planned) {
+      // a moved block (UC-07) keeps its recommendation id and rewrites the slot start in place:
+      // a reminder naming another start than the plan's shows the wrong time — stale; the
+      // scheduler re-schedules the new time in the same pass
+      stale.push(notification.identifier);
+      continue;
+    }
+    if ((payloadStart ?? planned) <= nowMs) stale.push(notification.identifier);
   }
   return stale;
 }

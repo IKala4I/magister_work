@@ -127,11 +127,14 @@ screens are re-verified on the device.
   14:18/14:28). On every scheduler run — mount, foreground, and (debounced) after every plan
   apply / re-plan, status change or profile change (`useNotificationScheduler`) — the app reads
   the presented notifications (`getPresentedNotificationsAsync`) and dismisses
-  (`dismissNotificationAsync`) every `block_reminder` whose `slot_start` is ≤ now or whose
+  (`dismissNotificationAsync`) every `block_reminder` whose `slot_start` is ≤ now, whose
   recommendation is no longer an OPEN placement (`shown / accepted / pinned / moved`, within the
-  scheduler's horizon) of the current plan — done, skipped, lapsed or re-planned-away blocks
-  lose their reminder too. The payload now carries `slot_start`; older payloads fall back to
-  the plan's slot start. Rituals are untouched; the delivered ledger and the ≤ 5/day cap are
+  scheduler's horizon, AND with a live task — the planner's own filter, so a deleted task's
+  reminder goes too), or whose payload names a different start than the plan (a block moved
+  with UC-07 keeps its id: the old-time reminder is dismissed and the new time re-scheduled in
+  the same pass) — done, skipped, lapsed, deleted, moved or re-planned-away blocks all lose
+  their stale reminder. The payload now carries `slot_start`; older payloads fall back to the
+  plan's slot start. Rituals are untouched; the delivered ledger and the ≤ 5/day cap are
   neither consulted nor freed (a dismissed reminder still counts as delivered). Pure decision
   `staleReminderIds` in `src/notifications/dismiss.ts` (`dismiss.test.ts`: started / ahead /
   not open / no `slot_start` / rituals / malformed; OS wrapper never throws, ledger untouched)
