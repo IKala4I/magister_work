@@ -25,7 +25,14 @@ import { appStorage, StorageKeys } from '../../storage/mmkv';
 import { lastRequestedPlanDay } from '../planRequestDay';
 import { runPlanRequest, usePlanTrigger, type PlanTriggerInput } from '../usePlanTrigger';
 
-const today = requestPlanDayOf(new Date());
+// The clock is pinned to 09:00 local of the real calendar day (modern fake timers): a suite
+// run before the 06:00 plan-day anchor would otherwise sit where no auto-request is ever made.
+const NOW = (() => {
+  const d = new Date();
+  d.setHours(9, 0, 0, 0);
+  return d;
+})();
+const today = requestPlanDayOf(NOW);
 
 function mount(input: PlanTriggerInput) {
   return renderHook((props: PlanTriggerInput) => usePlanTrigger(props), {
@@ -39,6 +46,7 @@ function simulateColdStart() {
 }
 
 beforeEach(() => {
+  jest.useFakeTimers({ now: NOW });
   jest.clearAllMocks();
   mockInFlight = false;
   appStorage.clearAll();
@@ -46,11 +54,11 @@ beforeEach(() => {
   mockRequestPlan.mockResolvedValue({ kind: 'planned', plan: {}, durationMs: 1 });
 });
 
-// a 02:00 run would sit before the 06:00 plan-day anchor, where no auto-request is ever made
-const beforeAnchor = new Date().getHours() < 6;
-const describeDaytime = beforeAnchor ? describe.skip : describe;
+afterEach(() => {
+  jest.useRealTimers();
+});
 
-describeDaytime('usePlanTrigger — waits for the plan reads', () => {
+describe('usePlanTrigger — waits for the plan reads', () => {
   it('requests nothing while the reads are unresolved, then first_open once they are', async () => {
     const { rerender } = await mount({ latestPlanDate: null, todayPlanDate: null, ready: false });
     expect(mockRequestPlan).not.toHaveBeenCalled();
@@ -78,7 +86,7 @@ describeDaytime('usePlanTrigger — waits for the plan reads', () => {
   });
 });
 
-describeDaytime('usePlanTrigger — durable per-plan-day dedup (MMKV)', () => {
+describe('usePlanTrigger — durable per-plan-day dedup (MMKV)', () => {
   it('writes the plan day to MMKV when a request starts', async () => {
     await mount({ latestPlanDate: null, todayPlanDate: null, ready: true });
     expect(mockRequestPlan).toHaveBeenCalledTimes(1);
