@@ -25,6 +25,11 @@ const DEFAULT_MINUTES = 30;
 
 export interface QuickAddBarProps {
   onSubmit: (draft: TaskDraft, nlParseUsed: boolean) => void;
+  /**
+   * Show the NL example caption under an empty input (default). Off where the surrounding copy
+   * already teaches the example (the onboarding seed step), so a screen reader hears it once.
+   */
+  showExample?: boolean;
 }
 
 function formatDeadline(date: Date): string {
@@ -63,7 +68,7 @@ function dateChoicesFor(ambiguity: QuickAddAmbiguity): DateChoice[] {
   }
 }
 
-export function QuickAddBar({ onSubmit }: QuickAddBarProps) {
+export function QuickAddBar({ onSubmit, showExample = true }: QuickAddBarProps) {
   const theme = useTheme();
   const [text, setText] = useState('');
   const [deadlineOverride, setDeadlineOverride] = useState<Date | null>(null);
@@ -146,9 +151,11 @@ export function QuickAddBar({ onSubmit }: QuickAddBarProps) {
       </View>
 
       {text.trim().length === 0 ? (
-        <ThemedText variant="caption" tone="secondary" testID="quick-add-example">
-          {t('inbox.quickAdd.example')}
-        </ThemedText>
+        showExample ? (
+          <ThemedText variant="caption" tone="secondary" testID="quick-add-example">
+            {t('inbox.quickAdd.example')}
+          </ThemedText>
+        ) : null
       ) : (
         <View style={styles.previewRow}>
           {canSubmit ? (

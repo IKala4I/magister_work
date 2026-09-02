@@ -94,7 +94,9 @@ screens are re-verified on the device.
   example fits one line on any phone). The placeholder is now `Add a task` and the NL example
   moved to its own catalog key (`inbox.quickAdd.example`: 'Try "report draft 2h by Fri"'),
   rendered as a wrapping caption under the input while it is empty and swapped for the live
-  preview row once typing starts. The input border is 1 px instead of hairline (Android draws a
+  preview row once typing starts (`showExample` prop, default on; off on the onboarding seed
+  step whose intro already teaches the example, so a screen reader hears it once — review F4).
+  The input border is 1 px instead of hairline (Android draws a
   sub-pixel border unevenly around rounded corners — the "border looks off at the sides" note).
   Test: `inbox.test.tsx` (short quote-free placeholder, example caption ↔ preview swap).
 - **fix(mobile): tab-bar icon glyphs hidden from assistive tech (NFR-A1, Android).** TalkBack
