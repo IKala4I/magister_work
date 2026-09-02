@@ -233,3 +233,42 @@ ritual (`RTC_WAKEUP`, `window=+1h`). All numbers here are from this physical dev
     scheduled (the ≤ 5/day cap on hardware).
 27. **Build 3** = main checkout at 56935e0 (same app source as 3f1159d), `expo prebuild --clean`
     - `assembleRelease`, debug-keystore signing, Sentry upload disabled — results below.
+
+28. **Build 3 — gate passed, backend proven, UC-03 dedup verified on hardware.** APK
+    `ee920100ba66…` (121 298 594 B) from the main checkout at 56935e0 (app source = main 3f1159d
+    after PR #38), `expo prebuild --clean` + `assembleRelease`; installed 17:00:04. Gate: project
+    host and anon-key prefix present in the bundle. Backend proof: a "Mute reminders for
+    Physical" toggle reached `profiles.settings.muted_categories` on the server at 17:00:28 and
+    the un-toggle at 17:00:37. **UC-03:** plans today 18 → first open on build 3: 18 → 20 cold
+    starts (`am force-stop` + launch): 18 — zero automatic requests with a persisted plan (fix
+    batch F1, verified with a working backend). Cold start p90 (18th of 20) 551 ms, 505–622,
+    warm OS caches (`cold-start-build3.txt`; the post-reboot number is still owed on this build).
+    Lapse scan on the first build-3 foreground: two `lapse_observed` at 17:00:12 (the 16:30 and
+    the earlier ended blocks). FR-42 export: the Maestro flow "passed" but its wait regex matched
+    the word "share" in the My data hint, so the screenshot shows the section, not the sheet —
+    redone below.
+29. **FR-26 on build 3:** the 20:00 ritual (`ritual:2026-09-02`, "Plan tomorrow? 14 tasks are
+    waiting — one tap plans your day.") was posted and visible in the shade by 20:14:41 (event
+    log; the alarm window is +1 h, exact post time only on the owner's screenshot), with the app
+    alive in the background. The owner taps the "Plan tomorrow" action before midnight → the
+    backgrounded variant; the killed variant is tomorrow's.
+
+## Results by build (which binary produced which number)
+
+| Build | Source / APK                                                                                                                           | Numbers and checks attributed to it                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1** | day-1 local release build, 2026-09-01 10:00, from main 3495b3b (pre-fix), 121 293 079 B, versionCode 1; overwritten on disk by build 3 | day 1: UC-01 E2E, NFR-P2 cold start p90 **1582 ms post-reboot** / 552 ms warm, NFR-S1 reboot; day 2 items 1–24: first learned plan, NFR-P1 series (server p95 1908 ms, 1/10 timeout), scroll p95 8 ms / 0 janky, real offline round trip, undo 6 s, Ukrainian NL, FR-30 both halves, lapse scan, UC-07 move, a11y trees, max-scale screenshots and their two defects, cold-start re-plan defect, Settings unscrollable, stale reminders |
+| **2** | fix branch 43bfade built in the agent worktree, `0c8d34eb04f4…`, 121 298 163 B — **no project URL in the bundle → VOID**               | nothing behavioural counts (no backend). Only UI-local facts kept: Settings scrolls to Privacy/Appearance (F8); after four delivered reminders only the two ritual alarms remained scheduled (cap)                                                                                                                                                                                                                                      |
+| **3** | main checkout 56935e0 (= main 3f1159d + this branch's docs), clean prebuild, `ee920100ba66…`, 121 298 594 B, installed 17:00:04        | bundle gate ✓, backend proof ✓, **UC-03: 0 requests across first open + 20 cold starts with a persisted plan**, cold start p90 551 ms warm, lapse scan on foreground, FR-26 ritual delivered ≤ 20:14:41, export sheet (pending redo)                                                                                                                                                                                                    |
+
+## Owner observations (2026-09-02) → where they landed
+
+- **Stale reminders pile up in the shade** (14:18 / 14:28 screenshots) → item 24; fix batch **F7**
+  (dismiss started / re-planned-away / moved / deleted-task reminders on every scheduler pass;
+  ledger and cap untouched) — merged in PR #38, on the phone since build 3; a real delivery to
+  exercise it is tomorrow's (today's block budget is spent).
+- **Stale UI for about a second on foreground** (14:20) → the persisted plan rendered first, then
+  the cold-start `first_open` re-plan replaced it — items 15 and 21; fix batch **F1** (`ready`
+  gate + durable per-day key, written only after the server answers) — merged, verified on
+  build 3 (item 28). The "empty first read" was the root cause of the re-plan, not a separate
+  render bug.

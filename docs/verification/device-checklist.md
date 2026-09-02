@@ -244,11 +244,13 @@
   "Adjust tasks" opens the Inbox; a plain tap on a Sunday opens Insights. Repeat with the app
   backgrounded. Why: `useLastNotificationResponse` vs the listener and category action buttons
   behave differently per platform and cannot be exercised in jest.
+  **Android 2026-09-02 (build 3):** the 20:00 ritual notification was delivered (visible by 20:14:41; +1 h inexact window); the backgrounded-app tap is the owner's tonight, the killed-app variant tomorrow evening.
 - ⬜ **FR-42 — export on device** (P10). Settings → Export → the share sheet offers Files/AirDrop
   (iOS) or the share targets (Android); the saved JSON opens; it contains the tasks, events, the
   48 Beta cells and no calendar `title`. Why: `expo-sharing` + the cache-directory file are
   native paths; the share sheet itself has no simulator equivalent worth counting.
   **Android 2026-09-02 — BLOCKED by a MAJOR defect:** the Settings screen has no scroll container, so "Export my data" is unreachable on a phone (day-2 notes 23; fix batch F8). Re-run on the rebuilt APK.
+  **Android 2026-09-02 (build 3):** Settings now scrolls to My data; the share-sheet screenshot is being redone (the first flow's wait matched the hint text). Erasure stays last.
 - ⬜ **FR-42 — erasure on device** (P10). Settings → Delete (two confirmations) → the
   confirmation screen with a reference → relaunch → onboarding; notifications scheduled before
   the deletion never fire afterwards; the reference exists in `deletion_audit` (owner: an
@@ -283,8 +285,10 @@
   then the overnight case: backgrounded across midnight → the first foreground after 06:00 adds
   exactly one `new_day` row. Why the simulator can't settle it: the defect only shows on a real
   cold start of the release process (the first render of the live read is empty).
+  **Android ✅ 2026-09-02 (build 3, Pixel 7a):** with today's plan persisted, the first open and 20 `am force-stop` + launch cycles added zero plan rows (18 → 18 → 18) on a build with a proven backend. Overnight `new_day` and the offline-first-open retry still owed.
 - ⬜ **NFR-P2 — cold start ×20 on the rebuilt APK** (the day-1 protocol; the p90 must be
   re-stated for the binary that ships the fixes and the Expo patch bump).
+  **Android 2026-09-02 (build 3):** p90 551 ms (505–622) with warm OS caches; the post-reboot run on this build is still owed (build 1's post-reboot p90 was 1582 ms).
 - ⬜ **FR-22 / NFR-A2 — Today time gutter at 200 % + largest display** (F2): the clock stays
   on one line, the gutter grows, cards do not overlap. Take the same `a11y-maxscale/` screenshots.
 - ⬜ **FR-40 / NFR-A2 — heatmap weekday header at 200 %** (F3): two-letter labels, one line,
