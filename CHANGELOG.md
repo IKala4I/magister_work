@@ -98,6 +98,12 @@ screens are re-verified on the device.
   `importantForAccessibility="no-hide-descendants"` + `accessibilityElementsHidden`, so the
   announced label is the tab name only. Test: `shell.test.tsx` (each tab's accessible text is
   exactly its name; the glyphs are still rendered, hidden).
+- **test(mobile): e2e title selectors tolerate IME capitalisation.** On hardware Gboard
+  auto-capitalised a typed title ("offline note" → "Offline note", day 2 #7) while the app
+  keeps what was typed; the selectors that match typed titles in `p3-tasks-flow`,
+  `p4-onboarding-flow` and `p10-a11y-sweep` carry the `(?i)` regex prefix. The three flows are
+  taken at their hardware-pass state (b92a4d9 + the p10 state-tolerance edits) so the branches
+  merge cleanly.
 
 ## P11 — Training pipeline + OPE + study mode (2026-08-31, phase/P11-training)
 
