@@ -289,3 +289,12 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
 - [hardware pass, 2026-09-02] jest prints "A worker process has failed to exit gracefully" on
   the fix-batch branch (second adversarial pass, unattributed — likely the SQLite suites, not
   verified against main). Run `pnpm test -- --detectOpenHandles` once and close the handle.
+- [hardware pass, 2026-09-02 evening] **Measured shape of the learned-path fallback** (45-request
+  sweep, `docs/verification/hw-plan-budget-sweep.mjs`; day-2 notes "Plan-budget sweep"): the
+  1.9 s budget = 0.43 s round-trip floor + 0.45–0.9 s function overhead + a 1.0 s effective solver
+  slice (1.5 s cap − 0.5 s ladder reserve, no gap limit). Reliable when the solver finishes
+  < ≈ 0.6 s (≤ 4.5 h windows at any size; ≤ 12 tasks on 9 h); a coin flip whenever the first rung
+  runs to its slice (from 14–16 tasks on 9 h; today's deadline-bearing 14-task instances 12/15,
+  an optimality-proof stall on ≈ 300-literal models). Decide: `relative_gap_limit` / early stop,
+  parallel context reads, budget → 2.5 s − client overhead, or co-location — and which of these
+  is reported as a result rather than fixed. Supersedes the "≈ 10 % on tight days" wording above.

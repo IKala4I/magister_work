@@ -30,7 +30,7 @@
   learned path and the fallback path. Why: the P6 numbers are Node-on-a-Mac → hosted edge
   function on the fallback path only (`docs/verification/p6-manual-verification.md`); TLS
   handshakes, radio wake-up and the JS bridge on a handset are not represented.
-  **Android 2026-09-02, server side of the device series:** 10 manual re-plans on a 14-task day — edge-function total p50 1662 / p95 1908 ms, service p50 1475 / p95 1735 ms, 9 learned + 1 `fallback:timeout` (1908 ms against the 1900 ms budget: the 1.5 s CP-SAT cap leaves 0.4 s of headroom on a FEASIBLE day). The client-measured `duration_ms` lives in PostHog (HANDOFF ⛔ 5b) — not yet a device number.
+  **Android 2026-09-02, server side of the device series:** 10 manual re-plans on a 14-task day — edge-function total p50 1662 / p95 1908 ms, service p50 1475 / p95 1735 ms, 9 learned + 1 `fallback:timeout` (1908 ms against the 1900 ms budget: the 1.5 s CP-SAT cap leaves 0.4 s of headroom on a FEASIBLE day). The client-measured `duration_ms` lives in PostHog (HANDOFF ⛔ 5b) — not yet a device number. **Shape measured 2026-09-02 evening** (45-request sweep, day-2 notes): reliable below ≈ 0.6 s of solver time (any inbox on ≤ 4.5 h; ≤ 12 tasks on 9 h), a coin flip once the first rung runs to its 1.0 s slice (14–16+ tasks on 9 h; the device's deadline-bearing 14-task instances 12/15).
 - ⬜ **NFR-P2 — 60 fps timeline scrolling** (added P6). Scroll a 12-block Today timeline with the
   Perf Monitor open on a mid-range Android and an iPhone. Why: FlashList recycling and blur
   (`expo-blur` on iOS) cost nothing on an M-series Mac.

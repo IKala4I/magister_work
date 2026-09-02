@@ -254,13 +254,11 @@ ritual (`RTC_WAKEUP`, `window=+1h`). All numbers here are from this physical dev
     `notification_response` 20:22:36 (`kind: evening_ritual`, `latency_ms` 1 356 753 = 22.6 min
     after `scheduled_for` 20:00, variant daily) → one `plans` row for **2026-09-03**, trigger
     `evening_ritual`, 20:22:42, **10 blocks**; today's count unchanged (18); Today shows
-    "Tomorrow is planned: 10 blocks, first at 9:00 AM."; the notification left the shade. **Open:**
-    the fact carries `action: "open"` (the default identifier), while the "Plan tomorrow" button
-    maps to `accept` — either the tap landed on the body (the app then routes to Today, where the
-    owner accepted on the card, which is the same `evening_ritual` request) or Android delivered
-    the button tap with the default identifier (an FR-32 labelling defect). Tomorrow's killed-app
-    run settles it: expand the shade over adb, dump the tree, tap the button by its bounds, and
-    read the fact back. **Engine:** the tomorrow plan is `heuristic`, `fallback:timeout`, edge
+    "Tomorrow is planned: 10 blocks, first at 9:00 AM."; the notification left the shade. **Label
+    confirmed by the owner:** the tap was on the notification body (`action: "open"`), then the
+    "Plan tomorrow" button on the Today card — the fact is correct, no FR-32 defect. The
+    notification's own action button is still untested; tomorrow's killed-app run taps it over adb
+    (expand the shade, dump the tree, tap by bounds, read the fact back). **Engine:** the tomorrow plan is `heuristic`, `fallback:timeout`, edge
     function 1909 ms — the second full-inbox request today to miss the 1.9 s budget (the morning
     series: 1/10 on a half day; this full-day instance: 1/1). Revisit entry strengthened.
 30. **FR-42 export on build 3 — PASS (device half).** Settings → My data → "Export my data" →
@@ -288,3 +286,54 @@ ritual (`RTC_WAKEUP`, `window=+1h`). All numbers here are from this physical dev
   gate + durable per-day key, written only after the server answers) — merged, verified on
   build 3 (item 28). The "empty first read" was the root cause of the re-plan, not a separate
   render bug.
+
+## Plan-budget sweep — the shape of the fallback (20:31–20:34, `hw-plan-budget-sweep.mjs`)
+
+Question (owner): at what inbox size and horizon does the learned path start missing the 1.9 s
+edge-function budget, and is it the solver or the round trip? Method: one throwaway anonymous user
+per inbox size; three independent instances per user on three plan dates whose working hours
+give a 9 h, 4.5 h and 2 h window; `now` = real now (every tick workable); two repeats of the clean
+instance (non-splittable, no deadlines) plus one device-like variant (splittable, two deadlines).
+45 requests, every user self-erased; rows in `plan-budget-sweep*.json`.
+
+| tasks | 9 h window: solve ms · status · function total                                | 4.5 h            | 2 h              |
+| ----- | ----------------------------------------------------------------------------- | ---------------- | ---------------- |
+| 4     | 15 · OPTIMAL · 0.87–1.41 s                                                    | 9 · OPT · ~1.0 s | 4 · OPT · ~1.1 s |
+| 8     | 31 · OPTIMAL · 0.91–1.10 s                                                    | 16–17 · OPT      | 7 · OPT          |
+| 12    | 61–62 · OPTIMAL · 1.19–1.30 s                                                 | 24–28 · OPT      | 8–10 · OPT       |
+| 14    | 277–285 · OPTIMAL · 1.15–1.26 s (splittable + deadlines: 614 · OPT · 1.53 s)  | 48–53 · OPT      | 10–12 · OPT      |
+| 16    | 367 · OPTIMAL · 1.57 s **or `fallback:timeout`** (1 of 2; call cut at 1.27 s) | 63–81 · OPT      | 10–11 · OPT      |
+| 20    | 865–1002 · OPTIMAL/**FEASIBLE at the cap** · 1.77–1.98 s (client 2.0–2.2 s)   | 85–97 · OPT      | 13–17 · OPT      |
+
+What the columns say:
+
+- **Round-trip floor ≈ 0.43 s.** The function's call to the service (`ef.service_ms`) is 440–470 ms
+  even when the service's own total is 7–40 ms — network + HTTP between the function region
+  (eu-west-1) and the VM (Marseille).
+- **Function overhead outside the call ≈ 0.45–0.9 s** (`ef.total − ef.service`: context reads,
+  persisting the plan). So the service call is given only 1.9 s − that ≈ **1.0–1.45 s**.
+- **Solver:** on windows ≤ 4.5 h every inbox up to 20 tasks is OPTIMAL in ≤ 110 ms. On a 9 h
+  window the solve grows from 15 ms (4 tasks) through 0.3–0.6 s (14) to 0.9–1.0 s (20, FEASIBLE at
+  the cap); the first miss appears at 16 tasks (1 of 2).
+- **Effective solver cap = 1.0 s**, not 1.5: `SOLVER_TIME_CAP_S` 1.5 s minus the 0.5 s ladder
+  reserve on the first rung (`planner.py` 522–524); no `relative_gap_limit`, so a solution that is
+  found but not proven optimal burns the whole slice (`solves: 1`, degradation never used).
+- **The device's instances were the stall case, not the big case.** Today's 14–15-task plans on a
+  6.25 h window (two near deadlines, 6–8 previous assignments) have only ≈ 300 literals, yet 12
+  of 15 learned calls ran to the 1.0 s cap as FEASIBLE while two same-size instances proved
+  OPTIMAL in 7 ms and 325 ms — an optimality-proof stall, seed-dependent. A capped solve puts the
+  call at ≈ 1.47–1.53 s against a remaining budget of 1.0–1.45 s, so the fallback is decided by
+  how much the function spent before the call: ≈ 10 % of the half-day series, 1 of 1 full-day
+  ritual plan, 1 of 2 clean 16-task full-day instances.
+
+**Threshold, as measured on the deployed stack:** the learned path is reliable when the solver
+finishes under ≈ 0.6 s — any inbox on a ≤ 4.5 h window, or ≤ 12 tasks on a full day. It becomes a
+coin flip whenever the first rung runs to its 1.0 s slice, which happens from 14–16 tasks on a 9 h
+window in clean instances and on today's deadline-bearing 14-task instances in 12 of 15
+requests. The budget is structurally consumed — 0.43 s floor + 0.45–0.9 s function + up to 1.0 s
+solver = 1.9–2.3 s — not "occasionally tight". Levers, cheapest first: (1) a CP-SAT
+`relative_gap_limit` / early stop so proof stalls do not burn the slice; (2) parallel context reads
+in the function; (3) `PLAN_FALLBACK_BUDGET_MS` toward NFR-P1's 2.5 s minus the measured client
+overhead (client − function ≈ 150–250 ms from the Mac); (4) co-locating the VM with the function
+region. All four touch Appendix A parameters or ADR-0009 — owner's call which becomes the thesis
+result and which becomes a fix.
