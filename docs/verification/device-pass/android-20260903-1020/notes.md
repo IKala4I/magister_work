@@ -159,6 +159,28 @@ force-stop` + `am start -W`, TotalTime, default font/density). Build 1's post-re
     The lapse scan on the 12:35 foreground had already logged `lapse_observed` for the 11:45
     block (server 09:34:14 UTC).
 
+14. **Evening: the pre-plan sync skips the instant reward pass (PR #40, `sync-resolve` v6,
+    deployed 13:16 EEST — ADR-0012 addendum).** Measured before (`hw-sync-hops.mjs`, Node →
+    hosted function, throwaway user, 0 ops): `poll` p50 533 ms vs `pre_plan` 844 ms (710–1422),
+    8 task ops 946 ms, the 400 path ≈ 300 ms (boot + auth + parse), one RPC hop ≈ 87 ms, REST
+    floor 97 ms. After: `pre_plan` p50 783 ms with **min 553** (= the `poll` level 464–554; the
+    n = 5 median carries one 2.0 s cold-isolate outlier right after the deploy), `foreground`
+    995 ms (the pass still runs there, as designed), **8 ops 946 → 771 ms p50**. The device
+    measure is tomorrow's PostHog `sync_completed` for `pre_plan`. **Labeling rule (owner):**
+    every 3 Sep client row (both re-plan series, all 19 rows of the 2 Sep export, tomorrow's
+    3 Sep export) is **pre-L1**; every 4 Sep row is **post-L1** — no device request ran between
+    the deploy and midnight (the app is killed). Server-side versions for the record:
+    `plan-request` v11 → **v12** at 11:06 (concurrent reads), recsys build `4ee55cd8e7d3` →
+    **`813cdbade0e9`** at 11:06 (ADR-0018), `sync-resolve` v5 → **v6** at 13:16 (L1).
+15. **NFR-P1 decided (owner, 2026-09-03): ≤ 4.5 s p95 end-to-end on the device, warm; ≤ 1.5 s
+    p95 for the server-side function; 1.9 s fallback bound.** Under-delivering is expected and
+    the measured figures are reported alongside; the Pixel 7a on home Wi-Fi is a favourable
+    case, not the average one. L2 (hop collapse) and L3 (ops inside the plan request) are
+    optional optimisations, not prerequisites (corrections #51, spec-conflicts L40, revisit.md).
+16. **Repo process:** branch protection on `main` requires the six CI jobs and the repository's
+    auto-merge setting is on — `gh pr merge --auto` now waits for CI (PR #40 was merged by hand
+    after green checks because the setting was still off at that moment).
+
 ## Results by build
 
 | Build | Source / APK                                                        | Numbers and checks attributed to it                                                                                                                |

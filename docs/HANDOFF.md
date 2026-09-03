@@ -2,13 +2,15 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-03 afternoon — **hardware pass, Android day 3 closed; day 4 queue below.**
+> Last update: 2026-09-03 evening — **hardware pass, Android day 3 closed; day 4 queue below.**
 > Read first: `docs/verification/device-pass/android-20260903-1020/notes.md` (items 1–12) and
 > **ADR-0018** (solver stopping criteria — the day's decision, with the before/after tables), then
 > the "Day 4 — open with these" block. Merged today: **PR #39** (`relative_gap_limit` 0.01 + 0.3 s
 > no-improvement early stop + trajectory telemetry; concurrent count/context reads in
-> `plan-request`; `api.ts`). The box serves build `813cdbade0e9` since 11:06 EEST; `plan-request`
-> is v12. The phone still runs **build 3** (`ee920100ba66…`, main 3f1159d source — the APK did not
+> `plan-request`; `api.ts`) and **PR #40** (the pre-plan sync skips the instant reward pass,
+> ADR-0012 addendum). The box serves build `813cdbade0e9` since 11:06 EEST; `plan-request` is
+> v12 (11:06); `sync-resolve` is **v6 (13:16)** — every 3 Sep client row is pre-#40, every 4 Sep
+> row post-#40 (notes item 14). The phone still runs **build 3** (`ee920100ba66…`, main 3f1159d source — the APK did not
 > change today). Branch state: `post-p12/hardware-pass` = main + the day-3 docs commits, pushed.
 
 ## Day 4 — open with these (2026-09-04)
@@ -28,10 +30,13 @@
    → exactly one plan row for 2026-09-04 (`q-after.mjs`-style read of `plans`).
 2. **PostHog re-export (owner, ⛔ 5b-bis, no key):** eu.posthog.com → Activity → date 3 Sep →
    events `plan_requested` **and `sync_completed`** (columns `trigger`/`reason`, `outcome`,
-   `engine`, `duration_ms`, timestamp) → `~/Downloads/`. Session: pair with
-   `series-before-2026-09-03.json` / `series-after-2026-09-03.json` (function starts 07:37 and
-   08:40 UTC) → the client-side "after" p50/p95, the measured pre-plan sync share, and the final
-   NFR-P1 figure check (corrections #51: 4.0 s p95 stands if the after p95 ≤ 3.6 s, else 4.5 s).
+   `engine`, `duration_ms`, timestamp) → `~/Downloads/`. **Label: the 3 Sep export is entirely
+   pre-PR-#40** (the sync-resolve change deployed 13:16 with the app killed; no device request
+   ran afterwards). Session: pair with `series-before-2026-09-03.json` / `series-after-2026-09-03.json`
+   (function starts 07:37 and 08:40 UTC) → the client-side p50/p95 before and after ADR-0018 and
+   the measured pre-plan sync share (`sync_completed` with `reason = pre_plan`); these are the
+   measured figures the thesis reports next to the decided 4.5 s / 1.5 s requirement. Any 4 Sep
+   rows (the `new_day` request, later series) are post-#40 — keep the two days apart.
 3. **Evening of the 4th — the action-button variant (live-state step; owner decides whether to
    sit through it):** kill the app (`am kill`, never `force-stop` — that cancels the alarms) before
    20:00; after the owner pings that the ritual is showing, one adb-driven tap on the
@@ -42,11 +47,10 @@ accept` + tomorrow's plan; day-2 note 29 (button vs body) closes. Everything els
    TalkBack listening pass (tab names, block cards, heatmap summary), and the three `owner-*`
    screenshots of the 2 Sep deliveries (14:18 / 14:28 / 20:1x) dropped into
    `android-20260902-1030/`. Then **FR-42 erasure LAST** (ends the device account).
-5. **Thesis follow-ups from day 3:** ADR-0018 accepted (owner, 2026-09-03). NFR-P1 #51 accepted
-   in principle; **the figure waits on the owner's choice** between (a) ship 4.0 s as measured or
-   (b) cut the pre-plan sync first (revisit.md "Pre-plan sync cost": L1 rewards-pass skip ≈ −0.35 s
-   server-only, L2 hop collapse ≈ −0.25 s, L3 ops inside `plan-request` ≈ −1.2 s but a client
-   rebuild) and re-measure; corrections #51 / spec-conflicts L40 then take the final number; the ADR-0018 window re-pin after a week of plans (`max_improvement_gap_ms`
+5. **Thesis follow-ups from day 3:** ADR-0018 accepted and **NFR-P1 decided (owner):
+   ≤ 4.5 s p95 device end-to-end (warm), ≤ 1.5 s p95 server-side, 1.9 s fallback bound; measured
+   figures reported alongside; L2/L3 optional** — corrections #51, spec-conflicts L40, revisit.md
+   "Pre-plan sync cost" all say so. Nothing is pending on the figure; the ADR-0018 window re-pin after a week of plans (`max_improvement_gap_ms`
    p95 vs 0.3 s); the two levers left untouched are in revisit.md.
 
 ## Where we are
@@ -109,6 +113,9 @@ accept` + tomorrow's plan; day-2 note 29 (button vs body) closes. Everything els
   tomorrow) so tonight's ritual is delivered to a dead process; nobody taps it. 24-h plan count
   was 29/30 at 11:42 — it frees up from 10:37 EEST on the 4th (the before-series rows) and 11:40
   (the after-series rows).
+- **Server-side changes today, for attribution:** recsys `813cdbade0e9` + `plan-request` v12
+  at 11:06 (ADR-0018 + concurrent reads), `sync-resolve` v6 at 13:16 (PR #40, pre-plan sync
+  without the reward pass). The APK is unchanged (build 3).
 - **Standing rule from today:** no Monitor / cron / sleep-loop for time-triggered checks; the
   owner pings when the moment has passed and the session reads the records. The only live-state
   step left in the queue is the action-button tap on the 4th's ritual (it needs the notification
@@ -195,10 +202,10 @@ accept` + tomorrow's plan; day-2 note 29 (button vs body) closes. Everything els
 
 ## Gotchas (P12 additions; earlier lists in git history of this file still apply)
 
-- **`gh pr merge --auto --merge` merges immediately on this repo** — no required checks are
-  configured, so auto-merge does not wait for CI (PR #39 merged with three checks still pending;
-  they finished green on `main` afterwards). If a merge must wait for CI, watch `gh pr checks`
-  and merge by hand.
+- **Branch protection is on `main` since 2026-09-03** (six required CI jobs; the path-filtered
+  synthetic-cohort job cannot be required) and the repository's auto-merge setting is on —
+  `gh pr merge --auto --merge` now waits for CI. Before that, PR #39 auto-merged with three
+  checks pending (they passed on `main` afterwards).
 - **`hw-plan-budget-sweep.mjs` plan dates now roll from today** (tomorrow / +2 / +3). The
   hard-coded dates had turned the "9 h" row into a 6.75 h window on a re-run — compare sweeps
   only on the same horizon dates (weekday vs weekend cells differ slightly).
