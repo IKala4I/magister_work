@@ -121,15 +121,16 @@ table incl. `auth.users` → the audit row `reason = user_request`, completed af
 
 `docs/verification/p10-perf.mjs 20`, Node on an M-series Mac in Ukraine → hosted project (eu-west-1), 2026-08-30 16:03 UTC:
 
-| endpoint                                | n   | p50 ms | p95 ms | budget ms | within       |
-| --------------------------------------- | --- | ------ | ------ | --------- | ------------ |
-| floor: `GET /auth/v1/health`            | 20  | 69     | 73     | —         | (wire floor) |
-| REST read `GET tasks?select=id&limit=1` | 20  | 74     | 88     | 300       | ✅           |
-| REST write `PATCH profiles.locale`      | 20  | 78     | 82     | 300       | ✅           |
-| `sync-resolve` empty push + pull        | 20  | 346    | 477    | 300       | ❌           |
-| `insights`                              | 20  | 679    | 714    | 300       | ❌           |
-| `export-data` (small user)              | 10  | 505    | 736    | 300       | ❌           |
-| `plan-request` learned, 5 tasks, warm   | 5   | 916    | 965    | 2 500     | ✅           |
+| endpoint                                                                                       | n   | p50 ms | p95 ms | budget ms | within                                                  |
+| ---------------------------------------------------------------------------------------------- | --- | ------ | ------ | --------- | ------------------------------------------------------- |
+| floor: `GET /auth/v1/health`                                                                   | 20  | 69     | 73     | —         | (wire floor)                                            |
+| REST read `GET tasks?select=id&limit=1`                                                        | 20  | 74     | 88     | 300       | ✅                                                      |
+| REST write `PATCH profiles.locale`                                                             | 20  | 78     | 82     | 300       | ✅                                                      |
+| `sync-resolve` empty push + pull                                                               | 20  | 346    | 477    | 300       | ❌                                                      |
+| `insights`                                                                                     | 20  | 679    | 714    | 300       | ❌                                                      |
+| `export-data` (small user)                                                                     | 10  | 505    | 736    | 300       | ❌                                                      |
+| `plan-request` learned, 5 tasks, warm                                                          | 5   | 916    | 965    | 2 500     | ✅                                                      |
+| **device:** `plan-request` learned, 14 tasks, warm, Pixel 7a client `duration_ms` (2026-09-02) | 10  | 3 271  | 3 836  | 2 500     | ❌ (server side 1 662 / 1 908; client overhead ≈ 1.6 s) |
 
 Reading: **NFR-P3 holds for the core read/write API** (PostgREST under RLS: 82–88 ms p95, ~10 ms
 above the wire floor). The **edge-function round trips do not** meet 300 ms: `sync-resolve` is a
@@ -147,6 +148,16 @@ class, no regression. Nothing here is a device number (device column: pending �
 number (1 075 ms p90, M-series Mac, iPhone 17 Pro simulator, Release) stands as the only value and
 is explicitly simulator evidence; the P10 bundle grew (notifications, sharing) and the device pass
 re-measures with `measure-cold-start.py` / Xcode App Launch and `adb am start -W` (script).
+
+**Device column (hardware pass, 2026-09-03 — the PostHog client series of 2026-09-02):** the
+Pixel 7a's own `plan_requested.duration_ms` on the 10-re-plan warm series is p50 3 271 / p95
+3 836 ms (all 19 triggers of the day: p95 4 857 ms). The number the Node rows above never saw
+is the client's own work before and after the function: a pre-plan sync push of 1.0–1.5 s
+whenever ops are pending, plus ≈ 0.5 s of transport, response handling and the SQLite mirror —
+day-3 notes item 1 (`android-20260903-1020/`) has the per-request decomposition. So NFR-P1 as
+the spec phrased it (≤ 2.5 s p95 warm from the device) **does not hold on hardware**, while the
+server-side series alone (1.9 s p95) suggested it did. Owner decision 2026-09-03: the 2.5 s was
+a pre-deployment estimate; the thesis states the measured figure (thesis-corrections, day 3).
 
 ## 3. What is NOT established (and where it is tracked)
 

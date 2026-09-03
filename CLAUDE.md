@@ -93,6 +93,20 @@
   pressure: stop at the nearest clean commit, write the handoff, say so. Resume line is:
   "Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."
 
+## No wall-clock polling (owner directive, 2026-09-03)
+
+- **Never sit in a polling loop waiting on a wall clock** — no Monitor, cron, or sleep-loop
+  that watches for a reminder, the evening ritual, the day boundary, a delivery window or any
+  other time-triggered event. Two sessions have been burnt by this (a 58-minute poll cost ≈ 215k
+  tokens; the earlier one hit the session limit mid-run).
+- **Reconstruct afterwards instead:** time-triggered behaviour is read from the records once
+  the moment has passed — the notification archive (`dumpsys notification`), the alarm list,
+  the server rows (`plans`, `events`, `notification_response`), PostHog exports, and the
+  system event log — or the owner pings when the moment has passed and the session reads then.
+- **If a check genuinely cannot be reconstructed after the fact** (it needs an action while a
+  state is live), say which check and why **before** starting it, and let the owner decide
+  whether to sit through it.
+
 ## Context efficiency (owner directive, 2026-08-26)
 
 Quality stays where it is; what changes is how much we re-read.

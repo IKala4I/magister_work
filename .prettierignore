@@ -28,3 +28,4 @@ supabase/functions/
 
 # agent worktrees live inside the repo dir (harness) — never format or lint them from the main checkout
 .claude/
+docs/verification/device-pass/android-20260903-1020/*.json

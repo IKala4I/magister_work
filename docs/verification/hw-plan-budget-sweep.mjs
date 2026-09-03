@@ -27,13 +27,22 @@ const OUT = process.argv[3] ?? null;
 const SIZES = (process.env.SWEEP_SIZES ?? '4,8,12,14,16,20').split(',').map(Number);
 const SPLITTABLE = process.env.SWEEP_SPLITTABLE === '1';
 const DEADLINES = Number(process.env.SWEEP_DEADLINES ?? 0); // first K tasks get a deadline on the plan date's evening
-// plan_date → working window that day (minutes from midnight); dates are after today so `now`
-// (real) precedes every tick. 2026-09-03 Thu, 09-04 Fri, 09-05 Sat.
+// plan_date → working window that day (minutes from midnight). The dates roll from today
+// (tomorrow, +2, +3) so `now` (real) precedes every tick whenever the sweep runs — the day-2 run
+// (2026-09-02) used 09-03 Thu / 09-04 Fri / 09-05 Sat; a re-run on a later day would otherwise
+// plan a shrinking "full" window (caught 2026-09-03: the 9 h row had become 6.75 h).
+const KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+const dayAfter = (n) => {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  return { planDate: d.toISOString().slice(0, 10), key: KEYS[d.getDay()] };
+};
 const HORIZONS = [
-  { label: 'full 9h', planDate: '2026-09-03', key: 'thu', hours: [540, 1080] },
-  { label: 'half 4.5h', planDate: '2026-09-04', key: 'fri', hours: [810, 1080] },
-  { label: 'short 2h', planDate: '2026-09-05', key: 'sat', hours: [960, 1080] },
+  { label: 'full 9h', ...dayAfter(1), hours: [540, 1080] },
+  { label: 'half 4.5h', ...dayAfter(2), hours: [810, 1080] },
+  { label: 'short 2h', ...dayAfter(3), hours: [960, 1080] },
 ];
+console.log('plan dates:', HORIZONS.map((h) => `${h.label}=${h.planDate}/${h.key}`).join(' '));
 const CATS = ['admin', 'deep', 'learning', 'physical'];
 const MINS = [30, 45, 60, 30, 90, 45];
 
@@ -105,6 +114,12 @@ async function cell(n, repeat) {
         literals: svc?.literals ?? null,
         degradation: svc?.degradation ?? null,
         solves: svc?.solves ?? null,
+        // ADR-0018 search trajectory (present from build 813cdba, 2026-09-03)
+        early_stop: svc?.early_stop ?? null,
+        n_solutions: svc?.n_solutions ?? null,
+        last_improvement_ms: svc?.last_improvement_ms ?? null,
+        max_improvement_gap_ms: svc?.max_improvement_gap_ms ?? null,
+        gap: svc?.gap ?? null,
         recs: res.data.recommendations.length,
         unplaced: res.data.unplaced.length,
       });

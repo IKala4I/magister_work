@@ -118,6 +118,50 @@ spread — the plan is a sample either way.
 - Appendix A gains two rows; `api.ts` regenerated (six telemetry fields; the edge function only
   checks that `telemetry` is an object, the client stores it as JSON).
 
-## Measured after the rollout (2026-09-03)
+## Measured after the rollout (2026-09-03, build `813cdbade0e9` on the box from 11:05:58 EEST; `plan-request` v12)
 
-_To be filled from the after-series and the sweep re-run._
+**Sweep, like-for-like (`hw-plan-budget-sweep.mjs 2`, 36 requests, 9 h / 4.5 h / 2 h windows on
+the next three days; day-3 evidence `plan-budget-sweep-after.json`):**
+
+| tasks, 9 h window                       | before (day 2): solve · status · function                    | after: solve · status · function                                                            |
+| --------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| 12                                      | 61–62 ms · OPTIMAL · 1.19–1.30 s                             | 100–158 ms · OPTIMAL · 0.97–1.09 s                                                          |
+| 14                                      | 277–285 ms · OPTIMAL · 1.15–1.26 s                           | 154–161 ms · OPTIMAL · 0.91–1.05 s                                                          |
+| 16                                      | 367 ms · OPTIMAL · 1.57 s **or `fallback:timeout`** (1 of 2) | 206–281 ms · OPTIMAL · 1.02–1.04 s                                                          |
+| 20                                      | 865–1002 ms · OPTIMAL / FEASIBLE at the cap · 1.77–1.98 s    | 743–770 ms · FEASIBLE (early stop) · 1.54–1.58 s                                            |
+| fallbacks                               | **1 / 36**                                                   | **0 / 36**                                                                                  |
+| splittable + 2 deadlines (14 / 16 / 20) | 614 · OPT · 1.53 s / — / 1002 · FEASIBLE at the cap · 1.92 s | 188 · OPT · 1.10 s / 552 · FEASIBLE · 1.35 s / 725 · FEASIBLE · 1.48 s; **0 / 9** fallbacks |
+| function work outside the service call  | p50 553 · p90 797 · max 937 ms (n = 36)                      | **p50 388 · p90 517 · max 545 ms** (n = 36) — Decision 4                                    |
+
+Half-day and 2 h windows: OPTIMAL throughout, unchanged (5–229 ms). The 20-task full-day
+instance now ends by the window (last improvement ≈ 0.45 s + 0.3 s) instead of the cap, and its
+function total (1.54–1.58 s) sits 0.3 s inside the budget where it used to brush it.
+
+**Device, first after-point (11:06:34 UTC+3, the same 15-task inbox as the "before" series):**
+solve **421 ms** — `early_stop = true`, 16 improving solutions, last at 112 ms, longest wait
+between improvements 23 ms, bound gap 1.13 (the stall class exactly as reproduced); service call
+942 ms; function 1142 ms (before: 1449–1757 ms, 9/9 at 1001–1007 ms solve).
+
+**Device "after" series (11:40:33–11:41:46 UTC+3, 10 taps 8 s apart, the same inbox; window from
+now to 18:00; `series-after-2026-09-03.json`):**
+
+| series                       | fallbacks  | function total p50 / p95 / max | learned solve p50 / p90 / max | status                                          |
+| ---------------------------- | ---------- | ------------------------------ | ----------------------------- | ----------------------------------------------- |
+| before (07:37 UTC, day 3)    | **1 / 10** | 1675 / 1907 / 1907 ms          | 1003 / 1007 / 1007 ms         | 9 × FEASIBLE at the cap + 1 HEURISTIC           |
+| day 2 (08:38 UTC)            | 1 / 10     | 1662 / 1908 / 1908 ms          | 1002 / 1007 / 1532 ms         | 8 × FEASIBLE at the cap, 1 OPTIMAL, 1 HEURISTIC |
+| **after** (08:40 UTC, day 3) | **0 / 10** | **1091 / 1342 / 1342 ms**      | **400 / 632 / 665 ms**        | 10 × FEASIBLE, `early_stop` **10 / 10**         |
+
+The box's own trajectory on the stall class (11 solves incl. the first point): last improvement
+49–356 ms (p50 ≈ 93 ms), improving solutions 7–19, longest wait between improvements 13–268 ms —
+sorted 13, 14, 16, 19, 20, 23, 23, 27, 122, 167, 224, 268 ms. Two waits (224, 268 ms) came within
+1.1–1.3× of the 0.3 s window, so the margin on the box is thinner than the Mac-scaled estimate
+(p95 0.19–0.22 s) suggested, though still inside the scaled envelope (max 0.53 s). **Re-pin
+rule applied now:** keep 0.3 s (every after-solve returned in 358–665 ms with the function
+0.3–0.6 s inside the budget); revisit after a week of plans — if the box's
+`max_improvement_gap_ms` p95 is ≥ 0.25 s, raise the window to 0.4 s (cost: +0.1 s on stall
+solves, still ≈ 0.6 s inside the budget). Bound gap on the box: 1.21–2.23 — the proof would
+never have closed. Objectives are not comparable across the series (Thompson samples on a
+shrinking window: 7–8 blocks placed after vs 9 before).
+
+**Clean instances, box trajectory** (`plan-budget-sweep-after-trajectory.json`): see the day-3
+notes item 9.

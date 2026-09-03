@@ -390,6 +390,18 @@ real log as a restricted-access OSF deposit (Frankfurt storage). Text: thesis-co
   on-primary text is white in light and the dark surface colour in dark; pinned by
   `a11yAudit.test.ts`. ADR-0014 §11.
 
+- **L40.** (hardware pass, 2026-09-03) File 02 NFR-P1 "plan end-to-end ≤ 2.5 s p95 warm" was an
+  estimate made before deployment and counted only the server-side function. Measured from the
+  device (Pixel 7a, ten warm re-plans, `plan_requested.duration_ms`): p95 3.84 s before ADR-0018
+  and an estimated ≈ 3.4 s after it (client-side after numbers pending the next PostHog export);
+  the extra time is the pre-plan sync push (1.0–1.5 s when ops are pending) and transport/mirror
+  (≈ 0.5 s). Normative reading from here on (owner decision 2026-09-03): **NFR-P1 = ≤ 4.5 s p95 end-to-end
+  on the device, warm; ≤ 1.5 s p95 for the server-side function; fallback bound 1.9 s** — the
+  measured figures are reported alongside it and under-delivering against it is expected; the
+  Pixel 7a on home Wi-Fi is a favourable case, not the average one (thesis-corrections #51). Appendix A gains two service
+  rows from ADR-0018: `relative gap limit` = 0.01 and `no-improvement window` = 0.3 s; the
+  `solver time cap` (1.5 s, SPEC-FIXED) and the `/plan EF fallback budget` (1.9 s) are unchanged.
+
 ## Post-P12 status overlay (2026-09-01) — File 06 is design, not report
 
 Owner decision, recorded at the DPIA signature (`dpia.md` §10) and as thesis-corrections

@@ -310,8 +310,29 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   telemetry on every plan + concurrent count/context reads in `plan-request`. Measured before
   shipping: the gap limit alone is inert on the stall class (relative bound gap 0.38–1.21 on the
   device's reproduced inbox; symmetry level 2 / probing 1 change nothing) — the early stop is
-  what ends the stall, at ≤ 0.3 % objective loss for the 0.3 s window. **After-rollout numbers:**
-  see the day-3 notes (device after-series, sweep re-run) and ADR-0018's last section. Still
+  what ends the stall, at ≤ 0.3 % objective loss for the 0.3 s window. **After-rollout numbers
+  (2026-09-03):** device series on the same inbox 0/10 fallbacks (before 1/10), function p50
+  1091 / p95 1342 ms (before 1675 / 1907), solve p50 400 / max 665 ms, early stop 10/10; sweep
+  0/36 (before 1/36) and 0/9 on the splittable + deadlines variant; function work outside the
+  service call p50 388 / p90 517 ms (before 553 / 797). Window margin on the box is thin (longest
+  waits 224–268 ms vs 0.3 s) — re-pin rule in ADR-0018. Still
   open: (a) the exact alternative — symmetry-breaking among interchangeable tasks so the proof
   closes instead of being stopped; (b) re-pin the window from the box's own
   `max_improvement_gap_ms` p95 after a week of plans (rule in ADR-0018 §3).
+- [hardware pass, 2026-09-03 — DECIDED (owner)] **Pre-plan sync cost (the largest NFR-P1
+  component, 1.0–1.5 s on the phone).** NFR-P1 is set at 4.5 s p95 device end-to-end / 1.5 s
+  server-side with the measured figures reported alongside; **L1 shipped the same day**
+  (server-only); **L2 and L3 are optional optimisations, not prerequisites** for meeting the
+  requirement — do them only if a later phase wants the lower measured figure. Measured composition (`hw-sync-hops.mjs`, Node → hosted
+  function, 0 ops): `poll` (no rewards pass) p50 533 ms vs `pre_plan` p50 844 ms (710–1422),
+  8 task ops 946 ms; the 400 path ≈ 300 ms = boot + auth + parse; one RPC hop ≈ 87 ms; the phone
+  adds ≈ 0.45 s of transport + 0.1–0.2 s of local apply. Levers, cheapest first: (L1) run the
+  instant-rewards pass only when the pushed ops carry facts, i.e. treat `pre_plan` like `poll`
+  in `shouldRunRewards` — ≈ −0.35 s, server-only, ~1 h, attribution deferred to the next sync /
+  23:55 (invariant 7 unaffected); (L2) one RPC for lease + replay + pull + release — ≈ −0.25 s,
+  server-only, ~half a day (SQL wrapper + pgTAP + function); (L3) carry the pending ops inside
+  `plan-request` and pull afterwards in the background — ≈ −1.2 s (the whole round trip minus
+  the replay inside the plan call), a client change → build 4 + re-verification, ~1.5 days, and
+  the 1.9 s fallback clock must start after the replay. Estimated device p95 after each: today
+  ≈ 3.4 s → L1 ≈ 3.0 s → L1+L2 ≈ 2.8 s → L3 ≈ 2.0–2.2 s. Corrects the day-3 wording "collapsing
+  the hops ≈ −0.8 s" (that was L1 + L3 conflated).

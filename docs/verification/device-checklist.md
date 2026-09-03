@@ -17,7 +17,7 @@
   measured on an iPhone 17 Pro simulator on an M-series Mac, which is materially faster than
   the device class the requirement names (thesis-corrections item 11) — threshold met,
   condition not.
-  **Android (Pixel 7a) ✅ 2026-09-01:** p90 1582 ms right after a reboot (1091–1754), 552 ms with warm OS caches — day-1 notes. iOS pending.
+  **Android (Pixel 7a) ✅ 2026-09-01:** p90 1582 ms right after a reboot (1091–1754), 552 ms with warm OS caches — day-1 notes. **Build 3 ✅ 2026-09-03:** p90 1072 ms right after a reboot (705–1202, n = 20), 551 ms warm (day 2) — day-3 notes item 12. iOS pending.
 - ⬜ **NFR-P2 — 60 fps timeline scroll** (obligation lands at P6 when the Today timeline
   exists). Profile frame pacing on both devices with a realistic day (10+ blocks, glass
   blocks, Skia ring visible). Simulator can't settle it: desktop GPU + no thermal or memory
@@ -30,7 +30,7 @@
   learned path and the fallback path. Why: the P6 numbers are Node-on-a-Mac → hosted edge
   function on the fallback path only (`docs/verification/p6-manual-verification.md`); TLS
   handshakes, radio wake-up and the JS bridge on a handset are not represented.
-  **Android 2026-09-02, server side of the device series:** 10 manual re-plans on a 14-task day — edge-function total p50 1662 / p95 1908 ms, service p50 1475 / p95 1735 ms, 9 learned + 1 `fallback:timeout` (1908 ms against the 1900 ms budget: the 1.5 s CP-SAT cap leaves 0.4 s of headroom on a FEASIBLE day). The client-measured `duration_ms` lives in PostHog (HANDOFF ⛔ 5b) — not yet a device number. **Shape measured 2026-09-02 evening** (45-request sweep, day-2 notes): reliable below ≈ 0.6 s of solver time (any inbox on ≤ 4.5 h; ≤ 12 tasks on 9 h), a coin flip once the first rung runs to its 1.0 s slice (14–16+ tasks on 9 h; the device's deadline-bearing 14-task instances 12/15).
+  **Android 2026-09-02, server side of the device series:** 10 manual re-plans on a 14-task day — edge-function total p50 1662 / p95 1908 ms, service p50 1475 / p95 1735 ms, 9 learned + 1 `fallback:timeout` (1908 ms against the 1900 ms budget: the 1.5 s CP-SAT cap leaves 0.4 s of headroom on a FEASIBLE day). The client-measured `duration_ms` lives in PostHog (HANDOFF ⛔ 5b) — not yet a device number. **Client side read 2026-09-03 (owner's PostHog export):** manual series `duration_ms` p50 3271 / p95 3836 ms (all triggers p95 4857) = function 1662/1908 + a 1.0–1.5 s pre-plan sync push whenever ops are pending + ≈ 0.5 s transport/mirror — **not met as the spec phrased it**; decomposition in the day-3 notes item 1. The proof stall behind the 1.0 s solver slice is reproduced and fixed (ADR-0018, PR #39): **after the rollout** the same inbox gives 0/10 fallbacks, function p50 1091 / p95 1342 ms, solve p50 400 / max 665 ms (day-3 notes item 8); the client-side after numbers come from tomorrow's PostHog export, and NFR-P1 is restated as a measured requirement — **owner decision 2026-09-03: ≤ 4.5 s p95 device end-to-end (warm), ≤ 1.5 s p95 server-side, 1.9 s fallback bound; measured figures reported alongside** (thesis-corrections #51). **Shape measured 2026-09-02 evening** (45-request sweep, day-2 notes): reliable below ≈ 0.6 s of solver time (any inbox on ≤ 4.5 h; ≤ 12 tasks on 9 h), a coin flip once the first rung runs to its 1.0 s slice (14–16+ tasks on 9 h; the device's deadline-bearing 14-task instances 12/15).
 - ⬜ **NFR-P2 — 60 fps timeline scrolling** (added P6). Scroll a 12-block Today timeline with the
   Perf Monitor open on a mid-range Android and an iPhone. Why: FlashList recycling and blur
   (`expo-blur` on iOS) cost nothing on an M-series Mac.
@@ -42,7 +42,7 @@
   quick-add chips, task sheet, undo bar) with real OS settings. Simulator can't settle it: the
   sweep ran on the iOS simulator only; Android font scaling (up to 200% + display size) and
   its reduced-motion setting behave differently and have never been exercised.
-  **Android 2026-09-02** (font 2.0, density 540, animation scales 0 over adb; screenshots in `device-pass/android-20260902-1030/a11y-maxscale/`): every screen usable; two defects — the Today time gutter wraps "12:00 PM" mid-token (fixed 64 px) and the heatmap weekday header wraps mid-word; the timeline viewport shrinks to about a third of the screen (scrolls, actions reachable). The p10 flow itself never passed its date assertion on any device (a YAML-quoting bug in the regex, fixed in the batch — day-2 finding 14), so the evidence is adb screenshots + tree dumps. iOS pending.
+  **Android 2026-09-02** (font 2.0, density 540, animation scales 0 over adb; screenshots in `device-pass/android-20260902-1030/a11y-maxscale/`): every screen usable; two defects — the Today time gutter wraps "12:00 PM" mid-token (fixed 64 px) and the heatmap weekday header wraps mid-word; the timeline viewport shrinks to about a third of the screen (scrolls, actions reachable). The p10 flow itself never passed its date assertion on any device (a YAML-quoting bug in the regex, fixed in the batch — day-2 finding 14), so the evidence is adb screenshots + tree dumps. **Build 3, 2026-09-03 (`android-20260903-1020/a11y-maxscale-build3/`):** both defects fixed (gutter on one line, header no mid-word wrap), placeholder visible; residuals at 2.0 — "Insight…" tab label truncates (a11y name is the full word), the block time range breaks inside "PM", "Mo"/"We" ellipsize in the heatmap header, the legend row sits under the tab bar — cosmetic, listed for the next batch (day-3 notes item 10). iOS pending.
 - ⬜ **NFR-A1 — VoiceOver (iOS) and TalkBack (Android) pass on all shipped screens** (added
   P2/P3; grows each UI phase). Navigate every screen by screen reader alone: task rows (single
   a11y element incl. ", due <date>"), ambiguity chips, undo within its 6 s window. Simulator
@@ -272,6 +272,7 @@
   (Xcode App Launch / `adb am start -W`, Instruments FPS / `gfxinfo`). Why: the bundle grew
   (notifications, sharing); the only number is the P2 simulator one.
   **Android ✅ 2026-09-01/02:** the two numbers above are on the P10+ bundle (release APK versionCode 1).
+  **F7 on build 3 ✅ 2026-09-03:** a delivered block reminder (posted 12:20:34 for the 12:30 block) left the shade on the block's Start action (0 records 4 s later, 0 after background → foreground) — day-3 notes item 11.
 - ⬜ **NFR-P3 from a handset** (P10). Re-run `p10-perf.mjs`'s REST read/write over LTE and Wi-Fi
   from the device network (a Node script cannot run on the handset — use the app's
   `sync_completed` durations from PostHog for `sync-resolve`, and time one `export-data` from
@@ -285,18 +286,22 @@
   then the overnight case: backgrounded across midnight → the first foreground after 06:00 adds
   exactly one `new_day` row. Why the simulator can't settle it: the defect only shows on a real
   cold start of the release process (the first render of the live read is empty).
-  **Android ✅ 2026-09-02 (build 3, Pixel 7a):** with today's plan persisted, the first open and 20 `am force-stop` + launch cycles added zero plan rows (18 → 18 → 18) on a build with a proven backend. Overnight `new_day` and the offline-first-open retry still owed.
+  **Android ✅ 2026-09-02 (build 3, Pixel 7a):** with today's plan persisted, the first open and 20 `am force-stop` + launch cycles added zero plan rows (18 → 18 → 18) on a build with a proven backend. Overnight `new_day` and the offline-first-open retry still owed. **2026-09-03 (build 3):** first open across the day boundary with the 3rd's plan persisted (the 2nd's ritual plan) added no request — warm foreground (770 ms) and cold start (549 ms), 24-h count unchanged; the no-plan `new_day` case and the offline-first-open retry are the 4th's first block (HANDOFF Day 4 item 1).
 - ⬜ **NFR-P2 — cold start ×20 on the rebuilt APK** (the day-1 protocol; the p90 must be
   re-stated for the binary that ships the fixes and the Expo patch bump).
-  **Android 2026-09-02 (build 3):** p90 551 ms (505–622) with warm OS caches; the post-reboot run on this build is still owed (build 1's post-reboot p90 was 1582 ms).
-- ⬜ **FR-22 / NFR-A2 — Today time gutter at 200 % + largest display** (F2): the clock stays
+  **Android ✅ 2026-09-02/03 (build 3):** p90 551 ms (505–622) with warm OS caches (day 2); **post-reboot p90 1072 ms** (705–1202, n = 20, 2026-09-03 — day-3 notes item 12).
+- ✅ **FR-22 / NFR-A2 — Today time gutter at 200 % + largest display** (F2): the clock stays
   on one line, the gutter grows, cards do not overlap. Take the same `a11y-maxscale/` screenshots.
-- ⬜ **FR-40 / NFR-A2 — heatmap weekday header at 200 %** (F3): two-letter labels, one line,
+  **Android ✅ 2026-09-03 (build 3):** "11:45 AM" on one line, cards intact (`android-20260903-1020/a11y-maxscale-build3/today-top.png`); residual: the card's time range breaks inside "PM" at 2.0 (cosmetic, day-3 notes item 10).
+- ✅ **FR-40 / NFR-A2 — heatmap weekday header at 200 %** (F3): two-letter labels, one line,
   the summary label unchanged.
+  **Android ✅ 2026-09-03 (build 3):** one line, no mid-word wrap; "Mo"/"We" ellipsize to "M.."/"W.." in the narrow columns (cosmetic residual); tree still carries the daypart summary (`insights-scrolled.png`/`.xml`).
 - ⬜ **FR-11 — quick-add at default and 200 % scale** (F4): the short placeholder and the example
   caption fit, the border renders evenly, the caption swaps for the preview chips while typing.
+  **Android 2026-09-03 (build 3), static half ✅:** placeholder "Add a task" fully visible, caption wraps cleanly, border even (`inbox.png`); the typing half (caption → preview chips at 2.0) not exercised today.
 - ⬜ **NFR-A1 — TalkBack reads the tab as its name only** (F6): the tree label is "Today", not the
   icon glyph first; the owner's listening pass confirms the announcement.
+  **Android 2026-09-03 (build 3), structural half ✅:** the tab nodes' `content-desc` are "Today" / "Inbox" / "Focus" / "Insights" with the glyph in a separate, unlabeled node; the visible "Insight…" truncates at 2.0 (visual only). Listening pass = owner.
 - ⬜ **Maestro p3/p4/p10 flows on hardware** (F5): the `(?i)` title selectors pass end to end on
   the rebuilt APK (p3 tail incl. the undo expiry; p10 at max scale needs adb screenshots — see
   day-2 finding 14).

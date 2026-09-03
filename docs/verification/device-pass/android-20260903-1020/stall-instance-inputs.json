@@ -1,0 +1,733 @@
+{
+ "profile": {
+  "chronotype_class": "DM",
+  "rmeq_score": 25,
+  "sleep_window": [
+   1380,
+   420
+  ],
+  "timezone": "Europe/Kiev",
+  "working_hours": {
+   "fri": [
+    540,
+    1080
+   ],
+   "mon": [
+    540,
+    1080
+   ],
+   "thu": [
+    540,
+    1080
+   ],
+   "tue": [
+    540,
+    1080
+   ],
+   "wed": [
+    540,
+    1080
+   ]
+  }
+ },
+ "tasks": [
+  {
+   "category": "admin",
+   "deadline": null,
+   "earliest_start": null,
+   "est_minutes": 30,
+   "id": "cf4df4a1-3099-4ae1-9074-5aa816fbb748",
+   "postpone_count": 2,
+   "splittable": false,
+   "status": "inbox",
+   "value": 2
+  },
+  {
+   "category": "admin",
+   "deadline": null,
+   "earliest_start": null,
+   "est_minutes": 30,
+   "id": "6e706885-30d4-4bb5-9e63-5646e4e5bb08",
+   "postpone_count": 1,
+   "splittable": false,
+   "status": "scheduled",
+   "value": 2
+  },
+  {
+   "category": "admin",
+   "deadline": "2026-09-04 20:59:00+00",
+   "earliest_start": null,
+   "est_minutes": 45,
+   "id": "d05e0756-7cc6-4a8a-a60f-12ec6f8a1c8c",
+   "postpone_count": 0,
+   "splittable": false,
+   "status": "scheduled",
+   "value": 2
+  },
+  {
+   "category": "admin",
+   "deadline": null,
+   "earliest_start": null,
+   "est_minutes": 30,
+   "id": "aadb318e-84d2-45b0-8c43-e49ccbce7833",
+   "postpone_count": 0,
+   "splittable": false,
+   "status": "scheduled",
+   "value": 2
+  },
+  {
+   "category": "admin",
+   "deadline": null,
+   "earliest_start": null,
+   "est_minutes": 45,
+   "id": "164ea98e-866b-4a61-99bd-a653ae39fd77",
+   "postpone_count": 0,
+   "splittable": false,
+   "status": "scheduled",
+   "value": 2
+  },
+  {
+   "category": "admin",
+   "deadline": null,
+   "earliest_start": null,
+   "est_minutes": 30,
+   "id": "aecd6f3f-6ab1-46b0-b36b-bfe6ef4b6d89",
+   "postpone_count": 0,
+   "splittable": false,
+   "status": "scheduled",
+   "value": 2
+  },
+  {
+   "category": "admin",
+   "deadline": null,
+   "earliest_start": null,
+   "est_minutes": 45,
+   "id": "93486bfc-a409-4056-af31-712962a20fe9",
+   "postpone_count": 1,
+   "splittable": false,
+   "status": "scheduled",
+   "value": 2
+  },
+  {
+   "category": "admin",
+   "deadline": null,
+   "earliest_start": null,
+   "est_minutes": 30,
+   "id": "0d18f96e-db9c-44b7-82fc-b1633440d879",
+   "postpone_count": 0,
+   "splittable": false,
+   "status": "scheduled",
+   "value": 2
+  },
+  {
+   "category": "admin",
+   "deadline": null,
+   "earliest_start": null,
+   "est_minutes": 30,
+   "id": "fec24f3e-92fb-4916-b0eb-837f8e7a641c",
+   "postpone_count": 2,
+   "splittable": false,
+   "status": "inbox",
+   "value": 2
+  },
+  {
+   "category": "admin",
+   "deadline": "2026-09-03 20:59:00+00",
+   "earliest_start": null,
+   "est_minutes": 45,
+   "id": "66e2709c-e08f-422f-99ca-7888378236af",
+   "postpone_count": 1,
+   "splittable": false,
+   "status": "inbox",
+   "value": 2
+  },
+  {
+   "category": "admin",
+   "deadline": null,
+   "earliest_start": null,
+   "est_minutes": 30,
+   "id": "f6a41521-50bf-4d8e-8eaa-bc3693646276",
+   "postpone_count": 0,
+   "splittable": false,
+   "status": "inbox",
+   "value": 2
+  },
+  {
+   "category": "admin",
+   "deadline": null,
+   "earliest_start": null,
+   "est_minutes": 30,
+   "id": "2f6a725b-dbca-4fc0-ab61-e15f6230ac13",
+   "postpone_count": 0,
+   "splittable": false,
+   "status": "scheduled",
+   "value": 2
+  },
+  {
+   "category": "admin",
+   "deadline": null,
+   "earliest_start": null,
+   "est_minutes": 30,
+   "id": "fd68d659-4abf-4a05-808e-caea6a1c9935",
+   "postpone_count": 1,
+   "splittable": false,
+   "status": "inbox",
+   "value": 2
+  },
+  {
+   "category": "admin",
+   "deadline": null,
+   "earliest_start": null,
+   "est_minutes": 30,
+   "id": "194d2048-2023-4f18-a643-c733ab40e480",
+   "postpone_count": 1,
+   "splittable": false,
+   "status": "scheduled",
+   "value": 2
+  },
+  {
+   "category": "admin",
+   "deadline": null,
+   "earliest_start": null,
+   "est_minutes": 30,
+   "id": "d9ac5cda-3e71-4f0a-a9da-860d39652287",
+   "postpone_count": 0,
+   "splittable": false,
+   "status": "inbox",
+   "value": 2
+  }
+ ],
+ "cells": [
+  {
+   "alpha0": 4.67411,
+   "beta0": 3.32589,
+   "category": "admin",
+   "day_type": "weekday",
+   "daypart": "AF",
+   "fail": 3.1522,
+   "last_event_at": "2026-09-02 21:00:06.053+00",
+   "succ": 0.828525
+  },
+  {
+   "alpha0": 2.77656,
+   "beta0": 1.22344,
+   "category": "admin",
+   "day_type": "weekday",
+   "daypart": "EM",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 2.06752,
+   "beta0": 1.93248,
+   "category": "admin",
+   "day_type": "weekday",
+   "daypart": "EV",
+   "fail": 2.1907,
+   "last_event_at": "2026-09-02 21:00:06.053+00",
+   "succ": 0.7938
+  },
+  {
+   "alpha0": 4.49741,
+   "beta0": 3.50259,
+   "category": "admin",
+   "day_type": "weekday",
+   "daypart": "MD",
+   "fail": 0,
+   "last_event_at": "2026-09-02 11:42:37.273+00",
+   "succ": 1
+  },
+  {
+   "alpha0": 5.38206,
+   "beta0": 2.61794,
+   "category": "admin",
+   "day_type": "weekday",
+   "daypart": "MO",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 1.8689,
+   "beta0": 2.1311,
+   "category": "admin",
+   "day_type": "weekday",
+   "daypart": "NT",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 1.13426,
+   "beta0": 0.865736,
+   "category": "admin",
+   "day_type": "weekend",
+   "daypart": "AF",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 1.24414,
+   "beta0": 0.755859,
+   "category": "admin",
+   "day_type": "weekend",
+   "daypart": "EM",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 1.06688,
+   "beta0": 0.933121,
+   "category": "admin",
+   "day_type": "weekend",
+   "daypart": "EV",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 1.11218,
+   "beta0": 0.887823,
+   "category": "admin",
+   "day_type": "weekend",
+   "daypart": "MD",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 1.22276,
+   "beta0": 0.777242,
+   "category": "admin",
+   "day_type": "weekend",
+   "daypart": "MO",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 1.01723,
+   "beta0": 0.982774,
+   "category": "admin",
+   "day_type": "weekend",
+   "daypart": "NT",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 4.4,
+   "beta0": 3.6,
+   "category": "deep",
+   "day_type": "weekday",
+   "daypart": "AF",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 3.12,
+   "beta0": 0.88,
+   "category": "deep",
+   "day_type": "weekday",
+   "daypart": "EM",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 1.6,
+   "beta0": 2.4,
+   "category": "deep",
+   "day_type": "weekday",
+   "daypart": "EV",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 4,
+   "beta0": 4,
+   "category": "deep",
+   "day_type": "weekday",
+   "daypart": "MD",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 5.92,
+   "beta0": 2.08,
+   "category": "deep",
+   "day_type": "weekday",
+   "daypart": "MO",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 1.2,
+   "beta0": 2.8,
+   "category": "deep",
+   "day_type": "weekday",
+   "daypart": "NT",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 1.1,
+   "beta0": 0.9,
+   "category": "deep",
+   "day_type": "weekend",
+   "daypart": "AF",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 1.33,
+   "beta0": 0.67,
+   "category": "deep",
+   "day_type": "weekend",
+   "daypart": "EM",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 0.95,
+   "beta0": 1.05,
+   "category": "deep",
+   "day_type": "weekend",
+   "daypart": "EV",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 1.05,
+   "beta0": 0.95,
+   "category": "deep",
+   "day_type": "weekend",
+   "daypart": "MD",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 1.29,
+   "beta0": 0.71,
+   "category": "deep",
+   "day_type": "weekend",
+   "daypart": "MO",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 0.85,
+   "beta0": 1.15,
+   "category": "deep",
+   "day_type": "weekend",
+   "daypart": "NT",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 4.24085,
+   "beta0": 3.75915,
+   "category": "learning",
+   "day_type": "weekday",
+   "daypart": "AF",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 2.94442,
+   "beta0": 1.05558,
+   "category": "learning",
+   "day_type": "weekday",
+   "daypart": "EM",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 1.6104,
+   "beta0": 2.3896,
+   "category": "learning",
+   "day_type": "weekday",
+   "daypart": "EV",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 3.90002,
+   "beta0": 4.09998,
+   "category": "learning",
+   "day_type": "weekday",
+   "daypart": "MD",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 5.58616,
+   "beta0": 2.41384,
+   "category": "learning",
+   "day_type": "weekday",
+   "daypart": "MO",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 1.26574,
+   "beta0": 2.73426,
+   "category": "learning",
+   "day_type": "weekday",
+   "daypart": "NT",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 1.08011,
+   "beta0": 0.919894,
+   "category": "learning",
+   "day_type": "weekend",
+   "daypart": "AF",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 1.2861,
+   "beta0": 0.713896,
+   "category": "learning",
+   "day_type": "weekend",
+   "daypart": "EM",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 0.9526,
+   "beta0": 1.0474,
+   "category": "learning",
+   "day_type": "weekend",
+   "daypart": "EV",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 1.0375,
+   "beta0": 0.962497,
+   "category": "learning",
+   "day_type": "weekend",
+   "daypart": "MD",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 1.24827,
+   "beta0": 0.75173,
+   "category": "learning",
+   "day_type": "weekend",
+   "daypart": "MO",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 0.866435,
+   "beta0": 1.13356,
+   "category": "learning",
+   "day_type": "weekend",
+   "daypart": "NT",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 5.0923,
+   "beta0": 2.9077,
+   "category": "physical",
+   "day_type": "weekday",
+   "daypart": "AF",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 2.75657,
+   "beta0": 1.24343,
+   "category": "physical",
+   "day_type": "weekday",
+   "daypart": "EM",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 1.87715,
+   "beta0": 2.12285,
+   "category": "physical",
+   "day_type": "weekday",
+   "daypart": "EV",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 4.19983,
+   "beta0": 3.80017,
+   "category": "physical",
+   "day_type": "weekday",
+   "daypart": "MD",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 5.30148,
+   "beta0": 2.69852,
+   "category": "physical",
+   "day_type": "weekday",
+   "daypart": "MO",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 1.63802,
+   "beta0": 2.36198,
+   "category": "physical",
+   "day_type": "weekday",
+   "daypart": "NT",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 1.18654,
+   "beta0": 0.813462,
+   "category": "physical",
+   "day_type": "weekend",
+   "daypart": "AF",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 1.23914,
+   "beta0": 0.760857,
+   "category": "physical",
+   "day_type": "weekend",
+   "daypart": "EM",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 1.01929,
+   "beta0": 0.980713,
+   "category": "physical",
+   "day_type": "weekend",
+   "daypart": "EV",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 1.07498,
+   "beta0": 0.925021,
+   "category": "physical",
+   "day_type": "weekend",
+   "daypart": "MD",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 1.21268,
+   "beta0": 0.787315,
+   "category": "physical",
+   "day_type": "weekend",
+   "daypart": "MO",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  },
+  {
+   "alpha0": 0.959505,
+   "beta0": 1.0405,
+   "category": "physical",
+   "day_type": "weekend",
+   "daypart": "NT",
+   "fail": 0,
+   "last_event_at": null,
+   "succ": 0
+  }
+ ],
+ "busy": [],
+ "durations": [],
+ "stalled": [
+  {
+   "experiment": {
+    "bucket_id": "EV.wd",
+    "n_eligible": null,
+    "propensity": 0.25,
+    "task_id": "f6a41521-50bf-4d8e-8eaa-bc3693646276",
+    "top_m": [
+     "MD.wd",
+     "AF.wd.fresh",
+     "MO.wd.fresh",
+     "EV.wd"
+    ]
+   },
+   "request": {
+    "duration_scaled": 0,
+    "horizon": "day",
+    "n_busy": 0,
+    "n_previous": 8,
+    "trigger": "manual"
+   },
+   "service": {
+    "build_ms": 4,
+    "degradation": null,
+    "experiment_drawn": true,
+    "experiment_dropped": false,
+    "fragmentation_penalty": 0,
+    "hints": 8,
+    "literals": 297,
+    "n_ticks": 96,
+    "objective": 11.1917,
+    "policy": "ts",
+    "rng_seed": 5151277913655266000,
+    "run_length_penalty": 0,
+    "solve_ms": 1001,
+    "solves": 1,
+    "tick_minutes": 15,
+    "total_ms": 1013
+   },
+   "t": "08:38:54"
+  }
+ ],
+ "bandit_tables": [
+  "bandit_state",
+  "blend_state"
+ ],
+ "n_bandit_state": 4,
+ "n_blend_state": 1,
+ "note": "Inputs of the 2 Sep 11:38 stall instance (task titles removed). cells: alpha0/beta0 = the prior cells at the time of the series; succ/fail as of 3 Sep morning."
+}

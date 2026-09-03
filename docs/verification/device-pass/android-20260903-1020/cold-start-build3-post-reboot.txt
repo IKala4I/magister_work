@@ -1,0 +1,22 @@
+# build 3 ee920100ba66, Pixel 7a, immediately after adb reboot 2026-09-03 12:40:44, font 1.0 / density default; force-stop + am start -W, TotalTime ms
+1 LaunchState: COLD TotalTime: 1202 
+2 LaunchState: COLD TotalTime: 1072 
+3 LaunchState: COLD TotalTime: 787 
+4 LaunchState: COLD TotalTime: 882 
+5 LaunchState: COLD TotalTime: 865 
+6 LaunchState: COLD TotalTime: 983 
+7 LaunchState: COLD TotalTime: 877 
+8 LaunchState: COLD TotalTime: 970 
+9 LaunchState: COLD TotalTime: 1150 
+10 LaunchState: COLD TotalTime: 1028 
+11 LaunchState: COLD TotalTime: 966 
+12 LaunchState: COLD TotalTime: 979 
+13 LaunchState: COLD TotalTime: 931 
+14 LaunchState: COLD TotalTime: 893 
+15 LaunchState: COLD TotalTime: 782 
+16 LaunchState: COLD TotalTime: 887 
+17 LaunchState: COLD TotalTime: 718 
+18 LaunchState: COLD TotalTime: 705 
+19 LaunchState: COLD TotalTime: 976 
+20 LaunchState: COLD TotalTime: 778 
+# n=20 min=705 p50=893 p90=1072 max=1202

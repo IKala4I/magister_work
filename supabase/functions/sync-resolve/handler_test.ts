@@ -189,6 +189,12 @@ Deno.test('a bare poll skips the reward pass and the replay; a poll carrying fac
   assertEquals(s.rewardsCalls, 0);
   assertEquals((await res.json()).rewards, null);
   assertEquals(shouldRunRewards('poll', [op({ op_type: 'event_append' })]), true);
+  // ADR-0012 addendum 2026-09-03: the sync before a plan never runs the instant pass — even with
+  // fact ops (they are mostly the plan mirror's own `recommendation_shown` events); the next
+  // foreground sync attributes them
+  assertEquals(shouldRunRewards('pre_plan', [op({ op_type: 'event_append' })]), false);
+  assertEquals(shouldRunRewards('pre_plan', [op({ op_type: 'recommendation_status' })]), false);
+  assertEquals(shouldRunRewards('foreground', []), true);
   assertEquals(shouldRunRewards('poll', [op({ op_type: 'task_upsert' })]), false);
   assertEquals(shouldRunRewards('foreground', []), true);
 });

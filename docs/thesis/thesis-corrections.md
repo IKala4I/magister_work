@@ -174,7 +174,8 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     not to the heuristic engine — arm-A plans are unlabeled so the blind holds; outage user-days
     are excluded from the analysis (File 06). Also: the fallback budget is 1.9 s of a 2.5 s
     end-to-end target and is calibrated for day plans; week plans are not requested by the v1
-    client. (spec-conflicts L17; ADR-0008 §4, §7.)
+    client. (spec-conflicts L17; ADR-0008 §4, §7.) **2026-09-03:** the "2.5 s end-to-end target"
+    is superseded by the measured requirement in #51; the 1.9 s fallback budget stands.
 24. **§3.6 / UC-03 (plan triggers):** if the draft describes "06:00 local" as a scheduled server
     or background job, say instead that planning is triggered lazily on first open/foreground of
     a plan day (06:00 is the day boundary) because no correctness may depend on background
@@ -293,7 +294,9 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     the 1.5 s plan-level budget yields a FEASIBLE plan in ≈ 60 % of runs even on the best rung
     (≈ 40 % return the partial anytime plan with the ladder flagged) — the product path is the
     day horizon; the weekly plan (FR-20) needs a budget decision before it ships (revisit.md).
-    `p5-manual-verification.md` §2.1–2.3, ADR-0007 §11 addendum.
+    `p5-manual-verification.md` §2.1–2.3, ADR-0007 §11 addendum. **2026-09-03:** "NFR-P1 met
+    with margin" here is the _service-side_ statement and stays true; the end-to-end requirement
+    is restated from device measurements in #51 — do not let the two numbers stand as one claim.
 38. **§3.x (sync / UC-09 "plan consistent with external calendar ≤ 5 min after change"):**
     state the bound as a **server-side** property — the Google push channel (seconds, typical)
     backed by a 5-minute pg_cron sweep (`gcal_sweep_tick`) that re-syncs any connected calendar
@@ -417,3 +420,51 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     (item 11): the live verification chain was correct and still blind to a device-only input.
     Fixed the same day (tzdata wheel + build-time assertion; CHANGELOG "Post-P12 — hardware
     pass fixes"); the field-study framing (#49) is unaffected.
+51. **§requirements / §verification (NFR-P1 "plan end-to-end ≤ 2.5 s p95 warm") — restate as a
+    measured requirement (owner decision 2026-09-03: the 2.5 s was our own pre-deployment
+    estimate, seen by nobody outside the project; the thesis states the figure arrived at by
+    measurement, with the reasoning).** What the device measured (Pixel 7a, hardware pass day
+    2–3; `android-20260903-1020/notes.md` items 1, 3, 8; ADR-0018): the client's own timer
+    (`plan_requested.duration_ms`, tap → plan received, before the SQLite mirror) on ten warm
+    re-plans of a 14-task day was **p50 3.27 / p95 3.84 s** on 2026-09-02 — while the server-side
+    function alone measured 1.66 / 1.91 s and looked inside the old target. The difference is
+    client work the estimate never counted: a pre-plan sync push of 1.0–1.5 s whenever facts or
+    task edits are pending (every re-plan sends the unplaced tasks back to the Inbox through the
+    outbox, so in real use it is the common case), plus ≈ 0.5 s of transport, response handling
+    and the local mirror. The server side then had its own structural problem — CP-SAT burnt its
+    1.0 s slice proving optimality on interchangeable tasks (ADR-0018) — fixed the same day: the
+    function now measures **p50 1.09 / p95 1.34 s** on the same inbox with 0/10 fallbacks
+    (before 1/10 and 1.68 / 1.91 s).
+    **Owner decision 2026-09-03 — NFR-P1 = "a plan request completes end-to-end on the device
+    (tap → plan mirrored) in ≤ 4.5 s at p95, warm; the server-side `plan-request` in ≤ 1.5 s at
+    p95; the heuristic fallback bounds the server wait at 1.9 s."** Under-delivering against it is
+    fine and expected; the thesis reports the measured figures alongside the requirement. The
+    conditions matter: a Pixel 7a on good home Wi-Fi is a favourable case, not an average one — a
+    slower phone on worse mobile data will sit above anything recorded here, and a threshold that
+    barely passes under good conditions is bad engineering. Reasoning behind the number:
+    (a) _composition on the measured stack_, worst realistic case (ops pending): pre-plan push
+    1.0–1.5 s + function 1.09–1.34 s + transport/mirror 0.4–0.6 s → an estimated **p50 ≈ 2.9 s,
+    p95 ≈ 3.4 s** after ADR-0018 (the client-side "after" numbers come from the next PostHog
+    export; the 2026-09-02 export is the measured "before"); with nothing pending ≈ 1.7–1.9 s.
+    (b) _headroom_ ≈ 1.1 s at p95 against the favourable-case measurement — room for a slower
+    handset's compute share (mirror + render, 0.2–0.4 s on the Pixel 7a) and for mobile-data
+    transport well above the ≈ 0.45 s per round trip seen on home Wi-Fi; the figure is dominated
+    by network and server time, not device CPU. (c) _acceptability as user-facing latency_: a plan request is a
+    deliberate, infrequent action (first open, the evening ritual, an occasional re-plan — one to
+    three per day) with an explicit in-progress state; by Nielsen's response-time limits (0.1 s /
+    1 s / 10 s) a 3–4 s wait with feedback keeps the user's attention and is far from the 10 s
+    abandonment bound, and the fallback guarantees the wait is bounded even when the learned
+    service is slow or down. (d) _not tuned to pass_: the levers left untouched are recorded —
+    the pre-plan sync itself (measured 2026-09-03 with `hw-sync-hops.mjs`: the function's fixed
+    cost ≈ 0.3 s + four lease/replay/pull/release hops ≈ 0.25 s + the instant-rewards pass
+    ≈ 0.3–0.4 s, plus ≈ 0.45 s of phone transport). Of its levers, skipping the rewards pass on
+    `pre_plan` (≈ −0.35 s, server-only) shipped the same day; collapsing the hops (≈ −0.25 s) and
+    carrying the ops inside the plan request (≈ −1.2 s, a client change) are **optimisations the
+    project may or may not do — not prerequisites for meeting the requirement** (revisit.md);
+    co-locating the VM with the function region (≈ −0.3 s) was rejected by the owner. The figure
+    therefore describes the deployed stack as measured, not its best case. (e) _what changes in the text_: wherever the draft says "≤ 2.5 s
+    p95" or "NFR-P1 met" from Node/Mac or server-side numbers (items 23, 37), say instead that
+    the requirement was **derived from deployment measurements on hardware** and report the
+    decomposition table (day-3 notes item 1) as the evidence; the server-side margin (item 37)
+    remains a separate, true statement about the service. Cross-refs: spec-conflicts L40;
+    ADR-0018; `device-checklist.md` NFR-P1; `p10-manual-verification.md` §2.3 device row.

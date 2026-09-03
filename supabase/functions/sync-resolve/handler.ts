@@ -122,8 +122,16 @@ export function parseBody(raw: unknown):
   return { ops, cursor: cursor as number, reason: reason as SyncReason, pullLimit };
 }
 
-/** The reward pass runs unless this is a bare poll (nothing pushed, nothing to attribute). */
+/**
+ * The reward pass runs unless this is a bare poll (nothing pushed, nothing to attribute) or the
+ * sync that precedes a plan request. `pre_plan` (ADR-0012 addendum 2026-09-03, hardware pass): the
+ * plan needs the pushed facts and statuses, not their reward attribution — the pass is ≈ 0.3–0.4 s
+ * of the ≈ 1.4 s a pre-plan sync costs on the phone, and the ops it carries are mostly the plan
+ * mirror's own `recommendation_shown` events. Attribution happens on the next foreground /
+ * reconnect / manual sync or at the 23:55 authority (invariant 7 unchanged).
+ */
 export function shouldRunRewards(reason: SyncReason, ops: readonly SyncOp[]): boolean {
+  if (reason === 'pre_plan') return false;
   if (reason !== 'poll') return true;
   return ops.some((o) => o.op_type === 'event_append' || o.op_type === 'recommendation_status');
 }
