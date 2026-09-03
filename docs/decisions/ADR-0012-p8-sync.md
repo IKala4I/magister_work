@@ -227,6 +227,23 @@ op_id) DO NOTHING`; referenced `task_id` / `recommendation_id` must be the user'
     incl. `displaced_pending`, `gcal_sweep_tick()` + cron `gcal-sweep` (`*/5 * * * *`). No
     ledger retention in v1 (volume: tens of ops per user-day).
 
+## Addendum 2026-09-03 (hardware pass, day 3) — the pre-plan sync skips the instant reward pass
+
+Measured from a Node client against the hosted function (`docs/verification/hw-sync-hops.mjs`):
+`sync-resolve` with zero ops costs p50 533 ms as a bare `poll` and p50 844 ms as `pre_plan` — the
+instant reward pass (`processUser`, mode `instant`: its own reads, and a VM round trip whenever
+tuples are pending) is ≈ 0.3–0.4 s of it; the phone adds ≈ 0.45 s of transport, so a pre-plan
+sync is ≈ 1.4 s of the user's wait for a plan (day-3 notes, NFR-P1 decomposition). The plan
+request needs the pushed **facts and statuses** — which the replay writes — not their reward
+attribution, and the ops a pre-plan push carries are mostly the plan mirror's own
+`recommendation_shown` events. **Decision:** `shouldRunRewards` returns false for `pre_plan`;
+the next `foreground` / `reconnect` / `manual` sync, or the 23:55 attribution authority, runs the
+pass. Invariant 7 (lazy lapse, 23:55 authority) is unchanged; the only effect is that a plan
+requested within seconds of a completion is computed on cells one delivery behind. Not changed:
+the hop structure (lease → replay → pull → release) and the push-before-plan rule of ADR-0010
+§12 — collapsing the hops or carrying the ops inside the plan request are optional optimisations
+recorded in revisit.md ("Pre-plan sync cost").
+
 ## Rejected
 
 - **Server-side LWW without a 409** (apply the op when its `updated_at` is newer): fewer round

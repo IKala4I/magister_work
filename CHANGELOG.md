@@ -30,6 +30,18 @@ Everything below condenses P0–P11 for release notes and the thesis; per-phase 
 - **Ops:** Supabase (eu-west-1) + Oracle A1 VM (eu-marseille-1) with pull-based rollout,
   hardened SSH + Tailscale admin path, nightly training timer, runbooks for every timer.
 
+## Post-P12 — hardware pass day 3, evening: the pre-plan sync skips the instant reward pass (2026-09-03, fix/sync-pre-plan-rewards)
+
+- **edge (`sync-resolve`, ADR-0012 addendum):** `shouldRunRewards` returns false for `pre_plan`.
+  Measured: zero-op `sync-resolve` p50 533 ms as `poll` vs 844 ms as `pre_plan` from a Node
+  client (`docs/verification/hw-sync-hops.mjs`); the pass is ≈ 0.3–0.4 s of a ≈ 1.4 s pre-plan
+  sync on the phone, and the pushed ops are mostly the plan mirror's own `recommendation_shown`
+  events. Attribution moves to the next foreground / reconnect / manual sync or the 23:55
+  authority; the push-before-plan rule and the hop structure are unchanged. Deployed the same
+  evening so that every 3 Sep client row is pre-change and every 4 Sep row post-change.
+- **repo:** branch protection on `main` requires the six CI jobs (auto-merge waits for CI).
+- Tests: +3 assertions in `handler_test.ts` (pre_plan with fact ops → no pass; foreground → pass).
+
 ## Post-P12 — hardware pass day 3: solver stopping criteria (2026-09-03, fix/recsys-stopping-criteria)
 
 - **recsys (ADR-0018):** CP-SAT `relative_gap_limit = 0.01` plus a **no-improvement early stop**
