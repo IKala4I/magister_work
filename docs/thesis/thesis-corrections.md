@@ -451,9 +451,13 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     1 s / 10 s) a 3–4 s wait with feedback keeps the user's attention and is far from the 10 s
     abandonment bound, and the fallback guarantees the wait is bounded even when the learned
     service is slow or down. (d) _not tuned to pass_: the levers left untouched are recorded —
-    collapsing the sync-resolve hops (≈ −0.8 s; revisit.md), co-locating the VM with the function
-    region (≈ −0.3 s; rejected by the owner) — so the figure describes the deployed stack as
-    measured, not its best case. (e) _what changes in the text_: wherever the draft says "≤ 2.5 s
+    the pre-plan sync itself (measured 2026-09-03 with `hw-sync-hops.mjs`: the function's fixed
+    cost ≈ 0.3 s + four lease/replay/pull/release hops ≈ 0.25 s + the instant-rewards pass
+    ≈ 0.3–0.4 s, plus ≈ 0.45 s of phone transport — levers: skip the rewards pass on `pre_plan`
+    ≈ −0.35 s server-only; collapse the hops ≈ −0.25 s server-only; fold the push into the plan
+    request ≈ −1.2 s but a client change — revisit.md, owner decision pending), and co-locating
+    the VM with the function region (≈ −0.3 s; rejected by the owner) — so the figure describes
+    the deployed stack as measured, not its best case. (e) _what changes in the text_: wherever the draft says "≤ 2.5 s
     p95" or "NFR-P1 met" from Node/Mac or server-side numbers (items 23, 37), say instead that
     the requirement was **derived from deployment measurements on hardware** and report the
     decomposition table (day-3 notes item 1) as the evidence; the server-side margin (item 37)

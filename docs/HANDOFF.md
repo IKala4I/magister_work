@@ -42,8 +42,11 @@ accept` + tomorrow's plan; day-2 note 29 (button vs body) closes. Everything els
    TalkBack listening pass (tab names, block cards, heatmap summary), and the three `owner-*`
    screenshots of the 2 Sep deliveries (14:18 / 14:28 / 20:1x) dropped into
    `android-20260902-1030/`. Then **FR-42 erasure LAST** (ends the device account).
-5. **Thesis follow-ups from day 3:** owner confirms the NFR-P1 figure (corrections #51 /
-   spec-conflicts L40); the ADR-0018 window re-pin after a week of plans (`max_improvement_gap_ms`
+5. **Thesis follow-ups from day 3:** ADR-0018 accepted (owner, 2026-09-03). NFR-P1 #51 accepted
+   in principle; **the figure waits on the owner's choice** between (a) ship 4.0 s as measured or
+   (b) cut the pre-plan sync first (revisit.md "Pre-plan sync cost": L1 rewards-pass skip ≈ −0.35 s
+   server-only, L2 hop collapse ≈ −0.25 s, L3 ops inside `plan-request` ≈ −1.2 s but a client
+   rebuild) and re-measure; corrections #51 / spec-conflicts L40 then take the final number; the ADR-0018 window re-pin after a week of plans (`max_improvement_gap_ms`
    p95 vs 0.3 s); the two levers left untouched are in revisit.md.
 
 ## Where we are

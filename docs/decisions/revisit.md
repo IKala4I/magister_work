@@ -319,3 +319,17 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   open: (a) the exact alternative — symmetry-breaking among interchangeable tasks so the proof
   closes instead of being stopped; (b) re-pin the window from the box's own
   `max_improvement_gap_ms` p95 after a week of plans (rule in ADR-0018 §3).
+- [hardware pass, 2026-09-03 — OWNER DECISION PENDING] **Pre-plan sync cost (the largest NFR-P1
+  component, 1.0–1.5 s on the phone).** Measured composition (`hw-sync-hops.mjs`, Node → hosted
+  function, 0 ops): `poll` (no rewards pass) p50 533 ms vs `pre_plan` p50 844 ms (710–1422),
+  8 task ops 946 ms; the 400 path ≈ 300 ms = boot + auth + parse; one RPC hop ≈ 87 ms; the phone
+  adds ≈ 0.45 s of transport + 0.1–0.2 s of local apply. Levers, cheapest first: (L1) run the
+  instant-rewards pass only when the pushed ops carry facts, i.e. treat `pre_plan` like `poll`
+  in `shouldRunRewards` — ≈ −0.35 s, server-only, ~1 h, attribution deferred to the next sync /
+  23:55 (invariant 7 unaffected); (L2) one RPC for lease + replay + pull + release — ≈ −0.25 s,
+  server-only, ~half a day (SQL wrapper + pgTAP + function); (L3) carry the pending ops inside
+  `plan-request` and pull afterwards in the background — ≈ −1.2 s (the whole round trip minus
+  the replay inside the plan call), a client change → build 4 + re-verification, ~1.5 days, and
+  the 1.9 s fallback clock must start after the replay. Estimated device p95 after each: today
+  ≈ 3.4 s → L1 ≈ 3.0 s → L1+L2 ≈ 2.8 s → L3 ≈ 2.0–2.2 s. Corrects the day-3 wording "collapsing
+  the hops ≈ −0.8 s" (that was L1 + L3 conflated).
