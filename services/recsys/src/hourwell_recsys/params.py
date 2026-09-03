@@ -92,5 +92,18 @@ URGENCY_RATIONALE_THRESHOLD = (
     0.5  # rationale "deadline_pressure" when e^{−u/η} ≥ 0.5 (ADR-0007 §10)
 )
 MAX_CHUNKS = 4  # a splittable task becomes at most 4 chunks (any d_τ stays coverable); ADR-0007 §3
+# --- hardware pass 2026-09-03 (ADR-0018): end the optimality-proof stall, keep the plan ---
+# Day instances with many interchangeable tasks (same category, value and duration — the owner's
+# real inbox) find their incumbent within tens of milliseconds and then burn the whole 1.0 s slice
+# failing to prove it optimal (measured relative bound gap 0.4–1.2, so the standard gap criterion
+# below never fires on them). Both criteria stay: the gap limit is the citable CP-SAT/MIP stopping
+# rule for instances whose bound does close; the no-improvement window is the anytime criterion for
+# the ones whose bound never closes. Value: ≥ p95 of the box-scaled inter-improvement interval
+# (0.19–0.22 s at 3.5–4× Mac time) with margin; measured objective loss at this window ≤ 0.3 % of
+# a Thompson-sampled objective whose seed-to-seed spread is ≈ ±40 %. ADR-0018 has the tables.
+CPSAT_RELATIVE_GAP_LIMIT = (
+    0.01  # [A: relative gap limit] CP-SAT `relative_gap_limit` |O−B|/max(1,|O|)
+)
+SOLVER_STALL_WINDOW_S = 0.3  # [A: no-improvement window] early stop once a solution exists
 STABILITY_BONUS_UNITS = 1  # AddHint tie-break: 1 scaled unit = 1e-4 weight; ADR-0007 §7
 MODEL_VERSION = "recsys-p5.0"  # NFR-O1 model tag on every recommendation

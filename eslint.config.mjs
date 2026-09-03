@@ -7,6 +7,8 @@ import prettier from 'eslint-config-prettier';
 export default tseslint.config(
   {
     ignores: [
+      '.claude/**', // harness agent worktrees live inside the repo dir
+
       '**/node_modules/**',
       '**/.expo/**',
       '**/dist/**',

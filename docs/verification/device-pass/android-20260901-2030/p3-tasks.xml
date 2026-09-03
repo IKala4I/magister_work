@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="39131JEHN07217" tests="1" failures="1" time="132.093" timestamp="2026-09-01T21:00:52">
+    <testcase id="p3-tasks-flow" name="p3-tasks-flow" classname="p3-tasks-flow" file="/Users/vladyslav/Workspace/magister_work/apps/mobile/e2e/p3-tasks-flow.yaml" time="132.084" timestamp="2026-09-01T21:00:52" status="ERROR">
+      <failure>Assertion is false: "Task deleted" is visible</failure>
+    </testcase>
+  </testsuite>
+</testsuites>

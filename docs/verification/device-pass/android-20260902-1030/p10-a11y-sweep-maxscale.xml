@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="39131JEHN07217" tests="1" failures="1" time="38.161" timestamp="2026-09-02T11:50:28">
+    <testcase id="p10-a11y-sweep" name="p10-a11y-sweep" classname="p10-a11y-sweep" file="e2e/p10-a11y-sweep.yaml" time="38.149" timestamp="2026-09-02T11:50:28" status="ERROR">
+      <failure>Assertion is false: "\\w+day, \\w+ \\d+" is visible</failure>
+    </testcase>
+  </testsuite>
+</testsuites>

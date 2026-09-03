@@ -112,6 +112,11 @@ APIs verified via ctx7 on 2026-08-26: `/google/or-tools` (CP-SAT Python snake_ca
 intervals, hints, time limit), `/fidelity/mabwiser` (LinUCB/LinTS `fit`/`predict_expectations`),
 `/jpadilla/pyjwt` (`PyJWKClient.get_signing_key_from_jwt`, `jwt.decode` audience/require).
 Project JWKS confirmed ES256 (asymmetric) — specs/07 §7's verification model applies unchanged.
+**2026-09-03 (ADR-0018):** `CpSolver.stop_search()` is asynchronous and lock-guarded in ortools
+9.15.6755 (read from the installed source) and is the documented way to end a search from a
+callback or another thread; `relative_gap_limit` / `absolute_gap_limit` semantics — relative gap
+`|O−B| / max(1, |O|)`, default 0.0 (off), status reads OPTIMAL when the limit fires — verified
+against the v9.15 `sat_parameters.proto`.
 
 ## Edge Functions — P6 additions (verified 2026-08-26)
 

@@ -38,6 +38,7 @@ from hourwell_recsys.params import (
     EXPERIMENT_MIN_BUCKETS,
     GAMMA_U,
     MODEL_VERSION,
+    OBJECTIVE_SCALE,
     PRACTICAL_LITERAL_THRESHOLD,
     PRECEDING_LOAD_WINDOW_MINUTES,
     SOLVER_LADDER_RESERVE_S,
@@ -301,6 +302,7 @@ def _solve_with_ladder(
     literals = 0
     hints = 0
     statuses: list[str] = []
+    day_results: list[cpsat.SolveResult] = []
     objective = 0.0
     per_day = max(budget_s / grid.horizon_days, SOLVER_MIN_SLICE_S)
     for day in range(grid.horizon_days):
@@ -328,6 +330,7 @@ def _solve_with_ladder(
             grid=grid, tasks=day_tasks, previous=previous, seed=seed + day, time_cap_s=per_day
         )
         statuses.append(res.status)
+        day_results.append(res)
         total_ms += res.solve_ms
         build_ms += res.build_ms
         literals += res.literals
@@ -346,6 +349,14 @@ def _solve_with_ladder(
     else:
         status = "OPTIMAL" if all(st == "OPTIMAL" for st in statuses) else "FEASIBLE"
     deferred = tuple(t.task_id for t in remaining if t.critical)
+    # ADR-0018 trajectory across the per-day solves: bound and gap add up only when every day
+    # reported one; the timing fields take the worst day.
+    bounds = [r.objective_bound for r in day_results]
+    bound = sum(bounds) if bounds and all(b is not None for b in bounds) else None  # type: ignore[arg-type]
+    last_imp = [r.last_improvement_ms for r in day_results if r.last_improvement_ms is not None]
+    max_gap = [
+        r.max_improvement_gap_ms for r in day_results if r.max_improvement_gap_ms is not None
+    ]
     return (
         cpsat.SolveResult(
             status,
@@ -356,6 +367,18 @@ def _solve_with_ladder(
             build_ms=build_ms,
             hints=hints,
             deferred_critical=deferred,
+            early_stop=any(r.early_stop for r in day_results),
+            n_solutions=sum(r.n_solutions for r in day_results),
+            last_improvement_ms=max(last_imp) if last_imp else None,
+            max_improvement_gap_ms=max(max_gap) if max_gap else None,
+            objective_bound=bound,
+            gap=(
+                None
+                if bound is None
+                else abs(bound - objective)
+                * OBJECTIVE_SCALE
+                / max(1.0, abs(objective) * OBJECTIVE_SCALE)
+            ),
         ),
         "day_by_day",
         max(len(statuses), 1),
@@ -658,6 +681,14 @@ def plan(req: PlanRequest, repo: Repo, *, now: datetime | None = None) -> PlanRe
             solves=solves,
             build_ms=result.build_ms,
             total_ms=int(round((time.perf_counter() - t_start) * 1000)),
+            early_stop=result.early_stop,
+            n_solutions=result.n_solutions,
+            last_improvement_ms=result.last_improvement_ms,
+            max_improvement_gap_ms=result.max_improvement_gap_ms,
+            objective_bound=(
+                None if result.objective_bound is None else round(result.objective_bound, 4)
+            ),
+            gap=None if result.gap is None else round(result.gap, 4),
         ),
     )
 

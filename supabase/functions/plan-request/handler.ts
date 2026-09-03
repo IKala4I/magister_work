@@ -179,12 +179,16 @@ export async function handlePlanRequest(req: Request, deps: Deps): Promise<Respo
     });
   }
 
-  const recent = await deps.countPlansLast24h(userId, t0);
+  // ADR-0018 (hardware pass, 2026-09-03): the rate-limit count and the context reads do not
+  // depend on each other — one round trip instead of two. The 429 check still runs before
+  // anything is planned or persisted.
+  const [recent, ctx] = await Promise.all([
+    deps.countPlansLast24h(userId, t0),
+    deps.loadContext(userId, body.plan_date, horizon, nowMs),
+  ]);
   if (recent >= PLAN_RATE_LIMIT_PER_DAY) {
     return json(429, { error: 'rate_limited', detail: `${PLAN_RATE_LIMIT_PER_DAY} plans per day` });
   }
-
-  const ctx = await deps.loadContext(userId, body.plan_date, horizon, nowMs);
   if (ctx === null) {
     return json(404, { error: 'profile_not_found', detail: 'complete onboarding first' });
   }

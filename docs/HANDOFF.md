@@ -2,17 +2,37 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-01 — **post-P12 owner ladder** (P12 merged, PR #30). Ladder 1–4
-> done/decided: `recsys_service` role live (§18), DPIA signed as a completed assessment —
-> **no field study will run** (owner, 2026-09-01), store: no accounts. First scheduled
-> nightly run proven clean. #49 + the repo-wide no-study sweep done (2026-09-01). Remaining: hardware
-> pass (step 5, account-free); steps 6–7 retired-conditional.
-> Adversarial pass: 5 MAJOR + 11 MINOR, all 16 fixed in-branch. Gates: typecheck/lint/
-> format clean · jest 461 · expo-doctor 21/21 · recsys 149 (8 skipped) · training 78 ·
-> pgTAP `p12_role_test.sql` proves on the PR's db job (no Docker on the dev Mac).
-> **P0–P12 = the whole build plan. What remains is owner-run: the ⛔ ladder below, the
-> hardware pass, enrollment prerequisites, and first-real-data reviews.** Standing rules
-> live in CLAUDE.md: "Working mode", "Context efficiency", "Simulator evidence".
+> Last update: 2026-09-02 night — **hardware pass, Android day 2 closed; day 3 queue below.**
+> Read first: `docs/verification/device-pass/android-20260902-1030/notes.md` (items 1–30, "Results
+> by build", "Plan-budget sweep") and the "Day 3 — open with these" block. Merged today: PR #37
+> (legacy timezone id → learned engine unreachable from Android) and PR #38 (client fix batch
+> F1–F8). The phone runs **build 3** (`ee920100ba66…`, main 3f1159d source). Branch state at the
+> end of the night: everything committed and pushed (`post-p12/hardware-pass` tracks origin).
+
+## Day 3 — open with these (2026-09-03)
+
+1. **PostHog CSV (owner, ⛔ 5b, no key):** eu.posthog.com → Hourwell project → Activity → date
+   2 Sep 2026 → event `plan_requested` → columns `trigger`, `outcome`, `engine`, `duration_ms` +
+   timestamp (≈ 16 rows: ten `manual` 11:38–11:40, the `first_open` ones, the `evening_ritual`
+   20:22); optionally `sync_completed` with `reason`, `duration_ms`. Session: compute p50/p95 per
+   trigger and per outcome, write the device column of `p10-manual-verification.md` §2.3 and the
+   NFR-P1 checklist entry; compare with the server-side series (ef total p50 1662 / p95 1908 ms).
+2. **CP-SAT gap limit — DECIDED (owner, 2026-09-02): yes.** Levers: gap limit **yes**; bigger
+   budget **no**; VM move **no**; parallel context reads **only if cheap**. Session: add
+   `relative_gap_limit` (and/or an early stop once a solution exists and the bound gap is small)
+   in `services/recsys/src/hourwell_recsys/solver.py` (standard CP-SAT parameter — cite it), pin
+   the value in an ADR + `params.py` + `docs/versions.md`, unit-test that a capped instance now
+   returns before the slice, deploy via main (image rebuild + rollout), then **re-run
+   `docs/verification/hw-plan-budget-sweep.mjs 2`** and the device's own re-plan series; report the
+   fallback rate before/after in the day-3 notes and the revisit entry. The measured shape (day-2
+   notes, "Plan-budget sweep") is a thesis result regardless.
+3. Then the device queue: first open adds NO request (tomorrow's plan exists); offline first
+   open → retries on the next foreground (F1); a delivered reminder for a started/moved block
+   leaves the shade (F7); cold start ×20 **after a reboot** on build 3; gutter / heatmap /
+   quick-add at 2.0 on build 3 (`a11y-max.sh` pattern); TalkBack tab label; the killed-app
+   ritual at 20:00 with an adb-driven tap on the notification's **action button** (owner does NOT
+   tap it) → `notification_response.action = accept`; FR-42 erasure LAST. Owner-attended:
+   off-grid move snap (type 5:37), TalkBack listening, the three `owner-*` screenshots.
 
 ## Where we are
 
@@ -54,6 +74,45 @@
    opted in, 2026-09-01 — runs strictly after the hardware pass closes). Enrollment support and
    first-real-data reviews are retired-conditional (#49).
 
+## Hardware pass — live state (2026-09-02 evening, read before touching the phone)
+
+- **Phone ownership:** the phone is the session's while a step runs; a foreground by the owner
+  mid-flow sent flows into the wrong app twice (day-2 finding 11). Never `KEYCODE_BACK` on the
+  Today root (it backgrounds the app); `uiautomator dump` fails while a Focus timer or a sync
+  spinner animates — use adb screenshots then.
+- **Builds:** three in one day — see the "Results by build" table in the day-2 notes before
+  citing any number. Build 2 is VOID (no project URL in its bundle: a worktree build whose `.env`
+  copy never reached the bundle). `scripts`: `build3-checks.sh` pattern = bundle-host gate →
+  install → backend proof (Settings write read back from `profiles`) → behavioural checks.
+- **Done on hardware (Android):** UC-01 E2E; NFR-P2 cold start 1582 ms p90 post-reboot (build 1)
+  / 551 ms warm (build 3); scroll 60 fps 0 janky; NFR-S1 reboot; first learned plan; NFR-P1 series
+  server side (p95 1908 ms, 1/10 timeout fallback; client `duration_ms` in PostHog — ⛔ 5b); real
+  offline round trip; undo 6 s; Ukrainian NL; FR-30 both halves; lazy lapse scan (server);
+  UC-07 move (snap from an off-grid minute = owner); a11y trees (TalkBack listening = owner);
+  max-scale screenshots; **UC-03 dedup on build 3 (0 requests / 20 cold starts)**; Settings
+  scrolls; ritual delivered at 20:00 (+1 h window, seen by 20:14).
+- **Tonight — done:** ritual tapped 20:22 (backgrounded) → `evening_ritual` plan for the 3rd
+  (10 blocks, heuristic `fallback:timeout` 1909 ms), one `notification_response` (action `open` —
+  button-vs-body open question, day-2 note 29), today unchanged, tomorrow line shown. Export share
+  sheet on build 3 ✓ ("Export ready — 14 tables shared."; the sheet screenshot was dropped — it
+  showed contact names).
+- **Tomorrow (day 3):** first open must add NO request (tomorrow's plan exists — ADR-0014 §3);
+  the `new_day` case needs an evening without the ritual (skip tapping it on the 3rd → check on
+  the 4th); offline first open → retries on the next foreground (F1); a delivered reminder for a
+  started/moved block leaves the shade (F7); cold start ×20 post-reboot on build 3; gutter /
+  heatmap / quick-add at 2.0 on build 3 (`a11y-max.sh` pattern); TalkBack tab label; the killed-app
+  ritual variant at 20:00; FR-42 erasure LAST (ends the device account).
+- **Plan-budget sweep done (20:31–20:34, 45 requests, `hw-plan-budget-sweep.mjs`):** the
+  fallback has a measured shape (day-2 notes, last section; revisit.md last entry) — 0.43 s
+  round-trip floor + 0.45–0.9 s function overhead + a 1.0 s solver slice; reliable under ≈ 0.6 s
+  of solve time, a coin flip once the first rung runs to its slice. **Owner decision pending:**
+  which lever (gap limit / parallel context reads / budget / co-location) becomes a fix and which
+  is reported as a thesis result.
+- **Still open beyond Android:** everything on iOS (not started); the DST clock item; auth items
+  needing the mailbox / Google client (⛔ 6); revisit entries (learned path at the fallback
+  budget's edge; re-plan drops a running block; zero-block rows in the plan limit; jest open
+  handle).
+
 ## ⛔ ACTION REQUIRED (owner — ordered; one per turn)
 
 1. ✅ **Migration push** — done 2026-08-31; the remote migration list shows
@@ -76,14 +135,16 @@
    pack stays prepared-but-unsubmitted (metadata §7 decision block; thesis-corrections
    #48; the enrollment checklist carries the no-iOS gate; reversal condition in
    revisit.md).
-5. **Hardware pass — account-free scope** (owner decision 2026-08-31): iOS =
-   free-provisioned **Release-configuration** build on the owner's iPhone
-   (`npx expo run:ios --device --configuration Release`; 7-day signature — re-sign for
-   week-long items); Android = locally built release APK sideloaded
-   (`npx expo prebuild -p android` + `./gradlew assembleRelease`). `scripts/device-pass.sh`
-   unchanged. Closes every device-checklist item except the blocked-by-decision iOS
-   standalone/EAS residual (re-scoped in "Release builds — EAS (added P12)"); numbers are
-   reported for the actual devices used (simulator-evidence rule).
+5. **Hardware pass — account-free scope** — **Android days 1–2 done on the Pixel 7a** (see the
+   live-state block); iOS not started (free-provisioned Release build, 7-day signature).
+   **5a ✅** lockout cleared (owner ran `hw-unblock.mjs --apply`, 30 rows). **5b (open):** PostHog
+   read for the NFR-P1 client durations (`plan_requested.duration_ms`, 2026-09-02, 10 manual
+   re-plans 11:38–11:40 + the first-open ones) — read the EU project UI or put a read-only
+   personal API key + project id into `.env` as `POSTHOG_PERSONAL_API_KEY` / `POSTHOG_PROJECT_ID`.
+   **5c (tonight):** tap the 20:00 ritual's "Plan tomorrow" action before midnight (backgrounded
+   variant); drop the 14:18 / 14:28 / 20:1x screenshots into
+   `docs/verification/device-pass/android-20260902-1030/` with an `owner-` prefix (delivery
+   times for the FR-50 drift).
 6. **Hardware-pass prerequisites only** (re-scoped by #49): the Google OAuth second Web
    client and a real mailbox matter only for the device-checklist auth/calendar items;
    PostHog EU / Sentry EU are optional (keys env-gated; own-use telemetry).

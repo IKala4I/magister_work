@@ -185,6 +185,65 @@ def test_add_hint_keeps_the_previous_placement_on_ties(weekday_grid: Grid) -> No
     assert res2.placements[0].start == 2
 
 
+def _stall_tasks(grid: Grid, n: int = 15) -> list[cpsat.SolverTask]:
+    """The owner's real 2 Sep inbox shape (ADR-0018): interchangeable admin tasks — equal value,
+    two durations, per-tick weights that differ by tick but not by task. CP-SAT finds the incumbent
+    at once and never proves it optimal inside the cap (relative bound gap ≫ 1 %)."""
+    from hourwell_recsys.grid import feasible_starts
+
+    out = []
+    for i in range(n):
+        d = 3 if i % 3 == 2 else 2
+        full = tuple(feasible_starts(grid, duration=d, earliest=None, deadline=None))
+        w = {k: 2 * (0.35 + 0.3 * ((k * 7919) % 17) / 17) for k in full}
+        out.append(
+            cpsat.SolverTask(
+                task_id=f"t{i:02d}",
+                duration=d,
+                value=2,
+                category="admin",
+                splittable=False,
+                starts=full,
+                starts_min=(),
+                weights=w,
+                deadline=None,
+                pinned_start=None,
+                critical=False,
+            )
+        )
+    return out
+
+
+def test_no_improvement_early_stop_ends_the_proof_stall(weekday_grid: Grid) -> None:
+    """ADR-0018 §2: a solution exists, none better for the window → the search ends well before
+    the cap, and the reported gap shows why the gap limit alone could not have ended it."""
+    res = cpsat.solve(
+        grid=weekday_grid, tasks=_stall_tasks(weekday_grid), time_cap_s=1.5, stall_window_s=0.15
+    )
+    assert res.status == "FEASIBLE" and res.placements
+    assert res.early_stop and res.n_solutions >= 1
+    assert res.last_improvement_ms is not None and res.last_improvement_ms <= res.solve_ms + 20
+    assert res.solve_ms < 1200  # ended by the window, not by the 1.5 s cap
+    assert res.gap is not None and res.gap > 0.01  # the bound did not close
+
+
+def test_early_stop_disabled_runs_the_stall_to_the_cap(weekday_grid: Grid) -> None:
+    res = cpsat.solve(
+        grid=weekday_grid, tasks=_stall_tasks(weekday_grid), time_cap_s=0.4, stall_window_s=None
+    )
+    assert res.status == "FEASIBLE" and not res.early_stop
+    assert res.solve_ms >= 350  # the cap, as before ADR-0018
+
+
+def test_tight_instance_reports_a_closed_gap_without_early_stop(weekday_grid: Grid) -> None:
+    g = _grid(weekday_grid, list(range(0, 12)))
+    res = cpsat.solve(grid=g, tasks=[_task("a", g, 2), _task("b", g, 3)], num_workers=1)
+    assert res.status == "OPTIMAL" and not res.early_stop and res.n_solutions >= 1
+    assert res.gap is not None and res.gap <= 0.01  # ADR-0018 §1: OPTIMAL under the gap limit
+    assert res.objective_bound is not None
+    assert abs(res.objective_bound - res.objective) <= 0.01 * max(1.0, abs(res.objective))
+
+
 def test_count_literals_is_sum_of_feasible_starts(weekday_grid: Grid) -> None:
     g = _grid(weekday_grid, list(range(0, 12)))
     a = _task("a", g, 2)  # 12 − 3 + 1 = 10 starts

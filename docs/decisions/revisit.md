@@ -267,3 +267,51 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   thesis phrasing then flips "pre-registration-ready" → "pre-registered" (corrections
   #49 update; rollup "How to run the pass" step 2). Material: items 8/10/21/35/36
   verbatim + H1/M9/G5 in the rollup.
+- [hardware pass, 2026-09-02] **Learned path runs at the fallback budget's edge on a full
+  inbox.** Pixel 7a, 14 tasks, day window 12:00–18:00: CP-SAT hits the 1.5 s `SOLVER_TIME_CAP_S`
+  (FEASIBLE) on 8 of 10 re-plans, so service ≈ 1.5 s + function/network ≈ 0.2–0.4 s brushes the
+  1.9 s `PLAN_FALLBACK_BUDGET_MS`; 1/10 came back `fallback:timeout`. Both are Appendix A
+  parameters (cap SPEC-FIXED). Revisit before any thesis claim about the fallback rate: either
+  raise the EF budget toward the 2.5 s NFR-P1 ceiling, lower the cap on `day` horizons, or
+  report the measured ≈ 10 % fallback rate on tight days as a property of the deployment. **Evening data point (20:22, build 3):** the ritual's full-day plan for the 3rd (14 tasks, 09:00–18:00) also came back `fallback:timeout` at 1909 ms — 1 of 1 full-day request; the half-day series was 1 of 10. A full working day with a 14-task inbox may not be answerable by the learned engine inside the budget at all.
+- [hardware pass, 2026-09-02] **Zero-block fallback plans count toward the 30-per-24 h plan
+  limit** (`countPlansLast24h`). Harmless once the client's cold-start re-request loop is fixed
+  (day-2 defect 15), so the limiter stays as designed; re-check the day-0/evening-empty case
+  after that fix — if a user can still lock themselves out by opening the app, exclude
+  zero-recommendation rows from the count.
+- [hardware pass, 2026-09-02] **A re-plan while a focus session is running drops that block
+  from Today.** The 16:16 relaunch re-planned (cold-start defect, since fixed) and the new plan
+  omitted "dataset cleanup" (its 16:15 start was already past); the old recommendation stayed
+  `accepted` (ADR-0010 held — not lapsed) and Focus kept the session, but Today no longer showed
+  the block. A manual re-plan during a session hits the same path. Revisit in the service/EF:
+  carry a recommendation with a running session as a fixed assignment (previous_assignments
+  with status `accepted` + an open session) so Today and Focus never disagree.
+- [hardware pass, 2026-09-02] jest prints "A worker process has failed to exit gracefully" on
+  the fix-batch branch (second adversarial pass, unattributed — likely the SQLite suites, not
+  verified against main). Run `pnpm test -- --detectOpenHandles` once and close the handle.
+- [hardware pass, 2026-09-02 evening] **Measured shape of the learned-path fallback** (45-request
+  sweep, `docs/verification/hw-plan-budget-sweep.mjs`; day-2 notes "Plan-budget sweep"): the
+  1.9 s budget = 0.43 s round-trip floor + 0.45–0.9 s function overhead + a 1.0 s effective solver
+  slice (1.5 s cap − 0.5 s ladder reserve, no gap limit). Reliable when the solver finishes
+  < ≈ 0.6 s (≤ 4.5 h windows at any size; ≤ 12 tasks on 9 h); a coin flip whenever the first rung
+  runs to its slice (from 14–16 tasks on 9 h; today's deadline-bearing 14-task instances 12/15,
+  an optimality-proof stall on ≈ 300-literal models). Decide: `relative_gap_limit` / early stop,
+  parallel context reads, budget → 2.5 s − client overhead, or co-location — and which of these
+  is reported as a result rather than fixed. Supersedes the "≈ 10 % on tight days" wording above.
+- [hardware pass, 2026-09-02 — DECIDED (owner)] **Learned-path budget levers:** CP-SAT
+  `relative_gap_limit` / early stop — **yes** (implement, with an ADR pinning the value and the
+  re-measured fallback rate); a bigger `PLAN_FALLBACK_BUDGET_MS` — **no**; moving the VM /
+  co-location — **no**; parallel context reads in the edge function — **only if cheap** (one
+  bounded attempt; drop it if it needs more than a small refactor). The measured shape above
+  (round-trip floor, function overhead, 1.0 s slice, proof stalls) is reported as a thesis
+  result either way; the gap-limit run re-measures with the same sweep script.
+- [hardware pass, 2026-09-03 — DONE, ADR-0018] **Stopping criteria shipped:** `relative_gap_limit`
+  0.01 + a 0.3 s no-improvement early stop (watchdog → `stop_search()`) + search-trajectory
+  telemetry on every plan + concurrent count/context reads in `plan-request`. Measured before
+  shipping: the gap limit alone is inert on the stall class (relative bound gap 0.38–1.21 on the
+  device's reproduced inbox; symmetry level 2 / probing 1 change nothing) — the early stop is
+  what ends the stall, at ≤ 0.3 % objective loss for the 0.3 s window. **After-rollout numbers:**
+  see the day-3 notes (device after-series, sweep re-run) and ADR-0018's last section. Still
+  open: (a) the exact alternative — symmetry-breaking among interchangeable tasks so the proof
+  closes instead of being stopped; (b) re-pin the window from the box's own
+  `max_improvement_gap_ms` p95 after a week of plans (rule in ADR-0018 §3).

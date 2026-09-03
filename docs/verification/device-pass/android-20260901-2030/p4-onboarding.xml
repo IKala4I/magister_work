@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="39131JEHN07217" tests="1" failures="0" time="215.935" timestamp="2026-09-01T20:37:55">
+    <testcase id="p4-onboarding-flow" name="p4-onboarding-flow" classname="p4-onboarding-flow" file="/Users/vladyslav/Workspace/magister_work/apps/mobile/e2e/p4-onboarding-flow.yaml" time="215.925" timestamp="2026-09-01T20:37:55" status="SUCCESS"/>
+  </testsuite>
+</testsuites>
