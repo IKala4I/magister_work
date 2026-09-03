@@ -2,37 +2,49 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-02 night — **hardware pass, Android day 2 closed; day 3 queue below.**
-> Read first: `docs/verification/device-pass/android-20260902-1030/notes.md` (items 1–30, "Results
-> by build", "Plan-budget sweep") and the "Day 3 — open with these" block. Merged today: PR #37
-> (legacy timezone id → learned engine unreachable from Android) and PR #38 (client fix batch
-> F1–F8). The phone runs **build 3** (`ee920100ba66…`, main 3f1159d source). Branch state at the
-> end of the night: everything committed and pushed (`post-p12/hardware-pass` tracks origin).
+> Last update: 2026-09-03 afternoon — **hardware pass, Android day 3 closed; day 4 queue below.**
+> Read first: `docs/verification/device-pass/android-20260903-1020/notes.md` (items 1–12) and
+> **ADR-0018** (solver stopping criteria — the day's decision, with the before/after tables), then
+> the "Day 4 — open with these" block. Merged today: **PR #39** (`relative_gap_limit` 0.01 + 0.3 s
+> no-improvement early stop + trajectory telemetry; concurrent count/context reads in
+> `plan-request`; `api.ts`). The box serves build `813cdbade0e9` since 11:06 EEST; `plan-request`
+> is v12. The phone still runs **build 3** (`ee920100ba66…`, main 3f1159d source — the APK did not
+> change today). Branch state: `post-p12/hardware-pass` = main + the day-3 docs commits, pushed.
 
-## Day 3 — open with these (2026-09-03)
+## Day 4 — open with these (2026-09-04)
 
-1. **PostHog CSV (owner, ⛔ 5b, no key):** eu.posthog.com → Hourwell project → Activity → date
-   2 Sep 2026 → event `plan_requested` → columns `trigger`, `outcome`, `engine`, `duration_ms` +
-   timestamp (≈ 16 rows: ten `manual` 11:38–11:40, the `first_open` ones, the `evening_ritual`
-   20:22); optionally `sync_completed` with `reason`, `duration_ms`. Session: compute p50/p95 per
-   trigger and per outcome, write the device column of `p10-manual-verification.md` §2.3 and the
-   NFR-P1 checklist entry; compare with the server-side series (ef total p50 1662 / p95 1908 ms).
-2. **CP-SAT gap limit — DECIDED (owner, 2026-09-02): yes.** Levers: gap limit **yes**; bigger
-   budget **no**; VM move **no**; parallel context reads **only if cheap**. Session: add
-   `relative_gap_limit` (and/or an early stop once a solution exists and the bound gap is small)
-   in `services/recsys/src/hourwell_recsys/solver.py` (standard CP-SAT parameter — cite it), pin
-   the value in an ADR + `params.py` + `docs/versions.md`, unit-test that a capped instance now
-   returns before the slice, deploy via main (image rebuild + rollout), then **re-run
-   `docs/verification/hw-plan-budget-sweep.mjs 2`** and the device's own re-plan series; report the
-   fallback rate before/after in the day-3 notes and the revisit entry. The measured shape (day-2
-   notes, "Plan-budget sweep") is a thesis result regardless.
-3. Then the device queue: first open adds NO request (tomorrow's plan exists); offline first
-   open → retries on the next foreground (F1); a delivered reminder for a started/moved block
-   leaves the shade (F7); cold start ×20 **after a reboot** on build 3; gutter / heatmap /
-   quick-add at 2.0 on build 3 (`a11y-max.sh` pattern); TalkBack tab label; the killed-app
-   ritual at 20:00 with an adb-driven tap on the notification's **action button** (owner does NOT
-   tap it) → `notification_response.action = accept`; FR-42 erasure LAST. Owner-attended:
-   off-grid move snap (type 5:37), TalkBack listening, the three `owner-*` screenshots.
+1. **Morning, before anyone opens the app (session, phone untouched overnight):** read the shade
+   (`dumpsys notification` for `com.hourwell.app`) — the 20:00 ritual was to be delivered with the
+   app **killed** (`am kill` after the day-3 blocks; alarms intact) and left untapped (owner
+   directive). **Wait for the owner's ping, then read the records — never poll** (CLAUDE.md "No
+   wall-clock polling", 2026-09-03): `adb shell "dumpsys notification --noredact" | grep -A40
+"pkg=com.hourwell.app" | grep -E "android.title=|android.text=|when="` (the `when=` epoch ms is
+   the post time), `adb shell dumpsys alarm | grep -A2 "com.hourwell.app}" | grep origWhen=`, and
+   the server rows (`plans` for 2026-09-04, `notification_response`). Then the **`new_day`
+   case**: no plan exists for the 4th →
+   first foreground of the day must issue exactly one `plan_requested` with the day-boundary
+   trigger (device-checklist "UC-03 triggers on a real day boundary"). Do it as the **F1 offline
+   check first**: radios off → `am start` → no request, "Offline" state → radios on → foreground
+   → exactly one plan row for 2026-09-04 (`q-after.mjs`-style read of `plans`).
+2. **PostHog re-export (owner, ⛔ 5b-bis, no key):** eu.posthog.com → Activity → date 3 Sep →
+   events `plan_requested` **and `sync_completed`** (columns `trigger`/`reason`, `outcome`,
+   `engine`, `duration_ms`, timestamp) → `~/Downloads/`. Session: pair with
+   `series-before-2026-09-03.json` / `series-after-2026-09-03.json` (function starts 07:37 and
+   08:40 UTC) → the client-side "after" p50/p95, the measured pre-plan sync share, and the final
+   NFR-P1 figure check (corrections #51: 4.0 s p95 stands if the after p95 ≤ 3.6 s, else 4.5 s).
+3. **Evening of the 4th — the action-button variant (live-state step; owner decides whether to
+   sit through it):** kill the app (`am kill`, never `force-stop` — that cancels the alarms) before
+   20:00; after the owner pings that the ritual is showing, one adb-driven tap on the
+   notification's **action button** (owner does NOT tap) → `notification_response.action =
+accept` + tomorrow's plan; day-2 note 29 (button vs body) closes. Everything else about the
+   delivery is reconstructed from the records afterwards.
+4. **Owner-attended (be at the phone):** off-grid move snap (type 5:37 in the native picker),
+   TalkBack listening pass (tab names, block cards, heatmap summary), and the three `owner-*`
+   screenshots of the 2 Sep deliveries (14:18 / 14:28 / 20:1x) dropped into
+   `android-20260902-1030/`. Then **FR-42 erasure LAST** (ends the device account).
+5. **Thesis follow-ups from day 3:** owner confirms the NFR-P1 figure (corrections #51 /
+   spec-conflicts L40); the ADR-0018 window re-pin after a week of plans (`max_improvement_gap_ms`
+   p95 vs 0.3 s); the two levers left untouched are in revisit.md.
 
 ## Where we are
 
@@ -74,7 +86,31 @@
    opted in, 2026-09-01 — runs strictly after the hardware pass closes). Enrollment support and
    first-real-data reviews are retired-conditional (#49).
 
-## Hardware pass — live state (2026-09-02 evening, read before touching the phone)
+## Hardware pass — live state (2026-09-03 afternoon, read before touching the phone)
+
+- **Day 3 in one paragraph:** the PostHog export made NFR-P1 a device number — manual series
+  p50 3271 / p95 3836 ms, of which the function was 1662 / 1908 and the rest a 1.0–1.5 s pre-plan
+  sync push plus ≈ 0.5 s transport/mirror (notes item 1). The learned path's proof stall was
+  reproduced from the device's own inbox (15 interchangeable admin tasks → 24/24 solves at the
+  1.0 s slice, bound gap 0.38–1.21; a gap limit alone is inert there) and fixed by **ADR-0018**
+  (gap limit 0.01 + 0.3 s no-improvement early stop + trajectory telemetry; concurrent reads in
+  the function). After the rollout: device 0/10 fallbacks (before 1/10), function p50 1091 /
+  p95 1342 ms, solve p50 400 / max 665 ms; sweep 0/36 (before 1/36). NFR-P1 restated as a
+  measured requirement (corrections #51 — proposed ≤ 4.0 s p95 device end-to-end, owner to
+  confirm). Also done: first open on the 3rd added no request (warm + cold); NFR-A2 at 2.0 on
+  build 3 (F2/F3/F4/F6 hold, four cosmetic residuals); F7 and the post-reboot cold start — see
+  notes items 11–12.
+- **Phone state at the end of day 3 (13:0x EEST):** font/density restored to defaults, the 12:34
+  focus session NOT finished (the Focus tab did not take adb taps at default density — notes item 13; the 2 h abandon rule closes it), app
+  backgrounded and **`am kill`ed** (alarms intact: 13:05 block reminder, 20:00 today, 20:00
+  tomorrow) so tonight's ritual is delivered to a dead process; nobody taps it. 24-h plan count
+  was 29/30 at 11:42 — it frees up from 10:37 EEST on the 4th (the before-series rows) and 11:40
+  (the after-series rows).
+- **Standing rule from today:** no Monitor / cron / sleep-loop for time-triggered checks; the
+  owner pings when the moment has passed and the session reads the records. The only live-state
+  step left in the queue is the action-button tap on the 4th's ritual (it needs the notification
+  posted) — say so before starting it and let the owner decide.
+- **Older state (day 2) below still applies.**
 
 - **Phone ownership:** the phone is the session's while a step runs; a foreground by the owner
   mid-flow sent flows into the wrong app twice (day-2 finding 11). Never `KEYCODE_BACK` on the
@@ -137,14 +173,12 @@
    revisit.md).
 5. **Hardware pass — account-free scope** — **Android days 1–2 done on the Pixel 7a** (see the
    live-state block); iOS not started (free-provisioned Release build, 7-day signature).
-   **5a ✅** lockout cleared (owner ran `hw-unblock.mjs --apply`, 30 rows). **5b (open):** PostHog
-   read for the NFR-P1 client durations (`plan_requested.duration_ms`, 2026-09-02, 10 manual
-   re-plans 11:38–11:40 + the first-open ones) — read the EU project UI or put a read-only
-   personal API key + project id into `.env` as `POSTHOG_PERSONAL_API_KEY` / `POSTHOG_PROJECT_ID`.
-   **5c (tonight):** tap the 20:00 ritual's "Plan tomorrow" action before midnight (backgrounded
-   variant); drop the 14:18 / 14:28 / 20:1x screenshots into
-   `docs/verification/device-pass/android-20260902-1030/` with an `owner-` prefix (delivery
-   times for the FR-50 drift).
+   **5a ✅** lockout cleared (owner ran `hw-unblock.mjs --apply`, 30 rows). **5b ✅ (2026-09-03):** the owner's PostHog CSV export carried every column; decomposition in
+   the day-3 notes item 1. **5b-bis (open, no key):** re-export 3 Sep `plan_requested` +
+   `sync_completed` (Day 4 item 2). **5c:** the 2 Sep ritual tap is done (backgrounded variant,
+   20:22); the three `owner-*` screenshots (14:18 / 14:28 / 20:1x deliveries) are still owed to
+   `android-20260902-1030/`. **Tonight (3 Sep): nobody taps the ritual** (owner directive) so the
+   `new_day` trigger is observable on the 4th.
 6. **Hardware-pass prerequisites only** (re-scoped by #49): the Google OAuth second Web
    client and a real mailbox matter only for the device-checklist auth/calendar items;
    PostHog EU / Sentry EU are optional (keys env-gated; own-use telemetry).
@@ -157,6 +191,24 @@
    is closed.
 
 ## Gotchas (P12 additions; earlier lists in git history of this file still apply)
+
+- **`gh pr merge --auto --merge` merges immediately on this repo** — no required checks are
+  configured, so auto-merge does not wait for CI (PR #39 merged with three checks still pending;
+  they finished green on `main` afterwards). If a merge must wait for CI, watch `gh pr checks`
+  and merge by hand.
+- **`hw-plan-budget-sweep.mjs` plan dates now roll from today** (tomorrow / +2 / +3). The
+  hard-coded dates had turned the "9 h" row into a 6.75 h window on a re-run — compare sweeps
+  only on the same horizon dates (weekday vs weekend cells differ slightly).
+- **`am force-stop` cancels the app's AlarmManager alarms** (they come back on the next
+  foreground, when the scheduler pass runs); **`am kill` keeps them** — use `am kill` for the
+  "delivered to a dead process" variants.
+- **The 30-plans-per-24 h limit counts every row** (`countPlansLast24h`): two 10-request series
+  plus a day's normal traffic reach it — plan series around the expiry of yesterday's rows.
+- **PostHog client timestamps are taken after the SQLite mirror**, so `timestamp − duration_ms`
+  overshoots the true request start by the mirror time (0.1–0.9 s); pair rows by
+  `plans.generated_at` falling inside the client interval and treat the head/tail split as
+  ± that much (the sum is exact).
+- **zsh `[ "$now" -ge 083200 ]` treats leading-zero numbers as octal** — compare epoch seconds.
 
 - **Key audit lives in runbook §14, training container §13, Tailscale §15** (renumbered
   P12; §10–§12 are Operations/Rotation/Re-verify as always). Update any old note citing

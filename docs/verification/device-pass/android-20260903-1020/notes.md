@@ -108,6 +108,57 @@ the phone. Times are UTC unless marked EEST (UTC+3).
 9. **Box trajectory on clean instances** (`plan-budget-sweep-after-trajectory.json`, 14 and 20
    tasks on 9 h / 4.5 h / 2 h): numbers below the line in the file; used for the re-pin rule.
 
+10. **NFR-A2 at max scale on build 3** (font 2.0, density 540, animations 0 over adb, 11:47–11:49;
+    `a11y-maxscale-build3/` screenshots + trees): **the two day-2 defects are fixed** — the Today
+    gutter renders "11:45 AM" on one line (F2) and the heatmap weekday header no longer wraps
+    mid-word (F3); the quick-add placeholder "Add a task" is fully visible with its hint wrapping
+    cleanly (F4). Tab bar: the accessibility names are the plain words (Today / Inbox / Focus /
+    Insights — the glyph is gone from the label, F6), while the visible "Insight…" still
+    truncates at 2.0 (residual, visual only). New cosmetic residuals at 2.0: the block card's
+    time range breaks inside the meridiem ("12:15 P" / "M" — the narrow no-break space keeps
+    "12:15 PM" one token, so RN breaks it by character in the narrow card); the heatmap header
+    ellipsizes "Mo"/"We" to "M.."/"W.." in the narrow columns; the legend row ("lower … higher")
+    sits under the tab bar at the end of the scroll (bottom padding). Everything stays usable and
+    nothing is clipped that carries information — the text alternatives are intact. Listed for
+    the next fix batch, not blocking. TalkBack listening pass = owner (unchanged).
+
+11. **F7 — a delivered reminder for a started block leaves the shade (build 3) — PASS.** The
+    12:20 alarm (block "grant budget check", 12:30–13:00) posted its `reminders`-channel
+    notification at **12:20:34** (the alarm's nominal time; the phone was awake on USB power so
+    the +24 min inexact window was not used). At **12:34:29** an adb tap on the card's "Start"
+    action: `focus_start` on the server at 09:34:30 UTC, the recommendation `accepted`; the shade
+    held **0** Hourwell records four seconds later and still 0 after a background → foreground
+    cycle — the dismissal rides on the action itself, not only on the next foreground pass.
+    (`f7-after-start.png`.) The reminder was found by reading the shade at the moment of the
+    check, not by watching for it: the only live-state step was the Start tap while the record
+    was posted. **Owner directive from today (CLAUDE.md "No wall-clock polling"):** no more
+    monitors or sleep-loops for time-triggered events — the 11:20 alarm's earlier watch was
+    superseded by the 11:40 re-plan anyway (the plan changed, so its reminder was rescheduled to
+    12:20; the wait bought nothing).
+
+12. **NFR-P2 cold start ×20 immediately after a reboot, build 3 — PASS: p50 893 / p90 1072 /
+    max 1202 ms** (min 705; `cold-start-build3-post-reboot.txt`; `adb reboot` 12:39:58,
+    `sys.boot_completed` after 10 s, launcher + keyguard down at 12:40:44, then 20 × `am
+force-stop` + `am start -W`, TotalTime, default font/density). Build 1's post-reboot p90 was
+    1582 ms (day 1); the warm-cache number on build 3 is 551 ms (day 2). Method note: a first
+    attempt (reboot 12:36:07) lost its first 18 launches because `am start -W` failed while the
+    system was still settling after boot and the script discarded stderr — the hardened script
+    waits for the keyguard to drop and the launcher to be on top, retries uncounted failures, and
+    the reported run is the second reboot. A focus session was running through both reboots
+    (started 12:34:30, FR-30 persisted it) — see item 13 for its end.
+13. **Phone left for the night:** default font/density restored; app backgrounded (HOME) and
+    **`am kill`ed** (process gone, alarms intact — 13:05 block reminder, 20:00 today and
+    tomorrow); nobody taps tonight's ritual (owner). Tomorrow's reads reconstruct the delivery
+    from `dumpsys notification` / `dumpsys alarm` and the server rows after the owner's ping.
+    **Not done:** the 12:34 focus session was NOT finished by hand — three adb taps on the
+    Focus tab at the uiautomator-reported centre (675, 2273; default density) left the Today
+    screen in place, while tab taps at 2.0 scale earlier in the day did switch screens. Left to
+    the designed 2 h abandon rule (day-2 item 19 verified it closes the session); it will show
+    as one abandoned session in tomorrow's facts. Open for day 4: check a tab-bar tap over adb
+    at default density with a screenshot right after the tap (tap timing vs. touch target).
+    The lapse scan on the 12:35 foreground had already logged `lapse_observed` for the 11:45
+    block (server 09:34:14 UTC).
+
 ## Results by build
 
 | Build | Source / APK                                                        | Numbers and checks attributed to it                                                                                                                |
