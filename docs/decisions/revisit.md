@@ -310,8 +310,12 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   telemetry on every plan + concurrent count/context reads in `plan-request`. Measured before
   shipping: the gap limit alone is inert on the stall class (relative bound gap 0.38–1.21 on the
   device's reproduced inbox; symmetry level 2 / probing 1 change nothing) — the early stop is
-  what ends the stall, at ≤ 0.3 % objective loss for the 0.3 s window. **After-rollout numbers:**
-  see the day-3 notes (device after-series, sweep re-run) and ADR-0018's last section. Still
+  what ends the stall, at ≤ 0.3 % objective loss for the 0.3 s window. **After-rollout numbers
+  (2026-09-03):** device series on the same inbox 0/10 fallbacks (before 1/10), function p50
+  1091 / p95 1342 ms (before 1675 / 1907), solve p50 400 / max 665 ms, early stop 10/10; sweep
+  0/36 (before 1/36) and 0/9 on the splittable + deadlines variant; function work outside the
+  service call p50 388 / p90 517 ms (before 553 / 797). Window margin on the box is thin (longest
+  waits 224–268 ms vs 0.3 s) — re-pin rule in ADR-0018. Still
   open: (a) the exact alternative — symmetry-breaking among interchangeable tasks so the proof
   closes instead of being stopped; (b) re-pin the window from the box's own
   `max_improvement_gap_ms` p95 after a week of plans (rule in ADR-0018 §3).
