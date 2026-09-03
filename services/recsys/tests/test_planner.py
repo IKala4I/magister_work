@@ -130,10 +130,32 @@ def test_settings_mismatch_is_rejected(repo: InMemoryRepo) -> None:
 
 def test_same_seed_same_plan(repo: InMemoryRepo) -> None:
     req = PlanRequest.model_validate(plan_body(_day_tasks(), busy=_busy()))
-    timing = {"telemetry": {"solve_ms", "build_ms", "total_ms"}}
+    timing = {
+        "telemetry": {
+            "solve_ms",
+            "build_ms",
+            "total_ms",
+            # ADR-0018 trajectory fields are wall-clock facts, not plan content
+            "n_solutions",
+            "last_improvement_ms",
+            "max_improvement_gap_ms",
+            "early_stop",
+        }
+    }
     a = plan(req, repo).model_dump(exclude=timing)
     b = plan(req, repo).model_dump(exclude=timing)
     assert a == b
+
+
+def test_telemetry_carries_the_search_trajectory(repo: InMemoryRepo) -> None:
+    """ADR-0018: every plan reports why its search ended (bound, gap, improvements)."""
+    resp = plan(PlanRequest.model_validate(plan_body(_day_tasks(), busy=_busy())), repo)
+    t = resp.telemetry
+    assert t.n_solutions >= 1
+    assert t.last_improvement_ms is not None and t.last_improvement_ms <= t.solve_ms + 20
+    assert t.objective_bound is not None and t.gap is not None and t.gap >= 0.0
+    if resp.solver_status == "OPTIMAL":
+        assert t.gap <= 0.01 and not t.early_stop
 
 
 def test_infeasible_critical_task_yields_ranked_options(repo: InMemoryRepo) -> None:

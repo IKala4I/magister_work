@@ -159,6 +159,15 @@ class Telemetry(_Strict):
     solves: int
     build_ms: int  # CP-SAT model construction
     total_ms: int  # end-to-end inside the service (NFR-P1 accounting)
+    # ADR-0018 — why the search ended when it did (the proof-stall evidence, per plan)
+    early_stop: bool  # the no-improvement watchdog ended the search
+    n_solutions: int  # improving solutions CP-SAT reported
+    last_improvement_ms: int | None  # wall time of the last improving solution
+    max_improvement_gap_ms: int | None  # longest wait between two improvements
+    objective_bound: float | None  # CP-SAT best bound, weight units (same scale as `objective`)
+    gap: (
+        float | None
+    )  # relative gap |B − O| / max(1, |O|) on the scaled objective, as CP-SAT defines it
 
 
 class PlanResponse(_Strict):

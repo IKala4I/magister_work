@@ -305,3 +305,13 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   bounded attempt; drop it if it needs more than a small refactor). The measured shape above
   (round-trip floor, function overhead, 1.0 s slice, proof stalls) is reported as a thesis
   result either way; the gap-limit run re-measures with the same sweep script.
+- [hardware pass, 2026-09-03 — DONE, ADR-0018] **Stopping criteria shipped:** `relative_gap_limit`
+  0.01 + a 0.3 s no-improvement early stop (watchdog → `stop_search()`) + search-trajectory
+  telemetry on every plan + concurrent count/context reads in `plan-request`. Measured before
+  shipping: the gap limit alone is inert on the stall class (relative bound gap 0.38–1.21 on the
+  device's reproduced inbox; symmetry level 2 / probing 1 change nothing) — the early stop is
+  what ends the stall, at ≤ 0.3 % objective loss for the 0.3 s window. **After-rollout numbers:**
+  see the day-3 notes (device after-series, sweep re-run) and ADR-0018's last section. Still
+  open: (a) the exact alternative — symmetry-breaking among interchangeable tasks so the proof
+  closes instead of being stopped; (b) re-pin the window from the box's own
+  `max_improvement_gap_ms` p95 after a week of plans (rule in ADR-0018 §3).

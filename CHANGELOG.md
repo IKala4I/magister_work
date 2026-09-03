@@ -30,6 +30,26 @@ Everything below condenses P0–P11 for release notes and the thesis; per-phase 
 - **Ops:** Supabase (eu-west-1) + Oracle A1 VM (eu-marseille-1) with pull-based rollout,
   hardened SSH + Tailscale admin path, nightly training timer, runbooks for every timer.
 
+## Post-P12 — hardware pass day 3: solver stopping criteria (2026-09-03, fix/recsys-stopping-criteria)
+
+- **recsys (ADR-0018):** CP-SAT `relative_gap_limit = 0.01` plus a **no-improvement early stop**
+  (0.3 s window; a watchdog thread calls `stop_search()` because CP-SAT invokes the solution
+  callback only on improving solutions). Every plan now carries search-trajectory telemetry
+  (`early_stop`, `n_solutions`, `last_improvement_ms`, `max_improvement_gap_ms`,
+  `objective_bound`, `gap`), aggregated across day-by-day solves. Why: the device's real inbox
+  (15 interchangeable `admin` tasks) reproduced locally runs to the 1.0 s slice on 24/24 solves
+  with the incumbent found by 0.03–0.30 s and a relative bound gap of 0.38–1.21 — an
+  optimality-proof stall a gap limit alone cannot end (measured: 12/12 still at the cap with the
+  gap limit, symmetry level 2 or probing 1). Window pinned by rule (≥ p95 of the box-scaled
+  inter-improvement interval); measured objective loss at that window ≤ 0.3 % of a
+  Thompson-sampled objective whose seed-to-seed spread is ≈ ±40 %.
+- **edge (`plan-request`):** the rate-limit count and the context reads run concurrently — one
+  database round trip fewer before the service call; the 429 check still precedes any planning.
+- **shared:** `api.ts` regenerated (six telemetry fields).
+- Tests: +3 solver (the stall instance early-stops; disabled → runs to the cap; a tight instance
+  reports gap ≤ 1 % without early stop), +1 params (values pinned), +1 planner (trajectory on
+  every response) — 161 pytest, 13 Deno on `plan-request`.
+
 ## Post-P12 — hardware pass fixes (2026-09-02, fix/recsys-legacy-tz)
 
 - **fix(recsys, training): legacy IANA timezone ids resolve inside the containers.** Found on

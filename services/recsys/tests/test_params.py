@@ -22,5 +22,12 @@ def test_spec_fixed_priors() -> None:
     assert params.WEEKEND_BLEND_TARGET == 0.55
 
 
+def test_adr_0018_stopping_criteria_are_pinned() -> None:
+    assert params.CPSAT_RELATIVE_GAP_LIMIT == 0.01  # ADR-0018 §Decision 1
+    assert params.SOLVER_STALL_WINDOW_S == 0.3  # ADR-0018 §Decision 2 (≥ p95 box-scaled gap)
+    # the window must leave room inside the first rung's slice (cap − ladder reserve)
+    assert params.SOLVER_STALL_WINDOW_S < params.SOLVER_TIME_CAP_S - params.SOLVER_LADDER_RESERVE_S
+
+
 def test_blend_init_is_a_convex_combination() -> None:
     assert params.BLEND_INIT_W_ENERGY + params.BLEND_INIT_W_BANDIT == 1.0

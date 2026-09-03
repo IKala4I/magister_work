@@ -20,11 +20,14 @@ Warm start: AddHint from the previous plan. CP-SAT's hint only seeds the search 
 keep the hinted solution on objective ties — so the §1.5 anti-thrashing promise ("placements
 only move when the objective says it's worth it") is realized by a stability bonus of ONE scaled
 unit (1e-4 in weight units, below any meaningful estimate difference) on the hinted start
-(ADR-0007 §7). Anytime: max_time_in_seconds.
+(ADR-0007 §7). Anytime: max_time_in_seconds, plus two stopping criteria (ADR-0018): CP-SAT's
+`relative_gap_limit` and a no-improvement early stop (`_EarlyStop`) for the optimality-proof
+stall measured on the owner's real inbox during the hardware pass.
 """
 
 from __future__ import annotations
 
+import threading
 import time
 from collections import defaultdict
 from collections.abc import Mapping
@@ -38,6 +41,7 @@ from hourwell_recsys.grid import Grid
 from hourwell_recsys.params import (
     BUFFER_TICKS,
     CPSAT_PROBING_LEVEL,
+    CPSAT_RELATIVE_GAP_LIMIT,
     CPSAT_SYMMETRY_LEVEL,
     D_MIN_TICKS,
     LAMBDA_D,
@@ -49,6 +53,7 @@ from hourwell_recsys.params import (
     RUN_LENGTH_CAPS,
     RUN_LENGTH_L_TICKS,
     SOLVER_NUM_WORKERS,
+    SOLVER_STALL_WINDOW_S,
     SOLVER_TIME_CAP_S,
     STABILITY_BONUS_UNITS,
 )
@@ -103,6 +108,71 @@ class SolveResult:
     fragmentation_penalty: int = 0
     hints: int = 0
     deferred_critical: tuple[str, ...] = field(default_factory=tuple)
+    # ADR-0018 — search trajectory (why the solve ended when it did)
+    early_stop: bool = False  # the no-improvement watchdog ended the search
+    n_solutions: int = 0  # improving solutions CP-SAT reported
+    last_improvement_ms: int | None = None  # wall time of the last improving solution
+    max_improvement_gap_ms: int | None = None  # longest wait between two improvements
+    objective_bound: float | None = None  # CP-SAT best bound, weight units
+    gap: float | None = None  # |B − O| / max(1, |O|) on the scaled objective (CP-SAT's definition)
+
+
+class _EarlyStop(cp_model.CpSolverSolutionCallback):
+    """No-improvement early stop (ADR-0018): once a solution exists, end the search when no
+    better one has arrived for `window_s` seconds. CP-SAT invokes the callback only on improving
+    solutions, so a watchdog thread keeps the clock and calls `stop_search()` — asynchronous and
+    lock-guarded in ortools 9.15 (docs/versions.md). `window_s=None` disables the watchdog (the
+    callback still records the trajectory). Cures the measured proof stall: on symmetric day
+    instances the incumbent arrives within tens of milliseconds and the bound never closes
+    (relative gap 0.4–1.2 on the reproduced device instance), so `relative_gap_limit` alone never
+    fires there."""
+
+    def __init__(self, solver: cp_model.CpSolver, window_s: float | None) -> None:
+        super().__init__()
+        self._solver = solver
+        self._window = window_s
+        self._lock = threading.Lock()
+        self._done = threading.Event()
+        self._last_monotonic: float | None = None
+        self._thread = threading.Thread(target=self._watch, name="cpsat-early-stop", daemon=True)
+        self.times_s: list[float] = []
+        self.stopped = False
+
+    def on_solution_callback(self) -> None:
+        with self._lock:
+            self._last_monotonic = time.monotonic()
+        self.times_s.append(float(self.wall_time))
+
+    def _watch(self) -> None:
+        window = self._window
+        assert window is not None
+        while not self._done.wait(0.01):
+            with self._lock:
+                last = self._last_monotonic
+            if last is not None and time.monotonic() - last >= window:
+                self.stopped = True
+                self._solver.stop_search()
+                return
+
+    def __enter__(self) -> _EarlyStop:
+        if self._window is not None:
+            self._thread.start()
+        return self
+
+    def __exit__(self, *exc: object) -> None:
+        self._done.set()
+        if self._thread.is_alive():
+            self._thread.join(timeout=1.0)
+
+    def trajectory(self) -> dict[str, Any]:
+        times = self.times_s
+        gaps = [b - a for a, b in zip(times, times[1:], strict=False)]
+        return {
+            "early_stop": self.stopped,
+            "n_solutions": len(times),
+            "last_improvement_ms": int(round(times[-1] * 1000)) if times else None,
+            "max_improvement_gap_ms": int(round(max(gaps) * 1000)) if gaps else None,
+        }
 
 
 def m_tau(value: int) -> float:
@@ -161,6 +231,8 @@ def solve(
     time_cap_s: float = SOLVER_TIME_CAP_S,
     num_workers: int = SOLVER_NUM_WORKERS,
     seed: int = 0,
+    relative_gap_limit: float = CPSAT_RELATIVE_GAP_LIMIT,
+    stall_window_s: float | None = SOLVER_STALL_WINDOW_S,
 ) -> SolveResult:
     previous = previous or {}
     t_build = time.perf_counter()
@@ -349,14 +421,21 @@ def solve(
     solver.parameters.random_seed = int(seed) % (2**31 - 1)
     solver.parameters.cp_model_probing_level = CPSAT_PROBING_LEVEL
     solver.parameters.symmetry_level = CPSAT_SYMMETRY_LEVEL
+    solver.parameters.relative_gap_limit = relative_gap_limit
     t0 = time.perf_counter()
     build_ms = int(round((t0 - t_build) * 1000))
-    status = solver.solve(model)
+    with _EarlyStop(solver, stall_window_s) as watchdog:
+        status = solver.solve(model, watchdog)
     solve_ms = int(round((time.perf_counter() - t0) * 1000))
     name = solver.status_name(status)
     literals = count_literals(tasks)
+    trajectory = watchdog.trajectory()
     if status not in (cp_model.OPTIMAL, cp_model.FEASIBLE):
-        return SolveResult(name, [], 0.0, literals, solve_ms, build_ms=build_ms, hints=hints)
+        return SolveResult(
+            name, [], 0.0, literals, solve_ms, build_ms=build_ms, hints=hints, **trajectory
+        )
+    obj_scaled = float(solver.objective_value)
+    bound_scaled = float(solver.best_objective_bound)
 
     placements: list[Placement] = []
     for t in tasks:
@@ -385,4 +464,7 @@ def solve(
         fragmentation_penalty=int(sum(solver.value(f) for f in frag_terms)),
         hints=hints,
         deferred_critical=deferred,
+        objective_bound=bound_scaled / OBJECTIVE_SCALE,
+        gap=abs(bound_scaled - obj_scaled) / max(1.0, abs(obj_scaled)),
+        **trajectory,
     )
