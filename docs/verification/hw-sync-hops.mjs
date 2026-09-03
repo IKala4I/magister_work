@@ -19,25 +19,23 @@ const { data: a, error: ae } = await sb.auth.signInAnonymously();
 if (ae) throw ae;
 const uid = a.user.id;
 console.log('user', uid.slice(0, 8));
-await sb
-  .from('profiles')
-  .insert({
-    user_id: uid,
-    timezone: 'Europe/Kyiv',
-    working_hours: {
-      mon: [540, 1080],
-      tue: [540, 1080],
-      wed: [540, 1080],
-      thu: [540, 1080],
-      fri: [540, 1080],
-    },
-    sleep_window: [1380, 420],
-    rmeq_score: 24,
-    chronotype_class: 'DM',
-    survey_skipped: false,
-    top_categories: ['deep'],
-    onboarding_completed_at: new Date().toISOString(),
-  });
+await sb.from('profiles').insert({
+  user_id: uid,
+  timezone: 'Europe/Kyiv',
+  working_hours: {
+    mon: [540, 1080],
+    tue: [540, 1080],
+    wed: [540, 1080],
+    thu: [540, 1080],
+    fri: [540, 1080],
+  },
+  sleep_window: [1380, 420],
+  rmeq_score: 24,
+  chronotype_class: 'DM',
+  survey_skipped: false,
+  top_categories: ['deep'],
+  onboarding_completed_at: new Date().toISOString(),
+});
 const t = async (label, fn, n = 5) => {
   const xs = [];
   for (let i = 0; i < n; i++) {
