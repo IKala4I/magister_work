@@ -435,17 +435,21 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     1.0 s slice proving optimality on interchangeable tasks (ADR-0018) — fixed the same day: the
     function now measures **p50 1.09 / p95 1.34 s** on the same inbox with 0/10 fallbacks
     (before 1/10 and 1.68 / 1.91 s).
-    **Proposed figure — owner to confirm: NFR-P1 = "a plan request completes end-to-end on
-    the device (tap → plan mirrored) in ≤ 4.0 s at p95, warm; the server-side `plan-request`
-    in ≤ 1.5 s at p95; the heuristic fallback bounds the server wait at 1.9 s."** Reasoning:
+    **Owner decision 2026-09-03 — NFR-P1 = "a plan request completes end-to-end on the device
+    (tap → plan mirrored) in ≤ 4.5 s at p95, warm; the server-side `plan-request` in ≤ 1.5 s at
+    p95; the heuristic fallback bounds the server wait at 1.9 s."** Under-delivering against it is
+    fine and expected; the thesis reports the measured figures alongside the requirement. The
+    conditions matter: a Pixel 7a on good home Wi-Fi is a favourable case, not an average one — a
+    slower phone on worse mobile data will sit above anything recorded here, and a threshold that
+    barely passes under good conditions is bad engineering. Reasoning behind the number:
     (a) _composition on the measured stack_, worst realistic case (ops pending): pre-plan push
     1.0–1.5 s + function 1.09–1.34 s + transport/mirror 0.4–0.6 s → an estimated **p50 ≈ 2.9 s,
     p95 ≈ 3.4 s** after ADR-0018 (the client-side "after" numbers come from the next PostHog
     export; the 2026-09-02 export is the measured "before"); with nothing pending ≈ 1.7–1.9 s.
-    (b) _headroom_ ≈ 0.6 s at p95 = the client's own compute share (mirror + render, 0.2–0.4 s on
-    the Pixel 7a) doubled for a slower handset — the figure is dominated by network and server
-    time, not device CPU, so it holds on a mid-range device; if the next export's p95 exceeds
-    3.6 s, state 4.5 s instead. (c) _acceptability as user-facing latency_: a plan request is a
+    (b) _headroom_ ≈ 1.1 s at p95 against the favourable-case measurement — room for a slower
+    handset's compute share (mirror + render, 0.2–0.4 s on the Pixel 7a) and for mobile-data
+    transport well above the ≈ 0.45 s per round trip seen on home Wi-Fi; the figure is dominated
+    by network and server time, not device CPU. (c) _acceptability as user-facing latency_: a plan request is a
     deliberate, infrequent action (first open, the evening ritual, an occasional re-plan — one to
     three per day) with an explicit in-progress state; by Nielsen's response-time limits (0.1 s /
     1 s / 10 s) a 3–4 s wait with feedback keeps the user's attention and is far from the 10 s
@@ -453,11 +457,12 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     service is slow or down. (d) _not tuned to pass_: the levers left untouched are recorded —
     the pre-plan sync itself (measured 2026-09-03 with `hw-sync-hops.mjs`: the function's fixed
     cost ≈ 0.3 s + four lease/replay/pull/release hops ≈ 0.25 s + the instant-rewards pass
-    ≈ 0.3–0.4 s, plus ≈ 0.45 s of phone transport — levers: skip the rewards pass on `pre_plan`
-    ≈ −0.35 s server-only; collapse the hops ≈ −0.25 s server-only; fold the push into the plan
-    request ≈ −1.2 s but a client change — revisit.md, owner decision pending), and co-locating
-    the VM with the function region (≈ −0.3 s; rejected by the owner) — so the figure describes
-    the deployed stack as measured, not its best case. (e) _what changes in the text_: wherever the draft says "≤ 2.5 s
+    ≈ 0.3–0.4 s, plus ≈ 0.45 s of phone transport). Of its levers, skipping the rewards pass on
+    `pre_plan` (≈ −0.35 s, server-only) shipped the same day; collapsing the hops (≈ −0.25 s) and
+    carrying the ops inside the plan request (≈ −1.2 s, a client change) are **optimisations the
+    project may or may not do — not prerequisites for meeting the requirement** (revisit.md);
+    co-locating the VM with the function region (≈ −0.3 s) was rejected by the owner. The figure
+    therefore describes the deployed stack as measured, not its best case. (e) _what changes in the text_: wherever the draft says "≤ 2.5 s
     p95" or "NFR-P1 met" from Node/Mac or server-side numbers (items 23, 37), say instead that
     the requirement was **derived from deployment measurements on hardware** and report the
     decomposition table (day-3 notes item 1) as the evidence; the server-side margin (item 37)
