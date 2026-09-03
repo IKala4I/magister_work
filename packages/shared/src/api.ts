@@ -583,20 +583,32 @@ export interface components {
             build_ms: number;
             /** Degradation */
             degradation: ("coarse_30min" | "day_by_day") | null;
+            /** Early Stop */
+            early_stop: boolean;
             /** Experiment Drawn */
             experiment_drawn: boolean;
             /** Experiment Dropped */
             experiment_dropped: boolean;
             /** Fragmentation Penalty */
             fragmentation_penalty: number;
+            /** Gap */
+            gap: number | null;
             /** Hints */
             hints: number;
+            /** Last Improvement Ms */
+            last_improvement_ms: number | null;
             /** Literals */
             literals: number;
+            /** Max Improvement Gap Ms */
+            max_improvement_gap_ms: number | null;
+            /** N Solutions */
+            n_solutions: number;
             /** N Ticks */
             n_ticks: number;
             /** Objective */
             objective: number;
+            /** Objective Bound */
+            objective_bound: number | null;
             /**
              * Policy
              * @enum {string}
