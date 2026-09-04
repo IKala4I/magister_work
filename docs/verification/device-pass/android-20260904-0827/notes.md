@@ -321,6 +321,28 @@ Sources: Ookla Speedtest Intelligence Q4 2024 as summarised by the IEEE ComSoc T
     as **unverified by choice**, not pending — the defects are found, fixed and unit-tested; another
     evening would buy a confirmation, not a finding. The 4 Sep PostHog export comes tomorrow morning.
 
+25. **Owner reversal (22:3x): verify the build-5 fixes on hardware after all — on demand if
+    possible.** Build 5 (`d7fc4280bf56…`) installed 22:36:49 over build 4 (data kept, appop still
+    `allow`, the 5 Sep alarm re-set by the package-replaced receiver; the stale 4 Sep ritual was
+    cleared by the update). Two on-demand paths tried: (a) expo-notifications' own trigger intent
+    for the stored `ritual:2026-09-05` request (`am broadcast` with the library's action, data URI
+    and `type=trigger` / `identifier` extras) — the receiver is `exported=false`, the broadcast
+    "completed" with no process start and nothing posted: refused by the OS, as expected; (b) moving
+    `profiles.settings.notifications.evening_ritual_time` on the server to 22:45
+    (`hw-set-ritual-time.mjs`; `server_seq` bumps by trigger) → one foreground pulled it and the
+    scheduler re-planned: **the alarm moved to 22:45 — but for the 5th only**. Today's ritual was
+    dropped by the **≤ 5/day cap**: the conservative ledger settles every scheduled reminder whose
+    time has passed as delivered (09:35, 10:20, 11:50 and the series' cancelled ones) plus
+    `ritual:2026-09-04`, so `budget = 5 − delivered(today)` was 0 — FR-50's hard cap doing its job
+    (the only same-day drop rule in `planNotifications`). Setting restored to 20:00 (22:40:06). No
+    root, so neither the clock nor the time zone can be moved. **Conclusion: not tonight; tomorrow
+    at any time** — a fresh calendar day has a fresh budget, and a ritual can be scheduled ≥ 30 s
+    ahead: set the time to ping + 5 min, one foreground to pull it, HOME + kill, natural exact fire,
+    then one adb tap on **"Adjust tasks"** as the FIRST response → Inbox, one `adjust` fact, and the
+    notification gone (fix 1). One ritual per calendar day (`ritual:<day>` id + cap), so the
+    dedup-by-action fix stays unit-tested — after fix 1 a second action on the same notification
+    cannot occur in normal use. The accept path itself was verified on build 4 (item 20).
+
 ## Results by build
 
 | Build | Source / APK                                                                                                                                     | Checks attributed to it                                                                                                                                                                                                                                                                                   |

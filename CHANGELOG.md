@@ -37,7 +37,7 @@ Everything below condenses P0–P11 for release notes and the thesis; per-phase 
   notification stayed posted (action buttons never auto-cancel) and a second action on it
   ("Adjust tasks") was dropped by the cold-start dedup key. The handler now dismisses the
   notification once the fact is appended, and the dedup key includes the action identifier
-  (+2 tests). Device verification on the rebuilt APK at the next ritual — **unverified by choice** (owner, 2026-09-04: the pass stops after day 4).
+  (+2 tests). Device verification on the rebuilt APK (build 5, installed 2026-09-04 22:36): scheduled for 5 Sep via an on-demand ritual (owner reversal — a fix nobody checked on hardware is not done).
 - **ADR-0019 accepted (docs):** a day without a working window gets no plan request, no persisted plan and no daily ritual, and Today says so — found when the Friday ritual planned a zero-block Saturday and spent budget doing it. Implementation in the post-pass fix batch.
 
 ## Post-P12 — hardware pass day 4: ritual buttons, offline first open, exact alarms (2026-09-04, fix/mobile-hardware-pass-day4)
