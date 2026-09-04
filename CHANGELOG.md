@@ -34,8 +34,7 @@ Everything below condenses P0–P11 for release notes and the thesis; per-phase 
 
 - **fix(notifications):** the evening ritual posted without its "Plan tomorrow" / "Adjust"
   buttons on Android — `initNotifications` registered an empty block category first and
-  Android's expo-notifications rejects a category without actions, which silently skipped the
-  ritual's category. Block reminders carry no category now; the ritual category is registered
+  Android's expo-notifications rejects a category without actions, which silently skipped the ritual's category (probable root cause: the owner recalls a button on the 2 Sep notification; day-4 notes item 14). Block reminders carry no category now; the ritual category is registered
   alone (+1 test).
 - **fix(sync):** a token refresh that failed on the network is `offline`, not "sign in"
   (`readSession()`); the session store bumps `refreshedAt` on INITIAL_SESSION / SIGNED_IN /
