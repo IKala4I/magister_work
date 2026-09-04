@@ -55,7 +55,7 @@ plugged in all day; the owner did not touch it. Times are EEST unless marked Z.
    (revisit). (`new-day-second-foreground-6s.png`, `-14s.png`,
    `server-reads-after-second-foreground.json`.)
 
-6. **FR-26 — the ritual has NO action buttons on Android (build 3) — DEFECT, root cause found.**
+6. **FR-26 — the ritual has NO action buttons on Android (build 3) — DEFECT, probable root cause (see item 14 for the contested point).**
    The expanded ritual (08:46:50) shows title + body only; the posted record carries no
    `actions=` (Gmail's rows in the same dump show `actions=3`). Cause: `setup.ts` registered
    `setNotificationCategoryAsync(CATEGORY_BLOCK, [])` FIRST inside one try block;
@@ -66,7 +66,7 @@ plugged in all day; the owner did not touch it. Times are EEST unless marked Z.
    post time → nothing to add. iOS accepts an empty category, so the simulator never showed it.
    Day-2 note 29's "button vs body" is settled: there was no button. **Fix c2995be** (block
    reminders carry no category; the ritual category is registered alone; `setup.test.ts`).
-   Verification needs build 4 + a posted ritual (tonight). (`ritual-expanded-no-actions.png` —
+   Verification needs build 4 + a posted ritual (tonight). **Certainty (owner correction, item 14): the mechanism is established in the code and the library, but that it explains the 2 Sep delivery is contested — treat the root cause as probable.** (`ritual-expanded-no-actions.png` —
    cropped to the Hourwell row; the full-shade shots were dropped, they show other apps' private
    content.)
 
@@ -138,7 +138,7 @@ SCHEDULE_EXACT_ALARM allow` → after the first foreground's scheduler pass ever
     posted **09:35:00.345** for the 09:35:00 alarm — +345 ms (build 3: +31–60 min windows; the
     ritual +26 min). 10:20 / 11:05 to be read after the fact.
 
-14. **Owner question — regression or original defect? Original, by evidence.** The empty block
+14. **Owner question — regression or original defect? By the code history: original. By the owner's eyewitness: contested — the root cause is probable, not established.** The empty block
     category is registered BEFORE the ritual's at lines 48–49 of `setup.ts` in the P10 feature
     commit 5a4be6f (2026-08-30), and at lines 50–51 of dd48052 (P10 adversarial fix), 56935e0 (the
     build-3 source, 2 Sep) and 3f1159d (main after PR #38); the P10/P12 fix batches never touched
@@ -152,6 +152,17 @@ SCHEDULE_EXACT_ALARM allow` → after the first foreground's scheduler pass ever
     list straight to `UNNotificationCategory`, so on iOS both categories register and the ritual
     does carry "Plan tomorrow" / "Adjust". The three owed owner screenshots of the 2 Sep
     deliveries can only add evidence if the row was expanded (a collapsed row never shows actions).
+    **Owner correction (later that morning): a button WAS seen in the notification itself on 2 Sep**
+    (the owner chose the body and the in-app card). Checked against that: the empty-actions rejection
+    exists on the library's sdk-57 branch and both build sources pinned expo-notifications 57.0.16
+    (build 1's 57.0.15 sits on the same branch); the category store is app data, and the device's
+    auth session has run unbroken since 1 Sep 17:37Z (no data clear could have emptied a stored
+    category between 2 and 3 Sep); nothing in the app calls `deleteNotificationCategoryAsync`. So no
+    mechanism found renders our action button on 2 Sep and not on 3 Sep on the same build — and no
+    other element of that notification is known to look like one. The two accounts cannot both be
+    right; the write-up therefore records the cause as **probable**, not established. What settles
+    it: tonight's ritual record on build 4 must carry `actions=2` (fix effective); the pre-fix store
+    contents cannot be read back on a release build, so the 2 Sep question stays open on evidence.
 
 15. **PostHog 3 Sep exports (owner, 06:35Z / 06:36Z on the 4th) — complete, no re-export needed.**
     `plan_requested`: 21 rows 07:37:06Z–08:41:50Z = the 21 `plans` rows of 3 Sep, **21/21 paired**

@@ -19,9 +19,7 @@ answered (new_day first, button second — the accept plans the ritual's own nex
 morning reads (ritual posted 20:26:28, untouched; the "killed" process revived natively for the
 delivery, no JS); **F1 offline first open = DEFECT** (expired token + no radio → "Sign in to plan
 your day"; the first online foreground inside auth-js's 60 s refresh-failure cache planned nothing);
-**UC-03 `new_day` = PASS** on the second foreground (one row 08:41:01, learned, 11 blocks); **FR-26
-ritual has NO action buttons on Android = DEFECT** (empty block category registered first →
-Android rejects it → the ritual category never stored); **FR-26 killed-app body tap = PASS** (one
+**UC-03 `new_day` = PASS** on the second foreground (one row 08:41:01, learned, 11 blocks); **FR-26 ritual has NO action buttons on Android = DEFECT** (probable cause: the empty block category registered first → Android rejects it → the ritual category never stored; the owner recalls a button on 2 Sep — notes item 14); **FR-26 killed-app body tap = PASS** (one
 `open` fact, no plan, 843 ms cold start); **FR-50 alarms inexact (+31–60 min) = DEFECT**
 (`SCHEDULE_EXACT_ALARM` absent); fixes c2995be / 68ca0eb / 24808ad on PR #41, gates green (519
 jest); **build 4 installed 09:11**, exact alarms confirmed (`window=0 exactAllowReason=permission`).
