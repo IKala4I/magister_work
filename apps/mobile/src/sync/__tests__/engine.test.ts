@@ -50,6 +50,7 @@ jest.mock('../../observability/sentry', () => ({
   },
 }));
 
+import { AuthRetryableFetchError } from '@supabase/supabase-js';
 import { eq, inArray } from 'drizzle-orm';
 
 import { db } from '../../db/client';
@@ -429,6 +430,17 @@ describe('syncNow — pull, outcomes, pre-plan skip', () => {
     expect(await syncNow('manual')).toEqual({ kind: 'no-session' });
     expect(mockInvoke).not.toHaveBeenCalled();
     expect(useSyncStore.getState().status).toBe('no_session');
+  });
+
+  it('a session whose refresh failed on the network is offline, not signed out (F1, 2026-09-04)', async () => {
+    mockGetSession.mockResolvedValue({
+      data: { session: null },
+      error: new AuthRetryableFetchError('fetch failed: Unable to resolve host', 0),
+    });
+    expect(await syncNow('manual')).toEqual({ kind: 'offline' });
+    expect(mockInvoke).not.toHaveBeenCalled();
+    expect(useSyncStore.getState().status).toBe('offline');
+    expect(await syncBeforePlan()).toEqual({ kind: 'offline' });
   });
 
   it('syncBeforePlan skips when nothing is pending and the last sync is fresh; syncs otherwise', async () => {

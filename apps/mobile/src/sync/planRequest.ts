@@ -6,7 +6,7 @@
  * `plan_requested` with the measured end-to-end time. The client never computes a plan
  * (invariant 1); offline it simply keeps showing the last mirrored plan (NFR-R1).
  */
-import { supabase } from '../auth/client';
+import { readSession } from '../auth/readSession';
 import { db } from '../db/client';
 import { applyPlanResponse, type PlanRow, type PlanTrigger } from '../db/plans';
 import type { LocalDb } from '../db/writes';
@@ -48,10 +48,10 @@ async function run(input: {
   trigger: PlanTrigger;
   now?: Date;
 }): Promise<PlanRequestOutcome> {
-  if (!supabase) return { kind: 'no-session' };
-  const { data } = await supabase.auth.getSession();
-  const uid = data.session?.user.id;
-  if (!uid) return { kind: 'no-session' };
+  const session = await readSession();
+  if (session.kind === 'offline') return { kind: 'offline' }; // a refresh that failed on the network
+  if (session.kind === 'none') return { kind: 'no-session' };
+  const uid = session.userId;
   const started = Date.now();
   const now = input.now ?? new Date();
 

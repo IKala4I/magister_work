@@ -25,6 +25,7 @@ import * as Network from 'expo-network';
 import { AppState } from 'react-native';
 
 import { supabase } from '../auth/client';
+import { readSession } from '../auth/readSession';
 import { db } from '../db/client';
 import { events, opOutbox, profiles, tasks } from '../db/schema';
 import type { TaskRow } from '../db/tasks';
@@ -140,26 +141,24 @@ export function scheduleSync(reason: SyncReason = 'write'): void {
 
 /** Before a plan request: push what the device knows unless everything is already fresh. */
 export async function syncBeforePlan(): Promise<SyncOutcome> {
-  const uid = await currentUid();
-  if (uid === null) return { kind: 'no-session' };
+  const session = await readSession();
+  if (session.kind === 'offline') return { kind: 'offline' };
+  if (session.kind === 'none') return { kind: 'no-session' };
+  const uid = session.userId;
   const last = lastSyncAt();
   const fresh = last !== null && Date.now() - last < PRE_PLAN_FRESH_MS;
   if (fresh && pendingOpCount(db as unknown as LocalDb, uid) === 0) return { kind: 'skipped' };
   return syncNow('pre_plan');
 }
 
-async function currentUid(): Promise<string | null> {
-  if (!supabase) return null;
-  const { data } = await supabase.auth.getSession();
-  return data.session?.user.id ?? null;
-}
-
 async function run(reason: SyncReason): Promise<SyncOutcome> {
-  const uid = await currentUid();
-  if (uid === null) {
-    useSyncStore.setState({ status: 'no_session' });
-    return { kind: 'no-session' };
+  const session = await readSession();
+  if (session.kind !== 'session') {
+    // a refresh that failed on the network is "offline", not "sign in" (src/auth/readSession.ts)
+    useSyncStore.setState({ status: session.kind === 'offline' ? 'offline' : 'no_session' });
+    return session.kind === 'offline' ? { kind: 'offline' } : { kind: 'no-session' };
   }
+  const uid = session.userId;
   const localDb = db as unknown as LocalDb;
   useSyncStore.setState({ status: 'syncing' });
   const started = Date.now();

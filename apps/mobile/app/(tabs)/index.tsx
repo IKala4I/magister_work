@@ -98,6 +98,7 @@ export default function TodayScreen() {
   const theme = useTheme();
   const router = useRouter();
   useSessionStore((s) => s.userId);
+  const sessionRefreshedAt = useSessionStore((s) => s.refreshedAt);
   const userId = currentUserId();
   const now = useNow();
   // Display: today's plan if one exists; before 06:00 fall back to the previous plan day's plan.
@@ -195,6 +196,7 @@ export default function TodayScreen() {
     latestPlanDate: latestAnyRows[0]?.planDate ?? null,
     todayPlanDate: todayRows[0]?.planDate ?? null,
     ready: todayReady && latestReady,
+    sessionRefreshedAt,
   });
   const lapse = useLapseScan();
 

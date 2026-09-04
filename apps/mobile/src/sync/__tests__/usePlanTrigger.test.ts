@@ -173,6 +173,22 @@ describe('usePlanTrigger — durable per-plan-day dedup (MMKV)', () => {
     expect(lastRequestedPlanDay()).toBe(today);
   });
 
+  it('a session re-established after a no-session outcome re-runs the check (F1, 2026-09-04)', async () => {
+    // an offline start with an expired token: getSession() reports no session for up to 60 s
+    mockRequestPlan.mockResolvedValue({ kind: 'no-session' });
+    const input = { latestPlanDate: null, todayPlanDate: null, ready: true, sessionRefreshedAt: 0 };
+    const { rerender } = await mount(input);
+    await act(async () => {});
+    expect(mockRequestPlan).toHaveBeenCalledTimes(1);
+    expect(lastRequestedPlanDay()).toBeNull();
+    // the refresh finally lands (TOKEN_REFRESHED bumps the store) → the check runs again
+    mockRequestPlan.mockResolvedValue({ kind: 'planned', plan: {}, durationMs: 1 });
+    await rerender({ ...input, sessionRefreshedAt: Date.now() });
+    await act(async () => {});
+    expect(mockRequestPlan).toHaveBeenCalledTimes(2);
+    expect(lastRequestedPlanDay()).toBe(today);
+  });
+
   it('manual re-plan bypasses the dedup', async () => {
     appStorage.set(StorageKeys.lastPlanRequestDay, today);
     const { result } = await mount({ latestPlanDate: today, todayPlanDate: today, ready: true });
