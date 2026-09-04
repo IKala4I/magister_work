@@ -1,0 +1,267 @@
+NotificationRecord(0x01ea4cad: pkg=com.hourwell.app user=UserHandle{0} id=0 tag=ritual:2026-09-04 importance=3 key=0|com.hourwell.app|0|ritual:2026-09-04|10465: Notification(channel=ritual shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=AUTO_CANCEL color=0xff4f46e5 actions=2 vis=PRIVATE))
+      uid=10465 userId=0
+      opPkg=com.hourwell.app
+      icon=Icon(typ=RESOURCE pkg=com.hourwell.app id=0x7f0e0000)
+      flags=AUTO_CANCEL
+      originalFlags=AUTO_CANCEL
+      pri=1
+      key=0|com.hourwell.app|0|ritual:2026-09-04|10465
+      seen=true
+      groupKey=0|com.hourwell.app|0|ritual:2026-09-04|10465
+      notification=
+            fullscreenIntent=null
+            contentIntent=PendingIntent{eed8be2: PendingIntentRecord{53600b9 com.hourwell.app startActivity (allowlist: bde333b:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+            deleteIntent=null
+            number=0
+            groupAlertBehavior=0
+            when=1788541200335/1788541200335
+            tickerText=null
+            vis=0
+            contentView=null
+            bigContentView=null
+            headsUpContentView=null
+            color=0xff4f46e5
+            timeout=PT72H
+            actions={
+                [0] "Plan tomorrow" -> PendingIntent{e8f9b73: PendingIntentRecord{44cdcfe com.hourwell.app startActivity (allowlist: bde333b:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+                [1] "Adjust tasks" -> PendingIntent{2746a30: PendingIntentRecord{120c280 com.hourwell.app startActivity (allowlist: bde333b:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+              }
+            extras={
+                android.title=String (Plan tomorrow?)
+                android.reduced.images=Boolean (true)
+                android.subText=null
+                expo.notification_request=byte[] (692)
+                  [0] 17
+                  [1] 0
+                  [2] 0
+                  [3] 0
+                  [4] 114
+                  [5] 0
+                  [6] 105
+                  [7] 0
+                  [8] 116
+                  [9] 0
+                  [10] 117
+                  [11] 0
+                  [12] 97
+                  [13] 0
+                  [14] 108
+                  [15] 0
+                  [16] 58
+                  [17] 0
+                  [18] 50
+                  [19] 0
+                  [20] 48
+                  [21] 0
+                  [22] 50
+                  [23] 0
+                  [24] 54
+                  [25] 0
+                  [26] 45
+                  [27] 0
+                  [28] 48
+                  [29] 0
+                  [30] 57
+                  [31] 0
+                  [32] 45
+                  [33] 0
+                  [34] 48
+                  [35] 0
+                  [36] 52
+                  [37] 0
+                  [38] 0
+                  [39] 0
+                  [40] 66
+                  [41] 0
+                  [42] 0
+                  [43] 0
+                  [44] 101
+                  [45] 0
+                  [46] 120
+                  [47] 0
+                  [48] 112
+                  [49] 0
+                  [50] 111
+                  [51] 0
+                  [52] 46
+                  [53] 0
+                  [54] 109
+                  [55] 0
+                  [56] 111
+                  [57] 0
+                  [58] 100
+                  [59] 0
+                  [60] 117
+                  [61] 0
+                  [62] 108
+                  [63] 0
+                  [64] 101
+                  [65] 0
+                  [66] 115
+                  [67] 0
+                  [68] 46
+                  [69] 0
+                  [70] 110
+                  [71] 0
+                  [72] 111
+                  [73] 0
+                  [74] 116
+                  [75] 0
+                  [76] 105
+                  [77] 0
+                  [78] 102
+                  [79] 0
+                  [80] 105
+                  [81] 0
+                  [82] 99
+                  [83] 0
+                  [84] 97
+                  [85] 0
+                  [86] 116
+                  [87] 0
+                  [88] 105
+                  [89] 0
+                  [90] 111
+                  [91] 0
+                  [92] 110
+                  [93] 0
+                  [94] 115
+                  [95] 0
+                  [96] 46
+                  [97] 0
+                  [98] 110
+                  [99] 0
+                  [100] 111
+                  [101] 0
+                  [102] 116
+                  [103] 0
+                  [104] 105
+                  [105] 0
+                  [106] 102
+                  [107] 0
+                  [108] 105
+                  [109] 0
+                  [110] 99
+                  [111] 0
+                  [112] 97
+                  [113] 0
+                  [114] 116
+                  [115] 0
+                  [116] 105
+                  [117] 0
+                  [118] 111
+                  [119] 0
+                  [120] 110
+                  [121] 0
+                  [122] 115
+                  [123] 0
+                  [124] 46
+                  [125] 0
+                  [126] 109
+                  [127] 0
+                  [128] 111
+                  [129] 0
+                  [130] 100
+                  [131] 0
+                  [132] 101
+                  [133] 0
+                  [134] 108
+                  [135] 0
+                  [136] 46
+                  [137] 0
+                  [138] 78
+                  [139] 0
+                  [140] 111
+                  [141] 0
+                  [142] 116
+                  [143] 0
+                  [144] 105
+                  [145] 0
+                  [146] 102
+                  [147] 0
+                  [148] 105
+                  [149] 0
+                  [150] 99
+                  [151] 0
+                  [152] 97
+                  [153] 0
+                  [154] 116
+                  [155] 0
+                  [156] 105
+                  [157] 0
+                  [158] 111
+                  [159] 0
+                  [160] 110
+                  [161] 0
+                  [162] 67
+                  [163] 0
+                  [164] 111
+                  [165] 0
+                  [166] 110
+                  [167] 0
+                  [168] 116
+                  [169] 0
+                  [170] 101
+                  [171] 0
+                  [172] 110
+                  [173] 0
+                  [174] 116
+                  [175] 0
+                  [176] 0
+                  [177] 0
+                  [178] 0
+                  [179] 0
+                  [180] 14
+                  [181] 0
+                  [182] 0
+                  [183] 0
+                  [184] 80
+                  [185] 0
+                  [186] 108
+                  [187] 0
+                  [188] 97
+                  [189] 0
+                  [190] 110
+                  [191] 0
+                  [192] 32
+                  [193] 0
+                  [194] 116
+                  [195] 0
+                  [196] 111
+                  [197] 0
+                  [198] 109
+                  [199] 0
+                  [200] 111
+                  [201] 0
+                  [202] 114
+                  [203] 0
+                  [204] 114
+                  [205] 0
+                  [206] 111
+                  [207] 0
+                  [208] 119
+                  [209] 0
+                  [210] 63
+                  [211] 0
+                  [212] 0
+                  [213] 0
+                  [214] 0
+                  [215] 0
+                  [216] 45
+                  [217] 0
+                  [218] 0
+                  [219] 0
+                  [220] 54
+                  [221] 0
+                  [222] 32
+                  [223] 0
+                  [224] 116
+                  [225] 0
+                  [226] 97
+                  [227] 0
+                  [228] 115
+                  [229] 0
+                  [230] 107
+                  [231] 0
+                  [232] 115
+        

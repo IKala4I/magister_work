@@ -30,6 +30,15 @@ Everything below condenses P0–P11 for release notes and the thesis; per-phase 
 - **Ops:** Supabase (eu-west-1) + Oracle A1 VM (eu-marseille-1) with pull-based rollout,
   hardened SSH + Tailscale admin path, nightly training timer, runbooks for every timer.
 
+## Post-P12 — hardware pass day 4, evening: handled notifications are dismissed; the response dedup keys by action (2026-09-04, fix/mobile-ritual-dismiss)
+
+- **fix(notifications):** the first ritual after the category fix carried its two actions on the
+  Pixel 7a and "Plan tomorrow" planned the next day from a killed app in ≈ 2 s — but the
+  notification stayed posted (action buttons never auto-cancel) and a second action on it
+  ("Adjust tasks") was dropped by the cold-start dedup key. The handler now dismisses the
+  notification once the fact is appended, and the dedup key includes the action identifier
+  (+2 tests). Device verification on the rebuilt APK at the next ritual.
+
 ## Post-P12 — hardware pass day 4: ritual buttons, offline first open, exact alarms (2026-09-04, fix/mobile-hardware-pass-day4)
 
 - **fix(notifications):** the evening ritual posted without its "Plan tomorrow" / "Adjust"
