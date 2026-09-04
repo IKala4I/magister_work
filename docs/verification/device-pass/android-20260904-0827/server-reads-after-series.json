@@ -1,0 +1,301 @@
+{
+  "label": "after-series",
+  "at": "2026-09-04T07:53:17.490Z",
+  "plans_0904": [
+    {
+      "ef_reason": "learned",
+      "ef_total_ms": 1009,
+      "engine": "learned",
+      "generated_at": "2026-09-04 05:41:01.088+00",
+      "id": "ff3ff8c2-d1c4-49c0-b458-5a0c092ce494",
+      "recs": 11,
+      "shown": 0,
+      "solver_status": "FEASIBLE",
+      "trigger": "new_day"
+    },
+    {
+      "ef_reason": "learned",
+      "ef_total_ms": 1356,
+      "engine": "learned",
+      "generated_at": "2026-09-04 07:51:52.129+00",
+      "id": "add9e33c-7ef7-4696-ab02-682b7f988597",
+      "recs": 9,
+      "shown": 0,
+      "solver_status": "FEASIBLE",
+      "trigger": "manual"
+    },
+    {
+      "ef_reason": "learned",
+      "ef_total_ms": 1052,
+      "engine": "learned",
+      "generated_at": "2026-09-04 07:52:03.268+00",
+      "id": "7d4fd42e-ffeb-4ac9-8686-884bcf65f551",
+      "recs": 9,
+      "shown": 0,
+      "solver_status": "FEASIBLE",
+      "trigger": "manual"
+    },
+    {
+      "ef_reason": "learned",
+      "ef_total_ms": 1062,
+      "engine": "learned",
+      "generated_at": "2026-09-04 07:52:09.489+00",
+      "id": "aa9daed7-a289-459a-bc67-a7a15b35d6e6",
+      "recs": 9,
+      "shown": 0,
+      "solver_status": "FEASIBLE",
+      "trigger": "manual"
+    },
+    {
+      "ef_reason": "learned",
+      "ef_total_ms": 1061,
+      "engine": "learned",
+      "generated_at": "2026-09-04 07:52:17.404+00",
+      "id": "aaee392d-86e0-4e5d-a8da-25e0bd686b95",
+      "recs": 9,
+      "shown": 0,
+      "solver_status": "FEASIBLE",
+      "trigger": "manual"
+    },
+    {
+      "ef_reason": "learned",
+      "ef_total_ms": 916,
+      "engine": "learned",
+      "generated_at": "2026-09-04 07:52:25.868+00",
+      "id": "bfe97df3-5c4b-4fd9-ad26-424618824e42",
+      "recs": 9,
+      "shown": 0,
+      "solver_status": "FEASIBLE",
+      "trigger": "manual"
+    },
+    {
+      "ef_reason": "learned",
+      "ef_total_ms": 940,
+      "engine": "learned",
+      "generated_at": "2026-09-04 07:52:33.488+00",
+      "id": "482a0f9b-3f27-4f26-9fb3-75147c044199",
+      "recs": 9,
+      "shown": 0,
+      "solver_status": "FEASIBLE",
+      "trigger": "manual"
+    },
+    {
+      "ef_reason": "learned",
+      "ef_total_ms": 956,
+      "engine": "learned",
+      "generated_at": "2026-09-04 07:52:41.801+00",
+      "id": "d701509f-eaa5-4173-9b2e-df82cf99433a",
+      "recs": 9,
+      "shown": 0,
+      "solver_status": "FEASIBLE",
+      "trigger": "manual"
+    },
+    {
+      "ef_reason": "learned",
+      "ef_total_ms": 1192,
+      "engine": "learned",
+      "generated_at": "2026-09-04 07:52:49.008+00",
+      "id": "9d31295c-12e4-4aa2-8ff8-25d58a100ed5",
+      "recs": 9,
+      "shown": 0,
+      "solver_status": "FEASIBLE",
+      "trigger": "manual"
+    },
+    {
+      "ef_reason": "learned",
+      "ef_total_ms": 1126,
+      "engine": "learned",
+      "generated_at": "2026-09-04 07:52:57.868+00",
+      "id": "5705be35-4c9e-4762-8ee1-9075ac06cb0a",
+      "recs": 9,
+      "shown": 0,
+      "solver_status": "FEASIBLE",
+      "trigger": "manual"
+    },
+    {
+      "ef_reason": "learned",
+      "ef_total_ms": 1008,
+      "engine": "learned",
+      "generated_at": "2026-09-04 07:53:06.181+00",
+      "id": "29153fab-6c06-41ea-9184-aec581248712",
+      "recs": 9,
+      "shown": 9,
+      "solver_status": "FEASIBLE",
+      "trigger": "manual"
+    }
+  ],
+  "budget": [
+    {
+      "n_last_24h": 22,
+      "server_now": "2026-09-04 07:53:21.919561+00"
+    }
+  ],
+  "notification_responses": [
+    {
+      "client_ts": "2026-09-04 05:53:34.974+00",
+      "id": 453,
+      "payload": {
+        "action": "open",
+        "kind": "evening_ritual",
+        "latency_ms": 46414974,
+        "scheduled_for": "2026-09-03T17:00:00.000Z",
+        "variant": "daily"
+      },
+      "server_ts": "2026-09-04 05:53:36.467918+00"
+    },
+    {
+      "client_ts": "2026-09-02 17:22:36.753+00",
+      "id": 246,
+      "payload": {
+        "action": "open",
+        "kind": "evening_ritual",
+        "latency_ms": 1356753,
+        "scheduled_for": "2026-09-02T17:00:00.000Z",
+        "variant": "daily"
+      },
+      "server_ts": "2026-09-02 17:22:36.910217+00"
+    }
+  ],
+  "events_today": [
+    {
+      "client_ts": "2026-09-04 07:52:58.705+00",
+      "id": 536,
+      "k": "",
+      "server_ts": "2026-09-04 07:53:05.483286+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-04 07:52:58.705+00",
+      "id": 529,
+      "k": "",
+      "server_ts": "2026-09-04 07:53:05.483286+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-04 07:52:58.705+00",
+      "id": 530,
+      "k": "",
+      "server_ts": "2026-09-04 07:53:05.483286+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-04 07:52:58.705+00",
+      "id": 535,
+      "k": "",
+      "server_ts": "2026-09-04 07:53:05.483286+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-04 07:52:58.705+00",
+      "id": 534,
+      "k": "",
+      "server_ts": "2026-09-04 07:53:05.483286+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-04 07:52:58.705+00",
+      "id": 528,
+      "k": "",
+      "server_ts": "2026-09-04 07:53:05.483286+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-04 07:52:58.705+00",
+      "id": 531,
+      "k": "",
+      "server_ts": "2026-09-04 07:53:05.483286+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-04 07:52:58.705+00",
+      "id": 532,
+      "k": "",
+      "server_ts": "2026-09-04 07:53:05.483286+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-04 07:52:58.705+00",
+      "id": 533,
+      "k": "",
+      "server_ts": "2026-09-04 07:53:05.483286+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-04 07:52:50.57+00",
+      "id": 522,
+      "k": "",
+      "server_ts": "2026-09-04 07:52:57.288597+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-04 07:52:50.57+00",
+      "id": 523,
+      "k": "",
+      "server_ts": "2026-09-04 07:52:57.288597+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-04 07:52:50.57+00",
+      "id": 520,
+      "k": "",
+      "server_ts": "2026-09-04 07:52:57.288597+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-04 07:52:50.57+00",
+      "id": 526,
+      "k": "",
+      "server_ts": "2026-09-04 07:52:57.288597+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-04 07:52:50.57+00",
+      "id": 525,
+      "k": "",
+      "server_ts": "2026-09-04 07:52:57.288597+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-04 07:52:50.57+00",
+      "id": 527,
+      "k": "",
+      "server_ts": "2026-09-04 07:52:57.288597+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-04 07:52:50.57+00",
+      "id": 519,
+      "k": "",
+      "server_ts": "2026-09-04 07:52:57.288597+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-04 07:52:50.57+00",
+      "id": 521,
+      "k": "",
+      "server_ts": "2026-09-04 07:52:57.288597+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-04 07:52:50.57+00",
+      "id": 524,
+      "k": "",
+      "server_ts": "2026-09-04 07:52:57.288597+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-04 07:52:42.456+00",
+      "id": 517,
+      "k": "",
+      "server_ts": "2026-09-04 07:52:45.588317+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-04 07:52:42.456+00",
+      "id": 518,
+      "k": "",
+      "server_ts": "2026-09-04 07:52:45.588317+00",
+      "type": "recommendation_shown"
+    }
+  ]
+}

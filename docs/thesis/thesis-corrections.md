@@ -477,3 +477,14 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     pre-plan sync push measured 1.16 / 1.54 s (17 of 21 requests carried one); the sync change of
     2026-09-03 evening (PR #40) is measured separately on 4 Sep rows. Report both series in the
     thesis: the decided figure is met by the deployed system, not by the first one measured.
+    **Weak-phone derivation (owner request 2026-09-04; `android-20260904-0827/notes.md` § "NFR-P1 —
+    deriving a figure"):** the measured 3.7 s p95 splits into a server part that scales with nothing
+    on the phone (function 1.3 + invoke overhead 0.3 + sync-resolve 1.0 = 2.6 s p95), a network part
+    (two HTTPS requests: 0.9 s p95 on home Wi-Fi at 50 ms RTT) and a device part (0.4 s p95 on a
+    Tensor G2). Scaled with public single-core ratios (Snapdragon 695 ×1.3, Snapdragon 680 ×2.9
+    slower) and Opensignal latency ranges (4G 30–58 ms, weak cell 100–150 ms, 3G ≈ 90 ms): a
+    2022 mid-range phone on a weak LTE cell ≈ 4.5 s, a 2022 low-end phone on a 3G-grade link ≈ 5.7 s.
+    **Proposed wording: NFR-P1 ≤ 6.0 s p95 (warm, tap → plan received) on a 2022 low-end Android over
+    a weak-signal link, with the reference measurement 3.7 s on a Pixel 7a over home Wi-Fi; server
+    ≤ 1.5 s and the 1.9 s fallback bound unchanged; the SQLite mirror after the timer (0.1–0.9 s on
+    the reference device) reported separately.** Owner decision pending.
