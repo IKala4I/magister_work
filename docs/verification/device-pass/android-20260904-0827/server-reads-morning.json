@@ -1,0 +1,260 @@
+{
+  "label": "morning-0830",
+  "at": "2026-09-04T05:29:58.294Z",
+  "plans_36h": [
+    {
+      "arm": null,
+      "engine": "learned",
+      "fallback_reason": null,
+      "generated_at": "2026-09-03 08:41:48.208+00",
+      "id": "c0c472ef-6445-4240-b41e-200262d47ea7",
+      "plan_date": "2026-09-03",
+      "recs": 8,
+      "solver_status": "FEASIBLE",
+      "trigger": null
+    },
+    {
+      "arm": null,
+      "engine": "learned",
+      "fallback_reason": null,
+      "generated_at": "2026-09-03 08:41:40.384+00",
+      "id": "a4aef9a0-28d3-45c2-9a7f-3ee1e740f1a5",
+      "plan_date": "2026-09-03",
+      "recs": 8,
+      "solver_status": "FEASIBLE",
+      "trigger": null
+    },
+    {
+      "arm": null,
+      "engine": "learned",
+      "fallback_reason": null,
+      "generated_at": "2026-09-03 08:41:31.025+00",
+      "id": "f340765a-1f56-4066-a6ec-89fe773bd33d",
+      "plan_date": "2026-09-03",
+      "recs": 7,
+      "solver_status": "FEASIBLE",
+      "trigger": null
+    },
+    {
+      "arm": null,
+      "engine": "learned",
+      "fallback_reason": null,
+      "generated_at": "2026-09-03 08:41:24.041+00",
+      "id": "4e775096-3ff4-4ad6-926b-dc09a76a7024",
+      "plan_date": "2026-09-03",
+      "recs": 8,
+      "solver_status": "FEASIBLE",
+      "trigger": null
+    },
+    {
+      "arm": null,
+      "engine": "learned",
+      "fallback_reason": null,
+      "generated_at": "2026-09-03 08:41:15.955+00",
+      "id": "4e544f7a-1ac8-45b6-b737-c57818f19c3b",
+      "plan_date": "2026-09-03",
+      "recs": 7,
+      "solver_status": "FEASIBLE",
+      "trigger": null
+    },
+    {
+      "arm": null,
+      "engine": "learned",
+      "fallback_reason": null,
+      "generated_at": "2026-09-03 08:41:07.592+00",
+      "id": "fab1ca12-eb7f-430e-8fc5-026323eab97c",
+      "plan_date": "2026-09-03",
+      "recs": 8,
+      "solver_status": "FEASIBLE",
+      "trigger": null
+    },
+    {
+      "arm": null,
+      "engine": "learned",
+      "fallback_reason": null,
+      "generated_at": "2026-09-03 08:41:00.011+00",
+      "id": "80cfc4b1-8391-456b-8786-66b48f0f55a8",
+      "plan_date": "2026-09-03",
+      "recs": 8,
+      "solver_status": "FEASIBLE",
+      "trigger": null
+    },
+    {
+      "arm": null,
+      "engine": "learned",
+      "fallback_reason": null,
+      "generated_at": "2026-09-03 08:40:51.277+00",
+      "id": "e3ef496b-171b-4ce3-a3ff-9663db259feb",
+      "plan_date": "2026-09-03",
+      "recs": 8,
+      "solver_status": "FEASIBLE",
+      "trigger": null
+    },
+    {
+      "arm": null,
+      "engine": "learned",
+      "fallback_reason": null,
+      "generated_at": "2026-09-03 08:40:43.758+00",
+      "id": "e72ebe21-da00-42d7-b518-6c333643d36c",
+      "plan_date": "2026-09-03",
+      "recs": 7,
+      "solver_status": "FEASIBLE",
+      "trigger": null
+    },
+    {
+      "arm": null,
+      "engine": "learned",
+      "fallback_reason": null,
+      "generated_at": "2026-09-03 08:40:34.181+00",
+      "id": "5c3d9a58-78c5-4fc3-ae7f-1b5ab4b9ac79",
+      "plan_date": "2026-09-03",
+      "recs": 8,
+      "solver_status": "FEASIBLE",
+      "trigger": null
+    },
+    {
+      "arm": null,
+      "engine": "learned",
+      "fallback_reason": null,
+      "generated_at": "2026-09-03 08:06:34.616+00",
+      "id": "7e4c6211-6023-4a68-ae36-6f3ec14e26d5",
+      "plan_date": "2026-09-03",
+      "recs": 8,
+      "solver_status": "FEASIBLE",
+      "trigger": null
+    },
+    {
+      "arm": null,
+      "engine": "learned",
+      "fallback_reason": null,
+      "generated_at": "2026-09-03 07:38:15.952+00",
+      "id": "d176a5e1-70e3-4b63-806c-97b03b19f46a",
+      "plan_date": "2026-09-03",
+      "recs": 9,
+      "solver_status": "FEASIBLE",
+      "trigger": null
+    },
+    {
+      "arm": null,
+      "engine": "learned",
+      "fallback_reason": null,
+      "generated_at": "2026-09-03 07:38:07.564+00",
+      "id": "2dcc940b-990e-4116-8397-7743db369270",
+      "plan_date": "2026-09-03",
+      "recs": 9,
+      "solver_status": "FEASIBLE",
+      "trigger": null
+    },
+    {
+      "arm": null,
+      "engine": "learned",
+      "fallback_reason": null,
+      "generated_at": "2026-09-03 07:37:59.799+00",
+      "id": "2f3eb28c-6dbd-4785-a806-3b3403c11f36",
+      "plan_date": "2026-09-03",
+      "recs": 9,
+      "solver_status": "FEASIBLE",
+      "trigger": null
+    },
+    {
+      "arm": null,
+      "engine": "learned",
+      "fallback_reason": null,
+      "generated_at": "2026-09-03 07:37:51.367+00",
+      "id": "0e80cdc9-9b79-4413-92b4-172e2c6f776a",
+      "plan_date": "2026-09-03",
+      "recs": 9,
+      "solver_status": "FEASIBLE",
+      "trigger": null
+    },
+    {
+      "arm": null,
+      "engine": "learned",
+      "fallback_reason": null,
+      "generated_at": "2026-09-03 07:37:43.424+00",
+      "id": "d61ed7d0-bae3-44ae-a98d-9feacf3a458c",
+      "plan_date": "2026-09-03",
+      "recs": 9,
+      "solver_status": "FEASIBLE",
+      "trigger": null
+    },
+    {
+      "arm": null,
+      "engine": "learned",
+      "fallback_reason": null,
+      "generated_at": "2026-09-03 07:37:34.132+00",
+      "id": "51ba435c-82c2-4124-b4e7-fd8cb7466ae4",
+      "plan_date": "2026-09-03",
+      "recs": 9,
+      "solver_status": "FEASIBLE",
+      "trigger": null
+    },
+    {
+      "arm": null,
+      "engine": "learned",
+      "fallback_reason": null,
+      "generated_at": "2026-09-03 07:37:27.096+00",
+      "id": "3d103578-3db3-4c7b-b34c-6254c2122129",
+      "plan_date": "2026-09-03",
+      "recs": 9,
+      "solver_status": "FEASIBLE",
+      "trigger": null
+    },
+    {
+      "arm": null,
+      "engine": "learned",
+      "fallback_reason": null,
+      "generated_at": "2026-09-03 07:37:19.065+00",
+      "id": "8aadbf64-5a58-4e49-b959-cef09d27a6ca",
+      "plan_date": "2026-09-03",
+      "recs": 9,
+      "solver_status": "FEASIBLE",
+      "trigger": null
+    },
+    {
+      "arm": null,
+      "engine": "learned",
+      "fallback_reason": null,
+      "generated_at": "2026-09-03 07:37:11.088+00",
+      "id": "d251d7a5-acb0-4694-ada4-4e90798142e3",
+      "plan_date": "2026-09-03",
+      "recs": 9,
+      "solver_status": "FEASIBLE",
+      "trigger": null
+    },
+    {
+      "arm": null,
+      "engine": "heuristic",
+      "fallback_reason": null,
+      "generated_at": "2026-09-03 07:37:03.247+00",
+      "id": "4f252c40-890a-4871-8fb5-75c53c5d8c90",
+      "plan_date": "2026-09-03",
+      "recs": 8,
+      "solver_status": "HEURISTIC",
+      "trigger": null
+    }
+  ],
+  "budget": [
+    {
+      "n_last_24h": 21,
+      "next_expiry": "2026-09-04 07:37:03.247+00",
+      "server_now": "2026-09-04 05:30:02.742504+00"
+    }
+  ],
+  "plans_0904": [],
+  "notification_responses": [
+    {
+      "client_ts": "2026-09-02 17:22:36.753+00",
+      "id": 246,
+      "payload": {
+        "action": "open",
+        "kind": "evening_ritual",
+        "latency_ms": 1356753,
+        "scheduled_for": "2026-09-02T17:00:00.000Z",
+        "variant": "daily"
+      },
+      "server_ts": "2026-09-02 17:22:36.910217+00"
+    }
+  ],
+  "events_since_0903_10utc": []
+}

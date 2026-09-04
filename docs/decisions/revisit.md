@@ -336,3 +336,20 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   the 1.9 s fallback clock must start after the replay. Estimated device p95 after each: today
   ≈ 3.4 s → L1 ≈ 3.0 s → L1+L2 ≈ 2.8 s → L3 ≈ 2.0–2.2 s. Corrects the day-3 wording "collapsing
   the hops ≈ −0.8 s" (that was L1 + L3 conflated).
+- [post-P12 hw day 4, 2026-09-04] ADR-0014 §1 (the inexact DATE trigger accepted as OS policy) — on
+  the Pixel 7a every alarm runs with a 31–60 min window because `SCHEDULE_EXACT_ALARM` was neither
+  declared nor granted; a 10-min lead cannot be honoured (the 08:50 reminder for the 9:00 block was
+  never shown; the ritual posted 26 min late). Build 4 declares the permission (24808ad). Still owed:
+  an in-app "Alarms & reminders" prompt (a Settings row that opens
+  `ACTION_REQUEST_SCHEDULE_EXACT_ALARM` via expo-intent-launcher, shown while
+  `canScheduleExactAlarms()` is false — needs a tiny native check or a config plugin) and the
+  Play-policy justification text if the store pack is ever submitted.
+- [post-P12 hw day 4, 2026-09-04] FR-26 semantics — a ritual answered after the morning's `new_day`
+  plan re-plans TODAY (`nextPlanDayOf` anchors on the ritual's own plan day): right by the 06:00
+  anchor rule, but the user's morning plan is superseded mid-morning. Suggest: an `accept` for a day
+  another trigger has already planned logs the `notification_response` fact and opens Today without
+  a request. Not changed today.
+- [post-P12 hw day 4, 2026-09-04] third-skip diagnostic card (P7) — shown only on the foreground
+  whose lapse scan detects the third skip; left unanswered it is gone on the next cold start
+  (observed 08:31 → 08:53, task "email replies"). Suggest persisting the due diagnostic (task id)
+  until answered or explicitly dismissed.

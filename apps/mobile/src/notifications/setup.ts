@@ -15,8 +15,13 @@ import { resetLedger } from './ledger';
 /** Android channel ids (importance DEFAULT: a reminder, not an alarm — no guilt UI). */
 export const CHANNEL_REMINDERS = 'reminders';
 export const CHANNEL_RITUAL = 'ritual';
-/** Category ids (iOS categories / Android actions). */
-export const CATEGORY_BLOCK = 'block_reminder';
+/**
+ * Category id of the ritual (iOS category / Android action buttons). Block reminders carry NO
+ * category: they have no actions, and Android's expo-notifications rejects a category without
+ * actions ("Must provide at least one action"). Registering an empty block category FIRST used
+ * to throw before the ritual's category was set, so the 20:00 ritual posted without its
+ * "Plan tomorrow" / "Adjust" buttons (Pixel 7a, hardware pass 2026-09-04, FR-26).
+ */
 export const CATEGORY_RITUAL = 'plan_tomorrow';
 /** Action identifiers on the ritual: FR-26 "one-tap accept/adjust". */
 export const ACTION_ACCEPT = 'accept';
@@ -47,7 +52,7 @@ export function initNotifications(): void {
 
 async function registerCategories(): Promise<void> {
   try {
-    await Notifications.setNotificationCategoryAsync(CATEGORY_BLOCK, []);
+    // only the ritual has actions; never register a category without any (see CATEGORY_RITUAL)
     await Notifications.setNotificationCategoryAsync(CATEGORY_RITUAL, [
       {
         identifier: ACTION_ACCEPT,

@@ -1,0 +1,191 @@
+{
+  "label": "after-body-tap",
+  "at": "2026-09-04T05:53:45.740Z",
+  "plans_0904": [
+    {
+      "ef_reason": "learned",
+      "ef_total_ms": 1009,
+      "engine": "learned",
+      "generated_at": "2026-09-04 05:41:01.088+00",
+      "id": "ff3ff8c2-d1c4-49c0-b458-5a0c092ce494",
+      "recs": 11,
+      "shown": 11,
+      "solver_status": "FEASIBLE",
+      "trigger": "new_day"
+    }
+  ],
+  "budget": [
+    {
+      "n_last_24h": 22,
+      "server_now": "2026-09-04 05:53:48.9674+00"
+    }
+  ],
+  "notification_responses": [
+    {
+      "client_ts": "2026-09-04 05:53:34.974+00",
+      "id": 453,
+      "payload": {
+        "action": "open",
+        "kind": "evening_ritual",
+        "latency_ms": 46414974,
+        "scheduled_for": "2026-09-03T17:00:00.000Z",
+        "variant": "daily"
+      },
+      "server_ts": "2026-09-04 05:53:36.467918+00"
+    },
+    {
+      "client_ts": "2026-09-02 17:22:36.753+00",
+      "id": 246,
+      "payload": {
+        "action": "open",
+        "kind": "evening_ritual",
+        "latency_ms": 1356753,
+        "scheduled_for": "2026-09-02T17:00:00.000Z",
+        "variant": "daily"
+      },
+      "server_ts": "2026-09-02 17:22:36.910217+00"
+    }
+  ],
+  "events_today": [
+    {
+      "client_ts": "2026-09-04 05:53:34.974+00",
+      "id": 453,
+      "k": "evening_ritual",
+      "server_ts": "2026-09-04 05:53:36.467918+00",
+      "type": "notification_response"
+    },
+    {
+      "client_ts": "2026-09-04 05:41:00.993+00",
+      "id": 444,
+      "k": "",
+      "server_ts": "2026-09-04 05:41:59.815513+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-04 05:41:00.993+00",
+      "id": 445,
+      "k": "",
+      "server_ts": "2026-09-04 05:41:59.815513+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-04 05:41:00.993+00",
+      "id": 446,
+      "k": "",
+      "server_ts": "2026-09-04 05:41:59.815513+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-04 05:41:00.993+00",
+      "id": 447,
+      "k": "",
+      "server_ts": "2026-09-04 05:41:59.815513+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-04 05:41:00.993+00",
+      "id": 448,
+      "k": "",
+      "server_ts": "2026-09-04 05:41:59.815513+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-04 05:41:00.993+00",
+      "id": 449,
+      "k": "",
+      "server_ts": "2026-09-04 05:41:59.815513+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-04 05:41:00.993+00",
+      "id": 450,
+      "k": "",
+      "server_ts": "2026-09-04 05:41:59.815513+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-04 05:41:00.993+00",
+      "id": 451,
+      "k": "",
+      "server_ts": "2026-09-04 05:41:59.815513+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-04 05:41:00.993+00",
+      "id": 452,
+      "k": "",
+      "server_ts": "2026-09-04 05:41:59.815513+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-04 05:41:00.993+00",
+      "id": 442,
+      "k": "",
+      "server_ts": "2026-09-04 05:41:59.815513+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-04 05:41:00.993+00",
+      "id": 443,
+      "k": "",
+      "server_ts": "2026-09-04 05:41:59.815513+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-04 05:31:55.387+00",
+      "id": 436,
+      "k": "",
+      "server_ts": "2026-09-04 05:34:20.26157+00",
+      "type": "lapse_observed"
+    },
+    {
+      "client_ts": "2026-09-04 05:31:55.387+00",
+      "id": 437,
+      "k": "",
+      "server_ts": "2026-09-04 05:34:20.26157+00",
+      "type": "lapse_observed"
+    },
+    {
+      "client_ts": "2026-09-04 05:31:55.387+00",
+      "id": 438,
+      "k": "",
+      "server_ts": "2026-09-04 05:34:20.26157+00",
+      "type": "lapse_observed"
+    },
+    {
+      "client_ts": "2026-09-04 05:31:55.387+00",
+      "id": 439,
+      "k": "",
+      "server_ts": "2026-09-04 05:34:20.26157+00",
+      "type": "lapse_observed"
+    },
+    {
+      "client_ts": "2026-09-04 05:31:55.387+00",
+      "id": 440,
+      "k": "",
+      "server_ts": "2026-09-04 05:34:20.26157+00",
+      "type": "lapse_observed"
+    },
+    {
+      "client_ts": "2026-09-04 05:31:55.387+00",
+      "id": 441,
+      "k": "",
+      "server_ts": "2026-09-04 05:34:20.26157+00",
+      "type": "lapse_observed"
+    },
+    {
+      "client_ts": "2026-09-04 05:31:55.387+00",
+      "id": 434,
+      "k": "",
+      "server_ts": "2026-09-04 05:34:20.26157+00",
+      "type": "focus_end"
+    },
+    {
+      "client_ts": "2026-09-04 05:31:55.387+00",
+      "id": 435,
+      "k": "",
+      "server_ts": "2026-09-04 05:34:20.26157+00",
+      "type": "lapse_observed"
+    }
+  ]
+}

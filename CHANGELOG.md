@@ -30,6 +30,23 @@ Everything below condenses P0–P11 for release notes and the thesis; per-phase 
 - **Ops:** Supabase (eu-west-1) + Oracle A1 VM (eu-marseille-1) with pull-based rollout,
   hardened SSH + Tailscale admin path, nightly training timer, runbooks for every timer.
 
+## Post-P12 — hardware pass day 4: ritual buttons, offline first open, exact alarms (2026-09-04, fix/mobile-hardware-pass-day4)
+
+- **fix(notifications):** the evening ritual posted without its "Plan tomorrow" / "Adjust"
+  buttons on Android — `initNotifications` registered an empty block category first and
+  Android's expo-notifications rejects a category without actions, which silently skipped the
+  ritual's category. Block reminders carry no category now; the ritual category is registered
+  alone (+1 test).
+- **fix(sync):** a token refresh that failed on the network is `offline`, not "sign in"
+  (`readSession()`); the session store bumps `refreshedAt` on INITIAL_SESSION / SIGNED_IN /
+  TOKEN_REFRESHED and the plan trigger re-checks on it — an offline first open with an expired
+  token showed "Sign in to plan your day" and left the day unplanned until the second online
+  foreground (auth-js caches a failed refresh for 60 s) (+5 tests).
+- **build(mobile):** `SCHEDULE_EXACT_ALARM` declared — without it every reminder and ritual ran
+  with a 31–60 min window on the Pixel 7a (a 10-min lead was never honoured).
+- Verified on build 3: UC-03 `new_day` fires exactly once; FR-26 killed-app body tap → one
+  `open` fact, no plan request, cold start 843 ms.
+
 ## Post-P12 — hardware pass day 3, evening: the pre-plan sync skips the instant reward pass (2026-09-03, fix/sync-pre-plan-rewards)
 
 - **edge (`sync-resolve`, ADR-0012 addendum):** `shouldRunRewards` returns false for `pre_plan`.

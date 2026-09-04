@@ -75,9 +75,22 @@ export interface PlanTriggerInput {
   todayPlanDate?: string | null;
   /** Both plan reads have resolved — until then the trigger waits (no decision on `[]`). */
   ready: boolean;
+  /**
+   * The session store's `refreshedAt` (src/auth/session.ts): a session re-established AFTER a
+   * check gave up on a stale token re-runs the check — an offline start, then the radios back
+   * inside auth-js's 60 s refresh-failure cache, left the day unplanned until the next
+   * foreground (hardware pass 2026-09-04 F1). The dedup key is written only once the server
+   * answered, and the in-flight guard holds, so nothing double-fires.
+   */
+  sessionRefreshedAt?: number;
 }
 
-export function usePlanTrigger({ latestPlanDate, todayPlanDate, ready }: PlanTriggerInput): {
+export function usePlanTrigger({
+  latestPlanDate,
+  todayPlanDate,
+  ready,
+  sessionRefreshedAt,
+}: PlanTriggerInput): {
   requestManual: () => void;
 } {
   const check = useCallback(() => {
@@ -101,7 +114,7 @@ export function usePlanTrigger({ latestPlanDate, todayPlanDate, ready }: PlanTri
       if (state === 'active') check();
     });
     return () => sub.remove();
-  }, [check]);
+  }, [check, sessionRefreshedAt]);
 
   const requestManual = useCallback(() => {
     if (isPlanRequestInFlight()) return;

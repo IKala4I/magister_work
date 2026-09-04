@@ -30,6 +30,12 @@ export type SessionState = {
   userId: string | null;
   email: string | null;
   isAnonymous: boolean;
+  /**
+   * Bumped whenever a session is (re)established — INITIAL_SESSION, SIGNED_IN, TOKEN_REFRESHED —
+   * so a network path that gave up on a stale token re-checks once the refresh lands (the
+   * UC-03 plan trigger; src/auth/readSession.ts, hardware pass 2026-09-04 F1). 0 = never.
+   */
+  refreshedAt: number;
 };
 
 export const useSessionStore = create<SessionState>(() => ({
@@ -37,6 +43,7 @@ export const useSessionStore = create<SessionState>(() => ({
   userId: null,
   email: null,
   isAnonymous: false,
+  refreshedAt: 0,
 }));
 
 function applySession(session: Session | null): void {
@@ -88,6 +95,12 @@ export function initAuth(): void {
     // Conversion completes when a formerly anonymous session stops being anonymous.
     const wasAnonymous = useSessionStore.getState().isAnonymous;
     applySession(session);
+    if (
+      session &&
+      (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')
+    ) {
+      useSessionStore.setState({ refreshedAt: Date.now() });
+    }
     setTimeout(() => {
       if (session && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
         void handleSignedIn(session).catch(() => {

@@ -2,52 +2,59 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-03 afternoon — **hardware pass, Android day 3 closed; day 4 queue below.**
-> Read first: `docs/verification/device-pass/android-20260903-1020/notes.md` (items 1–12) and
-> **ADR-0018** (solver stopping criteria — the day's decision, with the before/after tables), then
-> the "Day 4 — open with these" block. Merged today: **PR #39** (`relative_gap_limit` 0.01 + 0.3 s
-> no-improvement early stop + trajectory telemetry; concurrent count/context reads in
-> `plan-request`; `api.ts`). The box serves build `813cdbade0e9` since 11:06 EEST; `plan-request`
-> is v12. The phone still runs **build 3** (`ee920100ba66…`, main 3f1159d source — the APK did not
-> change today). Branch state: `post-p12/hardware-pass` = main + the day-3 docs commits, pushed.
+> Last update: 2026-09-04 morning — **hardware pass, Android day 4 in progress: PR #41 (three
+> device-found fixes) + build 4 on the phone; evening ritual + owner items still ahead.**
+> Read first: `docs/verification/device-pass/android-20260904-0827/notes.md` (items 1–12), then the
+> "Day 4 — state and remaining queue" block. Merged/open today: **PR #41**
+> (`fix/mobile-hardware-pass-day4`: ritual category registration, `readSession()` offline-vs-no-session
+> with the plan-trigger re-check on token refresh, `SCHEDULE_EXACT_ALARM`). The phone runs **build 4**
+> (`e6c9ea1ef9f0…`, 24808ad) since 09:11 with the exact-alarm appop granted over adb; server unchanged
+> (`plan-request` v12, `sync-resolve` v6, recsys `813cdbade0e9`). Every 4 Sep client row is post-#40;
+> rows from 09:11 on are build 4.
 
-## Day 4 — open with these (2026-09-04)
+## Day 4 — state and remaining queue (2026-09-04)
 
-1. **Morning, before anyone opens the app (session, phone untouched overnight):** read the shade
-   (`dumpsys notification` for `com.hourwell.app`) — the 20:00 ritual was to be delivered with the
-   app **killed** (`am kill` after the day-3 blocks; alarms intact) and left untapped (owner
-   directive). **Wait for the owner's ping, then read the records — never poll** (CLAUDE.md "No
-   wall-clock polling", 2026-09-03): `adb shell "dumpsys notification --noredact" | grep -A40
-"pkg=com.hourwell.app" | grep -E "android.title=|android.text=|when="` (the `when=` epoch ms is
-   the post time), `adb shell dumpsys alarm | grep -A2 "com.hourwell.app}" | grep origWhen=`, and
-   the server rows (`plans` for 2026-09-04, `notification_response`). Then the **`new_day`
-   case**: no plan exists for the 4th →
-   first foreground of the day must issue exactly one `plan_requested` with the day-boundary
-   trigger (device-checklist "UC-03 triggers on a real day boundary"). Do it as the **F1 offline
-   check first**: radios off → `am start` → no request, "Offline" state → radios on → foreground
-   → exactly one plan row for 2026-09-04 (`q-after.mjs`-style read of `plans`).
-2. **PostHog re-export (owner, ⛔ 5b-bis, no key):** eu.posthog.com → Activity → date 3 Sep →
-   events `plan_requested` **and `sync_completed`** (columns `trigger`/`reason`, `outcome`,
-   `engine`, `duration_ms`, timestamp) → `~/Downloads/`. Session: pair with
-   `series-before-2026-09-03.json` / `series-after-2026-09-03.json` (function starts 07:37 and
-   08:40 UTC) → the client-side "after" p50/p95, the measured pre-plan sync share, and the final
-   NFR-P1 figure check (corrections #51: 4.0 s p95 stands if the after p95 ≤ 3.6 s, else 4.5 s).
-3. **Evening of the 4th — the action-button variant (live-state step; owner decides whether to
-   sit through it):** kill the app (`am kill`, never `force-stop` — that cancels the alarms) before
-   20:00; after the owner pings that the ritual is showing, one adb-driven tap on the
-   notification's **action button** (owner does NOT tap) → `notification_response.action =
-accept` + tomorrow's plan; day-2 note 29 (button vs body) closes. Everything else about the
-   delivery is reconstructed from the records afterwards.
-4. **Owner-attended (be at the phone):** off-grid move snap (type 5:37 in the native picker),
-   TalkBack listening pass (tab names, block cards, heatmap summary), and the three `owner-*`
-   screenshots of the 2 Sep deliveries (14:18 / 14:28 / 20:1x) dropped into
-   `android-20260902-1030/`. Then **FR-42 erasure LAST** (ends the device account).
-5. **Thesis follow-ups from day 3:** ADR-0018 accepted (owner, 2026-09-03). NFR-P1 #51 accepted
-   in principle; **the figure waits on the owner's choice** between (a) ship 4.0 s as measured or
-   (b) cut the pre-plan sync first (revisit.md "Pre-plan sync cost": L1 rewards-pass skip ≈ −0.35 s
-   server-only, L2 hop collapse ≈ −0.25 s, L3 ops inside `plan-request` ≈ −1.2 s but a client
-   rebuild) and re-measure; corrections #51 / spec-conflicts L40 then take the final number; the ADR-0018 window re-pin after a week of plans (`max_improvement_gap_ms`
-   p95 vs 0.3 s); the two levers left untouched are in revisit.md.
+**Done this morning (build 3 unless noted; details = day-4 notes items 1–12):** the order question
+answered (new_day first, button second — the accept plans the ritual's own next day = today);
+morning reads (ritual posted 20:26:28, untouched; the "killed" process revived natively for the
+delivery, no JS); **F1 offline first open = DEFECT** (expired token + no radio → "Sign in to plan
+your day"; the first online foreground inside auth-js's 60 s refresh-failure cache planned nothing);
+**UC-03 `new_day` = PASS** on the second foreground (one row 08:41:01, learned, 11 blocks); **FR-26
+ritual has NO action buttons on Android = DEFECT** (empty block category registered first →
+Android rejects it → the ritual category never stored); **FR-26 killed-app body tap = PASS** (one
+`open` fact, no plan, 843 ms cold start); **FR-50 alarms inexact (+31–60 min) = DEFECT**
+(`SCHEDULE_EXACT_ALARM` absent); fixes c2995be / 68ca0eb / 24808ad on PR #41, gates green (519
+jest); **build 4 installed 09:11**, exact alarms confirmed (`window=0 exactAllowReason=permission`).
+
+**Remaining today, in order:**
+
+1. **F1 re-check on build 4 (session, ≥ 09:36 — token expired at 09:33:50 with the app dead):**
+   radios off → cold start via `hourwell://settings` → the sync line must read **"Offline —
+   changes are queued"** (build 3 said "Sign in to sync across devices") → radios on → the line
+   recovers on the next poll/tick without a new foreground; `auth.refresh_tokens` gains a row.
+   The plan-request half (no "Sign in" on an unplanned day + the automatic request once the
+   refresh lands) is unit-tested; on the device it needs an unplanned morning — only if the
+   account survives tonight (FR-42 erasure is the owner's call).
+2. **FR-50 exactness (session, after 09:35 / 10:20 / 11:05):** `dumpsys notification` `when=` of
+   the block reminders vs the alarm times (expected ≤ 1 s late now).
+3. **PostHog re-export (owner, ⛔ 5b-bis, no key):** eu.posthog.com → Activity → **3 Sep** →
+   `plan_requested` + `sync_completed` (`trigger`/`reason`, `outcome`, `engine`, `duration_ms`,
+   timestamp) → `~/Downloads/`; **3 Sep = pre-L1**, 4 Sep = post-L1 — keep the days apart;
+   4 Sep rows from 09:11 on are build 4. Session then pairs with `series-before/after-2026-09-03.json`.
+4. **Evening — the action button on build 4 (live-state step; the owner pings when the ritual
+   shows, no polling):** the app must be dead before 20:00 (`am kill` after HOME — `am kill` is a
+   no-op on a foregrounded process); the 20:00 alarm is exact now. After the ping: `dumpsys
+notification` (record must carry `actions=2`), then ONE adb tap on **"Plan tomorrow"** with the
+   app killed → one `notification_response` with `action: accept` + one `evening_ritual` plan for
+   the 5th; "Adjust" is not tested on the same notification (it is consumed). Shade navigation
+   recipe: notes item 10 (`find-ritual.py`; the button will sit under the body once expanded).
+5. **Owner-attended:** off-grid move snap (5:37 in the native picker), TalkBack listening pass,
+   the three `owner-*` screenshots of the 2 Sep deliveries → `android-20260902-1030/`. Then
+   **FR-42 erasure LAST** (ends the device account; kills tomorrow's F1 plan-half check — say so
+   before doing it).
+6. **Thesis follow-ups:** the ADR-0018 window re-pin after a week of plans; revisit.md carries
+   three new day-4 lines (exact-alarm prompt, stale ritual re-plans today, diagnostic card not
+   persisted).
 
 ## Where we are
 
@@ -89,7 +96,20 @@ accept` + tomorrow's plan; day-2 note 29 (button vs body) closes. Everything els
    opted in, 2026-09-01 — runs strictly after the hardware pass closes). Enrollment support and
    first-real-data reviews are retired-conditional (#49).
 
-## Hardware pass — live state (2026-09-03 afternoon, read before touching the phone)
+## Hardware pass — live state (2026-09-04 morning, read before touching the phone)
+
+- **Day 4 in one paragraph:** see the block above. Phone state now: **build 4**, app `am kill`ed
+  at 09:13:31 (alarms exact and intact: 09:35 / 10:20 / 11:05 block reminders, 20:00 today,
+  20:00 tomorrow), today's plan (1 row, 11 blocks) in place, the 3 Sep ritual consumed by the
+  body tap, `SCHEDULE_EXACT_ALARM` appop = allow (adb), persistent logcat writer running on the Mac
+  into the session scratchpad (never commit the raw file — notes item 10). Budget 22/30 at 09:12.
+- **Tooling learnt today:** HOME before `am kill`; `uiautomator dump` fails while the shade is
+  open — screenshots + icon template match (`find-ritual.py` in the notes) instead; a fast/long
+  swipe collapses a short shade; prettier pads table cells (anchor scripted edits on cell CONTENT);
+  raw logcat / whole-shade screenshots stay out of the repo.
+- **Older state (day 3) below still applies where not superseded.**
+
+## Hardware pass — live state (2026-09-03 afternoon)
 
 - **Day 3 in one paragraph:** the PostHog export made NFR-P1 a device number — manual series
   p50 3271 / p95 3836 ms, of which the function was 1662 / 1908 and the rest a 1.0–1.5 s pre-plan
@@ -109,6 +129,9 @@ accept` + tomorrow's plan; day-2 note 29 (button vs body) closes. Everything els
   tomorrow) so tonight's ritual is delivered to a dead process; nobody taps it. 24-h plan count
   was 29/30 at 11:42 — it frees up from 10:37 EEST on the 4th (the before-series rows) and 11:40
   (the after-series rows).
+- **Server-side changes today, for attribution:** recsys `813cdbade0e9` + `plan-request` v12
+  at 11:06 (ADR-0018 + concurrent reads), `sync-resolve` v6 at 13:16 (PR #40, pre-plan sync
+  without the reward pass). The APK is unchanged (build 3).
 - **Standing rule from today:** no Monitor / cron / sleep-loop for time-triggered checks; the
   owner pings when the moment has passed and the session reads the records. The only live-state
   step left in the queue is the action-button tap on the 4th's ritual (it needs the notification
@@ -180,8 +203,9 @@ accept` + tomorrow's plan; day-2 note 29 (button vs body) closes. Everything els
    the day-3 notes item 1. **5b-bis (open, no key):** re-export 3 Sep `plan_requested` +
    `sync_completed` (Day 4 item 2). **5c:** the 2 Sep ritual tap is done (backgrounded variant,
    20:22); the three `owner-*` screenshots (14:18 / 14:28 / 20:1x deliveries) are still owed to
-   `android-20260902-1030/`. **Tonight (3 Sep): nobody taps the ritual** (owner directive) so the
-   `new_day` trigger is observable on the 4th.
+   `android-20260902-1030/`. **3 Sep ritual left untouched → `new_day` observed on the 4th ✅.** **5d (4 Sep):** the
+   ritual buttons exist only from build 4 — tonight's ritual is the first with `actions=2`; the
+   owner pings after 20:00, the session taps over adb.
 6. **Hardware-pass prerequisites only** (re-scoped by #49): the Google OAuth second Web
    client and a real mailbox matter only for the device-checklist auth/calendar items;
    PostHog EU / Sentry EU are optional (keys env-gated; own-use telemetry).
@@ -195,10 +219,10 @@ accept` + tomorrow's plan; day-2 note 29 (button vs body) closes. Everything els
 
 ## Gotchas (P12 additions; earlier lists in git history of this file still apply)
 
-- **`gh pr merge --auto --merge` merges immediately on this repo** — no required checks are
-  configured, so auto-merge does not wait for CI (PR #39 merged with three checks still pending;
-  they finished green on `main` afterwards). If a merge must wait for CI, watch `gh pr checks`
-  and merge by hand.
+- **Branch protection is on `main` since 2026-09-03** (six required CI jobs; the path-filtered
+  synthetic-cohort job cannot be required) and the repository's auto-merge setting is on —
+  `gh pr merge --auto --merge` now waits for CI. Before that, PR #39 auto-merged with three
+  checks pending (they passed on `main` afterwards).
 - **`hw-plan-budget-sweep.mjs` plan dates now roll from today** (tomorrow / +2 / +3). The
   hard-coded dates had turned the "9 h" row into a 6.75 h window on a re-run — compare sweeps
   only on the same horizon dates (weekday vs weekend cells differ slightly).

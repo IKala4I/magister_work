@@ -21,13 +21,7 @@ import { track } from '../observability/analytics';
 import { dismissStaleReminders } from './dismiss';
 import { commitScheduled, settleLedger } from './ledger';
 import { type NotificationSpec, OPEN_STATUSES, planNotifications } from './plan';
-import {
-  CATEGORY_BLOCK,
-  CATEGORY_RITUAL,
-  CHANNEL_REMINDERS,
-  CHANNEL_RITUAL,
-  getPermissionState,
-} from './setup';
+import { CATEGORY_RITUAL, CHANNEL_REMINDERS, CHANNEL_RITUAL, getPermissionState } from './setup';
 
 const localDb = db as unknown as LocalDb;
 /** Placements this far ahead are read (today + tomorrow's evening plan). */
@@ -67,7 +61,6 @@ function contentOf(
       // the task title is the user's own text on the user's own device (NFR-S3 is the ML boundary)
       title: titles.get(spec.taskId ?? '') ?? t('notify.block.fallbackTitle'),
       body: t('notify.block.body', { time: timeLabel(spec.slotStart ?? spec.fireAt) }),
-      categoryIdentifier: CATEGORY_BLOCK,
       data,
     };
   }
