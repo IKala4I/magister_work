@@ -5,6 +5,7 @@
  * `accept` plans tomorrow (FR-26 one tap), `adjust` opens the Inbox, a plain tap on the Sunday
  * variant opens the weekly review (UC-08). Pure over injected deps; the component wires it.
  */
+import * as Notifications from 'expo-notifications';
 import { DEFAULT_ACTION_IDENTIFIER, type NotificationResponse } from 'expo-notifications';
 
 import { currentUserId } from '../auth/identity';
@@ -39,6 +40,13 @@ export interface ResponseDeps {
   /** Cold-start dedup: the same response may arrive twice (last-response hook + listener). */
   alreadyHandled(key: string): boolean;
   markHandled(key: string): void;
+  /**
+   * Remove the notification from the shade once its response is handled. A body tap auto-cancels
+   * (AUTO_CANCEL), an ACTION BUTTON does not: on the Pixel 7a the ritual stayed posted after
+   * "Plan tomorrow" had already planned the day (build 4, hardware pass 2026-09-04) — a second
+   * tap would plan it again.
+   */
+  dismiss(identifier: string): void;
 }
 
 export function actionOf(actionIdentifier: string): ResponseAction {
@@ -61,8 +69,14 @@ function dataOf(response: NotificationResponse): NotificationData | null {
   };
 }
 
+/**
+ * Dedup key for one response. The last-response hook and the listener deliver the SAME response
+ * twice on a cold start (same notification, same action); a DIFFERENT action on the same
+ * notification is a new response — on the Pixel 7a "Adjust tasks" after "Plan tomorrow" was
+ * silently dropped and the app just opened Today (build 4, hardware pass 2026-09-04).
+ */
 export function responseKey(response: NotificationResponse): string {
-  return `${response.notification.request.identifier}@${response.notification.date}`;
+  return `${response.notification.request.identifier}@${response.notification.date}#${response.actionIdentifier}`;
 }
 
 /** Route for (kind, action, variant) — pure. */
@@ -99,6 +113,7 @@ export function handleNotificationResponse(
     now,
   });
   deps.sync();
+  deps.dismiss(response.notification.request.identifier);
   track('notification_opened', { kind: data.kind, action, variant: data.variant ?? null });
   if (data.kind === 'evening_ritual' && action === 'accept') {
     // the day after the ritual's OWN plan day — a 22:00 ritual tapped at 00:30 plans the coming
@@ -133,6 +148,9 @@ export function appResponseDeps(navigate: (route: Route) => void): ResponseDeps 
     navigate,
     alreadyHandled: (key) => appStorage.getString(StorageKeys.lastNotificationResponse) === key,
     markHandled: (key) => appStorage.set(StorageKeys.lastNotificationResponse, key),
+    dismiss: (identifier) => {
+      Notifications.dismissNotificationAsync(identifier).catch(() => undefined); // already gone is fine
+    },
   };
 }
 
