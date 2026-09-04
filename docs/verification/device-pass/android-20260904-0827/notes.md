@@ -186,12 +186,86 @@ SCHEDULE_EXACT_ALARM allow` → after the first foreground's scheduler pass ever
     figure needs a build-4 series (after 10:37, when the before-series rows leave the 24-h budget)
     and the owner's 4 Sep export.
 
+16. **F1 on build 4 — PASS (engine half, 10:47–10:51).** App dead since 09:44 (the 10:20 alarm had
+    revived the process natively, no JS), token expired 10:41. Radios off → `am start` (WARM
+    628 ms, JS cold) → gear → Settings: +7 s "Up to date" (stale), **+35 s "Offline — changes are
+    queued"** (build 3 said "Sign in to sync across devices"), +50 s unchanged; radios on 10:48:43 →
+    **+70 s "Up to date · Last synced just now"** without a new foreground (the tick refreshed the
+    token, the poll synced). The plan-request half is unit-tested; its device check needs an
+    unplanned morning. (`f1-build4-settings-offline-7s/50s.png`, `-online-130s.png`.)
+
+17. **FR-50 exactness, second point:** `block:4a8d53b3` ("invoice upload", the 10:30 block) posted
+    **10:20:00.531** (+531 ms). The 11:05 alarm no longer exists — the re-plan series (item 18)
+    replaced the afternoon; the next block alarm is 11:50 (exact, `window=0`).
+
+18. **Build-4 manual series, 10:51:51–10:53:04 (10 Re-plan taps 8 s apart, 8-task inbox, Wi-Fi):**
+    server side **function p50 1057 / p95 1282 / max 1356 ms, 10/10 learned, FEASIBLE, 9 blocks
+    each**; budget 22/30 afterwards. The client `duration_ms` and the post-L1 `pre_plan` durations
+    come from the owner's **4 Sep** export (all rows post-L1; rows from 09:11 = build 4). Network
+    context for the model below: phone → API edge ICMP min 21 / avg 54 / max 79 ms (home Wi-Fi);
+    Mac → API cold HTTPS: connect 6–30 ms, TLS done at 36–60 ms, first byte 73–147 ms.
+    (`server-reads-after-series.json`.)
+
+## NFR-P1 — deriving a figure that holds on a weak phone (owner request, 2026-09-04)
+
+**What the timer measures.** `plan_requested.duration_ms` runs from the Re-plan tap to the plan
+response received; it contains the pre-plan sync (when ops are pending or the last sync is > 30 s
+old), the `plan-request` call, and the client work in between. It stops **before** the SQLite mirror
+(0.1–0.9 s on the Pixel 7a, day-3 item 1) — the moment the blocks appear is later by that much.
+
+**Measured anchors (Pixel 7a, home Wi-Fi, 3 Sep after-series, n = 10, pre-L1):** client p50 3043 /
+p95 3683 ms; function (server timer) p50 1100 / p95 1302; pre-plan sync on the phone p50 1158 /
+p95 1540; the same sync from a Node client on the Mac p50 844 (day-3 item 14) → the phone's
+per-request excess ≈ 0.3 s; the remainder client − function − sync p50 ≈ 0.83 s = the function's
+invoke overhead outside its own timer (isolate boot + auth + parse ≈ 0.2–0.3 s, measured on the
+400 path from the Mac) + the plan call's network cost on the phone (≈ 0.3–0.4 s) + JS work
+(≈ 0.1–0.2 s).
+
+**Decomposition into scaling classes (p50 / p95, s — the split inside the tail is modelled from
+the Mac-vs-phone comparison, the totals are measured):**
+
+| component                                                                                            | scales with                | Pixel 7a / Wi-Fi p50     | p95                                                                    |
+| ---------------------------------------------------------------------------------------------------- | -------------------------- | ------------------------ | ---------------------------------------------------------------------- |
+| S — server: function 1.10 / 1.30 + invoke overhead 0.25 / 0.30 + sync-resolve server time 0.75 / 1.0 | nothing on the device side | 2.10                     | 2.60                                                                   |
+| N — network: 2 HTTPS requests × (radio + TLS + ≈ 3 RTT-equivalents + transfer)                       | RTT, radio state           | 0.65                     | 0.90                                                                   |
+| D — device: local sync apply + request/response JSON + state                                         | single-core speed          | 0.30                     | 0.40                                                                   |
+| **sum**                                                                                              |                            | **3.05** (measured 3.04) | 3.90 (measured 3.68; percentiles do not add — the sum is conservative) |
+
+**Scaling assumptions, cited.** Device: Geekbench 6 single-core Tensor G2 ≈ 1188, Snapdragon 695
+≈ 896–908 (×1.3 slower), Snapdragon 680 ≈ 412 (×2.9 slower) — the two 2022 mid/low-range classes
+(Redmi Note 11 Pro 5G / Moto G Stylus 5G 2022; Redmi Note 11 / Galaxy A23). Network: Opensignal
+4G latency 28–58 ms across country reports (typical 30–50), 3G ≈ 80–100 ms (Argentina 2018: 4G 49,
+3G 87); a weak-signal 4G cell sits at 100–150 ms. N is modelled as a fixed part (radio wake, TLS,
+client stack: 0.35 s p50 / 0.5 s p95) plus ≈ 6 RTT-equivalents per request pair, plus 0.3 s RRC
+wake on cellular.
+
+| scenario (warm app, plan received)                       | S   | N   | D   | **p95 sum**             |
+| -------------------------------------------------------- | --- | --- | --- | ----------------------- |
+| reference: Pixel 7a, home Wi-Fi (RTT 50 ms)              | 2.6 | 0.9 | 0.4 | **3.9 (measured 3.68)** |
+| mid-range 2022 (SD695, ×1.3), LTE weak cell (RTT 100 ms) | 2.6 | 1.4 | 0.5 | **4.5**                 |
+| low-end 2022 (SD680, ×2.9), LTE weak cell (RTT 100 ms)   | 2.6 | 1.4 | 1.2 | **5.2**                 |
+| low-end 2022 (SD680, ×2.9), 3G-grade link (RTT 150 ms)   | 2.6 | 1.9 | 1.2 | **5.7**                 |
+
+**The more useful finding, stated plainly: of the 3.9 s p95 reference sum, 2.6 s — two-thirds — is server-side work (the plan function, its invoke overhead, the sync-resolve call) that scales with nothing on the user's side, not the phone and not the network. That is the share L2 (one RPC for the sync hops) and L3 (ops carried inside the plan request) address; the device and network multipliers act only on the remaining third.**
+
+**Network figures — a stated limitation:** the typical-case latency is current (Ookla, Q4 2024: country-wide median mobile latency 32 ms in Europe, 35 ms in the Americas; a 2023 London campaign measured ≈ 25 ms average on 4G LTE); the weak-cell (100–150 ms) and 3G (≈ 90 ms) values are conservative estimates taken from older public measurements (Opensignal country reports, 2018), because current reports publish experience scores rather than milliseconds or could not be retrieved — the derivation errs on the slow side deliberately.
+
+**DECIDED (owner, 2026-09-04):** NFR-P1 = **≤ 6.0 s p95, warm, tap → plan received, on a 2022 low-end Android over a weak-signal link (RTT ≤ 150 ms)**; the reference measurement on the
+Pixel 7a over home Wi-Fi is 3.7 s p95 (before ADR-0018: 4.6 s); the server-side ≤ 1.5 s p95 and
+the 1.9 s fallback bound are unchanged. Two things the figure does not cover and the text should
+say: (1) the SQLite mirror after the timer (0.1–0.9 s on the reference device, ≈ ×2.9 on the
+low-end class — local work with a known optimisation path, reported separately); (2) a pre-plan
+sync carrying a day's backlog (8 ops cost +0.2 s on the Mac; more ops cost more). L1 (PR #40)
+takes ≈ 0.3 s off S; the 4 Sep export measures it on the phone.
+
+Sources: Ookla Speedtest Intelligence Q4 2024 as summarised by the IEEE ComSoc Technology Blog (2025-02-24, https://techblog.comsoc.org/2025/02/24/ookla-europe-severely-lagging-in-5g-sa-deployments-and-performance/); arXiv 2310.14090 (London 4G/5G latency case study, 2023); Opensignal country reports 2018 (USA Jan — AT&T LTE 58.3 ms; Netherlands Mar — T-Mobile 4G 28.2 ms; Argentina May — Movistar 4G 49 ms / 3G 87 ms; Canada Feb — Telus 41.1 ms); Geekbench 6 single-core listings (cpu-monkey: Tensor G2 1188, Snapdragon 680 412; cpu-monkey / unite4buy: Snapdragon 695 896–908).
+
 ## Results by build
 
-| Build | Source / APK                                                                                                                                     | Checks attributed to it                                                                                                                                                                   |
-| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 3     | main 3f1159d source, `ee920100ba66…` (unchanged since 2 Sep 17:00)                                                                               | items 1–8: `new_day` once ✓ (second foreground), F1 offline first open ✗ (defect, item 3–4), ritual buttons ✗ (defect, item 6), killed-app body tap ✓ (item 7), inexact alarms ✗ (item 8) |
-| 4     | `fix/mobile-hardware-pass-day4` at 24808ad, clean prebuild + `assembleRelease` (09:07–09:09), `e6c9ea1ef9f0…`, 121 299 734 B, installed 09:11:21 | bundle gate ✓ (host ×1, anon-key prefix ×1), manifest `SCHEDULE_EXACT_ALARM` ✓, exact alarms ✓ (item 11); owed: ritual buttons (tonight), F1 re-check (item 12)                           |
+| Build | Source / APK                                                                                                                                     | Checks attributed to it                                                                                                                                                                                                                                                                                   |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 3     | main 3f1159d source, `ee920100ba66…` (unchanged since 2 Sep 17:00)                                                                               | items 1–8: `new_day` once ✓ (second foreground), F1 offline first open ✗ (defect, item 3–4), ritual buttons ✗ (defect, item 6), killed-app body tap ✓ (item 7), inexact alarms ✗ (item 8)                                                                                                                 |
+| 4     | `fix/mobile-hardware-pass-day4` at 24808ad, clean prebuild + `assembleRelease` (09:07–09:09), `e6c9ea1ef9f0…`, 121 299 734 B, installed 09:11:21 | bundle gate ✓, manifest `SCHEDULE_EXACT_ALARM` ✓, exact alarms ✓ (09:35 +345 ms, 10:20 +531 ms), **F1 engine half ✓** (item 16), manual series 10/10 learned, function p50 1057 / p95 1282 (item 18); owed: ritual buttons (tonight), the 4 Sep export (client side), F1 plan half (an unplanned morning) |
 
 ## Evidence files
 

@@ -2,8 +2,8 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-04 late morning — **hardware pass, Android day 4 in progress: PR #41 merged,
-> build 4 on the phone, 3 Sep export analysed; evening ritual + owner items still ahead.**
+> Last update: 2026-09-04 11:00 — **hardware pass, Android day 4: PRs #41–#44, build 4 verified (exact
+> alarms, F1 engine half, 10-tap series); NFR-P1 revised to 6.0 s p95 (owner, weak-phone derivation); evening ritual + 4 Sep export + owner items ahead.**
 > Read first: `docs/verification/device-pass/android-20260904-0827/notes.md` (items 1–12), then the
 > "Day 4 — state and remaining queue" block. Merged/open today: **PR #41**
 > (`fix/mobile-hardware-pass-day4`: ritual category registration, `readSession()` offline-vs-no-session
@@ -26,7 +26,11 @@ jest); **build 4 installed 09:11**, exact alarms confirmed (`window=0 exactAllow
 
 **Remaining today, in order:**
 
-1. **F1 re-check on build 4 — half done (notes item 12):** the auth path ran exactly as modelled
+1. ✅ **F1 on build 4 — engine half verified 10:47 (notes item 16):** Settings read "Offline — changes
+   are queued" with the token expired and no radio, and recovered by itself 70 s after the radios
+   returned. The plan half needs an unplanned morning (app dead overnight, no plan for the day → the
+   first open shows "Offline — showing your last plan." offline and requests by itself once online).
+   Superseded plan text, kept for the recipe: the auth path ran exactly as modelled
    (failure +26 s, 60 s cache, refresh 09:41:01) but the `hourwell://settings` deep link opened
    Today, so the Settings line is still unread. **Next window: token expired again from 10:42**
    (app killed 09:44:21; the 10:20 / 11:05 alarms revive the process natively but run no JS):
@@ -34,12 +38,13 @@ jest); **build 4 installed 09:11**, exact alarms confirmed (`window=0 exactAllow
    line must read **"Offline — changes are queued"** (build 3: "Sign in to sync across devices")
    → radios on → it recovers on the next poll/tick. The plan-request half is unit-tested; on the
    device it needs an unplanned morning (only if the account survives tonight).
-2. **FR-50 exactness:** 09:35 reminder posted 09:35:00.345 ✅; read 10:20 / 11:05 after the fact.
+2. ✅ **FR-50 exactness:** 09:35 → 09:35:00.345, 10:20 → 10:20:00.531. The series re-planned the
+   afternoon; the next block alarm is 11:50 (exact).
 3. **PostHog 3 Sep — done (notes item 15):** complete, 21/21 paired; before ADR-0018 p95 4.58 s
-   (not met), after 3.68 s (met); pre-plan sync 1158 / 1540 ms pre-L1. **Owed for the post-L1
-   figure:** a 10-tap manual series on build 4 after 10:37 (the before-series rows leave the 24-h
-   budget then; 22/30 used at 09:12) and, this evening, the owner's **4 Sep** export of
-   `plan_requested` + `sync_completed` (rows from 09:11 = build 4; all post-L1).
+   (not met), after 3.68 s (met); pre-plan sync 1158 / 1540 ms pre-L1. **Series done 10:51–10:53 on build 4** (10/10 learned, function p50 1057 / p95 1282, budget
+   22/30). Still owed: the owner's **4 Sep** export of `plan_requested` + `sync_completed` this
+   evening (rows from 09:11 = build 4; all post-L1) → the post-L1 client figure and the `pre_plan`
+   share. **NFR-P1 DECIDED (owner, 2026-09-04): ≤ 6.0 s p95 tap → plan received, warm, on a 2022 low-end Android over a weak link; Pixel 7a reference 3.7 s alongside; server ≤ 1.5 s; caveats: SQLite mirror after the timer, backlog-carrying pre-plan sync; two-thirds of the reference p95 is server-side (the L2/L3 share). Recorded in corrections #51, spec-conflicts L40, revisit, day-3 notes item 15, day-4 notes.**
 4. **Evening — the action button on build 4 (live-state step; the owner pings when the ritual
    shows, no polling):** the app must be dead before 20:00 (`am kill` after HOME — `am kill` is a
    no-op on a foregrounded process); the 20:00 alarm is exact now. After the ping: `dumpsys
