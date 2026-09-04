@@ -356,4 +356,6 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   "6 tasks are waiting — one tap plans your day"; the accept created a plan for Saturday with 0 blocks
   (working hours are mon–fri: every task `no_feasible_start`), Today shows no tomorrow line, and the
   empty row counts toward the 30/24 h budget. Suggest: skip the ritual (or word it "no working hours
-  tomorrow") when the next plan day has no working window; never persist a zero-block ritual plan.
+  tomorrow") when the next plan day has no working window; never persist a zero-block ritual plan. — **DECIDED 2026-09-04 (owner: a product defect, not a rough
+  edge) → ADR-0019:** the rule covers the ritual, the day-boundary trigger and manual re-plan;
+  implementation in the post-pass fix batch.

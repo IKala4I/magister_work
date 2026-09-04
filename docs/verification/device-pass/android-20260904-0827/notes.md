@@ -299,6 +299,28 @@ Sources: Ookla Speedtest Intelligence Q4 2024 as summarised by the IEEE ComSoc T
     device; they need a fresh ritual on the rebuilt APK — **build 5 = 7c8f67c, `d7fc4280bf56…`, built 22:20–22:2x (`build5.log`), bundle gate ✓ (host ×1, anon-key prefix ×1), `SCHEDULE_EXACT_ALARM` ✓; NOT installed — the owner decides whether the pass continues.** App sent HOME and
     killed 22:19:54; the 5 Sep 20:00 alarm is the only one left (exact).
 
+23. **Finding — a day without a working window is planned anyway (product defect, owner
+    classification; ADR-0019).** What the user sees: a Friday ritual promising to plan tomorrow, an
+    accept that changes nothing visible, and on Saturday "No plan yet" over "No room today for 15
+    tasks" — both untrue. Why: `buildGrid` yields zero workable ticks for a weekday without hours,
+    the function's only pre-engine short-circuit is the empty inbox, the trigger and the manual
+    Re-plan never check the window, and the ritual scheduler places a daily ritual on every day
+    without knowing the next day's window. **Same hole elsewhere — checked in code:** the 06:00 /
+    first-open trigger on a Saturday persists one empty plan and dedups the day; a manual Re-plan
+    persists one per tap, each spending budget; "all days off" cannot be declared (onboarding
+    `errorNoDays`, no hours editor in Settings); the Sunday review variant is unaffected. The rule
+    (function refuses with `no_working_window`, nothing persisted, no budget; the client treats it
+    as answered and says "No working hours today"; the daily ritual is not scheduled when the
+    next plan day has no window) is decided in **ADR-0019**; implementation goes to the post-pass
+    fix batch and stays unverified on hardware by the owner's choice. The thesis example of a
+    defect only a multi-day run on a real calendar surfaces (corrections #52).
+
+24. **Owner decision, 22:3x: the pass stops after the owner-attended items and FR-42 erasure.**
+    Build 5 (`d7fc4280bf56…`) is gated but NOT installed; its ritual re-check ("Adjust tasks" as a
+    first response, the Sunday tap, the backgrounded accept, the dismiss-after-action) is recorded
+    as **unverified by choice**, not pending — the defects are found, fixed and unit-tested; another
+    evening would buy a confirmation, not a finding. The 4 Sep PostHog export comes tomorrow morning.
+
 ## Results by build
 
 | Build | Source / APK                                                                                                                                     | Checks attributed to it                                                                                                                                                                                                                                                                                   |
