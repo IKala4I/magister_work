@@ -3,8 +3,7 @@
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
 > Last update: 2026-09-04 11:00 — **hardware pass, Android day 4: PRs #41–#44, build 4 verified (exact
-> alarms, F1 engine half, 10-tap series); NFR-P1 weak-phone derivation proposed; evening ritual + 4 Sep
-> export + owner items ahead.**
+> alarms, F1 engine half, 10-tap series); NFR-P1 revised to 6.0 s p95 (owner, weak-phone derivation); evening ritual + 4 Sep export + owner items ahead.**
 > Read first: `docs/verification/device-pass/android-20260904-0827/notes.md` (items 1–12), then the
 > "Day 4 — state and remaining queue" block. Merged/open today: **PR #41**
 > (`fix/mobile-hardware-pass-day4`: ritual category registration, `readSession()` offline-vs-no-session
@@ -45,9 +44,7 @@ jest); **build 4 installed 09:11**, exact alarms confirmed (`window=0 exactAllow
    (not met), after 3.68 s (met); pre-plan sync 1158 / 1540 ms pre-L1. **Series done 10:51–10:53 on build 4** (10/10 learned, function p50 1057 / p95 1282, budget
    22/30). Still owed: the owner's **4 Sep** export of `plan_requested` + `sync_completed` this
    evening (rows from 09:11 = build 4; all post-L1) → the post-L1 client figure and the `pre_plan`
-   share. **NFR-P1 weak-phone figure derived** (notes § "NFR-P1 — deriving a figure"; corrections
-   #51): proposed ≤ 6.0 s p95 tap → plan received on a 2022 low-end Android over a weak link —
-   **owner decision pending**.
+   share. **NFR-P1 DECIDED (owner, 2026-09-04): ≤ 6.0 s p95 tap → plan received, warm, on a 2022 low-end Android over a weak link; Pixel 7a reference 3.7 s alongside; server ≤ 1.5 s; caveats: SQLite mirror after the timer, backlog-carrying pre-plan sync; two-thirds of the reference p95 is server-side (the L2/L3 share). Recorded in corrections #51, spec-conflicts L40, revisit, day-3 notes item 15, day-4 notes.**
 4. **Evening — the action button on build 4 (live-state step; the owner pings when the ritual
    shows, no polling):** the app must be dead before 20:00 (`am kill` after HOME — `am kill` is a
    no-op on a foregrounded process); the 20:00 alarm is exact now. After the ping: `dumpsys

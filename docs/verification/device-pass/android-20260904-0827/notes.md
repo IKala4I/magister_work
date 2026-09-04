@@ -246,8 +246,11 @@ wake on cellular.
 | low-end 2022 (SD680, ×2.9), LTE weak cell (RTT 100 ms)   | 2.6 | 1.4 | 1.2 | **5.2**                 |
 | low-end 2022 (SD680, ×2.9), 3G-grade link (RTT 150 ms)   | 2.6 | 1.9 | 1.2 | **5.7**                 |
 
-**Proposed statement (owner decides):** NFR-P1 = **≤ 6.0 s p95, warm, tap → plan received, on a
-2022 low-end Android over a weak-signal link (RTT ≤ 150 ms)**; the reference measurement on the
+**The more useful finding, stated plainly: of the 3.9 s p95 reference sum, 2.6 s — two-thirds — is server-side work (the plan function, its invoke overhead, the sync-resolve call) that scales with nothing on the user's side, not the phone and not the network. That is the share L2 (one RPC for the sync hops) and L3 (ops carried inside the plan request) address; the device and network multipliers act only on the remaining third.**
+
+**Network figures — a stated limitation:** the typical-case latency is current (Ookla, Q4 2024: country-wide median mobile latency 32 ms in Europe, 35 ms in the Americas; a 2023 London campaign measured ≈ 25 ms average on 4G LTE); the weak-cell (100–150 ms) and 3G (≈ 90 ms) values are conservative estimates taken from older public measurements (Opensignal country reports, 2018), because current reports publish experience scores rather than milliseconds or could not be retrieved — the derivation errs on the slow side deliberately.
+
+**DECIDED (owner, 2026-09-04):** NFR-P1 = **≤ 6.0 s p95, warm, tap → plan received, on a 2022 low-end Android over a weak-signal link (RTT ≤ 150 ms)**; the reference measurement on the
 Pixel 7a over home Wi-Fi is 3.7 s p95 (before ADR-0018: 4.6 s); the server-side ≤ 1.5 s p95 and
 the 1.9 s fallback bound are unchanged. Two things the figure does not cover and the text should
 say: (1) the SQLite mirror after the timer (0.1–0.9 s on the reference device, ≈ ×2.9 on the
@@ -255,10 +258,7 @@ low-end class — local work with a known optimisation path, reported separately
 sync carrying a day's backlog (8 ops cost +0.2 s on the Mac; more ops cost more). L1 (PR #40)
 takes ≈ 0.3 s off S; the 4 Sep export measures it on the phone.
 
-Sources: Opensignal country reports (USA Jan 2018 — AT&T LTE 58.3 ms; Netherlands Mar 2018 —
-T-Mobile 4G 28.2 ms; Argentina May 2018 — Movistar 4G 49 ms / 3G 87 ms; Canada Feb 2018 — Telus
-41.1 ms); Geekbench 6 single-core listings (cpu-monkey: Tensor G2 1188, Snapdragon 680 412;
-cpu-monkey / unite4buy: Snapdragon 695 896–908).
+Sources: Ookla Speedtest Intelligence Q4 2024 as summarised by the IEEE ComSoc Technology Blog (2025-02-24, https://techblog.comsoc.org/2025/02/24/ookla-europe-severely-lagging-in-5g-sa-deployments-and-performance/); arXiv 2310.14090 (London 4G/5G latency case study, 2023); Opensignal country reports 2018 (USA Jan — AT&T LTE 58.3 ms; Netherlands Mar — T-Mobile 4G 28.2 ms; Argentina May — Movistar 4G 49 ms / 3G 87 ms; Canada Feb — Telus 41.1 ms); Geekbench 6 single-core listings (cpu-monkey: Tensor G2 1188, Snapdragon 680 412; cpu-monkey / unite4buy: Snapdragon 695 896–908).
 
 ## Results by build
 

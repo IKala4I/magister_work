@@ -172,8 +172,7 @@ force-stop` + `am start -W`, TotalTime, default font/density). Build 1's post-re
     the deploy and midnight (the app is killed). Server-side versions for the record:
     `plan-request` v11 → **v12** at 11:06 (concurrent reads), recsys build `4ee55cd8e7d3` →
     **`813cdbade0e9`** at 11:06 (ADR-0018), `sync-resolve` v5 → **v6** at 13:16 (L1).
-15. **NFR-P1 decided (owner, 2026-09-03): ≤ 4.5 s p95 end-to-end on the device, warm; ≤ 1.5 s
-    p95 for the server-side function; 1.9 s fallback bound.** Under-delivering is expected and
+15. **NFR-P1 decided (owner, 2026-09-03): ≤ 4.5 s p95 end-to-end on the device, warm; ≤ 1.5 s p95 for the server-side function; 1.9 s fallback bound.** _(Superseded 2026-09-04: ≤ 6.0 s p95 on a 2022 low-end Android over a weak link, the Pixel 7a reference 3.7 s reported alongside — day-4 notes § "NFR-P1 — deriving a figure".)_ Under-delivering is expected and
     the measured figures are reported alongside; the Pixel 7a on home Wi-Fi is a favourable
     case, not the average one. L2 (hop collapse) and L3 (ops inside the plan request) are
     optional optimisations, not prerequisites (corrections #51, spec-conflicts L40, revisit.md).

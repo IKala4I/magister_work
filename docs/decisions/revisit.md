@@ -320,8 +320,7 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   closes instead of being stopped; (b) re-pin the window from the box's own
   `max_improvement_gap_ms` p95 after a week of plans (rule in ADR-0018 §3).
 - [hardware pass, 2026-09-03 — DECIDED (owner)] **Pre-plan sync cost (the largest NFR-P1
-  component, 1.0–1.5 s on the phone).** NFR-P1 is set at 4.5 s p95 device end-to-end / 1.5 s
-  server-side with the measured figures reported alongside; **L1 shipped the same day**
+  component, 1.0–1.5 s on the phone).** NFR-P1 was set at 4.5 s p95 device end-to-end / 1.5 s server-side with the measured figures reported alongside — **revised 2026-09-04 to ≤ 6.0 s p95 on a 2022 low-end Android over a weak link (Pixel 7a reference 3.7 s alongside; day-4 notes derivation): 2.6 of the 3.9 s reference p95 is server-side and independent of the user's phone and network, which is exactly the share L2/L3 address;** **L1 shipped the same day**
   (server-only); **L2 and L3 are optional optimisations, not prerequisites** for meeting the
   requirement — do them only if a later phase wants the lower measured figure. Measured composition (`hw-sync-hops.mjs`, Node → hosted
   function, 0 ops): `poll` (no rewards pass) p50 533 ms vs `pre_plan` p50 844 ms (710–1422),
