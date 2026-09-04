@@ -468,3 +468,12 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     decomposition table (day-3 notes item 1) as the evidence; the server-side margin (item 37)
     remains a separate, true statement about the service. Cross-refs: spec-conflicts L40;
     ADR-0018; `device-checklist.md` NFR-P1; `p10-manual-verification.md` §2.3 device row.
+    **3 Sep client-side series, read 2026-09-04 from the owner's PostHog export (21/21 rows paired
+    with the server rows; `android-20260904-0827/notes.md` item 15):** before ADR-0018 the same
+    kind of series measured **p50 3.53 / p95 4.58 s** (function 1.68 / 1.84 s; 1 of 10 fell to the
+    fallback) — the decided 4.5 s would NOT have been met; after ADR-0018 (gap limit + early stop,
+    concurrent context reads) **p50 3.04 / p95 3.68 s** (function 1.10 / 1.30 s; 0 of 10) — met, with
+    the server-side 1.5 s met as well. Client − function stayed at ≈ 1.9–2.0 s p50, of which the
+    pre-plan sync push measured 1.16 / 1.54 s (17 of 21 requests carried one); the sync change of
+    2026-09-03 evening (PR #40) is measured separately on 4 Sep rows. Report both series in the
+    thesis: the decided figure is met by the deployed system, not by the first one measured.
