@@ -88,9 +88,11 @@
   once per plan day (`plan_requested` with `trigger = new_day`), never while backgrounded. Why:
   the simulator's clock and AppState transitions do not reproduce iOS background suspension.
   **Android 2026-09-02 — DEFECT:** every cold start re-requests with `first_open` although today's plan is persisted (`useLiveRows` starts empty, so the trigger decides before the first read; the session dedup is ephemeral) — 4 extra plans in 5 minutes, the day-1 30 rows had the same cause. The overnight `new_day` check is still owed; fix batch.
+  **Android ✅ 2026-09-04 (build 3, `new_day`):** no plan for the 4th overnight (the 3 Sep ritual left untouched) → the day's first foreground that could read the session issued exactly one `plan_requested` with `trigger = new_day` (plans row 08:41:01 EEST, learned, 11 blocks); nothing while backgrounded, nothing from the killed-app ritual tap afterwards. Caveat → NFR-R1 below: the first foreground after the offline start fell inside auth-js's refresh-failure cache and planned nothing (fixed 68ca0eb; re-check on build 4).
 - ⬜ **NFR-R1 — Today offline** (added P6). Airplane mode after a plan exists: the plan still
   renders from SQLite; "Re-plan" shows the offline/error notice without clearing the plan. Why:
   simulator network loss is not real radio loss.
+  **Android 2026-09-04 (build 3) — DEFECT, offline first open with an expired token:** radios off + cold start → 26 s of "Planning your day…", then **"Sign in to plan your day."** (auth-js retried the refresh for 30 s and cached the failure for 60 s; the app read `session: null` as signed-out), and the first foreground after the radios returned — inside that 60 s — still planned nothing; the second did. Fix 68ca0eb (`readSession()`: retryable refresh error → offline; the plan trigger re-checks on TOKEN_REFRESHED). Re-run on build 4: radios off → cold start → "Offline — showing your last plan." → radios on → the request fires without a second foreground.
 
 ## Feedback loop (P7)
 
@@ -238,6 +240,7 @@
   OEM defers it by more, record the drift for the thesis (ADR-0014 Consequences). Why: inexact
   alarm windows are device/OEM policy.
   **Android 2026-09-02:** the triggers are inexact `RTC_WAKEUP` alarms with Android's 75 % window — +7 m 27 s for a 10-min lead, +41 m at 55 min ahead, +1 h beyond; no `SCHEDULE_EXACT_ALARM` in the manifest. Measured drift to follow (ADR-0014 Consequences).
+  **Android 2026-09-04 (build 3):** `appops get SCHEDULE_EXACT_ALARM` = default (not granted) and no permission declared → windows of +31 min to +1 h (the ritual posted 20:26:28 for 20:00; the 08:50 reminder for the 9:00 block was never delivered and the 08:53 foreground pass cancelled it as past). Build 4 declares `SCHEDULE_EXACT_ALARM` (24808ad); for the device test the grant is set over adb (`appops set com.hourwell.app SCHEDULE_EXACT_ALARM allow`); the in-app "Alarms & reminders" prompt is a revisit item. Re-check: `dumpsys alarm` shows `window=0` after the next foreground; a reminder lands within a minute of `slot_start − 10 min`.
 - ⬜ **FR-26 — ritual actions from every app state** (P10). At the ritual time with the app
   KILLED: tap "Plan tomorrow" → the app cold-starts, plans tomorrow (one `plan_requested` with
   trigger `evening_ritual`, one `notification_response` fact), Today shows the tomorrow line;
@@ -245,6 +248,7 @@
   backgrounded. Why: `useLastNotificationResponse` vs the listener and category action buttons
   behave differently per platform and cannot be exercised in jest.
   **Android 2026-09-02 (build 3):** ritual delivered (visible by 20:14:41, +1 h window); owner tap at 20:22 with the app backgrounded → one `evening_ritual` plan for the 3rd (10 blocks), one `notification_response` fact, Today shows the tomorrow line — PASS for the backgrounded variant; the fact says `action: open` (button vs body — settle with the adb-driven killed-app run tomorrow).
+  **Android 2026-09-04 (build 3) — DEFECT + killed-app body tap PASS:** the expanded ritual shows NO action buttons (`dumpsys notification`: no `actions=` on the record) — `initNotifications` registered an empty block category first and Android rejects a category without actions, so the ritual's category was never set (fixed c2995be; day 2's "button vs body" = there was no button). The adb body tap on the untouched 3 Sep ritual with the app killed: cold start 843 ms → exactly one `notification_response` (`action: open`, `latency_ms` 46 414 974 from `scheduled_for`), no plan request, notification cleared, Today shown. Owed on build 4 (tonight's ritual, app killed): the "Plan tomorrow" button → one `evening_ritual` plan + one `accept` fact; "Adjust" → Inbox.
 - ⬜ **FR-42 — export on device** (P10). Settings → Export → the share sheet offers Files/AirDrop
   (iOS) or the share targets (Android); the saved JSON opens; it contains the tasks, events, the
   48 Beta cells and no calendar `title`. Why: `expo-sharing` + the cache-directory file are
