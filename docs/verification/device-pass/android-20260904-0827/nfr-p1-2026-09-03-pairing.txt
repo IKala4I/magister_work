@@ -1,0 +1,39 @@
+plan_requested rows 21 | plans on the server 3 Sep 21 | paired 21 | unpaired 0
+
+BEFORE — 07:37Z series (pre-ADR-0018, plan-request v11): n=10 | client p50 3534 p95 4581 max 4844 | function p50 1679 p95 1839 | client−function p50 1874 p95 2755 | fallbacks 1/10
+   end 07:37:06.391 client  4844  fn  1907  svc  1569  tail  2937  manual   fallback fallback:timeout
+   end 07:37:13.129 client  3626  fn  1683  svc  1511  tail  1943  manual   learned  learned
+   end 07:37:21.386 client  3593  fn  1675  svc  1491  tail  1918  manual   learned  learned
+   end 07:37:29.305 client  3489  fn  1752  svc  1492  tail  1737  manual   learned  learned
+   end 07:37:36.572 client  2556  fn  1658  svc  1509  tail   898  manual   learned  learned
+   end 07:37:46.543 client  4260  fn  1727  svc  1507  tail  2533  manual   learned  learned
+   end 07:37:53.499 client  3130  fn  1647  svc  1499  tail  1483  manual   learned  learned
+   end 07:38:01.949 client  3579  fn  1659  svc  1517  tail  1920  manual   learned  learned
+   end 07:38:09.808 client  3357  fn  1757  svc  1508  tail  1600  manual   learned  learned
+   end 07:38:17.931 client  3280  fn  1449  svc  1340  tail  1831  manual   learned  learned
+
+AFTER POINT — 08:06Z (first device request on ADR-0018 / v12): n=1 | client p50 2898 p95 2898 max 2898 | function p50 1142 p95 1142 | client−function p50 1756 p95 1756 | fallbacks 0/1
+   end 08:06:36.705 client  2898  fn  1142  svc   942  tail  1756  manual   learned  learned
+
+AFTER — 08:40Z series (ADR-0018 / v12): n=10 | client p50 3043 p95 3683 max 3922 | function p50 1100 p95 1302 | client−function p50 1984 p95 2381 | fallbacks 0/10
+   end 08:40:36.557 client  2362  fn  1231  svc   915  tail  1131  manual   learned  learned
+   end 08:40:45.422 client  3220  fn  1108  svc   987  tail  2112  manual   learned  learned
+   end 08:40:52.915 client  2710  fn  1014  svc   875  tail  1696  manual   learned  learned
+   end 08:41:02.327 client  3922  fn  1342  svc  1161  tail  2580  manual   learned  learned
+   end 08:41:09.957 client  3392  fn  1254  svc  1012  tail  2138  manual   learned  learned
+   end 08:41:17.576 client  3038  fn  1091  svc   860  tail  1947  manual   learned  learned
+   end 08:41:25.983 client  3078  fn  1058  svc   832  tail  2020  manual   learned  learned
+   end 08:41:32.473 client  1565  fn  1055  svc   873  tail   510  manual   learned  learned
+   end 08:41:42.068 client  3048  fn  1012  svc   878  tail  2036  manual   learned  learned
+   end 08:41:50.220 client  2971  fn  1247  svc  1093  tail  1724  manual   learned  learned
+
+sync_completed by reason (3 Sep export, all rows):
+  foreground   n= 61 p50 822 p95 1904 min 537 max 2205
+  poll         n=143 p50 891 p95 1676 min 494 max 2027
+  pre_plan     n= 17 p50 1158 p95 1540 min 945 max 1634
+  sign_in      n=  2 p50 659 p95 702 min 611 max 707
+  write        n=  1 p50 1066 p95 1066 min 1066 max 1066
+pre_plan rows: 17 | first 08:41:48 | last 07:37:03
+sync rows after the 10:16Z sync-resolve v6 deploy: 21 | reasons ['foreground', 'poll'] | pre_plan among them: 0
+
+pre_plan sync inside a paired request: n=17 | p50 1158 p95 1540

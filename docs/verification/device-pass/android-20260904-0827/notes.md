@@ -121,6 +121,60 @@ SCHEDULE_EXACT_ALARM allow` → after the first foreground's scheduler pass ever
     install (09:11:37.365 and 09:11:38.290, same pid) — no functional effect seen. App sent HOME
     and `am kill`ed at 09:13:31 so the token expires (09:33:50) with the app dead.
 
+12. **F1 re-check on build 4 (09:39–09:42) — auth path as predicted; the Settings line still to
+    read.** The 09:35 alarm had revived the process natively (pid 19360, no JS), so `am start` with
+    the radios off reported WARM 779 ms while the JS started cold ("Running main" 09:39:35). The
+    `hourwell://settings` VIEW intent landed on **Today** (expo-router did not route the scheme
+    link from a cold VIEW start — use the gear icon), which now showed the third-skip card for
+    "Offline note" (the 9:00 block lapsed at this foreground). Auth exactly as modelled:
+    `AuthRetryableFetchError` at 09:40:01 (+26 s), radios on 09:40:17, `auth.refresh_tokens` gained
+    a row at **09:41:01** (60 s after the failure = the cache), no plan request (today is planned),
+    facts synced. The build-4 observable — Settings reading "Offline — changes are queued" instead
+    of "Sign in to sync across devices" — needs the token expired again: app sent HOME and killed
+    09:44:21, the window opens **10:42**. (`f1-build4-offline-settings-40s.png`,
+    `auth-rows-after-f1-build4.json`.)
+
+13. **FR-50 exactness on build 4 + grant:** `block:b746deee…` ("slides outline", the 9:45 block)
+    posted **09:35:00.345** for the 09:35:00 alarm — +345 ms (build 3: +31–60 min windows; the
+    ritual +26 min). 10:20 / 11:05 to be read after the fact.
+
+14. **Owner question — regression or original defect? Original, by evidence.** The empty block
+    category is registered BEFORE the ritual's at lines 48–49 of `setup.ts` in the P10 feature
+    commit 5a4be6f (2026-08-30), and at lines 50–51 of dd48052 (P10 adversarial fix), 56935e0 (the
+    build-3 source, 2 Sep) and 3f1159d (main after PR #38); the P10/P12 fix batches never touched
+    `registerCategories`; build 1 (installed 1 Sep 20:21) postdates P10 and predates every fix
+    batch → every Android build of the pass ran this code. No day-1/2 evidence shows a
+    notification button: no `dumpsys notification` capture exists for those days, the only
+    notification-related screenshot is the Today screen after the ritual, and day-2 note 29 (label
+    confirmed by the owner) records the body tap followed by the **"Plan tomorrow" button on the
+    Today card** and lists the notification's own button as untested. Where the memory can come
+    from: that in-app card, or the iOS simulator — `CategoriesModule.swift` passes an empty action
+    list straight to `UNNotificationCategory`, so on iOS both categories register and the ritual
+    does carry "Plan tomorrow" / "Adjust". The three owed owner screenshots of the 2 Sep
+    deliveries can only add evidence if the row was expanded (a collapsed row never shows actions).
+
+15. **PostHog 3 Sep exports (owner, 06:35Z / 06:36Z on the 4th) — complete, no re-export needed.**
+    `plan_requested`: 21 rows 07:37:06Z–08:41:50Z = the 21 `plans` rows of 3 Sep, **21/21 paired**
+    (`plans.generated_at` inside the client interval; `plans-2026-09-03.json`,
+    `nfr-p1-2026-09-03-client-decomposition.json`, `nfr-p1-2026-09-03-pairing.txt`).
+    `sync_completed`: 224 rows 07:33:50Z–10:38:12Z. Labels: every `plan_requested` and every
+    `pre_plan` sync is pre-L1 (last `pre_plan` 08:41:48Z, deploy 10:16Z); the 21 sync rows after
+    the deploy are `foreground` / `poll` only, which L1 does not touch.
+
+    | series (3 Sep, warm, manual)    | n   | client p50 / p95 / max ms | function p50 / p95 | client − function p50 / p95 | fallbacks |
+    | ------------------------------- | --- | ------------------------- | ------------------ | --------------------------- | --------- |
+    | before ADR-0018 (v11, 07:37Z)   | 10  | 3534 / **4581** / 4844    | 1679 / 1839        | 1874 / 2755                 | 1/10      |
+    | first after-point (v12, 08:06Z) | 1   | 2898                      | 1142               | 1756                        | 0/1       |
+    | after ADR-0018 (v12, 08:40Z)    | 10  | 3043 / **3683** / 3922    | 1100 / 1302        | 1984 / 2381                 | 0/10      |
+
+    Against the decided NFR-P1 (≤ 4.5 s p95 device end-to-end warm, ≤ 1.5 s server): **before —
+    not met (4.58 s); after — met (3.68 s / 1.30 s)**. The pre-plan sync: 17 of the 21 requests
+    carried one (the other four fell inside the 30 s freshness window with nothing pending),
+    **p50 1158 / p95 1540 ms** — the pre-L1 baseline; by reason over the day: `foreground` 822 /
+    1904 (n 61), `poll` 891 / 1676 (n 143), `pre_plan` 1158 / 1540 (n 17). The post-L1 client
+    figure needs a build-4 series (after 10:37, when the before-series rows leave the 24-h budget)
+    and the owner's 4 Sep export.
+
 ## Results by build
 
 | Build | Source / APK                                                                                                                                     | Checks attributed to it                                                                                                                                                                   |

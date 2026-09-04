@@ -2,8 +2,8 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-04 morning — **hardware pass, Android day 4 in progress: PR #41 (three
-> device-found fixes) + build 4 on the phone; evening ritual + owner items still ahead.**
+> Last update: 2026-09-04 late morning — **hardware pass, Android day 4 in progress: PR #41 merged,
+> build 4 on the phone, 3 Sep export analysed; evening ritual + owner items still ahead.**
 > Read first: `docs/verification/device-pass/android-20260904-0827/notes.md` (items 1–12), then the
 > "Day 4 — state and remaining queue" block. Merged/open today: **PR #41**
 > (`fix/mobile-hardware-pass-day4`: ritual category registration, `readSession()` offline-vs-no-session
@@ -28,19 +28,20 @@ jest); **build 4 installed 09:11**, exact alarms confirmed (`window=0 exactAllow
 
 **Remaining today, in order:**
 
-1. **F1 re-check on build 4 (session, ≥ 09:36 — token expired at 09:33:50 with the app dead):**
-   radios off → cold start via `hourwell://settings` → the sync line must read **"Offline —
-   changes are queued"** (build 3 said "Sign in to sync across devices") → radios on → the line
-   recovers on the next poll/tick without a new foreground; `auth.refresh_tokens` gains a row.
-   The plan-request half (no "Sign in" on an unplanned day + the automatic request once the
-   refresh lands) is unit-tested; on the device it needs an unplanned morning — only if the
-   account survives tonight (FR-42 erasure is the owner's call).
-2. **FR-50 exactness (session, after 09:35 / 10:20 / 11:05):** `dumpsys notification` `when=` of
-   the block reminders vs the alarm times (expected ≤ 1 s late now).
-3. **PostHog re-export (owner, ⛔ 5b-bis, no key):** eu.posthog.com → Activity → **3 Sep** →
-   `plan_requested` + `sync_completed` (`trigger`/`reason`, `outcome`, `engine`, `duration_ms`,
-   timestamp) → `~/Downloads/`; **3 Sep = pre-L1**, 4 Sep = post-L1 — keep the days apart;
-   4 Sep rows from 09:11 on are build 4. Session then pairs with `series-before/after-2026-09-03.json`.
+1. **F1 re-check on build 4 — half done (notes item 12):** the auth path ran exactly as modelled
+   (failure +26 s, 60 s cache, refresh 09:41:01) but the `hourwell://settings` deep link opened
+   Today, so the Settings line is still unread. **Next window: token expired again from 10:42**
+   (app killed 09:44:21; the 10:20 / 11:05 alarms revive the process natively but run no JS):
+   radios off → `am start` → tap the gear (top-right, ≈ (1021, 202) at default density) → the sync
+   line must read **"Offline — changes are queued"** (build 3: "Sign in to sync across devices")
+   → radios on → it recovers on the next poll/tick. The plan-request half is unit-tested; on the
+   device it needs an unplanned morning (only if the account survives tonight).
+2. **FR-50 exactness:** 09:35 reminder posted 09:35:00.345 ✅; read 10:20 / 11:05 after the fact.
+3. **PostHog 3 Sep — done (notes item 15):** complete, 21/21 paired; before ADR-0018 p95 4.58 s
+   (not met), after 3.68 s (met); pre-plan sync 1158 / 1540 ms pre-L1. **Owed for the post-L1
+   figure:** a 10-tap manual series on build 4 after 10:37 (the before-series rows leave the 24-h
+   budget then; 22/30 used at 09:12) and, this evening, the owner's **4 Sep** export of
+   `plan_requested` + `sync_completed` (rows from 09:11 = build 4; all post-L1).
 4. **Evening — the action button on build 4 (live-state step; the owner pings when the ritual
    shows, no polling):** the app must be dead before 20:00 (`am kill` after HOME — `am kill` is a
    no-op on a foregrounded process); the 20:00 alarm is exact now. After the ping: `dumpsys
