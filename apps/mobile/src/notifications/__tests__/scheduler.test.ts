@@ -200,7 +200,7 @@ describe('runNotificationScheduler', () => {
     ]);
     const first = os.scheduled.find((r) => r.identifier === 'block:rec-7-0')!;
     expect(first.content.title).toBe('Task 0');
-    expect(first.content.categoryIdentifier).toBe('block_reminder');
+    expect(first.content.categoryIdentifier).toBeUndefined(); // no actions → no category (FR-26, 2026-09-04)
     expect((first.content.data as { kind: string }).kind).toBe('block_reminder');
     expect(first.trigger).toEqual({ type: 'date', date: new Date(2026, 8, 7, 9, 50).getTime() });
     const ritual = os.scheduled.find((r) => r.identifier === 'ritual:2026-09-07')!;
