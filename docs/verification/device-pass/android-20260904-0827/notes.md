@@ -296,7 +296,7 @@ Sources: Ookla Speedtest Intelligence Q4 2024 as summarised by the IEEE ComSoc T
     different action on an already-handled notification looked like the duplicate delivery the key
     exists for. **Fix 7c8f67c**: the key includes the action identifier (+2 tests). Consequence:
     "Adjust tasks" as a FIRST response and the Sunday plain tap → Insights remain untested on the
-    device; they need a fresh ritual on the rebuilt APK (build 5, `build5.log`). App sent HOME and
+    device; they need a fresh ritual on the rebuilt APK — **build 5 = 7c8f67c, `d7fc4280bf56…`, built 22:20–22:2x (`build5.log`), bundle gate ✓ (host ×1, anon-key prefix ×1), `SCHEDULE_EXACT_ALARM` ✓; NOT installed — the owner decides whether the pass continues.** App sent HOME and
     killed 22:19:54; the 5 Sep 20:00 alarm is the only one left (exact).
 
 ## Results by build

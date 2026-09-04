@@ -84,3 +84,11 @@ Note: Some input files use or override a deprecated API.
 Note: Recompile with -Xlint:deprecation for details.
 Note: Some input files use or override a deprecated API.
 Note: Recompile with -Xlint:deprecation for details.
+[33m---------- Expo Max Sdk Override Plugin ----------[0m
+[32m>>> No 'android:maxSdkVersion' conflicts found[0m
+[33m--------------------------------------------------[0m
+Sentry Logger [log]: Reading source map from /Users/vladyslav/Workspace/magister_work/apps/mobile/android/app/build/generated/sourcemaps/react/release/index.android.bundle.map
+Sentry Logger [log]: Saving modules to /Users/vladyslav/Workspace/magister_work/apps/mobile/android/app/src/main/assets/modules.json
+Sentry Logger [log]: Resolving modules from paths /Users/vladyslav/Workspace/magister_work/apps/mobile/node_modules
+Sentry Logger [log]: Modules collected and saved to: /Users/vladyslav/Workspace/magister_work/apps/mobile/android/app/src/main/assets/modules.json
+BUILD EXIT 0 at 22:22:59
