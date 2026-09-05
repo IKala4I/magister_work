@@ -42,6 +42,7 @@ function deps(handled = new Set<string>()) {
   const facts: unknown[] = [];
   const routes: string[] = [];
   const planned: string[] = [];
+  const dismissed: string[] = [];
   const d: ResponseDeps = {
     now: () => NOW,
     userId: () => 'u1',
@@ -54,8 +55,9 @@ function deps(handled = new Set<string>()) {
     navigate: (route) => void routes.push(route),
     alreadyHandled: (key) => handled.has(key),
     markHandled: (key) => void handled.add(key),
+    dismiss: (identifier) => void dismissed.push(identifier),
   };
-  return { d, facts, routes, planned };
+  return { d, facts, routes, planned, dismissed };
 }
 
 beforeEach(() => mockTrack.mockClear());
@@ -161,6 +163,38 @@ describe('handleNotificationResponse', () => {
     expect(first.handled).toBe(true);
     expect(second).toEqual({ handled: false });
     expect(b.facts).toEqual([]);
+  });
+
+  it('a handled response dismisses its notification exactly once — action buttons never auto-cancel (build 4, 2026-09-04)', () => {
+    const handled = new Set<string>();
+    const { d, dismissed, facts } = deps(handled);
+    const r = response(
+      { kind: 'evening_ritual', scheduled_for: NOW.getTime() - 60_000, variant: 'daily' },
+      'accept',
+      'ritual:2026-09-07',
+    );
+    handleNotificationResponse(r, d);
+    handleNotificationResponse(r, d); // the second delivery of the same response
+    expect(facts).toHaveLength(1);
+    expect(dismissed).toEqual(['ritual:2026-09-07']);
+  });
+
+  it('a different action on the same notification is a new response, not a duplicate (build 4, 2026-09-04)', () => {
+    const handled = new Set<string>();
+    const { d, facts, routes } = deps(handled);
+    const data = {
+      kind: 'evening_ritual',
+      scheduled_for: NOW.getTime() - 60_000,
+      variant: 'daily',
+    };
+    expect(handleNotificationResponse(response(data, 'accept'), d).handled).toBe(true);
+    expect(handleNotificationResponse(response(data, 'adjust'), d)).toMatchObject({
+      handled: true,
+      action: 'adjust',
+      route: '/(tabs)/inbox',
+    });
+    expect(facts).toHaveLength(2);
+    expect(routes).toEqual(['/(tabs)', '/(tabs)/inbox']);
   });
 
   it('garbage data is ignored without a fact', () => {
