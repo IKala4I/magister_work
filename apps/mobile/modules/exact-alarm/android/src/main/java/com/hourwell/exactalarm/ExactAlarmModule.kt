@@ -1,6 +1,7 @@
 package com.hourwell.exactalarm
 
 import android.app.AlarmManager
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -42,14 +43,18 @@ class ExactAlarmModule : Module() {
         Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
         Uri.parse("package:" + context.packageName)
       )
-      val activity = appContext.currentActivity
-      if (activity != null) {
-        activity.startActivity(intent)
-      } else {
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        context.startActivity(intent)
+      try {
+        val activity = appContext.currentActivity
+        if (activity != null) {
+          activity.startActivity(intent)
+        } else {
+          intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+          context.startActivity(intent)
+        }
+        true
+      } catch (e: ActivityNotFoundException) {
+        false // an OEM without the screen: the JS side falls back to the app's settings page
       }
-      true
     }
   }
 }

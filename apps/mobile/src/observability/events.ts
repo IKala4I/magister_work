@@ -147,7 +147,7 @@ export type AnalyticsEvents = {
     past: number;
     reason: 'ok' | 'no_permission';
     /** FR-50 on Android 12+: whether the OS delivers the schedule exactly (build 6). */
-    exact: 'allowed' | 'denied' | 'not_applicable';
+    exact: 'allowed' | 'denied' | 'not_applicable' | 'unavailable';
   };
   /** FR-50 (build 6): the exact-alarm card / Settings row — the user opened the OS screen or declined. */
   exact_alarm_prompt: { action: 'open_settings' | 'dismiss'; source: 'today_card' | 'settings' };

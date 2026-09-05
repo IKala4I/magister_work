@@ -33,7 +33,10 @@ const ANSWERED_OUTCOMES: ReadonlySet<PlanRequestOutcome['kind']> = new Set([
  * ADR-0019, client half: a plan day without a working window is answered from the local profile
  * — no session, no sync, no round trip — and counts as answered (the dedup key is written). The
  * function refuses the same day for a stale client; the ritual's `notification_response` fact
- * is logged before this runs (src/notifications/respond.ts), so FR-32 is untouched.
+ * is logged before this runs (src/notifications/respond.ts), so FR-32 is untouched. A MANUAL
+ * re-plan skips the local check: it runs the pre-plan sync first, so a working window added on
+ * the server (the hardware-pass helper today; an hours editor later) is planned on the very tap
+ * instead of after an unrelated pull — the function's answer is cheap and unpersisted.
  */
 function localDayWithoutWindow(planDate: string): boolean {
   const profile = getProfile(db as unknown as LocalDb, currentUserId());
@@ -52,7 +55,7 @@ export async function runPlanRequest(
   planDate: string = requestPlanDayOf(now),
 ): Promise<void> {
   let outcome: PlanRequestOutcome;
-  if (localDayWithoutWindow(planDate)) {
+  if (trigger !== 'manual' && localDayWithoutWindow(planDate)) {
     track('plan_requested', {
       trigger,
       outcome: 'no_working_window',

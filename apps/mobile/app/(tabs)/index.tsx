@@ -253,14 +253,18 @@ export default function TodayScreen() {
   // state names the day, not the inbox, and the deferred line is not shown (a legacy zero-block
   // row would otherwise read "No room today for N tasks"). Derived from the local profile, so a
   // cold start on a day off needs no request to be truthful.
-  const dayOff =
-    profile !== undefined &&
-    profile.workingHours !== undefined &&
-    !hasWorkingWindowOn(
-      shownDay,
+  const windowOn = (day: string) =>
+    profile === undefined ||
+    profile.workingHours === undefined ||
+    hasWorkingWindowOn(
+      day,
       profile.workingHours as WorkingHours,
       (profile.sleepWindow ?? null) as MinuteRange | null,
     );
+  const dayOff = !windowOn(shownDay);
+  // … and the in-app "Plan tomorrow?" card must not promise a plan the calendar cannot hold
+  // either (ADR-0019 §4 — the same rule as the notification; adversarial pass, build 6)
+  const tomorrowOff = !windowOn(tomorrowDay);
   // FR-24: the sheet shows once per plan; a decision (or "keep as is") is a fact on this device
   const tradeoffOptions = useMemo(() => infeasibleOptionsOf(plan), [plan]);
   // only today's plan: before 06:00 `plan` may be yesterday's, whose options are stale
@@ -292,7 +296,7 @@ export default function TodayScreen() {
   const tomorrowPlanned = tomorrowRows[0] !== undefined;
   const tomorrowOpen = tomorrowRecs.filter((r) => r.status !== 'expired');
   const tomorrowFirst = tomorrowOpen[0];
-  const askTomorrow = ritualDue && !tomorrowPlanned && inboxCount > 0 && !planning;
+  const askTomorrow = ritualDue && !tomorrowPlanned && !tomorrowOff && inboxCount > 0 && !planning;
   const liveNotice = notice !== null && now.getTime() - notice.at < NOTICE_TTL_MS ? notice : null;
   const noticeKey =
     status === 'error'

@@ -62,4 +62,4 @@ appId: com.hourwell.app
 # relaunch: the gate must skip onboarding now
 - launchApp:
     stopApp: true
-- assertVisible: 'No plan yet'
+- assertVisible: '(No plan yet|No working hours today)'

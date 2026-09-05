@@ -293,6 +293,41 @@ describe('ADR-0019 — a day without a working window', () => {
     expect(screen.getByText(en['today.dayOff.title'])).toBeTruthy();
     expect(screen.queryByText(en['today.emptyInbox.title'])).toBeNull();
   });
+  it('legacy blocks on a day off still render the timeline; the deferred line stays hidden', async () => {
+    mockProfile.workingHours = {};
+    rows({
+      plans: [plan({ telemetry: { unplaced: [{ task_id: 'x', reason: 'deferred' }] } })],
+      recs: [rec()],
+      tasks: [task()],
+    });
+    await render(withSafeArea(<TodayScreen />));
+    expect(screen.getByText(en['today.replan'])).toBeTruthy();
+    expect(screen.queryByText(en['today.dayOff.title'])).toBeNull();
+    expect(screen.queryByText(en['today.deferred.one'])).toBeNull();
+  });
+  it('the in-app "Plan tomorrow?" card is not offered on the eve of a day off (ADR-0019 §4, review MAJOR)', async () => {
+    mockProfile.settings = { notifications: { evening_ritual_time: '00:00' } };
+    mockNotify.permission.mockResolvedValue('granted');
+    mockProfile.workingHours = {}; // no window on any day → tomorrow has none either
+    rows({ plans: [plan()], recs: [rec()], tasks: [task(), task({ id: 't-2', status: 'inbox' })] });
+    await render(withSafeArea(<TodayScreen />));
+    await act(async () => {});
+    expect(screen.queryByText(en['today.tomorrow.ask'])).toBeNull();
+    expect(mockRunPlanRequest).not.toHaveBeenCalled();
+    // with a window tomorrow the card is back (the existing P10 case, pinned here for contrast)
+    mockProfile.workingHours = {
+      mon: [540, 1080],
+      tue: [540, 1080],
+      wed: [540, 1080],
+      thu: [540, 1080],
+      fri: [540, 1080],
+      sat: [540, 1080],
+      sun: [540, 1080],
+    };
+    await render(withSafeArea(<TodayScreen />));
+    await act(async () => {});
+    expect(screen.getByText(en['today.tomorrow.ask'])).toBeTruthy();
+  });
   it('a working day keeps the ordinary empty state and the deferred line', async () => {
     mockProfile.workingHours = {
       mon: [540, 1080],

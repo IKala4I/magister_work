@@ -305,14 +305,21 @@ describe('ADR-0019 — a plan day without a working window is answered locally (
     expect(mockTrack).toHaveBeenCalledTimes(1); // the foreground and the second mount decided nothing
     await second.unmount();
   });
-  it('a manual re-plan on a day off is answered locally too, without the planning banner', async () => {
+  it('a manual re-plan skips the local check: the pre-plan sync + the function decide (a window added on the server plans on that tap)', async () => {
     mockProfile.row = { workingHours: {}, sleepWindow: null };
+    mockRequestPlan.mockResolvedValue({
+      kind: 'no_working_window',
+      planDate: today,
+      durationMs: 40,
+    });
     const states: string[] = [];
     const unsub = usePlanStore.subscribe((s) => states.push(s.status));
     await act(async () => runPlanRequest('manual'));
     unsub();
-    expect(mockRequestPlan).not.toHaveBeenCalled();
-    expect(states).not.toContain('planning');
+    expect(mockRequestPlan).toHaveBeenCalledTimes(1);
+    expect(states).toContain('planning');
+    expect(usePlanStore.getState().status).toBe('idle');
+    expect(mockTrack).not.toHaveBeenCalled(); // the server path's telemetry lives in planRequest
   });
   it("the evening ritual's request for a day off logs nothing extra and never touches today's key", async () => {
     mockProfile.row = { workingHours: {}, sleepWindow: null };

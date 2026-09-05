@@ -12,10 +12,13 @@ interface NativeExactAlarm {
   openSettings(): boolean;
 }
 
-export type ExactAlarmState = 'allowed' | 'denied' | 'not_applicable';
+/**
+ * `not_applicable` = not Android; `unavailable` = Android without the native module (a bundle
+ * older than build 6, an autolinking regression) — distinguishable in telemetry, never prompted.
+ */
+export type ExactAlarmState = 'allowed' | 'denied' | 'not_applicable' | 'unavailable';
 
 function native(): NativeExactAlarm | null {
-  if (Platform.OS !== 'android') return null;
   try {
     return requireOptionalNativeModule<NativeExactAlarm>('HourwellExactAlarm');
   } catch {
@@ -23,10 +26,11 @@ function native(): NativeExactAlarm | null {
   }
 }
 
-/** Whether the OS lets this app schedule exact alarms (always `allowed` below Android 12). */
+/** Whether the OS lets this app schedule exact alarms (`allowed` below Android 12: every alarm is). */
 export function exactAlarmState(): ExactAlarmState {
+  if (Platform.OS !== 'android') return 'not_applicable';
   const m = native();
-  if (m === null) return 'not_applicable';
+  if (m === null) return 'unavailable';
   return m.canScheduleExactAlarms() ? 'allowed' : 'denied';
 }
 

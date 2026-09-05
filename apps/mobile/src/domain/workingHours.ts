@@ -96,16 +96,25 @@ export function hasWorkingWindowOn(
   hours: WorkingHours,
   sleep: MinuteRange | null,
 ): boolean {
-  const range = hours[dayKeyOf(day)];
-  if (range === undefined || !isValidWorkingRange(range)) return false;
-  const [ws, we] = range;
+  // Mirror `buildGrid`, which validates nothing: a malformed entry is read the way the server
+  // reads it (a non-numeric pair = no hours; an end past midnight is cut at the day's last tick;
+  // a malformed sleep window = no sleep window). The two sides must never disagree on "day off".
+  const range = isMinutePair(hours?.[dayKeyOf(day)]) ? hours[dayKeyOf(day)] : undefined;
+  if (range === undefined) return false;
+  const [ws, rawEnd] = range;
+  const we = Math.min(rawEnd, MINUTES_PER_DAY);
+  const sleepWindow = isMinutePair(sleep) ? sleep : null;
   // the planner's ticks start at local midnight, so the first candidate is the first tick ≥ ws
   const first = Math.max(Math.ceil(ws / TICK) * TICK, FIRST_WORKABLE_HOUR * 60);
   for (let m = first; m + TICK <= we; m += TICK) {
-    if (sleep !== null && inSleepWindow(m, sleep)) continue;
+    if (sleepWindow !== null && inSleepWindow(m, sleepWindow)) continue;
     return true;
   }
   return false;
+}
+
+function isMinutePair(v: unknown): v is MinuteRange {
+  return Array.isArray(v) && v.length === 2 && Number.isFinite(v[0]) && Number.isFinite(v[1]);
 }
 
 /** "9:00" / "18:30" for steppers and a11y labels; minutes-from-midnight in, HH:MM out. */

@@ -77,7 +77,17 @@ describe('hasWorkingWindowOn — ADR-0019 client mirror of the function predicat
     expect(hasWorkingWindowOn('2026-09-09', { wed: [1420, 1440] }, null)).toBe(true);
     expect(hasWorkingWindowOn('2026-09-09', { wed: [355, 375] }, null)).toBe(true); // 06:00 tick
   });
-  it('a malformed range is a non-working day (the server treats it the same way)', () => {
-    expect(hasWorkingWindowOn('2026-09-09', { wed: [600, 540] }, null)).toBe(false);
+  it('malformed profile data is read the way buildGrid reads it, and never throws', () => {
+    expect(hasWorkingWindowOn('2026-09-09', { wed: [600, 540] }, null)).toBe(false); // reversed
+    // an end past midnight is cut at the day's last tick (the server plans such a day)
+    expect(hasWorkingWindowOn('2026-09-09', { wed: [540, 1500] }, null)).toBe(true);
+    // a non-aligned start snaps to the next tick like the server's midnight-based grid
+    expect(hasWorkingWindowOn('2026-09-09', { wed: [540.5, 1080] }, null)).toBe(true);
+    // a malformed sleep window ({} from a null server column, a string) is no sleep window
+    expect(hasWorkingWindowOn('2026-09-09', { wed: [540, 1080] }, {} as never)).toBe(true);
+    expect(hasWorkingWindowOn('2026-09-09', { wed: [540, 1080] }, 'x' as never)).toBe(true);
+    // a non-pair entry, or no hours object at all, is a day without hours
+    expect(hasWorkingWindowOn('2026-09-09', { wed: 'nine to five' as never }, null)).toBe(false);
+    expect(hasWorkingWindowOn('2026-09-09', undefined as never, null)).toBe(false);
   });
 });
