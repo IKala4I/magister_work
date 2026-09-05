@@ -1,0 +1,13 @@
+b1 b6 task 01 admin       y 587-1079 sd  28.1 ok
+b1 b6 task 05 admin       y 1115-1885 sd  36.2 ok
+b2 b6 task 01 admin       y 587-1079 sd  28.1 ok
+b2 b6 task 05 admin       y 1115-1885 sd  36.2 ok
+b3 b6 task 01 admin       y 587-1079 sd  28.1 ok
+b3 b6 task 05 admin       y 1115-1885 sd  36.2 ok
+b4 b6 task 01 admin       y 587-1079 sd  28.1 ok
+b4 b6 task 05 admin       y 1115-1885 sd  36.2 ok
+b5 b6 task 01 admin       y 587-1079 sd  28.1 ok
+b5 b6 task 05 admin       y 1115-1885 sd  36.2 ok
+b6 b6 task 01 admin       y 587-1079 sd  28.1 ok
+b6 b6 task 05 admin       y 1115-1885 sd  36.2 ok
+cycles=6 swipes=7 card_scans=12 blank_cards_total=0
