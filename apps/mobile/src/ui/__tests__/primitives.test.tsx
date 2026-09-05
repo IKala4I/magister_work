@@ -165,5 +165,8 @@ describe('GlassPanel reduced transparency (NFR-A1/A2)', () => {
       blendOverHex(lightColors.surfaceElevated.color, expectedAlpha, lightColors.surface),
     );
     expect(json).not.toContain(hexWithAlpha(lightColors.surfaceElevated.color, expectedAlpha));
+    // the plain-View branch (Android and this one) must not clip: on Android the clip blanked
+    // cards with live controls (hardware pass day 5, item 9)
+    expect(json).not.toContain('"overflow":"hidden"');
   });
 });

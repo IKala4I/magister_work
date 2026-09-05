@@ -9,6 +9,12 @@
  * iOS: real blur (expo-blur) under the surface-elevated tint at spec-alpha × solidity.
  * Android and iOS-with-Reduce-Transparency: no blur — the same tint is pre-composited
  * over `surface` into an OPAQUE color, preserving the solidity semantic without alpha.
+ *
+ * The plain-View branch carries NO `overflow: 'hidden'`: there is nothing to clip without a
+ * blur (the rounded background clips itself), and on Android the clip evaluated EMPTY for one
+ * FlashList cell at a time — a card whose content was mounted and tappable but never painted,
+ * whose invisible Start/Done became real facts (hardware pass day 5, item 9; corrections #53).
+ * Only the BlurView keeps the clip, which the blur needs to respect the radius.
  */
 import type { PropsWithChildren } from 'react';
 import { Platform, StyleSheet, View, type ViewProps } from 'react-native';
@@ -65,6 +71,7 @@ export function GlassPanel({
       {...rest}
       style={[
         styles.panel,
+        styles.blurClip,
         { borderRadius: radius, backgroundColor: hexWithAlpha(color, effectiveAlpha) },
         style,
       ]}
@@ -75,5 +82,7 @@ export function GlassPanel({
 }
 
 const styles = StyleSheet.create({
-  panel: { overflow: 'hidden', padding: 16 },
+  panel: { padding: 16 },
+  /** The blur alone needs the clip (iOS); never on the plain View — see the header comment. */
+  blurClip: { overflow: 'hidden' },
 });
