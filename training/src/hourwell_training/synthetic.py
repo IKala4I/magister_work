@@ -19,6 +19,7 @@ from hourwell_training.ope import SliceRow
 __all__ = [
     "BUCKETS_WD",
     "CLASSES",
+    "DEFAULT_SCALE",
     "SyntheticWorld",
     "make_world",
     "q_true",
@@ -43,11 +44,16 @@ _MORNINGNESS = {"DM": 1.0, "MM": 0.6, "INT": 0.0, "ME": -0.6, "DE": -1.0}
 _DAYPART_TILT = {"EM": 1.0, "MO": 0.6, "MD": 0.0, "AF": -0.2, "EV": -0.6, "NT": -1.0}
 
 
-def q_true(bucket: str, chronotype: str) -> float:
+#: the committed chronotype × daypart logit scale; the simulation study's "amplified" world
+#: (docs/study/preregistration.md §1.1) passes 1.0 — nothing that exists changes
+DEFAULT_SCALE = 0.5
+
+
+def q_true(bucket: str, chronotype: str, scale: float = DEFAULT_SCALE) -> float:
     """Ground-truth completion probability, inside (0.15, 0.85) by construction."""
     daypart = bucket.split(".")[0]
     fatigued = bucket.endswith(".fatigued")
-    logit = 0.5 * _MORNINGNESS[chronotype] * _DAYPART_TILT[daypart] - (0.4 if fatigued else 0.0)
+    logit = scale * _MORNINGNESS[chronotype] * _DAYPART_TILT[daypart] - (0.4 if fatigued else 0.0)
     return float(0.5 + 0.35 * np.tanh(logit))
 
 

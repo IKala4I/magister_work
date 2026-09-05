@@ -16,6 +16,7 @@ dependencies = [
 
 [project.scripts]
 hourwell-train = "hourwell_training.cli:main"
+hourwell-simstudy = "hourwell_training.simstudy.cli:main"
 
 [dependency-groups]
 dev = [
