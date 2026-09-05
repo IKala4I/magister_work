@@ -359,3 +359,18 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   tomorrow") when the next plan day has no working window; never persist a zero-block ritual plan. — **DECIDED 2026-09-04 (owner: a product defect, not a rough
   edge) → ADR-0019:** the rule covers the ritual, the day-boundary trigger and manual re-plan;
   implementation in the post-pass fix batch.
+- **(hardware pass day 5, 2026-09-05) Blank Today cards with live controls — MAJOR, data integrity
+  (`android-20260905-0942/notes.md` item 9; corrections #53).** On Android the `GlassPanel`'s
+  `overflow: hidden` clip evaluated empty for one FlashList cell at a time: the card's content was
+  mounted (accessibility + touch intact) but not painted, and the owner's two taps on blank cards
+  produced `task_completed` 567 and `focus_start` 568 — facts the pipeline cannot distinguish from
+  behaviour. **Fix batch, build 6, release-blocking:** drop the clip on the Android branch (no blur
+  there → nothing to clip); if it still reproduces, FlashList 2.0.2 → 2.3.1 + `getItemType`; verify
+  on hardware only (`hw-blank-cards.py`, fresh plan, six scrolls, 0 BLANK). Open question for the
+  design: controls inside cards fire on any touch — a "seen" guard is not feasible in RN, so the
+  paint path itself is the data-integrity boundary; say so in the thesis (a client defect corrupts
+  the training signal silently; invariant 2 makes facts ground truth).
+- **(hardware pass day 5, 2026-09-05) NFR-P1 reference figure is series-dependent** — 3.7 s p95
+  (3 Sep) vs 4.1 s (4 Sep, one 4.7 s request carrying a 3.0 s backlog sync); pooled 4.0 s (n = 20).
+  Corrections #51 amended to "3.7–4.1 s"; the ≤ 6.0 s bound and the 1.5 s server bound stand. A
+  third series after the fix batch (build 6) would tighten the reference; not required for the text.

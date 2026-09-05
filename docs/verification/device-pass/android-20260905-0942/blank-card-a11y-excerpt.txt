@@ -1,0 +1,8 @@
+# uiautomator dump taken with the blank 'Offline note' card on screen (probe A, 10:2x): every text node of the card exists natively with correct bounds
+# (class, text or content-desc, bounds)
+TextView   5:15 PM                                                                [53,1740][221,1788]
+ViewGroup  Offline note, 5:15 PM to 5:45 PM, Confidence 45 percent                [221,1698][1028,1973]
+TextView   Offline note                                                           [263,1740][500,1803]
+TextView   5:15 PM–5:45 PM                                                        [695,1740][986,1803]
+TextView   Best available evening slot for Admin.                                 [263,1818][986,1866]
+TextView   Completed                                                              [263,1882][986,1930]

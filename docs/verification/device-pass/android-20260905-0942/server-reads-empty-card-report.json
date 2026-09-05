@@ -1,0 +1,186 @@
+{
+  "label": "empty-card-report",
+  "at": "2026-09-05T07:12:47.195Z",
+  "plans_0905": [
+    {
+      "ef_reason": "learned",
+      "ef_total_ms": "762",
+      "engine": "learned",
+      "generated_at": "2026-09-04 19:13:28.723+00",
+      "id": "f8806bee-187f-4da6-a910-bf854c9bbc8d",
+      "plan_date": "2026-09-05",
+      "recs": 0,
+      "shown": 0,
+      "solver_status": "OPTIMAL",
+      "trigger": "evening_ritual"
+    },
+    {
+      "ef_reason": "learned",
+      "ef_total_ms": "1661",
+      "engine": "learned",
+      "generated_at": "2026-09-05 07:05:15.836+00",
+      "id": "36736e30-0b56-4903-a34c-10c8aea9ea13",
+      "plan_date": "2026-09-05",
+      "recs": 10,
+      "shown": 9,
+      "solver_status": "FEASIBLE",
+      "trigger": "manual"
+    }
+  ],
+  "budget": [
+    {
+      "n_last_24h": 12,
+      "server_now": "2026-09-05 07:12:50.620729+00"
+    }
+  ],
+  "notification_responses": [
+    {
+      "client_ts": "2026-09-02 17:22:36.753+00",
+      "id": 246,
+      "payload": {
+        "action": "open",
+        "kind": "evening_ritual",
+        "latency_ms": 1356753,
+        "scheduled_for": "2026-09-02T17:00:00.000Z",
+        "variant": "daily"
+      },
+      "server_ts": "2026-09-02 17:22:36.910217+00"
+    },
+    {
+      "client_ts": "2026-09-04 05:53:34.974+00",
+      "id": 453,
+      "payload": {
+        "action": "open",
+        "kind": "evening_ritual",
+        "latency_ms": 46414974,
+        "scheduled_for": "2026-09-03T17:00:00.000Z",
+        "variant": "daily"
+      },
+      "server_ts": "2026-09-04 05:53:36.467918+00"
+    },
+    {
+      "client_ts": "2026-09-04 19:13:28.421+00",
+      "id": 555,
+      "payload": {
+        "action": "accept",
+        "kind": "evening_ritual",
+        "latency_ms": 8008421,
+        "scheduled_for": "2026-09-04T17:00:00.000Z",
+        "variant": "daily"
+      },
+      "server_ts": "2026-09-04 19:13:27.680829+00"
+    },
+    {
+      "client_ts": "2026-09-05 07:01:40.598+00",
+      "id": 556,
+      "payload": {
+        "action": "adjust",
+        "kind": "evening_ritual",
+        "latency_ms": 100598,
+        "scheduled_for": "2026-09-05T07:00:00.000Z",
+        "variant": "daily"
+      },
+      "server_ts": "2026-09-05 07:01:42.00989+00"
+    }
+  ],
+  "events_today": [
+    {
+      "client_ts": "2026-09-05 07:01:40.598+00",
+      "id": 556,
+      "k": "evening_ritual",
+      "server_ts": "2026-09-05 07:01:42.00989+00",
+      "type": "notification_response"
+    },
+    {
+      "client_ts": "2026-09-05 07:05:15.996+00",
+      "id": 557,
+      "k": "",
+      "server_ts": "2026-09-05 07:05:59.703618+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-05 07:05:15.996+00",
+      "id": 558,
+      "k": "",
+      "server_ts": "2026-09-05 07:05:59.703618+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-05 07:05:15.996+00",
+      "id": 559,
+      "k": "",
+      "server_ts": "2026-09-05 07:05:59.703618+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-05 07:05:15.996+00",
+      "id": 560,
+      "k": "",
+      "server_ts": "2026-09-05 07:05:59.703618+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-05 07:05:15.996+00",
+      "id": 561,
+      "k": "",
+      "server_ts": "2026-09-05 07:05:59.703618+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-05 07:05:15.996+00",
+      "id": 562,
+      "k": "",
+      "server_ts": "2026-09-05 07:05:59.703618+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-05 07:05:15.996+00",
+      "id": 563,
+      "k": "",
+      "server_ts": "2026-09-05 07:05:59.703618+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-05 07:05:15.996+00",
+      "id": 564,
+      "k": "",
+      "server_ts": "2026-09-05 07:05:59.703618+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-05 07:05:15.996+00",
+      "id": 565,
+      "k": "",
+      "server_ts": "2026-09-05 07:05:59.703618+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-05 07:05:15.996+00",
+      "id": 566,
+      "k": "",
+      "server_ts": "2026-09-05 07:05:59.703618+00",
+      "type": "recommendation_shown"
+    },
+    {
+      "client_ts": "2026-09-05 07:09:53.242+00",
+      "id": 567,
+      "k": "",
+      "server_ts": "2026-09-05 07:09:55.344121+00",
+      "type": "task_completed"
+    },
+    {
+      "client_ts": "2026-09-05 07:10:06.544+00",
+      "id": 568,
+      "k": "",
+      "server_ts": "2026-09-05 07:10:08.528157+00",
+      "type": "focus_start"
+    }
+  ],
+  "profile": [
+    {
+      "ritual_time": "20:00",
+      "server_seq": 4439,
+      "updated_at": "2026-09-05 07:03:57.562898+00"
+    }
+  ]
+}

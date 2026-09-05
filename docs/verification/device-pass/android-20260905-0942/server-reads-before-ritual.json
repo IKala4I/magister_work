@@ -1,0 +1,70 @@
+{
+  "label": "before-ritual",
+  "at": "2026-09-05T06:47:08.214Z",
+  "plans_0905": [
+    {
+      "ef_reason": null,
+      "ef_total_ms": null,
+      "engine": "learned",
+      "generated_at": "2026-09-04 19:13:28.723+00",
+      "id": "f8806bee-187f-4da6-a910-bf854c9bbc8d",
+      "plan_date": "2026-09-05",
+      "recs": 0,
+      "shown": 0,
+      "solver_status": "OPTIMAL",
+      "trigger": "evening_ritual"
+    }
+  ],
+  "budget": [
+    {
+      "n_last_24h": 11,
+      "server_now": "2026-09-05 06:47:11.649549+00"
+    }
+  ],
+  "notification_responses": [
+    {
+      "client_ts": "2026-09-02 17:22:36.753+00",
+      "id": 246,
+      "payload": {
+        "action": "open",
+        "kind": "evening_ritual",
+        "latency_ms": 1356753,
+        "scheduled_for": "2026-09-02T17:00:00.000Z",
+        "variant": "daily"
+      },
+      "server_ts": "2026-09-02 17:22:36.910217+00"
+    },
+    {
+      "client_ts": "2026-09-04 05:53:34.974+00",
+      "id": 453,
+      "payload": {
+        "action": "open",
+        "kind": "evening_ritual",
+        "latency_ms": 46414974,
+        "scheduled_for": "2026-09-03T17:00:00.000Z",
+        "variant": "daily"
+      },
+      "server_ts": "2026-09-04 05:53:36.467918+00"
+    },
+    {
+      "client_ts": "2026-09-04 19:13:28.421+00",
+      "id": 555,
+      "payload": {
+        "action": "accept",
+        "kind": "evening_ritual",
+        "latency_ms": 8008421,
+        "scheduled_for": "2026-09-04T17:00:00.000Z",
+        "variant": "daily"
+      },
+      "server_ts": "2026-09-04 19:13:27.680829+00"
+    }
+  ],
+  "events_today": [],
+  "profile": [
+    {
+      "ritual_time": "10:00",
+      "server_seq": 4437,
+      "updated_at": "2026-09-05 06:46:08.404585+00"
+    }
+  ]
+}
