@@ -45,7 +45,7 @@ export type AnalyticsEvents = {
    */
   plan_requested: {
     trigger: 'first_open' | 'new_day' | 'manual' | 'evening_ritual';
-    outcome: 'learned' | 'arm_a' | 'fallback' | 'empty_inbox' | 'error';
+    outcome: 'learned' | 'arm_a' | 'fallback' | 'empty_inbox' | 'no_working_window' | 'error';
     duration_ms: number;
     engine: 'learned' | 'heuristic' | null;
     model_version: string | null;

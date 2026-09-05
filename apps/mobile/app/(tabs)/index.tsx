@@ -52,6 +52,11 @@ import {
 import { notificationSettingsOf, timeOnDay } from '../../src/domain/notificationSettings';
 import { nextPlanDayOf, planDayOf, requestPlanDayOf } from '../../src/domain/planTrigger';
 import { infeasibleOptionsOf } from '../../src/domain/tradeoff';
+import {
+  hasWorkingWindowOn,
+  type MinuteRange,
+  type WorkingHours,
+} from '../../src/domain/workingHours';
 import { t } from '../../src/i18n';
 import { usePlanStore } from '../../src/state/plan';
 import { useSyncStore } from '../../src/state/sync';
@@ -233,6 +238,18 @@ export default function TodayScreen() {
 
   const unplaced = unplacedOf(plan);
   const planning = status === 'planning';
+  // ADR-0019: the shown day has no working window (declared hours ∖ sleep ∖ 00–06) — the empty
+  // state names the day, not the inbox, and the deferred line is not shown (a legacy zero-block
+  // row would otherwise read "No room today for N tasks"). Derived from the local profile, so a
+  // cold start on a day off needs no request to be truthful.
+  const dayOff =
+    profile !== undefined &&
+    profile.workingHours !== undefined &&
+    !hasWorkingWindowOn(
+      shownDay,
+      profile.workingHours as WorkingHours,
+      (profile.sleepWindow ?? null) as MinuteRange | null,
+    );
   // FR-24: the sheet shows once per plan; a decision (or "keep as is") is a fact on this device
   const tradeoffOptions = useMemo(() => infeasibleOptionsOf(plan), [plan]);
   // only today's plan: before 06:00 `plan` may be yesterday's, whose options are stale
@@ -495,12 +512,14 @@ export default function TodayScreen() {
             />
           )}
         />
+      ) : dayOff ? (
+        <EmptyState title={t('today.dayOff.title')} body={t('today.dayOff.body')} />
       ) : emptyInbox ? (
         <EmptyState title={t('today.emptyInbox.title')} body={t('today.emptyInbox.body')} />
       ) : (
         <EmptyState title={t('today.empty.title')} body={t('today.empty.body')} />
       )}
-      {unplaced.length > 0 ? (
+      {unplaced.length > 0 && !dayOff ? (
         <View style={styles.deferred} accessibilityRole="summary">
           <ThemedText variant="caption" tone="secondary">
             {unplaced.length === 1

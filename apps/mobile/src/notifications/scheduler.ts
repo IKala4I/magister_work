@@ -15,6 +15,7 @@ import { getProfile } from '../db/profile';
 import { activeTasksQuery, inboxTasksQuery } from '../db/tasks';
 import type { LocalDb } from '../db/writes';
 import { notificationSettingsOf } from '../domain/notificationSettings';
+import type { MinuteRange, WorkingHours } from '../domain/workingHours';
 import { t } from '../i18n';
 import { track } from '../observability/analytics';
 
@@ -157,6 +158,8 @@ async function pass(now: Date): Promise<void> {
     settings,
     permissionGranted: permission === 'granted',
     deliveredByDay: settled.deliveredByDay,
+    workingHours: profile.workingHours as WorkingHours,
+    sleepWindow: (profile.sleepWindow ?? null) as MinuteRange | null,
   });
   const scheduled: NotificationSpec[] = [];
   for (const spec of plan.schedule) {

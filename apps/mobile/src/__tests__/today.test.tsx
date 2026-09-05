@@ -34,7 +34,12 @@ jest.mock('../domain/notificationActions', () => ({
   dismissRemindersPrompt: () => mockNotify.dismiss(),
   enableRemindersAction: (source: unknown) => mockNotify.enable(source),
 }));
-const mockProfile = { settings: null as unknown };
+const mockProfile = {
+  settings: null as unknown,
+  // ADR-0019: undefined = the screen cannot tell (no day-off state); {} = no working day at all
+  workingHours: undefined as unknown,
+  sleepWindow: null as unknown,
+};
 jest.mock('../db/useProfile', () => ({ useCurrentProfile: () => mockProfile }));
 const mockRunPlanRequest = jest.fn();
 
@@ -248,7 +253,57 @@ beforeEach(() => {
   mockLapse.diagnosticTask = null;
   mockBlockActions.skipBlockAction.mockImplementation(() => ({ task: null, diagnosticDue: false }));
   usePlanStore.setState({ status: 'idle', emptyInbox: false });
+  mockProfile.workingHours = undefined;
+  mockProfile.sleepWindow = null;
   rows({});
+});
+
+describe('ADR-0019 — a day without a working window', () => {
+  it('names the day, not the inbox, and hides the deferred line of a legacy zero-block row', async () => {
+    mockProfile.workingHours = {}; // no working day at all → today is a day off whatever the calendar
+    rows({
+      plans: [
+        plan({
+          telemetry: {
+            ef: { reason: 'learned' },
+            unplaced: [{ task_id: 'x', reason: 'deferred' }],
+          },
+        }),
+      ],
+      recs: [],
+      tasks: [task({ id: 't-x', status: 'inbox' })],
+    });
+    await render(withSafeArea(<TodayScreen />));
+    expect(screen.getByText(en['today.dayOff.title'])).toBeTruthy();
+    expect(screen.getByText(en['today.dayOff.body'])).toBeTruthy();
+    expect(screen.queryByText(en['today.empty.title'])).toBeNull();
+    expect(screen.queryByText(en['today.deferred.one'])).toBeNull();
+    // the day-off copy wins over the empty-inbox copy of an earlier request
+    usePlanStore.setState({ status: 'idle', emptyInbox: true });
+    await render(withSafeArea(<TodayScreen />));
+    expect(screen.getByText(en['today.dayOff.title'])).toBeTruthy();
+    expect(screen.queryByText(en['today.emptyInbox.title'])).toBeNull();
+  });
+  it('a working day keeps the ordinary empty state and the deferred line', async () => {
+    mockProfile.workingHours = {
+      mon: [540, 1080],
+      tue: [540, 1080],
+      wed: [540, 1080],
+      thu: [540, 1080],
+      fri: [540, 1080],
+      sat: [540, 1080],
+      sun: [540, 1080],
+    };
+    rows({
+      plans: [plan({ telemetry: { unplaced: [{ task_id: 'x', reason: 'deferred' }] } })],
+      recs: [],
+      tasks: [task()],
+    });
+    await render(withSafeArea(<TodayScreen />));
+    expect(screen.getByText(en['today.empty.title'])).toBeTruthy();
+    expect(screen.getByText(en['today.deferred.one'])).toBeTruthy();
+    expect(screen.queryByText(en['today.dayOff.title'])).toBeNull();
+  });
 });
 
 describe('Today', () => {

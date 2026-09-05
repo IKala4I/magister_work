@@ -198,3 +198,43 @@ describe('planNotifications — FR-50 hard cap', () => {
     expect(a).toEqual(b);
   });
 });
+
+describe('ADR-0019 — no daily ritual when the day it would plan has no working window', () => {
+  const recs = [rec(1, 14)];
+  it('Monday-only hours: neither tonight (plans Tuesday) nor tomorrow night is offered; blocks stay', () => {
+    const r = planNotifications({
+      ...base,
+      recommendations: recs,
+      tasks: tasks(recs),
+      workingHours: { mon: [540, 1080] },
+      sleepWindow: [1380, 420],
+    });
+    expect(r.schedule.map((s) => s.id)).toEqual(['block:r1']);
+  });
+  it('with a window on the next plan day the ritual is scheduled as before', () => {
+    const r = planNotifications({
+      ...base,
+      recommendations: recs,
+      tasks: tasks(recs),
+      workingHours: { mon: [540, 1080], tue: [540, 1080], wed: [540, 1080] },
+      sleepWindow: [1380, 420],
+    });
+    expect(r.schedule.map((s) => s.id)).toEqual(['block:r1', `ritual:${DAY}`, 'ritual:2026-09-08']);
+  });
+  it('the Sunday variant (weekly review) is kept even when Monday has no hours', () => {
+    const sunday = new Date(2026, 8, 6, 9, 0);
+    const r = planNotifications({
+      ...base,
+      now: sunday,
+      recommendations: [],
+      tasks: new Map(),
+      workingHours: { sat: [540, 1080] },
+      sleepWindow: null,
+    });
+    expect(r.schedule.map((s) => [s.id, s.variant])).toEqual([['ritual:2026-09-06', 'sunday']]);
+  });
+  it('without the profile inputs every day is offered (the pre-ADR behaviour, pinned for callers that have no profile)', () => {
+    const r = planNotifications({ ...base, recommendations: [], tasks: new Map() });
+    expect(r.schedule.map((s) => s.id)).toEqual([`ritual:${DAY}`, 'ritual:2026-09-08']);
+  });
+});

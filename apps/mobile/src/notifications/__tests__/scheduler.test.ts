@@ -98,13 +98,24 @@ const db = testDb as unknown as LocalDb;
 const USER = 'local:test-user';
 const NOW = new Date(2026, 8, 7, 9, 0); // Monday
 
-function seed(nBlocks: number, day = new Date(2026, 8, 7)): void {
+function seed(
+  nBlocks: number,
+  day = new Date(2026, 8, 7),
+  // ADR-0019: the daily ritual needs a window on the day it plans — Mon–Fri by default
+  workingHours: Record<string, [number, number]> = {
+    mon: [540, 1080],
+    tue: [540, 1080],
+    wed: [540, 1080],
+    thu: [540, 1080],
+    fri: [540, 1080],
+  },
+): void {
   saveProfile(db, {
     userId: USER,
     draft: {
       timezone: 'Europe/Kyiv',
       locale: 'en',
-      workingHours: { mon: [540, 1080] },
+      workingHours,
       sleepWindow: [1380, 420],
       rmeqScore: null,
       chronotypeClass: 'INT',
@@ -216,6 +227,14 @@ describe('runNotificationScheduler', () => {
     expect(readLedger().scheduled.map((s) => s.id)).toEqual(ids);
   });
 
+  it('ADR-0019: hours on Monday only → the blocks are scheduled, no daily ritual is (Tuesday has no window)', async () => {
+    seed(3, new Date(2026, 8, 7), { mon: [540, 1080] });
+    await runNotificationScheduler(NOW);
+    const ids = os.scheduled.map((r) => String(r.identifier));
+    expect(ids.filter((i) => i.startsWith('block:'))).toHaveLength(2); // admin muted
+    expect(ids.some((i) => i.startsWith('ritual:'))).toBe(false);
+    expect(readLedger().scheduled.map((s) => s.id)).toEqual(ids);
+  });
   it('a later run settles, cancels and re-plans under the remaining budget', async () => {
     seed(8);
     await runNotificationScheduler(NOW);

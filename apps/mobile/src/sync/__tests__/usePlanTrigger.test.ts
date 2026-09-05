@@ -14,6 +14,25 @@ jest.mock('../planRequest', () => ({
   requestPlan: (...a: unknown[]) => mockRequestPlan(...a),
   isPlanRequestInFlight: () => mockInFlight,
 }));
+// ADR-0019: the local window check reads the profile; every day has hours unless a test says
+// otherwise (the suite runs on the real calendar day)
+const ALL_DAYS = {
+  mon: [540, 1080],
+  tue: [540, 1080],
+  wed: [540, 1080],
+  thu: [540, 1080],
+  fri: [540, 1080],
+  sat: [540, 1080],
+  sun: [540, 1080],
+};
+const mockProfile: { row: { workingHours: unknown; sleepWindow: unknown } | undefined } = {
+  row: { workingHours: ALL_DAYS, sleepWindow: [1380, 420] },
+};
+jest.mock('../../db/client', () => ({ db: {} }));
+jest.mock('../../db/profile', () => ({ getProfile: () => mockProfile.row }));
+jest.mock('../../auth/identity', () => ({ currentUserId: () => 'local:u' }));
+const mockTrack = jest.fn();
+jest.mock('../../observability/analytics', () => ({ track: (...a: unknown[]) => mockTrack(...a) }));
 
 import { act, renderHook } from '@testing-library/react-native';
 import { AppState } from 'react-native';
@@ -49,6 +68,7 @@ beforeEach(() => {
   jest.useFakeTimers({ now: NOW });
   jest.clearAllMocks();
   mockInFlight = false;
+  mockProfile.row = { workingHours: ALL_DAYS, sleepWindow: [1380, 420] };
   appStorage.clearAll();
   usePlanStore.setState({ status: 'idle', emptyInbox: false });
   mockRequestPlan.mockResolvedValue({ kind: 'planned', plan: {}, durationMs: 1 });
@@ -245,5 +265,83 @@ describe('runPlanRequest — the evening ritual plans tomorrow and leaves today�
     await runPlanRequest('manual');
     expect(lastRequestedPlanDay()).toBe(today);
     expect(usePlanStore.getState().status).toBe('rate_limited');
+  });
+});
+
+describe('ADR-0019 — a plan day without a working window is answered locally (no round trip)', () => {
+  it('first_open on a day off: no request, the key is written, status idle, telemetry says why', async () => {
+    mockProfile.row = { workingHours: {}, sleepWindow: null };
+    const h = await mount({ latestPlanDate: null, todayPlanDate: null, ready: true });
+    await act(async () => {});
+    expect(mockRequestPlan).not.toHaveBeenCalled();
+    expect(lastRequestedPlanDay()).toBe(today);
+    expect(usePlanStore.getState()).toEqual({ status: 'idle', emptyInbox: false });
+    expect(mockTrack).toHaveBeenCalledWith('plan_requested', {
+      trigger: 'first_open',
+      outcome: 'no_working_window',
+      duration_ms: 0,
+      engine: null,
+      model_version: null,
+    });
+    await h.unmount();
+  });
+  it('the day is not re-asked on the next foreground or after a cold start (dedup by the answer)', async () => {
+    mockProfile.row = { workingHours: {}, sleepWindow: null };
+    const first = await mount({ latestPlanDate: null, todayPlanDate: null, ready: true });
+    await act(async () => {});
+    expect(mockTrack).toHaveBeenCalledTimes(1);
+    // a foreground on the same day: replay the handler the hook registered (the suite's pattern)
+    const registered = (AppState.addEventListener as unknown as jest.Mock).mock.calls as Array<
+      [string, (state: string) => void]
+    >;
+    await act(async () => {
+      for (const [type, handler] of registered) if (type === 'change') handler('active');
+    });
+    await first.unmount();
+    simulateColdStart();
+    const second = await mount({ latestPlanDate: null, todayPlanDate: null, ready: true });
+    await act(async () => {});
+    expect(mockRequestPlan).not.toHaveBeenCalled();
+    expect(mockTrack).toHaveBeenCalledTimes(1); // the foreground and the second mount decided nothing
+    await second.unmount();
+  });
+  it('a manual re-plan on a day off is answered locally too, without the planning banner', async () => {
+    mockProfile.row = { workingHours: {}, sleepWindow: null };
+    const states: string[] = [];
+    const unsub = usePlanStore.subscribe((s) => states.push(s.status));
+    await act(async () => runPlanRequest('manual'));
+    unsub();
+    expect(mockRequestPlan).not.toHaveBeenCalled();
+    expect(states).not.toContain('planning');
+  });
+  it("the evening ritual's request for a day off logs nothing extra and never touches today's key", async () => {
+    mockProfile.row = { workingHours: {}, sleepWindow: null };
+    await act(async () => runPlanRequest('evening_ritual', NOW, tomorrowOf(NOW)));
+    expect(mockRequestPlan).not.toHaveBeenCalled();
+    expect(lastRequestedPlanDay()).toBeNull();
+    expect(mockTrack).toHaveBeenCalledWith(
+      'plan_requested',
+      expect.objectContaining({ trigger: 'evening_ritual', outcome: 'no_working_window' }),
+    );
+  });
+  it("the server's no_working_window (a stale local profile) is an answer as well: key written", async () => {
+    mockRequestPlan.mockResolvedValue({
+      kind: 'no_working_window',
+      planDate: today,
+      durationMs: 40,
+    });
+    const h = await mount({ latestPlanDate: null, todayPlanDate: null, ready: true });
+    await act(async () => {});
+    expect(mockRequestPlan).toHaveBeenCalledTimes(1);
+    expect(lastRequestedPlanDay()).toBe(today);
+    expect(usePlanStore.getState().status).toBe('idle');
+    await h.unmount();
+  });
+  it('without a local profile the check is skipped and the server decides (first open before onboarding sync)', async () => {
+    mockProfile.row = undefined;
+    const h = await mount({ latestPlanDate: null, todayPlanDate: null, ready: true });
+    await act(async () => {});
+    expect(mockRequestPlan).toHaveBeenCalledTimes(1);
+    await h.unmount();
   });
 });

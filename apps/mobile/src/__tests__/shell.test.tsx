@@ -34,6 +34,8 @@ jest.mock('../db/useProfile', () => ({
   useOnboardingComplete: () => true,
   useCurrentProfile: () => undefined,
 }));
+// ADR-0019: the plan trigger reads the profile row for the local window check — no row here
+jest.mock('../db/profile', () => ({ getProfile: () => undefined }));
 jest.mock('../domain/taskActions', () => ({
   createTaskAction: jest.fn(),
   updateTaskAction: jest.fn(),

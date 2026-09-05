@@ -11,6 +11,8 @@ import { NOTIFICATION_DAILY_CAP } from '@hourwell/shared';
 import type { NotificationSettings } from '../domain/notificationSettings';
 import { timeOnDay } from '../domain/notificationSettings';
 import { localDayOf } from '../domain/localDay';
+import { nextPlanDayOf } from '../domain/planTrigger';
+import { hasWorkingWindowOn, type MinuteRange, type WorkingHours } from '../domain/workingHours';
 import type { TaskCategory } from '../db/tasks';
 
 export type NotificationKind = 'block_reminder' | 'evening_ritual';
@@ -56,6 +58,13 @@ export interface PlanInput {
   /** How many days ahead rituals are pre-scheduled (today + N). */
   ritualDaysAhead?: number;
   cap?: number;
+  /**
+   * ADR-0019: the profile's working hours and sleep window. The DAILY ritual is not scheduled
+   * when the day it would plan (`nextPlanDayOf` its fire time) has no working window; the Sunday
+   * variant (weekly review, UC-08) keeps its schedule. Omitted → every day is offered (tests).
+   */
+  workingHours?: WorkingHours;
+  sleepWindow?: MinuteRange | null;
 }
 
 export interface PlanResult {
@@ -139,12 +148,20 @@ export function planNotifications(input: PlanInput): PlanResult {
       const day = addDays(today, i);
       const at = timeOnDay(day, input.settings.evening_ritual_time);
       if (at.getTime() < nowMs + MIN_LEAD_MS) continue;
+      const variant = ritualVariantOf(at);
+      if (
+        variant === 'daily' &&
+        input.workingHours !== undefined &&
+        !hasWorkingWindowOn(nextPlanDayOf(at), input.workingHours, input.sleepWindow ?? null)
+      ) {
+        continue; // ADR-0019: nothing to plan tomorrow → no "Plan tomorrow?" tonight
+      }
       rituals.set(day, {
         id: `ritual:${day}`,
         kind: 'evening_ritual',
         fireAt: at.getTime(),
         day,
-        variant: ritualVariantOf(at),
+        variant,
       });
     }
   }

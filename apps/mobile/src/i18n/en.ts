@@ -15,6 +15,8 @@ export const en = {
   'today.empty.body': 'Add a task in the Inbox and Hourwell plans it here.',
   'today.emptyInbox.title': 'Nothing to plan',
   'today.emptyInbox.body': 'Your inbox is empty. Add a task and your day fills in.',
+  'today.dayOff.title': 'No working hours today',
+  'today.dayOff.body': 'Hourwell plans your working days.',
   'today.plan': 'Plan my day',
   'today.replan': 'Re-plan',
   'today.planning': 'Planning your day…',
