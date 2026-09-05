@@ -2,12 +2,17 @@
 §1.5 H1/H4 analogues).
 
 Arm B acts with the service's OWN Stage 2–4 code — `estimates.score_pairs` (Beta-cell mean +
-TS-sampled linear score through the blend), `exploration.top_m_buckets` (A_m(x)),
-`energy.apply_reward`, `blend.sgd_step`, `bandit.update` in the `feedback.py` order — never a
-re-implementation. Arm A ranks "earliest reachable bucket first" (ADR-0008 §2). Both arms
-carry the ε = 1 slice with the exact propensity 1/|A_m(x)|; both learn from every outcome;
-only B acts on what it learned. Stage 5 (CP-SAT) is replaced by sequential greedy placement,
-which is the ILP optimum for identical tasks (preregistration §4.1).
+TS-sampled linear score through the blend), `exploration.top_m_buckets` (A_m(x)) and
+`exploration.propensity` (p = ε/|A_m(x)|), `energy.apply_reward`, `blend.sgd_step`,
+`bandit.update` in the `feedback.py` order. Two things are inlined rather than imported, with
+identical semantics: the ε-draw's uniform bucket pick (`draw_experiment` also draws the task,
+but the four tasks are identical here — the same `rng.integers(len(top))` call is made) and
+the direct method's counterfactual feature swap (`pipeline.dm_model`, imported). Outcomes are
+applied in placement order; the service applies same-timestamp tuples in UUID order, which is
+arbitrary — only the blend's SGD trajectory is order-dependent. Arm A ranks "earliest
+reachable bucket first" (ADR-0008 §2). Both arms carry the ε = 1 slice; both learn from every
+outcome; only B acts on what it learned. Stage 5 (CP-SAT) is replaced by sequential greedy
+placement, which is the ILP optimum for identical tasks (preregistration §4.1).
 """
 
 from __future__ import annotations
@@ -25,12 +30,12 @@ from hourwell_recsys.contexts import Bucket, DayType
 from hourwell_recsys.dayparts import Daypart
 from hourwell_recsys.energy import BetaCell, Posterior, apply_reward, posterior
 from hourwell_recsys.estimates import TaskSpec, sample_thetas, score_pairs
-from hourwell_recsys.exploration import top_m_buckets
-from hourwell_recsys.params import N0_IN_HOURS, N0_OUT_HOURS, TOP_M
-from sklearn.linear_model import LogisticRegression
+from hourwell_recsys.exploration import propensity, top_m_buckets
+from hourwell_recsys.feedback import CELL_MEAN_FEATURE
+from hourwell_recsys.params import EPSILON, N0_IN_HOURS, N0_OUT_HOURS, TOP_M
 
 from hourwell_training import ope, synthetic
-from hourwell_training.params import DM_FEATURE_SLICE
+from hourwell_training.pipeline import dm_model
 from hourwell_training.simstudy.config import StudyConfig
 from hourwell_training.simstudy.stats import mc_summary, paired_tests
 
@@ -221,7 +226,7 @@ def _plan_day(user: _User, arm: str, day: int, phase: int, plan_at: datetime,
     ests = _score(user, free, thetas, cells_post)
     top = top_m_buckets(ranking_of(ests), TOP_M)
     drawn = top[int(rng.integers(len(top)))]
-    place(drawn, True, top, 1.0 / len(top), ests[drawn].features)
+    place(drawn, True, top, propensity(EPSILON, len(top)), ests[drawn].features)
     # the remaining tasks: the arm's own greedy choice, re-scored after each placement
     for _ in range(cfg.e3_tasks_per_day - 1):
         ests = _score(user, free, thetas, cells_post)
@@ -235,7 +240,9 @@ def _learn(user: _User, rows: list[_Row], at: datetime) -> None:
     for r in rows:
         dp = DAYPART_OF[r.bucket_id]
         user.cells[dp] = apply_reward(user.cells[dp], r.reward, at)
-        user.blend = sgd_step(user.blend, float(r.x[14]), float(r.x @ user.state.theta), r.reward)
+        user.blend = sgd_step(
+            user.blend, float(r.x[CELL_MEAN_FEATURE]), float(r.x @ user.state.theta), r.reward
+        )
         user.state = bandit.update(user.state, r.x, r.reward)
 
 
@@ -244,30 +251,6 @@ def _mae(user: _User, at: datetime, scale: float) -> float:
         abs(posterior(user.cells[dp], at).mean - _q(dp, user.klass, scale))
         for dp in DAYPART_CAPACITY
     ) / len(DAYPART_CAPACITY)
-
-
-def _features_of(r: ope.SliceRow) -> list[float]:
-    return [float(str(r.context[f"x{i}"])) for i in range(17)]
-
-
-def _dm_model(rows: list[ope.SliceRow]) -> ope.RewardModel:
-    """The pipeline's direct method (ADR-0015 §9): logistic on the bucket-swappable slice."""
-    xs = [_features_of(r)[DM_FEATURE_SLICE] for r in rows]
-    ys = [r.reward >= 0.5 for r in rows]
-    if len(set(ys)) < 2:
-        return lambda r, b: sum(ys) / max(len(ys), 1)
-    fit = LogisticRegression(max_iter=1000).fit(np.asarray(xs), np.asarray(ys))
-    order = [d.value for d in (Daypart.EM, Daypart.MO, Daypart.MD, Daypart.AF, Daypart.EV,
-                               Daypart.NT)]
-
-    def r_hat(r: ope.SliceRow, b: str) -> float:
-        x = _features_of(r)
-        x[1:7] = [0.0] * 6
-        x[1 + order.index(b.split(".")[0])] = 1.0
-        x[8] = 1.0 if b.endswith(".fatigued") else 0.0
-        return float(fit.predict_proba(np.asarray([x[DM_FEATURE_SLICE]]))[0][1])
-
-    return r_hat
 
 
 def _ope_on_slice(rows: list[_Row], scale: float) -> list[dict[str, Any]]:
@@ -287,7 +270,7 @@ def _ope_on_slice(rows: list[_Row], scale: float) -> list[dict[str, Any]]:
         k = str(r.context["chronotype"])
         return sorted(r.top_m, key=lambda b: (-synthetic.q_true(b, k, scale), b))[0]
 
-    model = _dm_model(slice_rows)
+    model = dm_model(slice_rows)
     out: list[dict[str, Any]] = []
     for name, det in (("earliest_in_Am", earliest), ("oracle_in_Am", oracle)):
         truth = sum(synthetic.q_true(det(r), str(r.context["chronotype"]), scale)

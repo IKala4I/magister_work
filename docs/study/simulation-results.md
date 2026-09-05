@@ -10,7 +10,10 @@
 > E1 23.8 s, E2 10.6 s, E3 41.3 s, 8 workers) → results and this document committed after.
 > Reproduce: `cd training && uv run hourwell-simstudy --out ../docs/study/results --workers 8`
 > (seeds are fixed; outputs are byte-identical up to floating-point summation order across
-> worker counts).
+> worker counts). After the adversarial review the study code was refactored to import three
+> more service pieces (`exploration.propensity`, `feedback.CELL_MEAN_FEATURE`,
+> `pipeline.dm_model`); the E3 re-run on the refactored code is **byte-identical** to the
+> committed JSON, so the run's provenance stays `ec1b869`.
 >
 > **Verdict legend (preregistration §1.4):** ✅ confirmed · ◐ partly · ❌ not confirmed. No
 > criterion was relaxed after the fact; where a registered criterion turned out to be
@@ -18,45 +21,47 @@
 
 ## Summary
 
-| Experiment     | Registered | ✅  | ◐   | ❌  | What came out differently (details in §5)                                                                                                                                                   |
-| -------------- | ---------- | --- | --- | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| E1 estimators  | 9          | 8   | 1   | 0   | replay is biased on policies whose value correlates with \|A_m(x)\| (−0.6 / +0.7 pp, 3.2 / 4.6 MC SE) — a consequence of the variable slice size, not predicted                             |
-| E2 power       | 7          | 6   | 0   | 1   | the type-I band was written for a two-sided rate while the registered rejection rule is one-directional; the tests are calibrated against the consistent 0.025 target                       |
-| E3 closed loop | 9          | 4   | 4   | 1   | morning types lose 1.7–2.3 pp under the learned arm (predicted ≈ 0); the flat-prior learning signature is real on average but invisible per replicate; per-replicate MAE monotonicity fails |
+| Experiment     | Registered | ✅  | ◐   | ❌  | What came out differently (details in §5)                                                                                                                                                                                                                                                                                                        |
+| -------------- | ---------- | --- | --- | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| E1 estimators  | 9          | 8   | 1   | 0   | replay is biased on policies whose value correlates with \|A_m(x)\| (−0.6 / +0.7 pp, 3.2 / 4.6 MC SE) — a consequence of the variable slice size, not predicted                                                                                                                                                                                  |
+| E2 power       | 7          | 6   | 0   | 1   | the type-I band was written for a two-sided rate while the registered rejection rule is one-directional (calibrated against 0.025); **the registered slope SD gives τ ≈ 0.10, not File 06's pessimistic 0.12 — at 0.12 the paired floor is 0.77 / 0.74 at N = 30 (§4, §5 item 1)**; E2's seeding is one stream per cell, not seed = base + index |
+| E3 closed loop | 9          | 3   | 5   | 1   | morning types lose 1.7–2.3 pp under the learned arm (predicted ≈ 0); the flat-prior learning signature is real on average but invisible per replicate; per-replicate MAE monotonicity fails; the E3-H7 ±0.03 band was one SE wide                                                                                                                |
 
 Headline numbers: the learned arm beats the heuristic by **2.5 pp** in the base world (ceiling
 4.1 pp, efficiency 0.62) and **5.4 pp** in the amplified world (ceiling 7.8, efficiency 0.69),
 direction correct in 96 % / 100 % of replicated studies; a 30-user ABAB study detects the base
-effect only 26 % of the time and the amplified effect 79 %; the File 06 primary analysis has
-power 0.84 / 0.82 at N = 30 (ICC 0.10 / 0.20); every OPE estimator except replay is unbiased
-at the designed data rate, with the ESS ≥ 100 gate met 3× over.
+effect only 26 % of the time and the amplified effect 79 %; the paired-means floor of the
+File 06 analysis has power 0.84 / 0.82 at N = 30 (ICC 0.10 / 0.20) under the registered
+heterogeneity, which turned out to be τ ≈ 0.10 rather than File 06's 0.12 — at 0.12 it is
+0.77 / 0.74, and 0.80 needs N ≈ 34–40 or the GLMM's extra efficiency; every OPE estimator
+except replay is unbiased at the designed data rate, with the ESS ≥ 100 gate met 3× over.
 
 ## 1. E1 — Estimator study (`results/e1_estimators.json`)
 
 R = 200 worlds × n = 1,000 slice rows. Bias = mean(V̂ − V_true); MC SE = SD/√R.
 
-| Policy     | Estimator | Bias        | SD      | \|bias\|/SE | RMSE   | ESS    |
-| ---------- | --------- | ----------- | ------- | ----------- | ------ | ------ |
-| P1 uniform | IPS       | −0.0006     | 0.0152  | 0.6         | 0.0151 | 1000.0 |
-| P1 uniform | SNIPS     | −0.0006     | 0.0152  | 0.6         | 0.0151 | 1000.0 |
-| P1 uniform | DR-true   | −0.0005     | 0.0150  | 0.5         | 0.0150 | 1000.0 |
-| P2 alpha   | replay    | +0.0008     | 0.0233  | 0.5         | 0.0233 | 360.5  |
-| P2 alpha   | IPS       | −0.0017     | 0.0329  | 0.7         | 0.0328 | 332.8  |
-| P2 alpha   | SNIPS     | −0.0017     | 0.0247  | 0.9         | 0.0247 | 332.8  |
-| P2 alpha   | DR-true   | −0.0016     | 0.0244  | 0.9         | 0.0244 | 332.8  |
-| P2 alpha   | DR-const  | −0.0015     | 0.0246  | 0.9         | 0.0245 | 332.8  |
-| P3 tilted  | IPS       | −0.0010     | 0.0218  | 0.7         | 0.0217 | 619.0  |
-| P3 tilted  | SNIPS     | −0.0010     | 0.0182  | 0.8         | 0.0182 | 619.0  |
-| P3 tilted  | DR-true   | −0.0010     | 0.0180  | 0.8         | 0.0180 | 619.0  |
-| P4 oracle  | replay    | −0.0061     | 0.0269  | **3.2**     | 0.0276 | 359.2  |
-| P4 oracle  | IPS       | −0.0037     | 0.0367  | 1.4         | 0.0368 | 331.7  |
-| P4 oracle  | SNIPS     | −0.0007     | 0.0278  | 0.4         | 0.0278 | 331.7  |
-| P4 oracle  | DR-true   | −0.0012     | 0.0274  | 0.6         | 0.0273 | 331.7  |
-| P5 anti    | replay    | +0.0074     | 0.0228  | **4.6**     | 0.0239 | 363.5  |
-| P5 anti    | IPS       | +0.0048     | 0.0299  | 2.3         | 0.0302 | 335.5  |
-| P5 anti    | SNIPS     | +0.0022     | 0.0246  | 1.2         | 0.0246 | 335.5  |
-| P5 anti    | DR-true   | +0.0020     | 0.0246  | 1.2         | 0.0246 | 335.5  |
-| any        | DM-const  | +0.03…+0.12 | ≤ 0.003 | 270–780     | —      | —      |
+| Policy     | Estimator | Bias                                        | SD      | \|bias\|/SE | RMSE   | ESS    |
+| ---------- | --------- | ------------------------------------------- | ------- | ----------- | ------ | ------ |
+| P1 uniform | IPS       | −0.0006                                     | 0.0152  | 0.6         | 0.0151 | 1000.0 |
+| P1 uniform | SNIPS     | −0.0006                                     | 0.0152  | 0.6         | 0.0151 | 1000.0 |
+| P1 uniform | DR-true   | −0.0005                                     | 0.0150  | 0.5         | 0.0150 | 1000.0 |
+| P2 alpha   | replay    | +0.0008                                     | 0.0233  | 0.5         | 0.0233 | 360.5  |
+| P2 alpha   | IPS       | −0.0017                                     | 0.0329  | 0.7         | 0.0328 | 332.8  |
+| P2 alpha   | SNIPS     | −0.0017                                     | 0.0247  | 0.9         | 0.0247 | 332.8  |
+| P2 alpha   | DR-true   | −0.0016                                     | 0.0244  | 0.9         | 0.0244 | 332.8  |
+| P2 alpha   | DR-const  | −0.0015                                     | 0.0246  | 0.9         | 0.0245 | 332.8  |
+| P3 tilted  | IPS       | −0.0010                                     | 0.0218  | 0.7         | 0.0217 | 619.0  |
+| P3 tilted  | SNIPS     | −0.0010                                     | 0.0182  | 0.8         | 0.0182 | 619.0  |
+| P3 tilted  | DR-true   | −0.0010                                     | 0.0180  | 0.8         | 0.0180 | 619.0  |
+| P4 oracle  | replay    | −0.0061                                     | 0.0269  | **3.2**     | 0.0276 | 359.2  |
+| P4 oracle  | IPS       | −0.0037                                     | 0.0367  | 1.4         | 0.0368 | 331.7  |
+| P4 oracle  | SNIPS     | −0.0007                                     | 0.0278  | 0.4         | 0.0278 | 331.7  |
+| P4 oracle  | DR-true   | −0.0012                                     | 0.0274  | 0.6         | 0.0273 | 331.7  |
+| P5 anti    | replay    | +0.0074                                     | 0.0228  | **4.6**     | 0.0239 | 363.5  |
+| P5 anti    | IPS       | +0.0048                                     | 0.0299  | 2.3         | 0.0302 | 335.5  |
+| P5 anti    | SNIPS     | +0.0022                                     | 0.0246  | 1.2         | 0.0246 | 335.5  |
+| P5 anti    | DR-true   | +0.0020                                     | 0.0246  | 1.2         | 0.0246 | 335.5  |
+| any        | DM-const  | \|bias\| 0.03–0.12, sign follows the policy | ≤ 0.003 | 270–780     | —      | —      |
 
 Clipped IPS equalled IPS on every replicate and policy (weights ≤ 4 < M = 10). DM-true has zero
 error by construction (it is the truth); evidence rate 100 % in every cell.
@@ -94,20 +99,27 @@ N sweep (ICC 0.20, 2,000 replicates each): N = 20 → 0.644, 24 → 0.724, 28 �
 0.822**, 34 → 0.863, 40 → 0.922. Phase-1 between-subject contrast (15 vs 15, Welch): 0.206
 (ICC 0.10), 0.133 (ICC 0.20).
 
-| ID    | Registered prediction                                   | Outcome                                                                                                                                                                                                                                               | Verdict                                           |
-| ----- | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
-| E2-H1 | power ≥ 0.80 at N = 30 in both ICC cells                | 0.836 / 0.817                                                                                                                                                                                                                                         | ✅                                                |
-| E2-H2 | both within [0.80, 0.88]; ICC 0.10 ≥ ICC 0.20           | as stated                                                                                                                                                                                                                                             | ✅                                                |
-| E2-H3 | Wilcoxon 0.00–0.06 below the paired t                   | −0.020 / −0.018                                                                                                                                                                                                                                       | ✅                                                |
-| E2-H4 | type-I rate at OR = 1 within 0.05 ± 0.01 for both tests | 0.028 / 0.030 (t), 0.028 / 0.029 (W) — **outside the band as written**; the registered rejection rule counts one direction of a two-sided α = .05 test, whose calibrated rate is 0.025; against that target (0.025 ± 0.005) both tests are calibrated | ❌ (mis-specified band; calibration itself holds) |
-| E2-H5 | smallest N with power ≥ 0.80 ∈ {28, 30}                 | 30 (28 → 0.782)                                                                                                                                                                                                                                       | ✅                                                |
-| E2-H6 | phase-1 between-subject power 0.10–0.30                 | 0.206 / 0.133                                                                                                                                                                                                                                         | ✅                                                |
-| E2-H7 | realised mean difference 6.5–7.5 pp (logit attenuation) | 7.23 / 6.75                                                                                                                                                                                                                                           | ✅                                                |
+| ID    | Registered prediction                                   | Outcome                                                                                                                                                                                                                                         | Verdict                                           |
+| ----- | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| E2-H1 | power ≥ 0.80 at N = 30 in both ICC cells                | 0.836 / 0.817                                                                                                                                                                                                                                   | ✅                                                |
+| E2-H2 | both within [0.80, 0.88]; ICC 0.10 ≥ ICC 0.20           | as stated                                                                                                                                                                                                                                       | ✅                                                |
+| E2-H3 | Wilcoxon 0.00–0.06 below the paired t                   | −0.020 / −0.018                                                                                                                                                                                                                                 | ✅                                                |
+| E2-H4 | type-I rate at OR = 1 within 0.05 ± 0.01 for both tests | 0.028 / 0.030 (t), 0.028 / 0.029 (W) — **outside the band as written**; the registered rejection rule counts one direction of a two-sided α = .05 test, whose calibrated rate is 0.025; observed 0.028–0.030 vs 0.025 is within 2.4 binomial SE | ❌ (mis-specified band; calibration itself holds) |
+| E2-H5 | smallest N with power ≥ 0.80 ∈ {28, 30}                 | 30 (28 → 0.782)                                                                                                                                                                                                                                 | ✅                                                |
+| E2-H6 | phase-1 between-subject power 0.10–0.30                 | 0.206 / 0.133                                                                                                                                                                                                                                   | ✅                                                |
+| E2-H7 | realised mean difference 6.5–7.5 pp (logit attenuation) | 7.23 / 6.75                                                                                                                                                                                                                                     | ✅                                                |
 
-Two consequences for File 06: (i) N = 30 stands, but with less margin than §2.2's analytic 28
-suggests — the random intercept attenuates the +8 pp effect to 6.8–7.2 pp on the probability
-scale, and N = 28 sits at 0.78; (ii) these are lower bounds for the §1.6 GLMM, which is not
-fitted here.
+Consequences for File 06: (i) under the registered model N = 30 meets the criterion with less
+margin than §2.2's analytic 28 suggests — the random intercept attenuates the +8 pp effect to
+6.8–7.2 pp on the probability scale, and N = 28 sits at 0.78; (ii) **the registered slope SD
+(0.48 on the logit scale) implies a between-user SD of the true effect of 0.107 / 0.101, not
+File 06 §2.2's pessimistic 0.12** — the pre-registration's rationale used the logit slope at
+p ≈ 0.49 and ignored the intercept dispersion. At the slope that gives 0.12 (0.545 / 0.578;
+§4 exploratory, 3,000 replicates) the paired floor is **0.77 / 0.74 at N = 30**, 0.82 / 0.77 at
+N = 34 and 0.89 / 0.83 at N = 40: File 06's N = 30 rests on the §1.6 GLMM's efficiency over the
+paired floor, or on N ≈ 34–40. (iii) These are lower bounds for the GLMM, which is not fitted
+here. (iv) E2's replicates are drawn from one generator stream per cell rather than seed =
+base + index (§1.3) — a reproducible deviation that changes no number's meaning.
 
 ## 3. E3 — Closed-loop ABAB study (`results/e3_closedloop.json`)
 
@@ -130,7 +142,8 @@ Learning signature, learning during A, exploration, blend:
 | amplified / informative | +0.53 ± 0.29  | 0.59        | 0.04   | .0737 .0656 .0578 .0545 .0516 | 0.57           | +7.46 ± 0.26 | +0.46 ± 0.23 | +0.12       | 0.715        |
 | amplified / flat        | +1.26 ± 0.33  | 0.63        | 0.10   | .0796 .0702 .0636 .0589 .0564 | 0.64           | +6.71 ± 0.21 | +0.28 ± 0.22 | −0.05       | 0.718        |
 
-OPE on each study's own slice (informative cells; the flat cells are within 0.1 pp of these):
+OPE on each study's own slice (informative cells; the flat cells have identical truths and
+ESS and values within 0.5 pp of these):
 
 | Cell                    | Policy          | replay / SNIPS / DR (mean value) | IPS    | Truth  | Mean error (max abs) | ESS | Gap oracle − earliest: IPS / SNIPS / DR |
 | ----------------------- | --------------- | -------------------------------- | ------ | ------ | -------------------- | --- | --------------------------------------- |
@@ -139,23 +152,26 @@ OPE on each study's own slice (informative cells; the flat cells are within 0.1 
 | amplified / informative | earliest-in-A_m | 0.4983                           | 0.5005 | 0.5000 | −0.002 (0.09–0.11)   | 301 | 12.53 / 12.60 / 12.58 pp (truth 12.35)  |
 | amplified / informative | oracle-in-A_m   | 0.6243 / 0.6243 / 0.6242         | 0.6258 | 0.6235 | +0.001 (0.07–0.11)   | 301 |                                         |
 
-| ID     | Registered prediction                                                                                             | Outcome                                                                                                                                                                                                                                             | Verdict                   |
-| ------ | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
-| E3-H1  | direction share ≥ 0.95 in all four cells; informative effects in 1.6–4.1 / 3.1–7.8 pp; flat cells lower           | 0.96 / **0.92** / 1.00 / 1.00; effects 2.54 and 5.37 pp inside their bands; flat cells 2.06 and 4.77 (lower)                                                                                                                                        | ◐ (base/flat 0.92)        |
-| E3-H1b | DE > ME > {DM, MM, INT}; DM/MM/INT within ±1.5 pp (informative)                                                   | ordering holds in every cell; INT ≈ 0 (+0.35 / −0.09); **DM −1.82, MM −1.66 (base), DM −0.85, MM −2.26 (amplified)**                                                                                                                                | ◐                         |
-| E3-H1c | rejection rate 0.25–0.60 (base/inf), ≥ 0.70 (amplified/inf)                                                       | 0.26 · 0.79                                                                                                                                                                                                                                         | ✅                        |
-| E3-H4  | informative: mean ḡ ∈ [0, 1.5 pp], rejection < 0.30 (plateau inside phase pair 1) — "most likely to fail"         | +0.25 / +0.53 pp; rejection 0.00 / 0.04                                                                                                                                                                                                             | ✅                        |
-| E3-H4b | flat: share(ḡ > 0) ≥ 0.70 and ḡ(flat) > ḡ(informative) in both worlds                                             | shares **0.59 / 0.63**; ḡ(flat) 0.75 > 0.25 and 1.26 > 0.53 (2.5–4 MC SE above zero)                                                                                                                                                                | ◐                         |
-| E3-H5  | population MAE decreases at every boundary in ≥ 90 % of replicates, all cells                                     | mean MAE monotone in all four cells (−30 % over the run) but per-replicate monotone in only **0.57 / 0.28 / 0.57 / 0.64**                                                                                                                           | ❌                        |
-| E3-H6  | B slice 2–7 pp below B exploited; A slice within ±1.5 pp; slice B − A within 1.5 pp                               | B: 3.36 ✓, **7.46** (0.46 over the band); A: −0.45 / +0.46 ✓; slice B − A −0.32 / +0.12 ✓                                                                                                                                                           | ◐                         |
-| E3-H7  | policy gap ≈ 6.6 / 12.4 pp ± 2 for IPS, SNIPS, DR; each estimate within ±0.03 of truth; ESS ≈ 300; evidence 100 % | gaps 6.9–7.2 / 12.5–12.6 ✓; mean errors ≤ 0.004 ✓; ESS 298–301, evidence 100 % ✓; **per-replicate errors reach 0.07–0.13** (the ±0.03 band is one SE at ESS 300, so a per-replicate reading could not hold; the mean-over-replicates reading holds) | ✅ (band under-specified) |
-| E3-H8  | final w_energy > 0.70 (informative)                                                                               | 0.715 / 0.715                                                                                                                                                                                                                                       | ✅                        |
+| ID     | Registered prediction                                                                                             | Outcome                                                                                                                                                                                                                                                        | Verdict                  |
+| ------ | ----------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
+| E3-H1  | direction share ≥ 0.95 in all four cells; informative effects in 1.6–4.1 / 3.1–7.8 pp; flat cells lower           | 0.96 / **0.92** / 1.00 / 1.00; effects 2.54 and 5.37 pp inside their bands; flat cells 2.06 and 4.77 (lower)                                                                                                                                                   | ◐ (base/flat 0.92)       |
+| E3-H1b | DE > ME > {DM, MM, INT}; DM/MM/INT within ±1.5 pp (informative)                                                   | ordering holds in every cell; INT ≈ 0 (+0.35 / −0.09); **DM −1.82, MM −1.66 (base), DM −0.85, MM −2.26 (amplified)**                                                                                                                                           | ◐                        |
+| E3-H1c | rejection rate 0.25–0.60 (base/inf), ≥ 0.70 (amplified/inf)                                                       | 0.26 · 0.79                                                                                                                                                                                                                                                    | ✅                       |
+| E3-H4  | informative: mean ḡ ∈ [0, 1.5 pp], rejection < 0.30 (plateau inside phase pair 1) — "most likely to fail"         | +0.25 / +0.53 pp; rejection 0.00 / 0.04                                                                                                                                                                                                                        | ✅                       |
+| E3-H4b | flat: share(ḡ > 0) ≥ 0.70 and ḡ(flat) > ḡ(informative) in both worlds                                             | shares **0.59 / 0.63**; ḡ(flat) 0.75 > 0.25 and 1.26 > 0.53 (2.5–4 MC SE above zero)                                                                                                                                                                           | ◐                        |
+| E3-H5  | population MAE decreases at every boundary in ≥ 90 % of replicates, all cells                                     | mean MAE monotone in all four cells (−30 % over the run) but per-replicate monotone in only **0.57 / 0.28 / 0.57 / 0.64**                                                                                                                                      | ❌                       |
+| E3-H6  | B slice 2–7 pp below B exploited; A slice within ±1.5 pp; slice B − A within 1.5 pp                               | B: 3.36 ✓, **7.46** (0.46 over the band); A: −0.45 / +0.46 ✓; slice B − A −0.32 / +0.12 ✓                                                                                                                                                                      | ◐                        |
+| E3-H7  | policy gap ≈ 6.6 / 12.4 pp ± 2 for IPS, SNIPS, DR; each estimate within ±0.03 of truth; ESS ≈ 300; evidence 100 % | gaps 6.9–7.2 / 12.5–12.6 ✓; mean errors ≤ 0.004 ✓; ESS 298–301, evidence 100 % ✓; **per-replicate errors reach 0.07–0.13** — the ±0.03 band is one SE at ESS 300, so the registered per-estimate reading fails and only the mean-over-replicates reading holds | ◐ (band under-specified) |
+| E3-H8  | final w_energy > 0.70 (informative)                                                                               | 0.715 / 0.715                                                                                                                                                                                                                                                  | ✅                       |
 
-## 4. Exploratory diagnostic (run after the results; NOT part of the registered study)
+## 4. Exploratory analyses (run after the results; NOT part of the registered study)
 
-To explain the morning-type loss (E3-H1b), ten base/informative replicates were re-run with
-the Thompson-sampling variance forced to ≈ 0 (`sigma_sq = 1e-6` through the service's own
-`sample_thetas`), everything else unchanged:
+All three are reproduced by `training/scripts/simstudy_exploratory.py` (seeds inside; output
+`results/exploratory.json`).
+
+**4.1 The morning-type loss (E3-H1b).** Ten base/informative replicates (seeds 3000–3009)
+re-run with the Thompson-sampling variance forced to ≈ 0 (`sigma_sq = 1e-6` through the
+service's own `sample_thetas`), everything else unchanged:
 
 | Setting              | Effect | DM    | MM    | INT   | ME    | DE    |
 | -------------------- | ------ | ----- | ----- | ----- | ----- | ----- |
@@ -173,8 +189,34 @@ a wrong prior cell and ≈ 1 pp for posterior sampling on an untrained bandit; w
 (evening types), the learned arm gains 6–19 pp. Both are properties of the deployed parameters
 (σ² = 0.25, n₀ = 8, w = 0.7/0.3), not of the estimators.
 
+**4.2 The E2 slope-SD rationale (adversarial finding).** The registered logit-scale slope SD
+0.48 gives SD(p_B − p_A) = 0.107 (ICC 0.10) / 0.101 (ICC 0.20) over 400k simulated users, not
+File 06 §2.2's 0.12. Solving for the slope that gives 0.12 (bisection: 0.545 / 0.578) and
+re-simulating the paired floor (3,000 replicates per cell, seeds 99–104):
+
+| ICC  | slope for τ = 0.12 | N = 30 (t / W) | N = 34 (t / W) | N = 40 (t / W) | mean d̄ |
+| ---- | ------------------ | -------------- | -------------- | -------------- | ------ |
+| 0.10 | 0.545              | 0.768 / 0.742  | 0.824 / 0.806  | 0.894 / 0.877  | 7.2 pp |
+| 0.20 | 0.578              | 0.735 / 0.712  | 0.766 / 0.748  | 0.831 / 0.819  | 6.7 pp |
+
+**4.3 The replay bias in closed form (E1-H1, M10).** Over the 200 registered worlds, the
+replay target E[q(π(x))/m] / E[1/m] minus the truth E[q(π(x))] is **+0.0027** (alpha-first),
+**−0.0055** (oracle), **+0.0054** (anti-oracle), MC SE ≤ 0.0001 — the measured replay biases
+(+0.0008 ± 0.0017, −0.0061 ± 0.0019, +0.0074 ± 0.0016) agree within their SE. The mechanism is
+exact; the alpha-first policy is biased too (+0.27 pp) and E1-H1's "unbiased" verdict for it is
+a power artefact of R = 200. The m-weighted replay equals SNIPS identically.
+
 ## 5. What came out differently — and why it matters
 
+0. **The E2 heterogeneity was under-registered (most consequential).** The pre-registration
+   said the logit-scale slope SD 0.48 "puts the between-user SD of the true probability
+   difference at ≈ 0.12"; it puts it at 0.10–0.11 (§4.2). E2-H1 is confirmed as registered,
+   but under File 06's own pessimistic τ = 0.12 the paired floor at N = 30 is 0.77 / 0.74 and
+   N ≈ 34–40 is needed for 0.80. Thesis consequence: File 06's N = 30 stands only with the
+   §1.6 GLMM's efficiency over the paired floor (File 06 §2.2's own argument), which this
+   study did not fit — say so, and quote both numbers. Also in E2: replicates stream from one
+   generator per cell rather than seed = base + index (§1.3) — reproducible, no effect on the
+   numbers' meaning, reported because the pre-registration promised otherwise.
 1. **Replay is biased when \|A_m(x)\| varies (E1-H1, P4/P5).** Li et al.'s argument is
    per-context: within a fixed candidate set the uniform draw makes the matched subsample
    representative. With the 2026-08-26 eligibility rule (|A_m(x)| ∈ {2, 3, 4}, p = 1/|A_m|),
@@ -182,7 +224,9 @@ a wrong prior cell and ≈ 1 pp for posterior sampling on an untrained bandit; w
    averages over a context distribution reweighted by 1/|A_m(x)|. A policy whose value
    correlates with the slice size (the oracle: larger sets contain better buckets) is
    estimated with a bias of the order of 0.6–0.7 pp here — small, but systematic and in a
-   known direction. IPS, SNIPS and DR weight each match by |A_m(x)| and are unbiased. Thesis
+   known direction; §4.3 gives the closed-form target (−0.55 / +0.54 pp), which the measured
+   biases match, and shows the alpha-first policy is biased too (+0.27 pp, below R = 200's
+   resolution). IPS, SNIPS and DR weight each match by |A_m(x)| and are unbiased. Thesis
    consequence: on the slice, report replay only alongside SNIPS/DR (File 04 §2.3 already
    names DR primary), or weight replay matches by |A_m(x)| — which is IPS. Recorded as
    spec-conflicts M10 and revisit.
@@ -228,7 +272,13 @@ a wrong prior cell and ≈ 1 pp for posterior sampling on an untrained bandit; w
   `q_true`; H1–H4 as claims about human adherence remain untested (thesis-corrections #49).
   The worlds are the committed P11 generator and a registered amplification of it; fatigue,
   calendar busy time, deadlines, task heterogeneity and the CP-SAT packing are outside E3
-  (preregistration §4.1); the E2 GLMM is not fitted.
+  (preregistration §4.1); the E2 GLMM is not fitted; E2's heterogeneity is τ ≈ 0.10 (§5 item 0).
+- **Implementation assumptions stated after the review:** E3 applies a day's outcomes in
+  placement order, whereas the service applies same-timestamp tuples in UUID order (arbitrary)
+  — only the blend's SGD trajectory is order-dependent (`test_e3_learn_equals_the_service_
+rebuild_from_stored_tuples` pins the equivalence for the placement order). Pre-registration
+  erratum: §4.1's parenthetical "`repo.fallback_cells`' shape" is wrong (that helper uses
+  n₀ = 4); the registered and executed flat prior is μ₀ = 0.5, n₀ = 8.
 
 ## 7. Files
 
@@ -236,3 +286,5 @@ a wrong prior cell and ≈ 1 pp for posterior sampling on an untrained bandit; w
 - `training/src/hourwell_training/simstudy/` — the study code (commit `ec1b869`); tests
   `training/tests/test_simstudy.py`.
 - `docs/study/results/{e1_estimators,e2_power,e3_closedloop,run}.json` — the run's outputs.
+- `training/scripts/simstudy_exploratory.py` → `docs/study/results/exploratory.json` — the
+  three post-results analyses of §4 (exploratory; seeds inside).

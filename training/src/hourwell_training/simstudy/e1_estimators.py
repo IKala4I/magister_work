@@ -16,7 +16,7 @@ from hourwell_training.params import ESS_FLOOR
 from hourwell_training.simstudy.config import StudyConfig
 from hourwell_training.simstudy.stats import mc_summary
 
-__all__ = ["POLICIES", "run_e1"]
+__all__ = ["POLICIES", "expected_ess_ratios", "run_e1"]
 
 Det = Callable[[ope.SliceRow], str]
 Sto = Callable[[ope.SliceRow, str], float]
@@ -57,6 +57,19 @@ POLICIES: dict[str, tuple[Det | None, Sto]] = {
     "P4_oracle": (_oracle, _as_sto(_oracle)),
     "P5_anti_oracle": (_anti_oracle, _as_sto(_anti_oracle)),
 }
+
+
+def expected_ess_ratios(sizes: tuple[int, ...] = (2, 3, 4)) -> dict[str, float]:
+    """Preregistration E1-H7 arithmetic for equiprobable |A_m(x)| = m ∈ sizes: replay keeps
+    E[1/m] of the rows; a deterministic policy's IPS ESS/n = (E w)²/E[w²] = 1/E[m]; the 0.7/0.3
+    tilted policy's ESS/n = 1/E[m·(0.49 + 0.09/(m − 1))]."""
+    k = len(sizes)
+    return {
+        "replay": sum(1.0 / m for m in sizes) / k,
+        "deterministic": 1.0 / (sum(sizes) / k),
+        "tilted": 1.0 / (sum(m * (0.49 + 0.09 / (m - 1)) for m in sizes) / k),
+        "uniform": 1.0,
+    }
 
 
 def _r_true(r: ope.SliceRow, b: str) -> float:

@@ -45,10 +45,14 @@ Everything below condenses P0–P11 for release notes and the thesis; per-phase 
   hand-computed cases (90 pytest); ruff + mypy strict clean.
 - **docs(study): `simulation-results.md` + `results/*.json`** — the registered run (E1 23.8 s,
   E2 10.6 s, E3 41.3 s on `ec1b869`): learned arm +2.5 pp (base, ceiling 4.1) / +5.4 pp
-  (amplified, ceiling 7.8), direction right in 96 % / 100 % of replicated studies; File 06 power
-  0.84 / 0.82 at N = 30; ESS gate met 3× on plain weeks. Deviations reported: replay biased under a
-  variable |A_m(x)| (spec-conflicts M10), morning types lose 1–2 pp under the learned arm, H4
-  underpowered within-study, two mis-specified criteria (thesis-corrections #55).
+  (amplified, ceiling 7.8), direction right in 96 % / 100 % of replicated studies; File 06
+  paired-floor power 0.84 / 0.82 at N = 30 under the registered τ ≈ 0.10 (0.77 / 0.74 at File 06's
+  τ = 0.12 → N ≈ 34–40, exploratory); ESS gate met 3× on plain weeks. Deviations reported: the
+  under-registered E2 heterogeneity, replay biased under a variable |A_m(x)| (spec-conflicts M10),
+  morning types lose 1–2 pp under the learned arm, H4 underpowered within-study, mis-specified
+  criteria (thesis-corrections #55). Adversarial pass (fresh subagent): 2 MAJOR / 10 MINOR / 4
+  NOTE — all addressed on the branch; the study code refactor after the run is byte-identical
+  (E3 re-run diffed); `scripts/simstudy_exploratory.py` reproduces the post-results analyses.
 
 ## Post-P12 — fix batch after the Android pass: days off, blank cards, button roles, exact alarms (2026-09-05, post-p12/fix-batch-build6)
 

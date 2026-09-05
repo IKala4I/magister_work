@@ -1,0 +1,109 @@
+{
+  "note": "EXPLORATORY \u2014 run after the registered study; not part of it",
+  "ts_variance_diagnostic": {
+    "replicates": 10,
+    "seeds": [3000, 3001, 3002, 3003, 3004, 3005, 3006, 3007, 3008, 3009],
+    "registered_sigma_sq_0.25": {
+      "effect": 0.013708333333333333,
+      "per_class": {
+        "DM": -0.023749999999999997,
+        "MM": -0.027708333333333328,
+        "INT": -0.022708333333333337,
+        "ME": 0.05458333333333333,
+        "DE": 0.088125
+      },
+      "exploration_cost_B": 0.05527777777777778
+    },
+    "diagnostic_sigma_sq_1e-6": {
+      "effect": 0.017791666666666664,
+      "per_class": {
+        "DM": -0.013125000000000005,
+        "MM": -0.025624999999999995,
+        "INT": -0.022708333333333337,
+        "ME": 0.06041666666666666,
+        "DE": 0.09
+      },
+      "exploration_cost_B": 0.05672222222222224
+    }
+  },
+  "slope_sd_sensitivity": {
+    "target_tau": 0.12,
+    "replicates": 3000,
+    "cells": [
+      {
+        "icc": 0.1,
+        "registered_slope": 0.48,
+        "registered_tau": 0.10686175913772468,
+        "slope_for_target_tau": 0.5449597309304408,
+        "n_users": 30,
+        "power_paired_t": 0.7683333333333333,
+        "power_wilcoxon": 0.7416666666666667,
+        "mean_diff": 0.0721411111111111
+      },
+      {
+        "icc": 0.1,
+        "registered_slope": 0.48,
+        "registered_tau": 0.10686175913772468,
+        "slope_for_target_tau": 0.5449597309304408,
+        "n_users": 34,
+        "power_paired_t": 0.824,
+        "power_wilcoxon": 0.806,
+        "mean_diff": 0.07236311274509803
+      },
+      {
+        "icc": 0.1,
+        "registered_slope": 0.48,
+        "registered_tau": 0.10686175913772468,
+        "slope_for_target_tau": 0.5449597309304408,
+        "n_users": 40,
+        "power_paired_t": 0.8943333333333333,
+        "power_wilcoxon": 0.8766666666666667,
+        "mean_diff": 0.07269135416666667
+      },
+      {
+        "icc": 0.2,
+        "registered_slope": 0.48,
+        "registered_tau": 0.10119908314426568,
+        "slope_for_target_tau": 0.5780509890125358,
+        "n_users": 30,
+        "power_paired_t": 0.735,
+        "power_wilcoxon": 0.712,
+        "mean_diff": 0.0674125
+      },
+      {
+        "icc": 0.2,
+        "registered_slope": 0.48,
+        "registered_tau": 0.10119908314426568,
+        "slope_for_target_tau": 0.5780509890125358,
+        "n_users": 34,
+        "power_paired_t": 0.766,
+        "power_wilcoxon": 0.7476666666666667,
+        "mean_diff": 0.06669019607843137
+      },
+      {
+        "icc": 0.2,
+        "registered_slope": 0.48,
+        "registered_tau": 0.10119908314426568,
+        "slope_for_target_tau": 0.5780509890125358,
+        "n_users": 40,
+        "power_paired_t": 0.8313333333333334,
+        "power_wilcoxon": 0.8193333333333334,
+        "mean_diff": 0.06633541666666666
+      }
+    ]
+  },
+  "replay_closed_form_targets": {
+    "P2_alpha_first": {
+      "replay_target_minus_truth": 0.002662920512250565,
+      "mc_se": 5.949158608236049e-5
+    },
+    "P4_oracle": {
+      "replay_target_minus_truth": -0.005479580292495042,
+      "mc_se": 4.5393451856304805e-5
+    },
+    "P5_anti_oracle": {
+      "replay_target_minus_truth": 0.0054199219403884575,
+      "mc_se": 4.262435733673708e-5
+    }
+  }
+}

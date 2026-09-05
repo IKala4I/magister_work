@@ -404,7 +404,7 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
       H1–H4 remain untested hypotheses; adherence effects, learning-during-A, and
       chronotype-prior benefits are NOT findings, and no sentence may report them as
       outcomes.
-    - **Why the unexecuted protocol is itself a contribution — argue it precisely:** the
+    - **Why the out-of-scope field protocol is itself a contribution — argue it precisely:** the
       protocol is an executable, auditable artifact: a within-subject design with matched
       randomization and a nested micro-randomized ε-slice, exact propensities logged by a
       live system (not a simulator), an OPE harness proven against ground truth, a power
@@ -548,13 +548,16 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     the File 06 §2.3 simulation-based power, E3 the closed-loop ABAB study on the service's
     own Stage 2–4 code), hypotheses and analysis plan frozen in git before any run (commit
     `11b71a9`, 22:11:53; code `ec1b869`, 22:19:16); (b) results, each pre-registered
-    prediction next to its outcome with the verdict — E1 8/9 confirmed, E2 6/7, E3 4 confirmed,
-    4 partly, 1 not; (c) the deviations, stated as such. Numbers to carry: the learned arm beats
+    prediction next to its outcome with the verdict — E1 8/9 confirmed, E2 6/7, E3 3 confirmed,
+    5 partly, 1 not; (c) the deviations, stated as such. Numbers to carry: the learned arm beats
     the heuristic by **2.5 pp** (ceiling 4.1, efficiency 0.62) in the base world and **5.4 pp**
     (ceiling 7.8, efficiency 0.69) in the amplified one, direction right in 96 % / 100 % of
-    replicated studies, detected by a 30-user ABAB study 26 % / 79 % of the time; File 06's
-    primary analysis has power **0.84 / 0.82** at N = 30 (ICC 0.10 / 0.20; N = 28 → 0.78, the
-    analytic 28 is optimistic because the random intercept attenuates +8 pp to 6.8–7.2 pp);
+    replicated studies, detected by a 30-user ABAB study 26 % / 79 % of the time; the
+    paired-means floor of File 06's analysis has power **0.84 / 0.82** at N = 30 (ICC 0.10 /
+    0.20; N = 28 → 0.78, the analytic 28 is optimistic because the random intercept attenuates
+    +8 pp to 6.8–7.2 pp) **under the registered heterogeneity, which is τ ≈ 0.10 — at File 06's
+    own pessimistic τ = 0.12 the floor is 0.77 / 0.74 and 0.80 needs N ≈ 34–40 or the §1.6
+    GLMM's efficiency (not fitted); quote both**;
     every estimator except replay is unbiased at the designed data rate and the ESS ≥ 100
     gate holds 3× over on plain weeks (ESS ≈ 310 of ≈ 930 slice rows; 80–175 on heavy weeks,
     M9 closed). **The four findings that came out differently — present them, do not
@@ -569,10 +572,11 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     real under a flat prior (+0.75 / +1.26 pp growth between phase pairs, 2.5–4 MC SE) but a
     single 30-user study sees it positive only 59–63 % of the time and significant 3–10 % — H4
     is underpowered as a within-study test; under the File 04 prior the plateau is reached
-    inside phase pair 1 (growth ≈ 0, as predicted); (4) two registered criteria were
+    inside phase pair 1 (growth ≈ 0, as predicted); (4) three registered statements were
     mis-specified (a two-sided type-I band against a one-directional rule; per-replicate MAE
-    monotonicity for a mean statement) — say so and report the consistent reading beside
-    them. Limitations to carry verbatim from the results §6: nothing about people; the
+    monotonicity and a ±0.03 per-estimate band for mean statements; the E2 slope-SD rationale
+    above) and E2's seeding differs from the registered rule — say so and report the
+    consistent reading beside them. Limitations to carry verbatim from the results §6: nothing about people; the
     worlds are the P11 generator and its registered amplification; fatigue, busy time,
     deadlines, heterogeneous tasks and the CP-SAT packing are outside E3; the E2 GLMM is not
     fitted (E2 is a lower bound). Cite the run's `run.json` (commit, timings) and the

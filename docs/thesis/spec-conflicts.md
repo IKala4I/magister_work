@@ -221,8 +221,9 @@ decision rule (defensibility → consistency → measurability → pragmatics) a
   per-context; with M9's variable slice size (|A_m(x)| ∈ {2, 3, 4}, p = 1/|A_m(x)|) the matched
   subsample over-represents small slices (matched with probability 1/|A_m|), so replay
   estimates a context distribution reweighted by 1/|A_m(x)|. Measured (E1, 200 × 1,000 rows):
-  −0.6 pp on the oracle policy and +0.7 pp on the anti-oracle (3.2 / 4.6 MC SE); IPS, SNIPS
-  and DR, which weight each match by |A_m(x)|, are unbiased. Normative: on the slice replay is
+  −0.6 pp on the oracle policy and +0.7 pp on the anti-oracle (3.2 / 4.6 MC SE); closed-form
+  replay targets −0.55 / +0.54 pp (and +0.27 pp for the alphabetical policy) agree with them;
+  IPS, SNIPS and DR, which weight each match by |A_m(x)|, are unbiased. Normative: on the slice replay is
   reported beside SNIPS/DR (File 04 §2.3 already makes DR primary) or its matches are weighted
   by |A_m(x)| — which is IPS. `docs/study/simulation-results.md` §5 item 1; thesis-corrections
   #55; revisit.

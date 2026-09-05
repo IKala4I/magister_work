@@ -21,16 +21,25 @@ Four commits on `post-p12/simulation-study`, in this order — the order IS the 
    parameters, analysis plan for E1/E2/E3, analytic ceilings; no study code in the tree.
 3. `ec1b869` (22:19:16) **`training/src/hourwell_training/simstudy/`** + `hourwell-simstudy`
    CLI + 11 tests (90 pytest, ruff, mypy strict green).
-4. (this commit) **the registered run** (`docs/study/results/*.json`, run on `ec1b869`: E1
+4. `f2c3692` **the registered run** (`docs/study/results/*.json`, run on `ec1b869`: E1
    23.8 s, E2 10.6 s, E3 41.3 s, 8 workers) + `docs/study/simulation-results.md` +
    corrections #55, spec-conflicts M10 + M9 closure, revisit ×2, CHANGELOG, traceability ×4,
    PLAN tail, explainer results section, this handoff.
+5. (this commit) **adversarial pass addressed** (fresh subagent: 2 MAJOR / 10 MINOR / 4
+   NOTE): the E2 heterogeneity was under-registered (τ ≈ 0.10, not 0.12 — at 0.12 the paired
+   floor is 0.77 / 0.74 at N = 30; results §4.2, §5 item 0) and E2's seeding deviates from
+   §1.3 — both reported as deviations, no re-run; E3-H7 → ◐; three service imports replace
+   inlined code with a byte-identical E3 re-run as proof; 5 new tests (95 pytest) incl. the
+   `_learn` ≡ `feedback.rebuild_all` equivalence; `training/scripts/simstudy_exploratory.py`
+   reproduces the post-results analyses (`results/exploratory.json`).
 
 Results in one line: learned arm +2.5 pp (base world, ceiling 4.1) / +5.4 pp (amplified,
 ceiling 7.8), direction right in 96 % / 100 % of replicated studies; File 06 power 0.84 / 0.82
-at N = 30; every estimator except replay unbiased; four things came out differently and are
-reported as such (results §5): replay bias under a variable |A_m(x)| (M10), morning types lose
-1–2 pp under the learned arm, H4 underpowered within-study, two mis-specified criteria.
+at N = 30 under the registered τ ≈ 0.10 (0.77 / 0.74 at File 06's 0.12 → N ≈ 34–40, the finding
+the owner should weigh for the thesis text); every estimator except replay unbiased; five
+things came out differently and are reported as such (results §5): the E2 heterogeneity,
+replay bias under a variable |A_m(x)| (M10), morning types lose 1–2 pp under the learned arm,
+H4 underpowered within-study, mis-specified criteria.
 
 ## Exact next actions (next session, in order)
 
@@ -151,9 +160,9 @@ Out of scope by the store decision: store-signed binary / TestFlight behaviour, 
   proper; the registered run is the only unsuffixed output and takes ≈ 80 s with 8 workers.
 - **A `zip(strict=True)` inside `all()` only raises when nothing short-circuits** — the tiny
   test passed and the full replicate crashed. Keep list lengths explicit.
-- **The exploratory diagnostic in results §4 monkeypatches `sample_thetas`** in two modules
-  (`hourwell_recsys.estimates` and the simstudy module's imported name) — a rerun must patch
-  both or the diagnostic silently runs the registered σ².
+- **The exploratory analyses live in `training/scripts/simstudy_exploratory.py`** (seeds inside;
+  the σ² diagnostic patches `sample_thetas` in BOTH modules that bind the name — patching one
+  silently runs the registered σ²). Re-run with `--out ../docs/study/results`.
 - **Branch protection is on `main`** (six required CI jobs; auto-merge on) — `gh pr merge
 --auto --merge` waits for CI.
 - **Prettier pads markdown table cells** — scripted edits anchor on cell content, then

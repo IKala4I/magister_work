@@ -401,7 +401,7 @@ def _load_cells(
     return out
 
 
-def _dm_model(rows: list[ope.SliceRow]) -> ope.RewardModel:
+def dm_model(rows: list[ope.SliceRow]) -> ope.RewardModel:
     """DR's direct method (ADR-0015 §9): logistic on the bucket-swappable slice 0–13."""
     xs = []
     ys = []
@@ -528,7 +528,7 @@ def _stage_report(ctx: Ctx, exp: Exporter, out_dir: Path) -> None:
     ]
     doc["experiment_drop_rate_by_arm"] = report.grouped_rate(drops)
     if slice_rows:
-        model = _dm_model(slice_rows)
+        model = dm_model(slice_rows)
 
         def logged_det(r: ope.SliceRow) -> str:
             return r.bucket_id
@@ -564,7 +564,7 @@ def _stage_report(ctx: Ctx, exp: Exporter, out_dir: Path) -> None:
         doc["ope"] = "no randomized-slice rows with full provenance yet"
     mixed = mixed_ts_rows(exp, ctx.dropped)
     if mixed:
-        mixed_model = _dm_model(mixed)
+        mixed_model = dm_model(mixed)
 
         def m_logged_det(r: ope.SliceRow) -> str:
             return r.bucket_id
