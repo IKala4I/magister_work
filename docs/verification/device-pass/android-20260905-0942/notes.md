@@ -178,10 +178,10 @@ notification` when the phone returns, unless dismissed. State when the phone lef
 
 ## Results by build
 
-| Build | Source / APK                                                                                         | Checks attributed to it                                                                                                                                                                                                                                                                                                                                                                                            |
-| ----- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 4     | 24808ad, `e6c9ea1ef9f0…` (day 4)                                                                     | the 4 Sep client-side figures (item 4): manual series client p50 2627 / p95 4127 ms, function p50 1056 / p95 1282, pre-plan sync post-L1 p50 936 / p95 2367                                                                                                                                                                                                                                                        |
-| 5     | 7c8f67c, `d7fc4280bf56…`, installed 2026-09-04 22:36:49 (older Expo patches than PR #48; see item 5) | ritual actions ✓ (+471 ms exact), "Adjust tasks" first response from a killed app ✓ (Inbox, one `adjust` fact, no plan), dismiss-after-action ✓ (day-4 defect 1 fixed), **blank Today cards with live buttons ✗ (MAJOR, item 9 — first observed today; the code path is unchanged since P6, so earlier builds most likely carry it)**; pending on the owner's return: UC-07 off-grid move, TalkBack, FR-42 erasure |
+| Build | Source / APK                                                                                         | Checks attributed to it                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ----- | ---------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 4     | 24808ad, `e6c9ea1ef9f0…` (day 4)                                                                     | the 4 Sep client-side figures (item 4): manual series client p50 2627 / p95 4127 ms, function p50 1056 / p95 1282, pre-plan sync post-L1 p50 936 / p95 2367                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| 5     | 7c8f67c, `d7fc4280bf56…`, installed 2026-09-04 22:36:49 (older Expo patches than PR #48; see item 5) | ritual actions ✓ (+471 ms exact), "Adjust tasks" first response from a killed app ✓ (Inbox, one `adjust` fact, no plan), dismiss-after-action ✓ (day-4 defect 1 fixed), **blank Today cards with live buttons ✗ (MAJOR, item 9 — first observed today; the code path is unchanged since P6, so earlier builds most likely carry it)**; UC-07 off-grid move ✓ (picker snaps 5:37 → 5:30 before confirmation; `block_moved` fact; silent snap = rough edge, item 15), TalkBack listening pass ✓ with one role defect (Settings gear announces as link) and two heatmap label rough edges (item 16), FR-50 unplugged delivery ✓ (+109/+147/+377 ms; the ≤ 5/day cap dropped the fourth reminder, item 12), FR-42 erasure ✓ (item 17) — **Android pass closed 2026-09-05 16:38** |
 
 ## Evidence files
 
@@ -191,6 +191,102 @@ empty-card-report / owner-away), `ritual-record-1000.txt`, `ritual-build5-expand
 `today-empty-card-owner-report.png`, `today-blank-card-after-foreground.png`,
 `today-blank-card-layout-bounds.png`, `blank-card-a11y-excerpt.txt`, `nfr-p1-2026-09-04-pairing.txt`,
 `nfr-p1-2026-09-04-client-decomposition.json`, `posthog-plan_requested-2026-09-04.csv`,
-`posthog-sync_completed-2026-09-04.csv`, `logcat-hourwell-day5.txt`; the 2 Sep owner crops live in
+`posthog-sync_completed-2026-09-04.csv`, `logcat-hourwell-day5.txt`, `reminder-records-unplugged.txt`,
+`today-1603-after-foreground.png`, `today-1603-replanned.png`, `uc07-move-after.png`,
+`fr42-account-deleted.png`, `fr42-start-over.png`, `fr42-cold-relaunch.png`; the 2 Sep owner crops live in
 `../android-20260902-1030/owner-*.png`. Helpers added to `docs/verification/`: `hw-shade-tap.py`,
 `hw-posthog-pair.mjs`, `hw-set-working-hours.mjs`, `hw-blank-cards.py`.
+
+12. **FR-50 — reminder delivery on an unplugged phone (owner away 10:3x–16:03; records read at
+    16:03, `reminder-records-unplugged.txt`).** Three block reminders posted exactly:
+    `block:8e68771e` "real offline" **11:05:00.377** (+377 ms), `block:16c56bb4` "abstract rewrite"
+    **11:50:00.109** (+109 ms), `block:3df4b420` "references fix" **12:35:00.147** (+147 ms); group
+    summary 11:50:00.348; all three still in the shade at 16:03 (nobody tapped). The fourth block
+    reminder (13:20 for the 13:30 block) was never scheduled: the ≤ 5/day ledger had the 10:00
+    ritual delivered, three block reminders and the 20:00 ritual = 5, so the cap dropped it — the
+    hard cap doing its job on a real day (FR-50). Phone off the charger from 10:3x, 46 % and back on
+    AC at 16:03; alarms left: 20:00 today and 20:00 on the 6th (the restore to 20:00 was pulled at
+    the 10:03 foreground). No new facts while away (13 events today, `server-reads-resume-1603.json`).
+
+13. **Owner decision on the accidental completion (16:0x): no database edit.** Events are
+    append-only and the reward chain derives from facts; hand-editing the measured account is what
+    the architecture forbids. Correct through the product's own route if one exists — checked in
+    code: the only correction fact is `lapse_corrected` (UC-04 A1, lapsed → "I did it",
+    `db/feedback.ts correctLapse`); a wrong "Done" has the 6-s undo toast (invariant 14) and
+    nothing after it. So fact 567 stands **uncorrected and annotated**: it is a test artefact of the
+    blank-card defect (item 9), not behaviour; the 23:55 attribution will reward it; the account
+    is erased at the end of the pass, so nothing it teaches survives. Product gap for revisit:
+    after the undo window a user has no way to take back a wrong completion (UC-04 covers the
+    opposite direction only).
+
+14. **Resume at 16:05 — first foreground since 10:3x (WARM 725 ms).** The foreground pass cleared
+    the three delivered reminders from the shade (0 Hourwell records afterwards — day 2's F7 fix
+    covers lapsed blocks too); the lazy lapse scan wrote **7 `lapse_observed`** (570–576, 16:05:29)
+    for the past blocks and a `focus_end` (569) closed the accidental gym session; Today showed the
+    third-skip diagnostic card for "figure captions" over the lapsed cards ("Not done — back in your
+    Inbox" / "I did it"). Re-plan tapped over adb 16:05:42 → **plan `950ff368` 16:05:43, 2 blocks
+    (supervisor email 16:15 EXP, references fix 17:00), learned OPTIMAL, function 735 ms, budget
+    3/30**; every recommendation of the 10:05 plan went `expired` (including the accidentally
+    completed "Offline note" — the fact stands, the row does not). Blank-card scan on the fresh
+    list: 0 BLANK over 7 scans — but the list holds only 2 cards, so nothing recycles; the defect
+    needs a list longer than the viewport (item 9 stands; the fix-batch recipe says ≥ 6 cards).
+    (`today-1603-after-foreground.png`, `today-1603-replanned.png`,
+    `server-reads-after-replan-1603.json`.)
+
+15. **UC-07 — off-grid move on the Android picker — PASS, with an observation (owner, 16:11).**
+    "references fix" 5:00–5:30 PM → Move… → keyboard entry: typing **5:37** made the minute field
+    reset to **:30** inside the picker, typing **:40** jumped to **:45** — the snap happens in the
+    native dialog before anything is confirmed; the owner confirmed 5:30 → "Move here" → the card
+    reads **5:30 PM–6:00 PM**; server: recommendation `57827a09` `moved` v2, slot 17:30–18:00
+    (16:11:06), fact **579 `block_moved`** (from 17:00–17:30 to 17:30–18:00, `distance_minutes`
+    30; client 16:11:04.663, server 16:11:06.411). Mechanism (`MovePicker.tsx`): the
+    `@react-native-community/datetimepicker` 9.1.0 dialog carries `minuteInterval={15}` (Android
+    honours it in both radial and keyboard modes), and the app snaps again in `handleChange` via
+    `snapToGrid` (unit-tested). So the device check answered "does the picker keep off-grid
+    minutes out" rather than "does the app snap an off-grid value" — the app-side snap is
+    unreachable through this picker and stays covered by the unit tests. **Observation (owner):**
+    the snap is silent — digits change under the user's fingers with no explanation; functionally
+    correct, a rough edge for revisit (a "times snap to 15 minutes" hint or a haptic).
+    (`uc07-move-after.png`.)
+
+16. **NFR-A1 — TalkBack listening pass (owner, build 5, 16:2x–16:3x; TalkBack switched on and
+    off over adb).** Heard: tabs "selected, Today, tab, double tap to activate" / "Inbox, tab" /
+    "Focus, tab" / "Insights, tab" — names only, no glyphs (F6 ✅); a block card as ONE utterance
+    "references fix, 5:30 PM to 6:00 PM, confidence 44 percent", then "Start references fix,
+    button" / Done / Skip / Move… (✅); the experiment card puts "experiment" before the confidence
+    (✅ FR-22); Inbox row "real offline, admin, 30 minutes, button" as one element, "Add a task,
+    edit box", the Add button "disabled" while the field is empty (✅); the heatmap grid as one
+    element: "Energy map for {category}. On weekdays your best time is early morning (78 percent)
+    and your lowest is night (30 percent). On weekends … (67 / 33) … Switch to the text view for
+    every hour." followed by the role word **"image"** (✅ summary, two observations below);
+    Settings gear **"Open settings, link"** (✗ role), "Delete account and data, button" (✅). The
+    rating chips were not exercised (they need a completed block). **Three flags from the owner:**
+    (a) the gear is announced as a _link_ although the code sets `accessibilityRole="button"`
+    (`app/(tabs)/_layout.tsx`) — expo-router's `Link asChild` injects the `role` prop, which in
+    RN ≥ 0.73 takes precedence over `accessibilityRole`; the same wrapper carries the Inbox "+"
+    → fix batch: pass `role="button"` on both (minor a11y defect); (b) the trailing "image" is
+    TalkBack's role suffix for the grid element (`accessibilityRole="image"` with the summary as
+    its label), not a stray element — but coming after "Switch to the text view…" it reads as if
+    the hint were the image; rough edge: end the label with the summary and let the "Show as text"
+    button carry the switch, or use no role; (c) the two summary sentences do start with "On
+    weekdays" / "On weekends" (`heatmap.summary.weekday|weekend`), which the owner could not catch
+    at speech speed — rough edge: lead with the day type as its own phrase ("Weekdays: …").
+    Revisit lines added; no checklist row flips to ✗ except the gear role.
+
+17. **FR-42 — erasure on device — PASS (owner tapped the two confirmations; 16:37).** The
+    confirmation screen read "Your account is deleted — Everything Hourwell held about you was
+    erased on September 5, 2026 at 4:37 PM — Reference: `e1d0b2eb-ce2c-4f29-9f43-895fd2d77ab7`"
+    (`fr42-account-deleted.png`, text read over adb). Server, aggregate reads only: every user
+    table at **0** (profiles, tasks, events, plans, recommendations, feedback_rewards, beta_cells,
+    bandit_state; before: 1 / 19 / 489 / 54 / 419 / 27 / 48 / 4), `auth.users` row gone;
+    `deletion_audit` 55 → 56, the row with the on-screen id exists, `reason = user_request`,
+    requested 16:37:12.670 → completed 16:37:12.849 (**180 ms** server side). Device: **0 pending
+    Hourwell alarms** (the 20:00 rituals for the 5th and the 6th are gone — notifications scheduled
+    before the deletion never fire), shade empty. "Start over" (adb tap 16:38:40) → the welcome
+    screen ("Hourwell — The planner that learns your best hours — Get started / I already have an
+    account", `fr42-start-over.png`); HOME → `am kill` → cold relaunch (COLD 559 ms) → the same
+    welcome screen, no dead-session state (`fr42-cold-relaunch.png`). The two accidental facts
+    (item 9) and the 10:00 `adjust` fact died with the account, as intended. Observation: `auth.users` went 68 → 69 across "Start over" + the cold relaunch — the app opens a fresh
+    anonymous session before any onboarding step (the anonymous-trial design; that empty row is the
+    kind the anonymous-trial retention rule, still an open numeric, must sweep). **This closes the
+    Android hardware pass.**

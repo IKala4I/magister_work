@@ -2,18 +2,18 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-05 10:45 — **hardware pass, Android day 5 (branch `post-p12/hardware-pass-day5`, PR pending):**
-> build-5 ritual actions verified on an on-demand 10:00 ritual ("Adjust tasks" first response from a
-> killed app → Inbox, one `adjust` fact, notification dismissed); 4 Sep PostHog export paired 12/12
-> (build-4 series client p95 4.13 s → corrections #51 now says 3.7–4.1 s); the 2 Sep button question
-> settled by the owner's own screenshots (no buttons on build 3; root cause established); CI drift
-> fixed by PR #48 and #45/#46/#47 merged; **MAJOR data-integrity defect: blank Today cards whose
-> buttons still fire** (notes item 9, corrections #53, revisit) — fix batch item, build 6. **The owner
-> left with the phone (unplugged) at 10:3x:** UC-07 off-grid move, TalkBack listening pass and FR-42
-> erasure resume when it is back; nothing time-bound is pending.
-> Read first: `docs/verification/device-pass/android-20260905-0942/notes.md` (items 1–11), then the
-> "Day 5 — state and queue" block below. Server unchanged (`plan-request` v12, `sync-resolve` v6,
-> recsys `813cdbade0e9`). Phone: build 5 (`d7fc4280bf56…`, 7c8f67c, older Expo patches than main).
+> Last update: 2026-09-05 16:50 — **Android hardware pass CLOSED (days 1–5, Pixel 7a, builds 1–5).** Day 5
+> (branch `post-p12/hardware-pass-day5`; PR #49 merged, PR #50 = the afternoon): build-5 ritual actions ✅,
+> 4 Sep client figures (NFR-P1 reference 3.7–4.1 s, #51), the 2 Sep button question settled by the
+> owner's screenshots, FR-50 unplugged delivery ✅ (+109…+377 ms; the ≤ 5/day cap dropped the fourth
+> reminder), UC-07 off-grid move ✅ (the picker snaps before confirmation — silent, revisit), TalkBack
+> pass ✅ with one role defect (Settings gear = link), **FR-42 erasure ✅ — the device account is gone**.
+> **MAJOR data-integrity defect found: blank Today cards whose buttons still fire** (notes item 9,
+> corrections #53) — first item of the fix batch after ADR-0019. Owner decision: the accidental
+> completion was NOT hand-edited (append-only facts; no product route for a wrong Done) — annotated.
+> Read first: `docs/verification/device-pass/android-20260905-0942/notes.md` (items 1–17), then
+> "Exact next actions" below. Server unchanged (`plan-request` v12, `sync-resolve` v6, recsys
+> `813cdbade0e9`); phone: build 5 on the welcome screen, a fresh empty anonymous auth user (69).
 
 ## Day 5 — state and queue (2026-09-05)
 
@@ -28,26 +28,20 @@ shared helpers `hw-shade-tap.py`, `hw-posthog-pair.mjs`, `hw-set-working-hours.m
 `overflow: hidden` clip, and classified as data integrity — the owner's two taps on blank cards became
 facts 567/568 (item 9).
 
-**When the phone is back (owner-attended, in this order):**
-
-1. Read tonight's ritual record (`dumpsys notification`, `when=` for the 20:00 alarm on an unplugged phone —
-   the FR-50 unplugged/Doze case) and the day's block-reminder posts (11:05 / 11:50 / 12:35 / 13:20 were
-   pending when the phone left); no facts expected (the owner does not tap).
-2. **UC-07 off-grid move:** "email replies" 3:45 PM → Move… → keyboard → 5:37 PM → Move here → expect
-   5:30/5:45 (a refusal over the completed 5:15 slot also counts); verify `recommendations.status = moved`
-   - `slot_start` on the server; screenshot. Only tap visible controls.
-3. **TalkBack listening pass** (owner enables it in Android Settings → Accessibility): tab names (F6),
-   block cards ("title, start to end, Experiment, Confidence N percent"), the heatmap summary, Settings
-   switches, rating chips; the owner reports what is announced; the session records per checklist row.
-4. Restore the profile: `node docs/verification/hw-set-working-hours.mjs --remove sat`.
-5. **FR-42 erasure LAST** (Settings → Delete, two confirmations → reference screen → relaunch → onboarding;
-   session: `deletion_audit` aggregate count, no Hourwell alarms in `dumpsys alarm`, no notifications).
-   Say before doing it that it ends the device account (facts 567/568 die with it).
-6. Close the day: notes, checklist rows, HANDOFF, PR.
+**Afternoon (owner back 16:03) — all done, details = notes items 12–17:** reminder records read from the
+device (three exact posts on an unplugged phone; the cap dropped the fourth); owner decision on the
+accidental completion (no DB edit; the product has only UC-04 A1 lapse → done and the 6-s undo → fact 567
+annotated as a test artefact; product gap in revisit); first foreground since 10:3x cleared the delivered
+reminders and wrote 7 lapses; Re-plan → a 2-block plan (no blank card on a 2-card list — the defect needs a
+list longer than the viewport); UC-07 move ✅ (5:37 → 5:30 inside the picker; `block_moved` fact); TalkBack
+pass ✅ (flags: gear role = link → `role="button"`; heatmap label rough edges); Saturday hours removed
+(`--remove sat`); FR-42 erasure ✅ (audit `e1d0b2eb-…`, 180 ms, all user tables 0, 0 alarms, welcome screen
+after Start over and after a cold relaunch).
 
 **Post-pass fix batch (build 6), in order:** ADR-0019 (no plan / no ritual for days without a window);
 **blank cards** (drop `overflow: 'hidden'` on the Android `GlassPanel`; then FlashList 2.3.1 + `getItemType`
-if it still reproduces; verify with `hw-blank-cards.py` on hardware — release-blocking); the exact-alarm
+if it still reproduces; verify with `hw-blank-cards.py` on hardware — release-blocking); the Settings gear /
+Inbox "+" `role="button"` (expo-router `Link asChild` overrides `accessibilityRole`); the exact-alarm
 in-app prompt; stale-ritual re-plans; the diagnostic card persistence (revisit). Build 6 carries the PR #48
 Expo patches.
 
@@ -139,10 +133,14 @@ notification` (record must carry `actions=2`), then ONE adb tap on **"Plan tomor
    in the `models` bucket. All three training-container checklist items flipped.
 3. Walk the ⛔ ladder below **one step per turn** (owner directive 2026-08-27), verifying
    each from the session side before offering the next.
-4. No further build phases exist in PLAN. Session work from here: hardware-pass support
-   (ladder 5), thesis-text support (corrections 1–49 + rollup), and OSF-freeze support (owner
-   opted in, 2026-09-01 — runs strictly after the hardware pass closes). Enrollment support and
-   first-real-data reviews are retired-conditional (#49).
+4. No further build phases exist in PLAN. **The Android hardware pass closed 2026-09-05** (ladder step 5
+   ✅ for Android; iOS out of scope by the store decision). Session work from here, in order:
+   (a) merge PR #50 (day-5 afternoon docs); (b) **post-pass fix batch → build 6** (order in the Day-5 block:
+   ADR-0019, blank cards, gear role, exact-alarm prompt, stale-ritual re-plans, diagnostic-card persistence;
+   PR #48's Expo patches ride along) with a short owner-run device re-check of the flipped rows
+   (`hw-blank-cards.py`, a Saturday/Sunday plan attempt, one ritual); (c) **OSF freeze** — decided 2026-09-01 to
+   run strictly after the pass closes → it is now unblocked; the owner says go; (d) thesis-text support
+   (corrections 1–53 + rollup). Enrollment support stays retired-conditional (#49).
 
 ## Hardware pass — live state (2026-09-04 morning, read before touching the phone)
 
@@ -245,8 +243,8 @@ notification` (record must carry `actions=2`), then ONE adb tap on **"Plan tomor
    pack stays prepared-but-unsubmitted (metadata §7 decision block; thesis-corrections
    #48; the enrollment checklist carries the no-iOS gate; reversal condition in
    revisit.md).
-5. **Hardware pass — account-free scope** — **Android days 1–2 done on the Pixel 7a** (see the
-   live-state block); iOS not started (free-provisioned Release build, 7-day signature).
+5. ✅ **Hardware pass — account-free scope** — **Android days 1–5 done on the Pixel 7a, closed 2026-09-05**
+   (day notes `android-2026090*`); iOS not started and out of scope (store decision, metadata §7).
    **5a ✅** lockout cleared (owner ran `hw-unblock.mjs --apply`, 30 rows). **5b ✅ (2026-09-03):** the owner's PostHog CSV export carried every column; decomposition in
    the day-3 notes item 1. **5b-bis (open, no key):** re-export 3 Sep `plan_requested` +
    `sync_completed` (Day 4 item 2). **5c:** the 2 Sep ritual tap is done (backgrounded variant,
