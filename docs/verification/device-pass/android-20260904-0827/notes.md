@@ -260,6 +260,89 @@ takes ≈ 0.3 s off S; the 4 Sep export measures it on the phone.
 
 Sources: Ookla Speedtest Intelligence Q4 2024 as summarised by the IEEE ComSoc Technology Blog (2025-02-24, https://techblog.comsoc.org/2025/02/24/ookla-europe-severely-lagging-in-5g-sa-deployments-and-performance/); arXiv 2310.14090 (London 4G/5G latency case study, 2023); Opensignal country reports 2018 (USA Jan — AT&T LTE 58.3 ms; Netherlands Mar — T-Mobile 4G 28.2 ms; Argentina May — Movistar 4G 49 ms / 3G 87 ms; Canada Feb — Telus 41.1 ms); Geekbench 6 single-core listings (cpu-monkey: Tensor G2 1188, Snapdragon 680 412; cpu-monkey / unite4buy: Snapdragon 695 896–908).
 
+19. **Evening ritual on build 4 — the buttons are there (owner ping 22:12; record read before any
+    touch).** `ritual:2026-09-04`, channel `ritual`, posted **20:00:00.335** (exact alarm + 335 ms —
+    the third exactness point), title "Plan tomorrow?", body "6 tasks are waiting — one tap plans
+    your day.", **`actions=2`: [0] "Plan tomorrow", [1] "Adjust tasks"**, both start-activity
+    pending intents (`ritual-record-evening.txt`, `ritual-build4-expanded-with-actions.png`). The
+    owner saw the buttons and screenshotted them without tapping. The process had been revived
+    natively at 20:00 (no JS thread) and was killed before the tap. On the contested point (item
+    14): the first ritual posted after fix c2995be carries the actions, so the fix is effective; the
+    2 Sep question stays open on evidence.
+
+20. **FR-26 "Plan tomorrow" from a killed app — PASS (22:13:24, one adb tap on the button).**
+    `NotificationForwarderActivity` 22:13:27.32 → process start 27.34 → MainActivity; one
+    `notification_response` (`action: accept`, `variant: daily`, `latency_ms` 8 008 421 from the
+    20:00 `scheduled_for`; client_ts 22:13:28.421); one plan for **2026-09-05** at 22:13:28.72,
+    trigger `evening_ritual`, learned, OPTIMAL, function 762 ms — i.e. tomorrow planned ≈ 2 s after
+    the tap from a dead process; Today shown (with the third-skip card for "gym"). Budget 12/30.
+    Clock note: the fact's `server_ts` (22:13:27.68) precedes its `client_ts` by ≈ 0.7 s — the
+    phone's clock runs ahead of the server; pair rows by intervals, never by equality.
+    **But the plan has 0 blocks:** all 15 inbox tasks `no_feasible_start` — the profile's working
+    hours are mon–fri and the 5th is a Saturday. The ritual offered to plan a day it cannot plan,
+    the accept produced an empty plan row (which counts toward the 24-h budget) and Today shows no
+    "tomorrow" line — nothing visible happened for the user (revisit; `plan-2026-09-05-telemetry.json`).
+
+21. **DEFECT — the ritual stays posted after an action.** `AUTO_CANCEL` covers the body tap (day 2,
+    item 7 today); an action button does not cancel, and the handler never dismissed. A second tap
+    would plan again. **Fix 7c8f67c** (PR #45): the handler dismisses the notification by identifier
+    once the fact is appended.
+
+22. **DEFECT — a second action on the same notification is dropped (22:18:16, app backgrounded).**
+    With the ritual still posted, one adb tap on "Adjust tasks" (row re-located by icon template
+    after the shade shifted; the tap only fired once the button-colour check found the action row —
+    `tap-adjust.py` pattern) brought the app to the foreground on **Today**, with **no fact** (the
+    server still holds two responses) — the cold-start dedup key was `identifier@date`, so a
+    different action on an already-handled notification looked like the duplicate delivery the key
+    exists for. **Fix 7c8f67c**: the key includes the action identifier (+2 tests). Consequence:
+    "Adjust tasks" as a FIRST response and the Sunday plain tap → Insights remain untested on the
+    device; they need a fresh ritual on the rebuilt APK — **build 5 = 7c8f67c, `d7fc4280bf56…`, built 22:20–22:2x (`build5.log`), bundle gate ✓ (host ×1, anon-key prefix ×1), `SCHEDULE_EXACT_ALARM` ✓; NOT installed — the owner decides whether the pass continues.** App sent HOME and
+    killed 22:19:54; the 5 Sep 20:00 alarm is the only one left (exact).
+
+23. **Finding — a day without a working window is planned anyway (product defect, owner
+    classification; ADR-0019).** What the user sees: a Friday ritual promising to plan tomorrow, an
+    accept that changes nothing visible, and on Saturday "No plan yet" over "No room today for 15
+    tasks" — both untrue. Why: `buildGrid` yields zero workable ticks for a weekday without hours,
+    the function's only pre-engine short-circuit is the empty inbox, the trigger and the manual
+    Re-plan never check the window, and the ritual scheduler places a daily ritual on every day
+    without knowing the next day's window. **Same hole elsewhere — checked in code:** the 06:00 /
+    first-open trigger on a Saturday persists one empty plan and dedups the day; a manual Re-plan
+    persists one per tap, each spending budget; "all days off" cannot be declared (onboarding
+    `errorNoDays`, no hours editor in Settings); the Sunday review variant is unaffected. The rule
+    (function refuses with `no_working_window`, nothing persisted, no budget; the client treats it
+    as answered and says "No working hours today"; the daily ritual is not scheduled when the
+    next plan day has no window) is decided in **ADR-0019**; implementation goes to the post-pass
+    fix batch and stays unverified on hardware by the owner's choice. The thesis example of a
+    defect only a multi-day run on a real calendar surfaces (corrections #52).
+
+24. **Owner decision, 22:3x: the pass stops after the owner-attended items and FR-42 erasure.**
+    Build 5 (`d7fc4280bf56…`) is gated but NOT installed; its ritual re-check ("Adjust tasks" as a
+    first response, the Sunday tap, the backgrounded accept, the dismiss-after-action) is recorded
+    as **unverified by choice**, not pending — the defects are found, fixed and unit-tested; another
+    evening would buy a confirmation, not a finding. The 4 Sep PostHog export comes tomorrow morning.
+
+25. **Owner reversal (22:3x): verify the build-5 fixes on hardware after all — on demand if
+    possible.** Build 5 (`d7fc4280bf56…`) installed 22:36:49 over build 4 (data kept, appop still
+    `allow`, the 5 Sep alarm re-set by the package-replaced receiver; the stale 4 Sep ritual was
+    cleared by the update). Two on-demand paths tried: (a) expo-notifications' own trigger intent
+    for the stored `ritual:2026-09-05` request (`am broadcast` with the library's action, data URI
+    and `type=trigger` / `identifier` extras) — the receiver is `exported=false`, the broadcast
+    "completed" with no process start and nothing posted: refused by the OS, as expected; (b) moving
+    `profiles.settings.notifications.evening_ritual_time` on the server to 22:45
+    (`hw-set-ritual-time.mjs`; `server_seq` bumps by trigger) → one foreground pulled it and the
+    scheduler re-planned: **the alarm moved to 22:45 — but for the 5th only**. Today's ritual was
+    dropped by the **≤ 5/day cap**: the conservative ledger settles every scheduled reminder whose
+    time has passed as delivered (09:35, 10:20, 11:50 and the series' cancelled ones) plus
+    `ritual:2026-09-04`, so `budget = 5 − delivered(today)` was 0 — FR-50's hard cap doing its job
+    (the only same-day drop rule in `planNotifications`). Setting restored to 20:00 (22:40:06). No
+    root, so neither the clock nor the time zone can be moved. **Conclusion: not tonight; tomorrow
+    at any time** — a fresh calendar day has a fresh budget, and a ritual can be scheduled ≥ 30 s
+    ahead: set the time to ping + 5 min, one foreground to pull it, HOME + kill, natural exact fire,
+    then one adb tap on **"Adjust tasks"** as the FIRST response → Inbox, one `adjust` fact, and the
+    notification gone (fix 1). One ritual per calendar day (`ritual:<day>` id + cap), so the
+    dedup-by-action fix stays unit-tested — after fix 1 a second action on the same notification
+    cannot occur in normal use. The accept path itself was verified on build 4 (item 20).
+
 ## Results by build
 
 | Build | Source / APK                                                                                                                                     | Checks attributed to it                                                                                                                                                                                                                                                                                   |

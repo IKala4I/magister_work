@@ -1,0 +1,44 @@
+{
+  "at": "2026-09-04T19:13:39.867Z",
+  "responses": [
+    {
+      "client_ts": "2026-09-04 19:13:28.421+00",
+      "payload": {
+        "action": "accept",
+        "kind": "evening_ritual",
+        "latency_ms": 8008421,
+        "scheduled_for": "2026-09-04T17:00:00.000Z",
+        "variant": "daily"
+      },
+      "server_ts": "2026-09-04 19:13:27.680829+00"
+    },
+    {
+      "client_ts": "2026-09-04 05:53:34.974+00",
+      "payload": {
+        "action": "open",
+        "kind": "evening_ritual",
+        "latency_ms": 46414974,
+        "scheduled_for": "2026-09-03T17:00:00.000Z",
+        "variant": "daily"
+      },
+      "server_ts": "2026-09-04 05:53:36.467918+00"
+    }
+  ],
+  "plans_0905": [
+    {
+      "ef_total_ms": 762,
+      "engine": "learned",
+      "generated_at": "2026-09-04 19:13:28.723+00",
+      "id": "f8806bee-187f-4da6-a910-bf854c9bbc8d",
+      "reason": "learned",
+      "recs": 0,
+      "solver_status": "OPTIMAL",
+      "trigger": "evening_ritual"
+    }
+  ],
+  "budget": [
+    {
+      "n": 12
+    }
+  ]
+}

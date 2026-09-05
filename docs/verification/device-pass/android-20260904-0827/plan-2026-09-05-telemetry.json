@@ -1,0 +1,95 @@
+{
+  "plan": [
+    {
+      "infeasible": null,
+      "n_tasks": "15",
+      "n_ticks": "96",
+      "request": {
+        "duration_scaled": 0,
+        "horizon": "day",
+        "n_busy": 0,
+        "n_previous": 0,
+        "trigger": "evening_ritual"
+      },
+      "unplaced": [
+        {
+          "reason": "no_feasible_start",
+          "task_id": "cf4df4a1-3099-4ae1-9074-5aa816fbb748"
+        },
+        {
+          "reason": "no_feasible_start",
+          "task_id": "6e706885-30d4-4bb5-9e63-5646e4e5bb08"
+        },
+        {
+          "reason": "no_feasible_start",
+          "task_id": "d05e0756-7cc6-4a8a-a60f-12ec6f8a1c8c"
+        },
+        {
+          "reason": "no_feasible_start",
+          "task_id": "aadb318e-84d2-45b0-8c43-e49ccbce7833"
+        },
+        {
+          "reason": "no_feasible_start",
+          "task_id": "164ea98e-866b-4a61-99bd-a653ae39fd77"
+        },
+        {
+          "reason": "no_feasible_start",
+          "task_id": "aecd6f3f-6ab1-46b0-b36b-bfe6ef4b6d89"
+        },
+        {
+          "reason": "no_feasible_start",
+          "task_id": "93486bfc-a409-4056-af31-712962a20fe9"
+        },
+        {
+          "reason": "no_feasible_start",
+          "task_id": "0d18f96e-db9c-44b7-82fc-b1633440d879"
+        },
+        {
+          "reason": "no_feasible_start",
+          "task_id": "fec24f3e-92fb-4916-b0eb-837f8e7a641c"
+        },
+        {
+          "reason": "no_feasible_start",
+          "task_id": "66e2709c-e08f-422f-99ca-7888378236af"
+        },
+        {
+          "reason": "no_feasible_start",
+          "task_id": "f6a41521-50bf-4d8e-8eaa-bc3693646276"
+        },
+        {
+          "reason": "no_feasible_start",
+          "task_id": "2f6a725b-dbca-4fc0-ab61-e15f6230ac13"
+        },
+        {
+          "reason": "no_feasible_start",
+          "task_id": "fd68d659-4abf-4a05-808e-caea6a1c9935"
+        },
+        {
+          "reason": "no_feasible_start",
+          "task_id": "194d2048-2023-4f18-a643-c733ab40e480"
+        },
+        {
+          "reason": "no_feasible_start",
+          "task_id": "d9ac5cda-3e71-4f0a-a9da-860d39652287"
+        }
+      ]
+    }
+  ],
+  "profile": [
+    {
+      "timezone": "Europe/Kiev",
+      "working_hours": {
+        "fri": [540, 1080],
+        "mon": [540, 1080],
+        "thu": [540, 1080],
+        "tue": [540, 1080],
+        "wed": [540, 1080]
+      }
+    }
+  ],
+  "inbox": [
+    {
+      "n": 15
+    }
+  ]
+}

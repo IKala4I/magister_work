@@ -485,3 +485,16 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     slower) and Opensignal latency ranges (4G 30–58 ms, weak cell 100–150 ms, 3G ≈ 90 ms): a
     2022 mid-range phone on a weak LTE cell ≈ 4.5 s, a 2022 low-end phone on a 3G-grade link ≈ 5.7 s.
     **DECIDED (owner, 2026-09-04) — final wording: NFR-P1 = "a plan request completes on the device (tap → plan received) in ≤ 6.0 s at p95, warm, on a 2022 low-end Android over a weak-signal link; the reference measurement is 3.7 s p95 on a Pixel 7a over home Wi-Fi (4.6 s before ADR-0018); the server-side `plan-request` ≤ 1.5 s p95; the heuristic fallback bounds the server wait at 1.9 s." Two caveats travel with it: the client timer stops before the SQLite mirror (0.1–0.9 s on the reference device, scaling with the phone) — reported separately, not folded in; and a pre-plan sync carrying a day's backlog costs more than the measured syncs.** This supersedes the 4.5 s wording above (which was set on the reference device alone). **The more useful finding, stated plainly: of the 3.9 s p95 reference sum, 2.6 s — two-thirds — is server-side work (the plan function, its invoke overhead, the sync-resolve call) that scales with nothing on the user's side, not the phone and not the network. That is the share L2 (one RPC for the sync hops) and L3 (ops carried inside the plan request) address; the device and network multipliers act only on the remaining third.** **Network figures — a stated limitation:** the typical-case latency is current (Ookla, Q4 2024: country-wide median mobile latency 32 ms in Europe, 35 ms in the Americas; a 2023 London campaign measured ≈ 25 ms average on 4G LTE); the weak-cell (100–150 ms) and 3G (≈ 90 ms) values are conservative estimates taken from older public measurements (Opensignal country reports, 2018), because current reports publish experience scores rather than milliseconds or could not be retrieved — the derivation errs on the slow side deliberately.
+
+52. **§verification / §discussion — add the non-working-day finding as the example of what only a
+    multi-day run on a real calendar can surface (hardware pass day 4, 2026-09-04; ADR-0019).**
+    On the Friday evening the ritual notification promised "6 tasks are waiting — one tap plans
+    your day"; the accept produced a plan for Saturday with zero blocks (the profile declares
+    working hours for Monday–Friday; every task returned `no_feasible_start`), consumed one of the
+    thirty daily plan requests, and left the user with "No plan yet" over "No room today for 15
+    tasks" — two untrue messages. Neither the simulator sessions, the 500-plus unit tests nor the
+    single-day manual verifications could show it: every fixture plans a weekday and no script
+    crosses a week boundary. The thesis should present it as (a) a product defect found by the
+    device pass, (b) the decided rule (no plan request, no persisted plan, no daily ritual for a
+    day without a working window; truthful copy), and (c) a methodological point — the value of
+    the multi-day, real-calendar leg of the verification protocol over simulator smoke checks.
