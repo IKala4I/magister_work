@@ -27,14 +27,28 @@ const mockNotify = {
   dismissed: false,
   dismiss: jest.fn(),
   enable: jest.fn<Promise<string>, [unknown]>(() => Promise.resolve('granted')),
+  // FR-50 exact alarms (build 6): 'not_applicable' = iOS / below Android 12
+  exactness: 'not_applicable' as string,
+  exactDismissed: false,
+  exactDismiss: jest.fn(),
+  openExactSettings: jest.fn(),
 };
 jest.mock('../domain/notificationActions', () => ({
   reminderPermissionState: () => mockNotify.permission(),
   isRemindersPromptDismissed: () => mockNotify.dismissed,
   dismissRemindersPrompt: () => mockNotify.dismiss(),
   enableRemindersAction: (source: unknown) => mockNotify.enable(source),
+  reminderExactness: () => mockNotify.exactness,
+  isExactAlarmPromptDismissed: () => mockNotify.exactDismissed,
+  dismissExactAlarmPrompt: () => mockNotify.exactDismiss(),
+  openExactAlarmSettingsAction: (source: unknown) => mockNotify.openExactSettings(source),
 }));
-const mockProfile = { settings: null as unknown };
+const mockProfile = {
+  settings: null as unknown,
+  // ADR-0019: undefined = the screen cannot tell (no day-off state); {} = no working day at all
+  workingHours: undefined as unknown,
+  sleepWindow: null as unknown,
+};
 jest.mock('../db/useProfile', () => ({ useCurrentProfile: () => mockProfile }));
 const mockRunPlanRequest = jest.fn();
 
@@ -248,7 +262,92 @@ beforeEach(() => {
   mockLapse.diagnosticTask = null;
   mockBlockActions.skipBlockAction.mockImplementation(() => ({ task: null, diagnosticDue: false }));
   usePlanStore.setState({ status: 'idle', emptyInbox: false });
+  mockProfile.workingHours = undefined;
+  mockProfile.sleepWindow = null;
   rows({});
+});
+
+describe('ADR-0019 — a day without a working window', () => {
+  it('names the day, not the inbox, and hides the deferred line of a legacy zero-block row', async () => {
+    mockProfile.workingHours = {}; // no working day at all → today is a day off whatever the calendar
+    rows({
+      plans: [
+        plan({
+          telemetry: {
+            ef: { reason: 'learned' },
+            unplaced: [{ task_id: 'x', reason: 'deferred' }],
+          },
+        }),
+      ],
+      recs: [],
+      tasks: [task({ id: 't-x', status: 'inbox' })],
+    });
+    await render(withSafeArea(<TodayScreen />));
+    expect(screen.getByText(en['today.dayOff.title'])).toBeTruthy();
+    expect(screen.getByText(en['today.dayOff.body'])).toBeTruthy();
+    expect(screen.queryByText(en['today.empty.title'])).toBeNull();
+    expect(screen.queryByText(en['today.deferred.one'])).toBeNull();
+    // the day-off copy wins over the empty-inbox copy of an earlier request
+    usePlanStore.setState({ status: 'idle', emptyInbox: true });
+    await render(withSafeArea(<TodayScreen />));
+    expect(screen.getByText(en['today.dayOff.title'])).toBeTruthy();
+    expect(screen.queryByText(en['today.emptyInbox.title'])).toBeNull();
+  });
+  it('legacy blocks on a day off still render the timeline; the deferred line stays hidden', async () => {
+    mockProfile.workingHours = {};
+    rows({
+      plans: [plan({ telemetry: { unplaced: [{ task_id: 'x', reason: 'deferred' }] } })],
+      recs: [rec()],
+      tasks: [task()],
+    });
+    await render(withSafeArea(<TodayScreen />));
+    expect(screen.getByText(en['today.replan'])).toBeTruthy();
+    expect(screen.queryByText(en['today.dayOff.title'])).toBeNull();
+    expect(screen.queryByText(en['today.deferred.one'])).toBeNull();
+  });
+  it('the in-app "Plan tomorrow?" card is not offered on the eve of a day off (ADR-0019 §4, review MAJOR)', async () => {
+    mockProfile.settings = { notifications: { evening_ritual_time: '00:00' } };
+    mockNotify.permission.mockResolvedValue('granted');
+    mockProfile.workingHours = {}; // no window on any day → tomorrow has none either
+    rows({ plans: [plan()], recs: [rec()], tasks: [task(), task({ id: 't-2', status: 'inbox' })] });
+    await render(withSafeArea(<TodayScreen />));
+    await act(async () => {});
+    expect(screen.queryByText(en['today.tomorrow.ask'])).toBeNull();
+    expect(mockRunPlanRequest).not.toHaveBeenCalled();
+    // with a window tomorrow the card is back (the existing P10 case, pinned here for contrast)
+    mockProfile.workingHours = {
+      mon: [540, 1080],
+      tue: [540, 1080],
+      wed: [540, 1080],
+      thu: [540, 1080],
+      fri: [540, 1080],
+      sat: [540, 1080],
+      sun: [540, 1080],
+    };
+    await render(withSafeArea(<TodayScreen />));
+    await act(async () => {});
+    expect(screen.getByText(en['today.tomorrow.ask'])).toBeTruthy();
+  });
+  it('a working day keeps the ordinary empty state and the deferred line', async () => {
+    mockProfile.workingHours = {
+      mon: [540, 1080],
+      tue: [540, 1080],
+      wed: [540, 1080],
+      thu: [540, 1080],
+      fri: [540, 1080],
+      sat: [540, 1080],
+      sun: [540, 1080],
+    };
+    rows({
+      plans: [plan({ telemetry: { unplaced: [{ task_id: 'x', reason: 'deferred' }] } })],
+      recs: [],
+      tasks: [task()],
+    });
+    await render(withSafeArea(<TodayScreen />));
+    expect(screen.getByText(en['today.empty.title'])).toBeTruthy();
+    expect(screen.getByText(en['today.deferred.one'])).toBeTruthy();
+    expect(screen.queryByText(en['today.dayOff.title'])).toBeNull();
+  });
 });
 
 describe('Today', () => {
@@ -629,10 +728,60 @@ describe('trade-off sheet (FR-24 / UC-05)', () => {
   });
 });
 
+describe('FR-50 exact-alarm card (Android 12+, build 6)', () => {
+  beforeEach(() => {
+    mockNotify.permission.mockResolvedValue('granted');
+    mockNotify.exactness = 'denied';
+    mockNotify.exactDismissed = false;
+    mockProfile.settings = null;
+  });
+  it('with reminders allowed but inexact: the card offers the system screen; "Allow" opens it', async () => {
+    rows({ plans: [plan()], recs: [rec()], tasks: [task()] });
+    await render(withSafeArea(<TodayScreen />));
+    await act(async () => {});
+    expect(screen.getByText(en['today.exactAlarm.title'])).toBeTruthy();
+    expect(screen.queryByText(en['today.reminders.title'])).toBeNull(); // the OS permission is decided
+    await fireEvent.press(screen.getByLabelText(en['today.exactAlarm.allow']));
+    expect(mockNotify.openExactSettings).toHaveBeenCalledWith('today_card');
+  });
+  it('"Not now" dismisses it for good', async () => {
+    rows({ plans: [plan()], recs: [rec()], tasks: [task()] });
+    await render(withSafeArea(<TodayScreen />));
+    await act(async () => {});
+    await fireEvent.press(screen.getByLabelText(en['today.exactAlarm.later']));
+    expect(mockNotify.exactDismiss).toHaveBeenCalled();
+    expect(screen.queryByText(en['today.exactAlarm.title'])).toBeNull();
+  });
+  it('no card when alarms are exact, where the OS has no such switch, or without the OS permission', async () => {
+    rows({ plans: [plan()], recs: [rec()], tasks: [task()] });
+    mockNotify.exactness = 'allowed';
+    await render(withSafeArea(<TodayScreen />));
+    await act(async () => {});
+    expect(screen.queryByText(en['today.exactAlarm.title'])).toBeNull();
+    mockNotify.exactness = 'not_applicable';
+    await render(withSafeArea(<TodayScreen />));
+    await act(async () => {});
+    expect(screen.queryByText(en['today.exactAlarm.title'])).toBeNull();
+    mockNotify.exactness = 'denied';
+    mockNotify.permission.mockResolvedValue('undetermined');
+    await render(withSafeArea(<TodayScreen />));
+    await act(async () => {});
+    expect(screen.queryByText(en['today.exactAlarm.title'])).toBeNull();
+    expect(screen.getByText(en['today.reminders.title'])).toBeTruthy(); // the permission card first
+  });
+  it('no card without blocks to remind about', async () => {
+    rows({ tasks: [task()] });
+    await render(withSafeArea(<TodayScreen />));
+    await act(async () => {});
+    expect(screen.queryByText(en['today.exactAlarm.title'])).toBeNull();
+  });
+});
+
 describe('P10 — reminders card (FR-50) and the evening ritual on Today (FR-26)', () => {
   beforeEach(() => {
     mockNotify.dismissed = false;
     mockNotify.permission.mockResolvedValue('undetermined');
+    mockNotify.exactness = 'not_applicable';
     mockProfile.settings = null;
     mockRunPlanRequest.mockClear();
   });

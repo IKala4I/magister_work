@@ -15,12 +15,15 @@ import { getProfile } from '../db/profile';
 import { activeTasksQuery, inboxTasksQuery } from '../db/tasks';
 import type { LocalDb } from '../db/writes';
 import { notificationSettingsOf } from '../domain/notificationSettings';
+import type { MinuteRange, WorkingHours } from '../domain/workingHours';
 import { t } from '../i18n';
 import { track } from '../observability/analytics';
 
 import { dismissStaleReminders } from './dismiss';
 import { commitScheduled, settleLedger } from './ledger';
 import { type NotificationSpec, OPEN_STATUSES, planNotifications } from './plan';
+import { exactAlarmState } from '../../modules/exact-alarm';
+
 import { CATEGORY_RITUAL, CHANNEL_REMINDERS, CHANNEL_RITUAL, getPermissionState } from './setup';
 
 const localDb = db as unknown as LocalDb;
@@ -157,6 +160,8 @@ async function pass(now: Date): Promise<void> {
     settings,
     permissionGranted: permission === 'granted',
     deliveredByDay: settled.deliveredByDay,
+    workingHours: profile.workingHours as WorkingHours,
+    sleepWindow: (profile.sleepWindow ?? null) as MinuteRange | null,
   });
   const scheduled: NotificationSpec[] = [];
   for (const spec of plan.schedule) {
@@ -184,6 +189,7 @@ async function pass(now: Date): Promise<void> {
     muted: plan.dropped.muted,
     past: plan.dropped.past,
     reason: plan.reason,
+    exact: exactAlarmState(),
   });
 }
 

@@ -44,14 +44,23 @@ import {
 } from '../../src/domain/blockActions';
 import { applyTradeoffAction, rejectTradeoffsAction } from '../../src/domain/insightsActions';
 import {
+  dismissExactAlarmPrompt,
   dismissRemindersPrompt,
   enableRemindersAction,
+  isExactAlarmPromptDismissed,
   isRemindersPromptDismissed,
+  openExactAlarmSettingsAction,
+  reminderExactness,
   reminderPermissionState,
 } from '../../src/domain/notificationActions';
 import { notificationSettingsOf, timeOnDay } from '../../src/domain/notificationSettings';
 import { nextPlanDayOf, planDayOf, requestPlanDayOf } from '../../src/domain/planTrigger';
 import { infeasibleOptionsOf } from '../../src/domain/tradeoff';
+import {
+  hasWorkingWindowOn,
+  type MinuteRange,
+  type WorkingHours,
+} from '../../src/domain/workingHours';
 import { t } from '../../src/i18n';
 import { usePlanStore } from '../../src/state/plan';
 import { useSyncStore } from '../../src/state/sync';
@@ -59,6 +68,7 @@ import { useLapseScan } from '../../src/sync/useLapseScan';
 import { runPlanRequest, usePlanTrigger } from '../../src/sync/usePlanTrigger';
 import { useCurrentProfile } from '../../src/db/useProfile';
 import type { PermissionState } from '../../src/notifications/setup';
+import type { ExactAlarmState } from '../../modules/exact-alarm';
 import { type BlockAction, BlockActions } from '../../src/ui/plan/BlockActions';
 import { MovePicker } from '../../src/ui/plan/MovePicker';
 import { SkipDiagnosticCard } from '../../src/ui/plan/SkipDiagnosticCard';
@@ -139,12 +149,18 @@ export default function TodayScreen() {
   const notifySettings = notificationSettingsOf(profile?.settings ?? null);
   const [permission, setPermission] = useState<PermissionState | null>(null);
   const [promptDismissed, setPromptDismissed] = useState(() => isRemindersPromptDismissed());
+  // FR-50 on Android 12+ (build 6): the exact-alarm app-op, re-read on every foreground — the
+  // user flips it on the system screen the card opens
+  const [exactness, setExactness] = useState<ExactAlarmState | null>(null);
+  const [exactDismissed, setExactDismissed] = useState(() => isExactAlarmPromptDismissed());
   useEffect(() => {
     let alive = true;
-    const refresh = () =>
+    const refresh = () => {
+      setExactness(reminderExactness());
       void reminderPermissionState().then((p) => {
         if (alive) setPermission(p);
       });
+    };
     refresh();
     // back from the OS settings screen: re-read the permission (P10 adversarial #9)
     const sub = AppState.addEventListener('change', (state) => {
@@ -233,6 +249,22 @@ export default function TodayScreen() {
 
   const unplaced = unplacedOf(plan);
   const planning = status === 'planning';
+  // ADR-0019: the shown day has no working window (declared hours ∖ sleep ∖ 00–06) — the empty
+  // state names the day, not the inbox, and the deferred line is not shown (a legacy zero-block
+  // row would otherwise read "No room today for N tasks"). Derived from the local profile, so a
+  // cold start on a day off needs no request to be truthful.
+  const windowOn = (day: string) =>
+    profile === undefined ||
+    profile.workingHours === undefined ||
+    hasWorkingWindowOn(
+      day,
+      profile.workingHours as WorkingHours,
+      (profile.sleepWindow ?? null) as MinuteRange | null,
+    );
+  const dayOff = !windowOn(shownDay);
+  // … and the in-app "Plan tomorrow?" card must not promise a plan the calendar cannot hold
+  // either (ADR-0019 §4 — the same rule as the notification; adversarial pass, build 6)
+  const tomorrowOff = !windowOn(tomorrowDay);
   // FR-24: the sheet shows once per plan; a decision (or "keep as is") is a fact on this device
   const tradeoffOptions = useMemo(() => infeasibleOptionsOf(plan), [plan]);
   // only today's plan: before 06:00 `plan` may be yesterday's, whose options are stale
@@ -250,6 +282,13 @@ export default function TodayScreen() {
     notifySettings.block_reminders &&
     permission === 'undetermined' &&
     !promptDismissed;
+  // FR-50 (build 6): reminders are on and allowed, but Android would deliver them inexactly
+  const exactAlarmPrompt =
+    hasBlocks &&
+    notifySettings.block_reminders &&
+    permission === 'granted' &&
+    exactness === 'denied' &&
+    !exactDismissed;
   // FR-26: after the ritual time, with tasks waiting and no plan for tomorrow, offer the one tap
   const inboxCount = taskRows.filter((task) => task.status === 'inbox').length;
   const ritualDue =
@@ -257,7 +296,7 @@ export default function TodayScreen() {
   const tomorrowPlanned = tomorrowRows[0] !== undefined;
   const tomorrowOpen = tomorrowRecs.filter((r) => r.status !== 'expired');
   const tomorrowFirst = tomorrowOpen[0];
-  const askTomorrow = ritualDue && !tomorrowPlanned && inboxCount > 0 && !planning;
+  const askTomorrow = ritualDue && !tomorrowPlanned && !tomorrowOff && inboxCount > 0 && !planning;
   const liveNotice = notice !== null && now.getTime() - notice.at < NOTICE_TTL_MS ? notice : null;
   const noticeKey =
     status === 'error'
@@ -380,6 +419,31 @@ export default function TodayScreen() {
           </View>
         </View>
       ) : null}
+      {exactAlarmPrompt ? (
+        <View
+          style={[styles.banner, { backgroundColor: theme.colors.primaryContainer }]}
+          accessibilityRole="summary"
+          accessibilityLabel={t('today.exactAlarm.title')}
+        >
+          <ThemedText>{t('today.exactAlarm.title')}</ThemedText>
+          <ThemedText variant="caption">{t('today.exactAlarm.body')}</ThemedText>
+          <View style={styles.bannerActions}>
+            <Button
+              kind="secondary"
+              label={t('today.exactAlarm.allow')}
+              onPress={() => openExactAlarmSettingsAction('today_card')}
+            />
+            <Button
+              kind="secondary"
+              label={t('today.exactAlarm.later')}
+              onPress={() => {
+                dismissExactAlarmPrompt();
+                setExactDismissed(true);
+              }}
+            />
+          </View>
+        </View>
+      ) : null}
       {tomorrowPlanned && tomorrowFirst !== undefined ? (
         <ThemedText variant="caption" tone="secondary" style={styles.notice}>
           {tomorrowOpen.length === 1
@@ -495,12 +559,14 @@ export default function TodayScreen() {
             />
           )}
         />
+      ) : dayOff ? (
+        <EmptyState title={t('today.dayOff.title')} body={t('today.dayOff.body')} />
       ) : emptyInbox ? (
         <EmptyState title={t('today.emptyInbox.title')} body={t('today.emptyInbox.body')} />
       ) : (
         <EmptyState title={t('today.empty.title')} body={t('today.empty.body')} />
       )}
-      {unplaced.length > 0 ? (
+      {unplaced.length > 0 && !dayOff ? (
         <View style={styles.deferred} accessibilityRole="summary">
           <ThemedText variant="caption" tone="secondary">
             {unplaced.length === 1

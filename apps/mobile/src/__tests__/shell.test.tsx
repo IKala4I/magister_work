@@ -18,6 +18,10 @@ jest.mock('../domain/notificationActions', () => ({
   dismissRemindersPrompt: () => {},
   enableRemindersAction: () => Promise.resolve('granted'),
   updateNotificationSettingsAction: () => {},
+  reminderExactness: () => 'not_applicable',
+  isExactAlarmPromptDismissed: () => true,
+  dismissExactAlarmPrompt: () => {},
+  openExactAlarmSettingsAction: () => {},
 }));
 jest.mock('../privacy/exportData', () => ({ exportDataAction: jest.fn() }));
 jest.mock('../privacy/deleteAccount', () => ({ deleteAccountAction: jest.fn() }));
@@ -34,6 +38,8 @@ jest.mock('../db/useProfile', () => ({
   useOnboardingComplete: () => true,
   useCurrentProfile: () => undefined,
 }));
+// ADR-0019: the plan trigger reads the profile row for the local window check — no row here
+jest.mock('../db/profile', () => ({ getProfile: () => undefined }));
 jest.mock('../domain/taskActions', () => ({
   createTaskAction: jest.fn(),
   updateTaskAction: jest.fn(),
@@ -146,6 +152,12 @@ describe('router shell', () => {
     expect(screen.getByText(en['tabs.inbox'])).toBeTruthy();
     expect(screen.getByText(en['tabs.focus'])).toBeTruthy();
     expect(screen.getByText(en['tabs.insights'])).toBeTruthy();
+    // The header gear is a BUTTON to assistive tech: expo-router's `Link asChild` injects
+    // role="link" and RN ≥ 0.73 lets `role` outrank accessibilityRole — TalkBack read "Open
+    // settings, link" on the Pixel 7a (hardware pass day 5, item 16). The child's own `role` wins.
+    const gear = screen.getByLabelText(en['settings.open.a11y']);
+    expect(gear.props.role).toBe('button');
+    expect(gear.props.accessibilityRole).toBe('button');
   });
 
   it('a tab exposes its name only — the icon glyph is hidden from assistive tech (NFR-A1, hardware pass #8)', async () => {

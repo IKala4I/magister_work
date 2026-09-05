@@ -28,6 +28,8 @@ import type { TaskCategory } from '../src/db/tasks';
 import { useCurrentProfile } from '../src/db/useProfile';
 import {
   enableRemindersAction,
+  openExactAlarmSettingsAction,
+  reminderExactness,
   reminderPermissionState,
   updateNotificationSettingsAction,
 } from '../src/domain/notificationActions';
@@ -35,6 +37,7 @@ import { notificationSettingsOf, RITUAL_TIME_PRESETS } from '../src/domain/notif
 import { formatRelative } from '../src/domain/relativeTime';
 import { t, type MessageKey } from '../src/i18n';
 import type { PermissionState } from '../src/notifications/setup';
+import type { ExactAlarmState } from '../modules/exact-alarm';
 import { isAnalyticsEnabled, setAnalyticsEnabled } from '../src/observability/analytics';
 import { deleteAccountAction } from '../src/privacy/deleteAccount';
 import { exportDataAction } from '../src/privacy/exportData';
@@ -316,12 +319,15 @@ function NotificationsSection() {
   const profile = useCurrentProfile();
   const settings = notificationSettingsOf(profile?.settings ?? null);
   const [permission, setPermission] = useState<PermissionState | null>(null);
+  const [exactness, setExactness] = useState<ExactAlarmState | null>(null);
   useEffect(() => {
     let alive = true;
-    const refresh = () =>
+    const refresh = () => {
+      setExactness(reminderExactness()); // FR-50 on Android 12+ (build 6)
       void reminderPermissionState().then((p) => {
         if (alive) setPermission(p);
       });
+    };
     refresh();
     // back from the OS settings screen (Linking.openSettings): re-read (P10 adversarial #9)
     const sub = AppState.addEventListener('change', (state) => {
@@ -372,6 +378,18 @@ function NotificationsSection() {
             kind="secondary"
             label={t('settings.notifications.openSettings')}
             onPress={() => void Linking.openSettings()}
+          />
+        </View>
+      ) : null}
+      {settings.block_reminders && permission === 'granted' && exactness === 'denied' ? (
+        <View style={styles.block}>
+          <ThemedText variant="caption" tone="secondary">
+            {t('settings.notifications.exactAlarm.hint')}
+          </ThemedText>
+          <Button
+            kind="secondary"
+            label={t('settings.notifications.exactAlarm.allow')}
+            onPress={() => openExactAlarmSettingsAction('settings')}
           />
         </View>
       ) : null}

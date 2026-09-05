@@ -8,8 +8,14 @@
 import { useCallback, useEffect } from 'react';
 import { AppState } from 'react-native';
 
+import { currentUserId } from '../auth/identity';
+import { db } from '../db/client';
 import type { PlanTrigger } from '../db/plans';
+import { getProfile } from '../db/profile';
+import type { LocalDb } from '../db/writes';
 import { decidePlanTrigger, requestPlanDayOf } from '../domain/planTrigger';
+import { hasWorkingWindowOn, type MinuteRange, type WorkingHours } from '../domain/workingHours';
+import { track } from '../observability/analytics';
 import { usePlanStore } from '../state/plan';
 
 import { isPlanRequestInFlight, type PlanRequestOutcome, requestPlan } from './planRequest';
@@ -19,8 +25,28 @@ import { lastRequestedPlanDay, rememberRequestedPlanDay } from './planRequestDay
 const ANSWERED_OUTCOMES: ReadonlySet<PlanRequestOutcome['kind']> = new Set([
   'planned',
   'empty_inbox',
+  'no_working_window',
   'rate_limited',
 ]);
+
+/**
+ * ADR-0019, client half: a plan day without a working window is answered from the local profile
+ * — no session, no sync, no round trip — and counts as answered (the dedup key is written). The
+ * function refuses the same day for a stale client; the ritual's `notification_response` fact
+ * is logged before this runs (src/notifications/respond.ts), so FR-32 is untouched. A MANUAL
+ * re-plan skips the local check: it runs the pre-plan sync first, so a working window added on
+ * the server (the hardware-pass helper today; an hours editor later) is planned on the very tap
+ * instead of after an unrelated pull — the function's answer is cheap and unpersisted.
+ */
+function localDayWithoutWindow(planDate: string): boolean {
+  const profile = getProfile(db as unknown as LocalDb, currentUserId());
+  if (profile === undefined) return false; // no profile yet → the server answers (404 / plan)
+  return !hasWorkingWindowOn(
+    planDate,
+    profile.workingHours as WorkingHours,
+    profile.sleepWindow as MinuteRange | null,
+  );
+}
 
 export async function runPlanRequest(
   trigger: PlanTrigger,
@@ -28,8 +54,20 @@ export async function runPlanRequest(
   /** P10 (FR-26): the evening ritual plans TOMORROW; every other trigger plans the current day. */
   planDate: string = requestPlanDayOf(now),
 ): Promise<void> {
-  usePlanStore.setState({ status: 'planning' });
-  const outcome = await requestPlan({ planDate, trigger, now });
+  let outcome: PlanRequestOutcome;
+  if (trigger !== 'manual' && localDayWithoutWindow(planDate)) {
+    track('plan_requested', {
+      trigger,
+      outcome: 'no_working_window',
+      duration_ms: 0,
+      engine: null,
+      model_version: null,
+    });
+    outcome = { kind: 'no_working_window', planDate, durationMs: 0 };
+  } else {
+    usePlanStore.setState({ status: 'planning' });
+    outcome = await requestPlan({ planDate, trigger, now });
+  }
   // The dedup key is written only once the server has actually ANSWERED today's request
   // (planned / empty inbox / rate-limited). Offline, no session, a missing profile or a failure
   // leave it unwritten so the next foreground retries (the in-flight guard prevents a double
@@ -49,6 +87,10 @@ export async function runPlanRequest(
       break;
     case 'empty_inbox':
       usePlanStore.setState({ status: 'idle', emptyInbox: true });
+      break;
+    case 'no_working_window':
+      // Today derives its copy from the profile (the day is a fact, not a request state)
+      usePlanStore.setState({ status: 'idle', emptyInbox: false });
       break;
     case 'no-session':
       usePlanStore.setState({ status: 'no_session' });

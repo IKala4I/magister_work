@@ -1,10 +1,10 @@
 # ADR-0019 — Days without a working window: no plan request, no persisted plan, no ritual, and a truthful Today
 
 - **Date:** 2026-09-04
-- **Status:** **accepted** (technical decision under the working-mode rule; the owner classed the
-  finding as a product defect and asked for the rule) — **implementation scheduled for the
-  post-pass fix batch** (client + function; hardware verification unverified-by-choice, the owner
-  stopped the pass after day 4).
+- **Status:** **accepted, implemented 2026-09-05** (post-pass fix batch, build 6: commits
+  `a6cc959` function, `d585f61` client) — technical decision under the working-mode rule; the
+  owner classed the finding as a product defect and asked for the rule. Hardware verification on
+  build 6: see the device checklist (UC-03 non-working days) and the build-6 notes.
 - **Phase:** hardware pass (post-P12), Android day 4, evening
 - **Spec anchors:** File 02 FR-20 ("respecting … working hours"), FR-26 ("Plan tomorrow" evening
   ritual, one-tap accept/adjust), UC-03 (daily plan generation, 06:00 local or first open), UC-08
@@ -107,3 +107,42 @@ do" is noise under the ≤ 5/day cap and the no-guilt rule; (c) deriving the sta
 - Thesis: this is the cleanest example in the pass of a defect that neither the simulator nor the
   tests could surface — it needs a multi-day run across a real week boundary on a real calendar
   (thesis-corrections #52).
+
+## Implementation notes (2026-09-05, build 6)
+
+- **Function.** `hasWorkingWindow` in `_shared/grid.ts` is `buildGrid` without the clock and the
+  calendar (`busy: []`, `nowMs: null`) — one predicate for both engines and the check. The handler
+  answers `200 { status: 'no_working_window', plan_date }` after the 429 / profile / date checks
+  and before the empty-inbox check. A working day whose window has already passed is still planned
+  (an empty plan is a plan); the week horizon has a window when any of its days does.
+- **Client.** `hasWorkingWindowOn(day, hours, sleep)` mirrors the predicate for one local day on
+  midnight-aligned 15-min ticks (`src/domain/workingHours.ts`), reading malformed profile data the
+  way `buildGrid` does (an end past midnight is cut at the last tick, a `{}` sleep window is none)
+  so the two sides never disagree on "day off". `runPlanRequest` answers a day off from the local
+  profile BEFORE the session/sync/network path for `first_open` / `new_day` / `evening_ritual` —
+  no round trip, no planning banner, works offline — and the outcome is "answered" (the durable
+  dedup key is written for `first_open` / `new_day`; the ritual's request never touches today's
+  key). A **manual** re-plan skips the local check: it runs the pre-plan sync first and lets the
+  function answer, so a working window added on the server is planned on that very tap (the
+  answer is cheap and unpersisted; adversarial pass finding 2). Telemetry:
+  `plan_requested.outcome = 'no_working_window'` with `duration_ms = 0` on the local path.
+- **Today.** The day-off state is derived from the profile, not from a request outcome, so a cold
+  start on a Saturday is truthful without any request; the deferred line of a legacy zero-block
+  row is hidden on such a day. The app ships English only (`src/i18n/en.ts`); the Ukrainian copy in
+  Decision §3 is recorded for the future `uk` catalog. "Plan my day" stays visible: a tap on a day
+  off syncs and asks the server (banner, then the same day-off copy) — the tap that follows a
+  server-side hours edit plans the day. The in-app "Plan tomorrow?" card (FR-26 on Today) obeys
+  §4 like the notification: it is not offered when tomorrow has no window (adversarial pass,
+  finding 1 — the same promise one screen over).
+- **Ritual.** `planNotifications` takes the profile's hours and sleep window; the daily variant is
+  skipped when `nextPlanDayOf(fireAt)` has no window, the Sunday variant is kept; a skipped ritual
+  frees its cap slot for block reminders. A ritual that already fired for such a day (delivered
+  before build 6, or hours removed since) is handled by §5: the fact is logged in `respond.ts`
+  before the request, the request is answered locally, Today shows the day-off copy.
+- **Contract.** `PlanRequestResponse` gains the member in `_shared/types.ts` and
+  `apps/mobile/src/sync/types.ts`; `packages/shared/api.ts` is generated from the RecSys
+  service's OpenAPI, not from the edge function, so no `chore(repo):` regeneration applies.
+- **Tests.** Deno: handler (before the engines, nothing persisted, ritual trigger, empty inbox on a
+  day off, night-only hours, a passed window still planned, 429 first) + grid predicate. Jest:
+  predicate cases, trigger hook (local answer, dedup, manual, ritual, server answer, no profile),
+  Today copy, planner (skip / keep / Sunday / no inputs), scheduler integration.

@@ -45,7 +45,7 @@ export type AnalyticsEvents = {
    */
   plan_requested: {
     trigger: 'first_open' | 'new_day' | 'manual' | 'evening_ritual';
-    outcome: 'learned' | 'arm_a' | 'fallback' | 'empty_inbox' | 'error';
+    outcome: 'learned' | 'arm_a' | 'fallback' | 'empty_inbox' | 'no_working_window' | 'error';
     duration_ms: number;
     engine: 'learned' | 'heuristic' | null;
     model_version: string | null;
@@ -146,7 +146,11 @@ export type AnalyticsEvents = {
     muted: number;
     past: number;
     reason: 'ok' | 'no_permission';
+    /** FR-50 on Android 12+: whether the OS delivers the schedule exactly (build 6). */
+    exact: 'allowed' | 'denied' | 'not_applicable' | 'unavailable';
   };
+  /** FR-50 (build 6): the exact-alarm card / Settings row — the user opened the OS screen or declined. */
+  exact_alarm_prompt: { action: 'open_settings' | 'dismiss'; source: 'today_card' | 'settings' };
   /** FR-32/FR-50 (P10): the user acted on a local notification (the fact is the `events` row). */
   notification_opened: {
     kind: 'block_reminder' | 'evening_ritual';

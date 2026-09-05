@@ -84,7 +84,9 @@ path cannot be exercised live in this phase.
    (RLS proves nothing beyond the user's own rows is needed); writes (`plans`,
    `recommendations`) through the service role. Flow: 405/401/400 → rate limit
    (`PLAN_RATE_LIMIT_PER_DAY` = 30 per rolling 24 h → 429) → context (404 without a completed
-   profile) → `empty_inbox` (no plan row, no rate-limit consumption — UC-03 A2) → engine
+   profile) → `no_working_window` (ADR-0019, 2026-09-05: the plan day has no working window —
+   no plan row, no rate-limit consumption) → `empty_inbox` (no plan row, no rate-limit
+   consumption — UC-03 A2) → engine
    selection: **arm A (from `study_assignments` covering `plan_date`) never calls the service**;
    otherwise `/plan` with `X-Service-Key` under the remaining share of
    `PLAN_FALLBACK_BUDGET_MS` = 1.9 s (Appendix A), and on timeout / network / HTTP / invalid

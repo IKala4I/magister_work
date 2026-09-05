@@ -18,6 +18,9 @@ function NewTaskButton() {
   return (
     <Link href="/task/new" asChild>
       <Pressable
+        // `Link asChild` injects role="link"; the child's `role` wins (Radix Slot) and in RN ≥ 0.73
+        // `role` outranks accessibilityRole — TalkBack said "link" (hardware pass day 5, item 16)
+        role="button"
         accessibilityRole="button"
         accessibilityLabel={t('task.new.title')}
         hitSlop={8}
@@ -34,6 +37,7 @@ function SettingsButton() {
   return (
     <Link href="/settings" asChild>
       <Pressable
+        role="button"
         accessibilityRole="button"
         accessibilityLabel={t('settings.open.a11y')}
         hitSlop={8}

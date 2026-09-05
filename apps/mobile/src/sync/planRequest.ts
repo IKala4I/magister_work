@@ -19,6 +19,8 @@ import type { PlanRequestBody, PlanRequestResponse } from './types';
 export type PlanRequestOutcome =
   | { kind: 'planned'; plan: PlanRow; durationMs: number }
   | { kind: 'empty_inbox'; durationMs: number }
+  /** ADR-0019: the day has no working window (answered by the server here; locally in usePlanTrigger). */
+  | { kind: 'no_working_window'; planDate: string; durationMs: number }
   | { kind: 'no-session' }
   | { kind: 'offline' }
   | { kind: 'rate_limited' }
@@ -92,6 +94,18 @@ async function run(input: {
       model_version: null,
     });
     return { kind: 'empty_inbox', durationMs };
+  }
+  if (response.status === 'no_working_window') {
+    // the client's own check runs first (usePlanTrigger); the server's answer covers a stale
+    // profile — either way nothing was persisted and the day counts as answered
+    track('plan_requested', {
+      trigger: input.trigger,
+      outcome: 'no_working_window',
+      duration_ms: durationMs,
+      engine: null,
+      model_version: null,
+    });
+    return { kind: 'no_working_window', planDate: response.plan_date, durationMs };
   }
   const plan = applyPlanResponse(db as unknown as LocalDb, {
     userId: uid,

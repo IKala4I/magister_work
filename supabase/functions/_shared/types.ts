@@ -217,7 +217,9 @@ export type PlanRequestResponse =
     infeasible: Infeasible | null;
     expired_recommendation_ids: string[];
   }
-  | { status: 'empty_inbox' };
+  | { status: 'empty_inbox' }
+  /** ADR-0019: the plan day has no working window — nothing persisted, no budget consumed. */
+  | { status: 'no_working_window'; plan_date: string };
 
 export interface PlanRequestError {
   error: string;

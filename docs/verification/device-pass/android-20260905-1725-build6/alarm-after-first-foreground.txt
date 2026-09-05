@@ -1,0 +1,8 @@
+      operation=PendingIntent{fb8ea0e: PendingIntentRecord{c23bb87 com.google.android.calendar broadcastIntent}}
+      idle-options=Bundle[{android.pendingIntent.backgroundActivityAllowed=2, android:broadcast.temporaryAppAllowlistReasonCode=302, android:broadcast.temporary
+    RTC_WAKEUP #81: Alarm{ebea228 type 0 origWhen 1788714000000 whenElapsed 285594754 com.hourwell.app}
+      tag=*walarm*:expo.modules.notifications.NOTIFICATION_EVENT
+      type=RTC_WAKEUP origWhen=2026-09-06 20:00:00.000 window=+1h0m0s0ms repeatInterval=0 count=0 flags=0x20
+      policyWhenElapsed: requester=+1d2h28m25s809ms app_standby=-5s71ms device_idle=-- battery_saver=-5s71ms
+      whenElapsed=+1d2h28m25s809ms maxWhenElapsed=+1d3h28m25s809ms
+      operation=PendingIntent{f836b41: PendingIntentRecord{ae8a8e6 com.hourwell.app broadcastIntent}}

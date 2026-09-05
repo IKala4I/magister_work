@@ -5,11 +5,16 @@
  * hours editor — ADR-0019 context). Usage:
  *   node docs/verification/hw-set-working-hours.mjs '{"sat":[540,1080]}'   # merge days in
  *   node docs/verification/hw-set-working-hours.mjs --remove sat            # drop a day
+ *   … --user <uuid>   # the device account (default: the day-5 account, erased 2026-09-05 — pass
+ *                     # the fresh one; build-6 re-check). The script refuses to run without a row.
  */
 import { dbQuery } from '/Users/vladyslav/Workspace/magister_work/docs/verification/lib/db-query.mjs';
-const ROOT = '/Users/vladyslav/Workspace/magister_work',
-  U = '334512a3-f28c-4ac0-96d8-17d9b1bae52c';
-const [a, b] = process.argv.slice(2);
+const ROOT = '/Users/vladyslav/Workspace/magister_work';
+const argv = process.argv.slice(2);
+const ui = argv.indexOf('--user');
+const U = ui >= 0 ? argv.splice(ui, 2)[1] : '334512a3-f28c-4ac0-96d8-17d9b1bae52c';
+if (!/^[0-9a-f-]{36}$/.test(U ?? '')) throw new Error('--user must be a uuid');
+const [a, b] = argv;
 let expr;
 if (a === '--remove') {
   if (!/^(mon|tue|wed|thu|fri|sat|sun)$/.test(b)) throw new Error('day');
@@ -26,4 +31,5 @@ const rows = dbQuery(
   `update public.profiles set working_hours = ${expr} where user_id='${U}' returning working_hours, server_seq, updated_at`,
   { prefix: 'day5' },
 );
+if (rows.length === 0) throw new Error(`no profile row for ${U}`);
 console.log(JSON.stringify(rows));

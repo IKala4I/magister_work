@@ -1,7 +1,9 @@
 import {
   DEFAULT_SLEEP_WINDOW,
   DEFAULT_WORKING_HOURS,
+  dayKeyOf,
   formatMinutes,
+  hasWorkingWindowOn,
   isValidSleepWindow,
   isValidWorkingHours,
   isValidWorkingRange,
@@ -45,5 +47,47 @@ describe('working hours validation (ADR-0005/0006; specs/07 §5 shape)', () => {
     expect(formatMinutes(1080)).toBe('18:00');
     expect(formatMinutes(0)).toBe('0:00');
     expect(formatMinutes(1439)).toBe('23:59');
+  });
+});
+
+describe('hasWorkingWindowOn — ADR-0019 client mirror of the function predicate', () => {
+  it('dayKeyOf follows the device calendar with Monday = mon', () => {
+    expect(dayKeyOf('2026-09-07')).toBe('mon');
+    expect(dayKeyOf('2026-09-05')).toBe('sat');
+    expect(dayKeyOf('2026-09-06')).toBe('sun');
+  });
+  it('a declared weekday has a window; a day without hours has none', () => {
+    expect(hasWorkingWindowOn('2026-09-09', DEFAULT_WORKING_HOURS, DEFAULT_SLEEP_WINDOW)).toBe(
+      true,
+    );
+    expect(hasWorkingWindowOn('2026-09-05', DEFAULT_WORKING_HOURS, DEFAULT_SLEEP_WINDOW)).toBe(
+      false,
+    );
+    expect(hasWorkingWindowOn('2026-09-09', {}, null)).toBe(false);
+  });
+  it('hours removed entirely by the 00–06 rule or the sleep window count as no window', () => {
+    expect(hasWorkingWindowOn('2026-09-09', { wed: [60, 300] }, null)).toBe(false);
+    // 22:00–24:00 declared, asleep 21:00–07:00
+    expect(hasWorkingWindowOn('2026-09-09', { wed: [1320, 1440] }, [1260, 420])).toBe(false);
+    // one surviving tick (21:45–22:00 before a 22:00 sleep window) is a window
+    expect(hasWorkingWindowOn('2026-09-09', { wed: [1305, 1440] }, [1320, 420])).toBe(true);
+  });
+  it('ticks start at local midnight: a range narrower than one aligned tick has no window', () => {
+    expect(hasWorkingWindowOn('2026-09-09', { wed: [1430, 1440] }, null)).toBe(false);
+    expect(hasWorkingWindowOn('2026-09-09', { wed: [1420, 1440] }, null)).toBe(true);
+    expect(hasWorkingWindowOn('2026-09-09', { wed: [355, 375] }, null)).toBe(true); // 06:00 tick
+  });
+  it('malformed profile data is read the way buildGrid reads it, and never throws', () => {
+    expect(hasWorkingWindowOn('2026-09-09', { wed: [600, 540] }, null)).toBe(false); // reversed
+    // an end past midnight is cut at the day's last tick (the server plans such a day)
+    expect(hasWorkingWindowOn('2026-09-09', { wed: [540, 1500] }, null)).toBe(true);
+    // a non-aligned start snaps to the next tick like the server's midnight-based grid
+    expect(hasWorkingWindowOn('2026-09-09', { wed: [540.5, 1080] }, null)).toBe(true);
+    // a malformed sleep window ({} from a null server column, a string) is no sleep window
+    expect(hasWorkingWindowOn('2026-09-09', { wed: [540, 1080] }, {} as never)).toBe(true);
+    expect(hasWorkingWindowOn('2026-09-09', { wed: [540, 1080] }, 'x' as never)).toBe(true);
+    // a non-pair entry, or no hours object at all, is a day without hours
+    expect(hasWorkingWindowOn('2026-09-09', { wed: 'nine to five' as never }, null)).toBe(false);
+    expect(hasWorkingWindowOn('2026-09-09', undefined as never, null)).toBe(false);
   });
 });

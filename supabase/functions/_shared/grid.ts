@@ -236,6 +236,18 @@ export function buildGrid(input: BuildGridInput): Grid {
   };
 }
 
+/**
+ * ADR-0019 — whether the plan horizon has a working window at all: declared working hours ∖
+ * (sleep window ∪ the 00–06 rule), i.e. the grid BEFORE the clock and the calendar are applied.
+ * `now` and busy intervals are deliberately left out: a day whose window has already passed, or
+ * is fully booked, is still a working day (the engines answer that with an empty plan, which is
+ * a plan). A day without a window is answered `no_working_window` and never planned.
+ */
+export function hasWorkingWindow(input: Omit<BuildGridInput, 'busy' | 'nowMs'>): boolean {
+  const grid = buildGrid({ ...input, busy: [], nowMs: null });
+  return grid.workable.some((v) => v === 1);
+}
+
 export function tickStartMs(grid: Grid, k: number): number {
   return grid.originMs + k * grid.tickMinutes * 60_000;
 }

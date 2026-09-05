@@ -42,7 +42,8 @@ function context(over: Partial<PlanContext> = {}): PlanContext {
   return {
     profile: {
       timezone: 'Europe/Kyiv',
-      working_hours: { wed: [540, 1080] },
+      // Wednesday (T0's day) and Thursday (the ritual test plans tomorrow); no weekend — ADR-0019
+      working_hours: { wed: [540, 1080], thu: [540, 1080] },
       sleep_window: [1380, 420],
     },
     tasks: [
@@ -288,6 +289,50 @@ Deno.test('empty inbox (UC-03 A2): no service call, nothing persisted, status em
   assertEquals(await res.json(), { status: 'empty_inbox' });
   assertEquals(h.serviceCalls.length, 0);
   assertEquals(h.persisted.length, 0);
+});
+
+Deno.test('ADR-0019: a plan day without a working window is answered before the engines — nothing persisted, no budget, and before the empty-inbox check', async () => {
+  // the fixture profile works on Wednesdays only; 2026-08-29 is a Saturday inside the 7-day window
+  const h = harness();
+  const res = await handlePlanRequest(post({ plan_date: '2026-08-29' }), h.deps);
+  assertEquals(res.status, 200);
+  assertEquals(await res.json(), { status: 'no_working_window', plan_date: '2026-08-29' });
+  assertEquals(h.serviceCalls.length, 0);
+  assertEquals(h.persisted.length, 0);
+  // the evening ritual's request gets the same answer (a stale ritual on the eve of a day off)
+  const ritual = await handlePlanRequest(
+    post({ plan_date: '2026-08-29', trigger: 'evening_ritual' }),
+    h.deps,
+  );
+  assertEquals((await ritual.json()).status, 'no_working_window');
+  // an empty inbox on a non-working day is still "no working window" — the day is the reason
+  const empty = harness({ ctx: context({ tasks: [] }) });
+  const both = await handlePlanRequest(post({ plan_date: '2026-08-29' }), empty.deps);
+  assertEquals((await both.json()).status, 'no_working_window');
+  // hours that the sleep window and the 00–06 rule remove entirely count as no window …
+  const night = harness({
+    ctx: context({
+      profile: { timezone: 'Europe/Kyiv', working_hours: { wed: [0, 360] }, sleep_window: null },
+    }),
+  });
+  assertEquals(
+    (await (await handlePlanRequest(post({ plan_date: '2026-08-26' }), night.deps)).json()).status,
+    'no_working_window',
+  );
+  // … but a working day whose window has already passed is still planned (an empty plan is a plan)
+  const late = harness();
+  const past = await handlePlanRequest(
+    post({ plan_date: '2026-08-26', now: '2026-08-26T21:00:00+03:00' }),
+    late.deps,
+  );
+  assertEquals((await past.json()).status, 'planned');
+  assertEquals(late.persisted.length, 1);
+  // the 429 still comes first: the budget check precedes the window check
+  const limited = harness({ plans24h: 30 });
+  assertEquals(
+    (await handlePlanRequest(post({ plan_date: '2026-08-29' }), limited.deps)).status,
+    429,
+  );
 });
 
 Deno.test('learned path: context forwarded verbatim with the pinned ε/m, rows persisted as engine=learned', async () => {

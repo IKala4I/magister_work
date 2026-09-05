@@ -2,6 +2,7 @@ import { assert, assertEquals, assertThrows } from '@std/assert';
 import {
   buildGrid,
   feasibleStarts,
+  hasWorkingWindow,
   inWindow,
   localMidnightUtcMs,
   runLengths,
@@ -145,6 +146,43 @@ Deno.test('W = working hours ∖ (sleep ∪ busy±buffer ∪ past); 00–06 neve
   assert(!cut.workable[t(13, 0)] && cut.workable[t(13, 15)]);
   assertEquals(inWindow(30, [1380, 420]), true);
   assertEquals(inWindow(600, [1380, 420]), false);
+});
+
+Deno.test('hasWorkingWindow (ADR-0019): declared hours ∖ (sleep ∪ 00–06), never the clock or the calendar', () => {
+  const base = { horizon: 'day' as const, timezone: KYIV, workingHours: HOURS, sleepWindow: null };
+  assertEquals(hasWorkingWindow({ ...base, planDate: '2026-08-26' }), true); // Wednesday
+  assertEquals(hasWorkingWindow({ ...base, planDate: '2026-08-29' }), false); // Saturday, no hours
+  // hours entirely inside the 00–06 rule
+  assertEquals(
+    hasWorkingWindow({ ...base, planDate: '2026-08-26', workingHours: { wed: [60, 300] } }),
+    false,
+  );
+  // hours entirely inside the sleep window (22:00–24:00 declared, sleep 21:00–07:00)
+  assertEquals(
+    hasWorkingWindow({
+      ...base,
+      planDate: '2026-08-26',
+      workingHours: { wed: [1320, 1440] },
+      sleepWindow: [1260, 420],
+    }),
+    false,
+  );
+  // one surviving tick is a window
+  assertEquals(
+    hasWorkingWindow({
+      ...base,
+      planDate: '2026-08-26',
+      workingHours: { wed: [1305, 1440] },
+      sleepWindow: [1320, 420],
+    }),
+    true,
+  );
+  // a week horizon has a window when ANY of its days does (Saturday start, Wednesday inside)
+  assertEquals(hasWorkingWindow({ ...base, planDate: '2026-08-29', horizon: 'week' }), true);
+  assertEquals(
+    hasWorkingWindow({ ...base, planDate: '2026-08-29', horizon: 'week', workingHours: {} }),
+    false,
+  );
 });
 
 Deno.test('F_τ verbatim: [k, k+d+b) ⊆ W, e ≤ k, k + d ≤ dl; buffer may pass the deadline (L2)', () => {

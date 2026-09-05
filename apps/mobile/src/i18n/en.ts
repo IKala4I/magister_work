@@ -15,6 +15,8 @@ export const en = {
   'today.empty.body': 'Add a task in the Inbox and Hourwell plans it here.',
   'today.emptyInbox.title': 'Nothing to plan',
   'today.emptyInbox.body': 'Your inbox is empty. Add a task and your day fills in.',
+  'today.dayOff.title': 'No working hours today',
+  'today.dayOff.body': 'Hourwell plans your working days.',
   'today.plan': 'Plan my day',
   'today.replan': 'Re-plan',
   'today.planning': 'Planning your day…',
@@ -481,6 +483,9 @@ export const en = {
   'settings.notifications.reminders.denied':
     'Notifications are switched off for Hourwell in your system settings.',
   'settings.notifications.openSettings': 'Open system settings',
+  'settings.notifications.exactAlarm.hint':
+    'Exact timing is off — Android may deliver reminders up to an hour late.',
+  'settings.notifications.exactAlarm.allow': 'Allow exact alarms',
   'settings.notifications.mute': 'Mute reminders for',
   'settings.notifications.mute.a11y': 'Mute reminders for {category}',
   'settings.notifications.ritual': '"Plan tomorrow" in the evening',
@@ -533,6 +538,11 @@ export const en = {
     '10 minutes before a block starts — at most 5 a day. You choose what to mute.',
   'today.reminders.enable': 'Turn on',
   'today.reminders.later': 'Not now',
+  'today.exactAlarm.title': 'Reminders may arrive late',
+  'today.exactAlarm.body':
+    'Android holds reminders back until Hourwell may set exact alarms — one switch in the system settings.',
+  'today.exactAlarm.allow': 'Allow',
+  'today.exactAlarm.later': 'Not now',
   'today.tomorrow.planned': 'Tomorrow is planned: {count} blocks, first at {time}.',
   'today.tomorrow.plannedOne': 'Tomorrow is planned: one block at {time}.',
   'today.tomorrow.ask': 'Plan tomorrow?',

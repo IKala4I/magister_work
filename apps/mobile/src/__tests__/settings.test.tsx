@@ -44,11 +44,15 @@ const mockNotify = {
   update: jest.fn(),
   enable: jest.fn<Promise<string>, [unknown]>(() => Promise.resolve('granted')),
   permission: jest.fn(() => Promise.resolve('granted')),
+  exactness: 'not_applicable' as string,
+  openExactSettings: jest.fn(),
 };
 jest.mock('../domain/notificationActions', () => ({
   updateNotificationSettingsAction: (...a: unknown[]) => mockNotify.update(...a),
   enableRemindersAction: (source: unknown) => mockNotify.enable(source),
   reminderPermissionState: () => mockNotify.permission(),
+  reminderExactness: () => mockNotify.exactness,
+  openExactAlarmSettingsAction: (source: unknown) => mockNotify.openExactSettings(source),
 }));
 const mockPrivacy = { exportData: jest.fn(), deleteAccount: jest.fn() };
 jest.mock('../privacy/exportData', () => ({ exportDataAction: () => mockPrivacy.exportData() }));
@@ -203,6 +207,7 @@ describe('Settings — notifications (FR-50 / FR-26, P10)', () => {
   beforeEach(() => {
     mockProfile.settings = null;
     mockNotify.permission.mockResolvedValue('granted');
+    mockNotify.exactness = 'not_applicable';
   });
   it('renders the reminder switch, mute chips, the ritual switch and time presets from the profile', async () => {
     mockProfile.settings = {
@@ -233,6 +238,18 @@ describe('Settings — notifications (FR-50 / FR-26, P10)', () => {
     expect(mockNotify.enable).toHaveBeenCalledWith('settings');
     await fireEvent(sw, 'valueChange', false);
     expect(mockNotify.update).toHaveBeenCalledWith({ block_reminders: false });
+  });
+  it('inexact alarms (Android 12+, build 6) show the hint and the system-screen button; exact ones nothing', async () => {
+    mockNotify.exactness = 'denied';
+    await render(withSafeArea(<SettingsScreen />));
+    await act(async () => {});
+    expect(screen.getByText(en['settings.notifications.exactAlarm.hint'])).toBeTruthy();
+    await fireEvent.press(screen.getByLabelText(en['settings.notifications.exactAlarm.allow']));
+    expect(mockNotify.openExactSettings).toHaveBeenCalledWith('settings');
+    mockNotify.exactness = 'allowed';
+    await render(withSafeArea(<SettingsScreen />));
+    await act(async () => {});
+    expect(screen.queryByText(en['settings.notifications.exactAlarm.hint'])).toBeNull();
   });
   it('denied permission shows the calm hint with a system-settings link', async () => {
     mockNotify.permission.mockResolvedValue('denied');
