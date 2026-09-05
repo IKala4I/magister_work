@@ -1,0 +1,7 @@
+# Hourwell alarms after the timezone restore + foreground (2026-09-05 21:09 EEST), extracted from `dumpsys alarm`
+RTC_WAKEUP #23 origWhen=2026-09-05 21:35:00 window=0 exactAllowReason=permission pkg=com.hourwell.app
+RTC_WAKEUP #50 origWhen=2026-09-06 00:35:00 window=0 exactAllowReason=permission pkg=com.hourwell.app
+RTC_WAKEUP #53 origWhen=2026-09-06 01:20:00 window=0 exactAllowReason=permission pkg=com.hourwell.app
+RTC_WAKEUP #55 origWhen=2026-09-06 02:05:00 window=0 exactAllowReason=permission pkg=com.hourwell.app
+RTC_WAKEUP #58 origWhen=2026-09-06 02:50:00 window=0 exactAllowReason=permission pkg=com.hourwell.app
+RTC_WAKEUP #84 origWhen=2026-09-06 20:00:00 window=0 exactAllowReason=permission pkg=com.hourwell.app

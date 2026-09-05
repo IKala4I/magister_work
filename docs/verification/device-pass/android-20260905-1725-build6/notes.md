@@ -99,20 +99,60 @@ WITHOUT a working window (the ADR-0019 case), and tonight's daily ritual would p
    owner wants the project clean, FR-42 erasure from Settings is the one-minute route. Build 6 is
    on the phone (`lastUpdateTime 17:37:00`, the post-review APK `7e5e2fd8cef659b0…`).
 
+9. **UC-01 / FR-21 — blank cards on a 13-block list, both densities: 0 BLANK in 36 scans — the
+   item-5 caveat is closed (20:58–21:05).** The limiter had been the horizon, not the task count:
+   the minimum block is 30 min (`D_MIN_TICKS` = 2) and the 00–06 rule stops the grid at midnight,
+   so a Kyiv evening caps at 6 blocks whatever the inbox holds. Recipe (no clock waited on): device
+   zone → `America/Los_Angeles` (`settings put global auto_time_zone 0; cmd alarm set-timezone …`
+   → 10:58 PDT, same calendar date), the profile `timezone` → the same zone on the server (the grid
+   runs in the profile zone; the client sends the device-local date), `sat: [540, 1260]` on the
+   server; HOME → `am kill` → `am start -W` (970 ms) so Hermes picked the zone up; the legacy
+   7-block plan rendered 7:45 AM… in PDT with "Not done — back in your Inbox" on the lapsed blocks;
+   "Re-plan" tapped → plan `3aa1342a` 20:59:15 EEST, manual, learned FEASIBLE, **13 blocks
+   11:00 AM–8:45 PM PDT** (the 13th an Experiment block; "No room today for 12 tasks" = 25 − 13;
+   `today-13blocks-top-pdt.png`). Sweeps (`hw-blank-cards-sweep.sh`, which now takes a `swipes`
+   argument): **default density, 6 cycles × 5 drags, 24 card scans, 0 BLANK** (std-dev 25.0–38.5;
+   `blank-card-sweep-13blocks-default.log`, `today-sweep-bottom-13blocks.png`); **font scale 1.3,
+   6 cycles × 7 drags, 12 card scans, 0 BLANK** (28.1–36.2; `blank-card-sweep-13blocks-fontscale-1.3.log`,
+   `today-sweep-bottom-13blocks-fontscale-1.3.png`). The bottom was reached in every cycle at both
+   densities — the 8:15 PM card sits in the tree of every bottom dump. With item 5 the build-6
+   evidence is **72 card scans over 7- and 13-block lists at two densities, 0 BLANK**; the day-5
+   trigger was a 10-block list, so the ≥ 10 case is covered and the checklist row flips without the
+   caveat. Assumption, stated: the zone shift changes only the horizon; the rendering path (FlashList
+   recycling + the Android panel) is the same in any zone. Two seeded titles repeat in the list
+   ("b6 task 01 admin" at 5:00 and 7:30 PM) — two tasks with the same title from the two seeding
+   runs, not a duplicate block.
+10. **Restore + one check of the deployed function (21:06–21:10).** Font scale 1.0; device zone back
+    to `Europe/Kiev` with auto time zone on (`date` → 21:06 EEST); profile `timezone` back, `sat`
+    removed; HOME → `am kill` → `am start -W` (615 ms) → the pull; Today shows the 13-block plan
+    rendered 9:00 PM–… in EEST (a legacy plan on a day off again); `dumpsys alarm`: five exact block
+    reminders (21:35, 00:35, 01:20, 02:05, 02:50 — the day's cap) + the Sunday review 20:00, all
+    `window=0 exactAllowReason=permission` (`alarm-after-restore-13blocks.txt`). Nobody taps them;
+    the `lapse_observed` facts tonight's foregrounds wrote on the legacy blocks are test artefacts.
+    Then the optional check from the handoff: `plan-request` **v13** (deployed by the owner 20:47
+    EEST; `supabase functions list` → version 13, ACTIVE) — one manual "Re-plan" tap on the
+    windowless Saturday: `plans` 3 → 3 (no row persisted), no offline / error banner, the timeline
+    unchanged. A manual request skips the local check and goes to the server, and on v12 the same
+    tap persisted a zero-block row (the 17:37 row in item 5 is that shape, with a window), so the
+    absence of a row is the v13 behaviour on the device. The literal `no_working_window` answer is
+    not on the device — PostHog `plan_requested` (owner export) and the function log carry it.
+    The TalkBack _listen_ is skipped by the owner's decision (2026-09-05 evening): the dump
+    showing `android.widget.Button` is the evidence.
+
 ## Results by build
 
-| Build              | Source                                                                                                               | Installed                  | Checks                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| ------------------ | -------------------------------------------------------------------------------------------------------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 6 (pre-review cut) | `post-p12/fix-batch-build6` at 814f9ca, clean prebuild + `assembleRelease` 17:18, `389452bc34c31b00…`, 121 304 774 B | 17:22:06                   | gate ✓; fresh onboarding ✓ (flow failed only on its own "No plan yet" assertion); ADR-0019 §1–§2 first open on a Saturday ✓ (0 rows, dedup across relaunch + foreground); §4 ritual list ✓ (Sunday review only, `window=+1h` while the app-op was default); roles ✓ (dump)                                                                                                                                                   |
-| 6 (post-review)    | same branch at b5c7ad6 (review fixes), clean prebuild + `assembleRelease` 17:35, `7e5e2fd8cef659b0…`, 121 304 958 B  | 17:37:00 (`-r`, data kept) | gate ✓; day-off copy → "No plan yet" on the pull of a Saturday window with no request ✓; manual re-plan asks the server ✓ (0-block plan at 17:37 with 15 min left, 7 blocks at 17:39 after the longer window); **blank cards 0/36 scans** (24 default + 12 at 1.3×) ✓; exact-alarm prompt round trip ✓ (`window=0 exactAllowReason=permission` on all six alarms); FR-26 tomorrow card hidden / shown by tomorrow's window ✓ |
+| Build              | Source                                                                                                               | Installed                  | Checks                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 6 (pre-review cut) | `post-p12/fix-batch-build6` at 814f9ca, clean prebuild + `assembleRelease` 17:18, `389452bc34c31b00…`, 121 304 774 B | 17:22:06                   | gate ✓; fresh onboarding ✓ (flow failed only on its own "No plan yet" assertion); ADR-0019 §1–§2 first open on a Saturday ✓ (0 rows, dedup across relaunch + foreground); §4 ritual list ✓ (Sunday review only, `window=+1h` while the app-op was default); roles ✓ (dump)                                                                                                                                                                                                                                                                                                                                 |
+| 6 (post-review)    | same branch at b5c7ad6 (review fixes), clean prebuild + `assembleRelease` 17:35, `7e5e2fd8cef659b0…`, 121 304 958 B  | 17:37:00 (`-r`, data kept) | gate ✓; day-off copy → "No plan yet" on the pull of a Saturday window with no request ✓; manual re-plan asks the server ✓ (0-block plan at 17:37 with 15 min left, 7 blocks at 17:39 after the longer window); **blank cards 0/36 scans** (24 default + 12 at 1.3×) ✓; exact-alarm prompt round trip ✓ (`window=0 exactAllowReason=permission` on all six alarms); FR-26 tomorrow card hidden / shown by tomorrow's window ✓; **blank cards 0/36 on a 13-block list** (24 default + 12 at 1.3×, Pacific-time horizon, item 9); manual re-plan on a windowless day → no row on `plan-request` v13 (item 10) |
 
 ## Not verified on this build (by choice or by construction)
 
-- The TalkBack _spoken_ role of the gear (the dump shows `android.widget.Button`; a 10-s listen is the owner's).
-- A 10-block list on the blank-card sweep (7 blocks — the late-afternoon window); the day-5 trigger was a 10-block list. Two sweeps and a 1.3× font scale stand in; the row flips to ✅ with that caveat written next to it.
+- The TalkBack _spoken_ role of the gear — skipped by the owner's decision (the dump shows `android.widget.Button`; that is the evidence).
+- ~~A 10-block list on the blank-card sweep~~ — closed by item 9 (13 blocks, both densities, 0/36).
 - A ritual actually delivered on the eve of a day off (there is none to deliver — the check is the alarm list) and a stale ritual accept (ADR-0019 §5; unit-tested).
 - `no_working_window` from the FUNCTION on the device: every device-side day-off answer was local (the client check runs first); the function path is Deno-tested and was exercised once indirectly — the 17:37 manual tap went to the server and got a plan, not a refusal, because Saturday had a window by then.
 
 ## Evidence files
 
-`today-first-open-day-off.png` (item 1) · `alarm-after-first-foreground.txt` (3) · `today-saturday-planned-b6.png` / `today-saturday-replanned-b6.png` (5) · `blank-card-sweep-default.log`, `blank-card-sweep-fontscale-1.3.log`, `today-sweep-bottom-b6.png`, `today-sweep-bottom-fontscale-1.3.png` (5) · `exact-alarm-os-screen.png`, `exact-alarm-os-toggled.png`, `today-after-exact-allowed.png`, `alarm-after-exact-allowed.txt` (6) · `today-ritual-due-sunday-off.png`, `today-ritual-due-sunday-window.png` (7). Raw `uiautomator` dumps, native hierarchies and the full `dumpsys alarm` stay in the session scratchpad (owner rule: raw device logs stay private).
+`today-first-open-day-off.png` (item 1) · `alarm-after-first-foreground.txt` (3) · `today-saturday-planned-b6.png` / `today-saturday-replanned-b6.png` (5) · `blank-card-sweep-default.log`, `blank-card-sweep-fontscale-1.3.log`, `today-sweep-bottom-b6.png`, `today-sweep-bottom-fontscale-1.3.png` (5) · `exact-alarm-os-screen.png`, `exact-alarm-os-toggled.png`, `today-after-exact-allowed.png`, `alarm-after-exact-allowed.txt` (6) · `today-ritual-due-sunday-off.png`, `today-ritual-due-sunday-window.png` (7) · `today-13blocks-top-pdt.png`, `blank-card-sweep-13blocks-default.log`, `blank-card-sweep-13blocks-fontscale-1.3.log`, `today-sweep-bottom-13blocks.png`, `today-sweep-bottom-13blocks-fontscale-1.3.png` (9) · `alarm-after-restore-13blocks.txt` (10). Raw `uiautomator` dumps, native hierarchies and the full `dumpsys alarm` stay in the session scratchpad (owner rule: raw device logs stay private).

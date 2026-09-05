@@ -513,4 +513,6 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     as a found-and-fixed defect with the device evidence, (b) as a limitation of fact-logging
     architectures (the rendering path is part of the measurement instrument), and (c) alongside #52
     as the second finding only hardware surfaced — the simulator runs the iOS panel, which has a
-    different implementation.
+    different implementation. Device evidence for (a): build 6 on the Pixel 7a, 0 BLANK in 72 card
+    scans over 7- and 13-block lists at default density and 1.3× font scale
+    (`android-20260905-1725-build6/notes.md` items 5 and 9).

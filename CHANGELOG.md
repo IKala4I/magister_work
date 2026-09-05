@@ -56,8 +56,9 @@ Everything below condenses P0–P11 for release notes and the thesis; per-phase 
   data; the exact-alarm module never throws into JS; `unavailable` state in telemetry (+4 tests).
 - **Device re-check on the Pixel 7a (build 6, fresh account, a real Saturday, all over adb):**
   ADR-0019 first open → day-off copy, 0 plan rows, no request; only the Sunday review alarm;
-  header buttons dump as `Button`; **blank cards 0/36 scans** (7-block list, two sweeps, 1.3× font
-  scale — caveat recorded); exact-alarm card → OS switch → all alarms `window=0`; the tomorrow
+  header buttons dump as `Button`; **blank cards 0/72 scans** (7- and 13-block lists, default density
+  and 1.3× font scale — the 13-block list via a westward timezone shift for a full-day horizon);
+  a manual re-plan on a windowless day persists no row on the deployed `plan-request` v13; exact-alarm card → OS switch → all alarms `window=0`; the tomorrow
   card hidden / shown by tomorrow's window. `docs/verification/device-pass/android-20260905-1725-build6/`.
 - Build 6 carries the Expo SDK 57 patch drift (3) from PR #48.
 
