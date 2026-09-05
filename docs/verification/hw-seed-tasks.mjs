@@ -3,7 +3,9 @@
  * the next foreground pulls them (the `tasks_seq` trigger stamps server_seq, so the pull sees them
  * like any other write). Used to fill a fresh anonymous account for a ≥ 10-block plan without
  * typing into the quick-add over adb. Tasks are user data, not facts — nothing is attributed.
- *   node docs/verification/hw-seed-tasks.mjs --user <uuid> [count=12]
+ *   node docs/verification/hw-seed-tasks.mjs --user <uuid> [count=12] [--minutes 30]
+ *   (default durations cycle 30/45/60; --minutes pins one length — a late-afternoon window needs
+ *   short tasks to reach ≥ 10 blocks)
  */
 import { dbQuery } from '/Users/vladyslav/Workspace/magister_work/docs/verification/lib/db-query.mjs';
 
@@ -13,12 +15,17 @@ const ui = argv.indexOf('--user');
 if (ui < 0) throw new Error('--user <uuid> is required');
 const U = argv.splice(ui, 2)[1];
 if (!/^[0-9a-f-]{36}$/.test(U ?? '')) throw new Error('--user must be a uuid');
+const mi = argv.indexOf('--minutes');
+const MINUTES = mi >= 0 ? Number(argv.splice(mi, 2)[1]) : null;
+if (MINUTES !== null && !(Number.isInteger(MINUTES) && MINUTES >= 15 && MINUTES <= 240)) {
+  throw new Error('--minutes must be 15..240');
+}
 const N = Number(argv[0] ?? 12);
 if (!Number.isInteger(N) || N < 1 || N > 40) throw new Error('count must be 1..40');
 const CATS = ['admin', 'deep', 'learning', 'physical'];
 const values = Array.from({ length: N }, (_, i) => {
   const cat = CATS[i % CATS.length];
-  const minutes = [30, 45, 60][i % 3];
+  const minutes = MINUTES ?? [30, 45, 60][i % 3];
   return `('${U}', 'b6 task ${String(i + 1).padStart(2, '0')} ${cat}', '${cat}', ${minutes}, 2, false, 'inbox')`;
 }).join(',\n');
 const rows = dbQuery(

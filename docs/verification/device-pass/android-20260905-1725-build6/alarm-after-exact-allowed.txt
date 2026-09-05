@@ -1,0 +1,24 @@
+    RTC_WAKEUP #28: Alarm{cb04070 type 0 origWhen 1788621600000 whenElapsed 193194754 com.hourwell.app}
+      tag=*walarm*:expo.modules.notifications.NOTIFICATION_EVENT
+      type=RTC_WAKEUP origWhen=2026-09-05 18:20:00.000 window=0 exactAllowReason=permission repeatInterval=0 count=0 flags=0x5
+      policyWhenElapsed: requester=+37m34s806ms app_standby=-6s897ms device_idle=-- battery_saver=-6s897ms
+    RTC_WAKEUP #38: Alarm{5a3f70f type 0 origWhen 1788624300000 whenElapsed 195894754 com.hourwell.app}
+      tag=*walarm*:expo.modules.notifications.NOTIFICATION_EVENT
+      type=RTC_WAKEUP origWhen=2026-09-05 19:05:00.000 window=0 exactAllowReason=permission repeatInterval=0 count=0 flags=0x5
+      policyWhenElapsed: requester=+1h22m34s806ms app_standby=-6s882ms device_idle=-- battery_saver=-6s882ms
+    RTC_WAKEUP #43: Alarm{a32f52b type 0 origWhen 1788627000000 whenElapsed 198594754 com.hourwell.app}
+      tag=*walarm*:expo.modules.notifications.NOTIFICATION_EVENT
+      type=RTC_WAKEUP origWhen=2026-09-05 19:50:00.000 window=0 exactAllowReason=permission repeatInterval=0 count=0 flags=0x5
+      policyWhenElapsed: requester=+2h7m34s806ms app_standby=-6s873ms device_idle=-- battery_saver=-6s873ms
+    RTC_WAKEUP #46: Alarm{f161346 type 0 origWhen 1788629700000 whenElapsed 201294754 com.hourwell.app}
+      tag=*walarm*:expo.modules.notifications.NOTIFICATION_EVENT
+      type=RTC_WAKEUP origWhen=2026-09-05 20:35:00.000 window=0 exactAllowReason=permission repeatInterval=0 count=0 flags=0x5
+      policyWhenElapsed: requester=+2h52m34s806ms app_standby=-6s867ms device_idle=-- battery_saver=-6s867ms
+    RTC_WAKEUP #51: Alarm{c5edea3 type 0 origWhen 1788634200000 whenElapsed 205794754 com.hourwell.app}
+      tag=*walarm*:expo.modules.notifications.NOTIFICATION_EVENT
+      type=RTC_WAKEUP origWhen=2026-09-05 21:50:00.000 window=0 exactAllowReason=permission repeatInterval=0 count=0 flags=0x5
+      policyWhenElapsed: requester=+4h7m34s806ms app_standby=-6s860ms device_idle=-- battery_saver=-6s860ms
+    RTC_WAKEUP #86: Alarm{72e451e type 0 origWhen 1788714000000 whenElapsed 285594754 com.hourwell.app}
+      tag=*walarm*:expo.modules.notifications.NOTIFICATION_EVENT
+      type=RTC_WAKEUP origWhen=2026-09-06 20:00:00.000 window=0 exactAllowReason=permission repeatInterval=0 count=0 flags=0x5
+      policyWhenElapsed: requester=+1d2h17m34s806ms app_standby=-6s856ms device_idle=-- battery_saver=-6s856ms

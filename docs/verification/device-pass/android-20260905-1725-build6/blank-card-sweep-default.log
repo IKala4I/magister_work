@@ -1,0 +1,25 @@
+b1 b6 task 05 admin       y 486-671 sd  25.1 ok
+b1 b6 task 12 physical    y 708-1173 sd  35.8 ok
+b1 b6 task 01 admin       y 1209-1562 sd  36.9 ok
+b1 b6 task 09 admin       y 1598-1951 sd  37.2 ok
+b2 b6 task 05 admin       y 486-671 sd  25.1 ok
+b2 b6 task 12 physical    y 708-1173 sd  35.8 ok
+b2 b6 task 01 admin       y 1209-1562 sd  36.9 ok
+b2 b6 task 09 admin       y 1598-1951 sd  37.2 ok
+b3 b6 task 05 admin       y 486-672 sd  25.0 ok
+b3 b6 task 12 physical    y 708-1173 sd  35.8 ok
+b3 b6 task 01 admin       y 1209-1562 sd  36.9 ok
+b3 b6 task 09 admin       y 1598-1951 sd  37.2 ok
+b4 b6 task 05 admin       y 486-672 sd  25.0 ok
+b4 b6 task 12 physical    y 708-1173 sd  35.8 ok
+b4 b6 task 01 admin       y 1209-1562 sd  36.9 ok
+b4 b6 task 09 admin       y 1598-1951 sd  37.2 ok
+b5 b6 task 05 admin       y 486-672 sd  25.0 ok
+b5 b6 task 12 physical    y 708-1173 sd  35.8 ok
+b5 b6 task 01 admin       y 1209-1562 sd  36.9 ok
+b5 b6 task 09 admin       y 1598-1951 sd  37.2 ok
+b6 b6 task 05 admin       y 486-672 sd  25.0 ok
+b6 b6 task 12 physical    y 708-1173 sd  35.8 ok
+b6 b6 task 01 admin       y 1209-1562 sd  36.9 ok
+b6 b6 task 09 admin       y 1598-1951 sd  37.2 ok
+cycles=6 blank_cards_total=0
