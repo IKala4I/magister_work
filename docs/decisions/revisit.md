@@ -404,3 +404,14 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   easy to miss at speech speed — lead with "Weekdays:" / "Weekends:" as separate phrases. **(1)
   DONE 2026-09-05 (build 6, `57aa541`: `role="button"` on both; the spoken confirmation was skipped
   by the owner — the dump showing `Button` is the evidence). (2) and (3) stay open.**
+- [simulation study, 2026-09-05] **Replay under a variable slice size is biased** (spec-conflicts
+  M10; results §5 item 1): the nightly report's OPE table (`report.ope_table`) prints replay next
+  to IPS/SNIPS/DR without a caveat. Before any real slice is reported: either label the replay
+  column "unweighted — biased when |A_m(x)| varies" or weight matches by |A_m(x)| (= IPS) and drop
+  the column. Not a thesis-claim change (DR is primary by File 04 §2.3).
+- [simulation study, 2026-09-05] **Exploitation cost where the heuristic is already optimal** (results
+  §4–§5 items 3–4): morning types lose 1–2 pp under the learned arm from TS noise on an untrained
+  bandit (σ² = 0.25, Appendix A) plus one mis-ordered File 04 §3.2 prior cell (AF above MD for
+  DM/MM). First-real-data review: consider σ² annealing with the bandit's evidence, and let the
+  EB prior refresh (ADR-0015 §6) correct the AF/MD cell — both are Appendix A parameter matters,
+  no code change now.

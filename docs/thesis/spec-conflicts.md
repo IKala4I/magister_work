@@ -214,7 +214,18 @@ decision rule (defensibility → consistency → measurability → pragmatics) a
   0.86 (three tasks) / 0.22–0.48 (heavy day) ⇒ ≈ 4.3 vs. 1.1–2.4 experiments per user-week
   before drops. File 06's power must be recomputed against that rate in the pre-registration
   material (thesis-corrections #21; the simulation study's E2 carries the recomputation —
-  ADR-0020). ADR-0008 §1.
+  ADR-0020). ADR-0008 §1. **Closed 2026-09-05 (simulation study E1 §2.3):** ESS/n = 0.333 for a
+  deterministic target policy, 0.361 for replay — ≈ 930 plain-week slice rows give ESS ≈ 310
+  (3× the gate), heavy weeks 80–175 (marginal at the low end).
+- **M10.** (simulation study, 2026-09-05) File 04 §2.2's replay unbiasedness argument is
+  per-context; with M9's variable slice size (|A_m(x)| ∈ {2, 3, 4}, p = 1/|A_m(x)|) the matched
+  subsample over-represents small slices (matched with probability 1/|A_m|), so replay
+  estimates a context distribution reweighted by 1/|A_m(x)|. Measured (E1, 200 × 1,000 rows):
+  −0.6 pp on the oracle policy and +0.7 pp on the anti-oracle (3.2 / 4.6 MC SE); IPS, SNIPS
+  and DR, which weight each match by |A_m(x)|, are unbiased. Normative: on the slice replay is
+  reported beside SNIPS/DR (File 04 §2.3 already makes DR primary) or its matches are weighted
+  by |A_m(x)| — which is IPS. `docs/study/simulation-results.md` §5 item 1; thesis-corrections
+  #55; revisit.
 - **L17.** NFR-R2 "fall back to a deterministic heuristic scheduler, **labeled as such**" vs.
   H1's blind: arm A is also `engine = heuristic`. Normative: the label is tied to the
   provenance (`plans.telemetry.ef.reason` starting with `fallback:`), never to the engine tag,

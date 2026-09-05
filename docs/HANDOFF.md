@@ -2,358 +2,165 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-05 21:30 — **Build 6 fully verified on the Pixel 7a; `plan-request` v13 live;
-> the blank-card caveat closed.** PR #51 (the fix batch) merged 17:57Z. Same evening: the owner
-> deployed `plan-request` v13 (20:47 EEST); the blank-card sweep re-ran on a **13-block list** at
-> both densities — 0 BLANK in 36 scans (72 with the 7-block series), bottom reached every cycle →
-> the checklist row is ✅ without a caveat; a manual re-plan on a windowless day persisted no row on
-> v13; the TalkBack listen was skipped by the owner (the dump is the evidence). Branch
-> `post-p12/sweep-13blocks` carries build-6 notes items 9–10 + evidence, the checklist /
-> traceability / CHANGELOG / revisit / corrections #53 / explainer updates and a `swipes` argument
-> on `hw-blank-cards-sweep.sh`. Nothing in the build-6 batch is half-checked any more.
-> Read first: the build-6 notes items 9–10, then "Exact next actions".
+> Last update: 2026-09-05 late evening — **ADR-0020 (no OSF; pre-registration in git; the
+> evaluation is a simulation study) and the simulation study itself are done** on branch
+> `post-p12/simulation-study` (PR opened by this session; merge when the six required jobs are
+> green). The OSF freeze no longer exists as a step anywhere. Build 6 on the Pixel 7a is fully
+> verified (previous handoff, kept below in "Build 6 — state"). Read first: `docs/study/
+simulation-results.md` "Summary" + §5, then "Exact next actions".
 
-## Build 6 — state (2026-09-05 late evening)
+## What happened this session (2026-09-05, 22:00–23:00)
+
+Four commits on `post-p12/simulation-study`, in this order — the order IS the evidence:
+
+1. `35fa6dc` **ADR-0020** + OSF retirement across PLAN, revisit, corrections (#54), rollup,
+   spec-conflicts, enrollment checklist, consent clause, privacy README/DPIA triggers,
+   runbook, traceability, README, ADR amendments (0008/0010/0011/0015), explainer.
+   Wording rule everywhere: **"field study out of scope; evaluation performed in simulation"**.
+2. `11b71a9` (22:11:53) **`docs/study/preregistration.md`** — hypotheses, directions,
+   parameters, analysis plan for E1/E2/E3, analytic ceilings; no study code in the tree.
+3. `ec1b869` (22:19:16) **`training/src/hourwell_training/simstudy/`** + `hourwell-simstudy`
+   CLI + 11 tests (90 pytest, ruff, mypy strict green).
+4. (this commit) **the registered run** (`docs/study/results/*.json`, run on `ec1b869`: E1
+   23.8 s, E2 10.6 s, E3 41.3 s, 8 workers) + `docs/study/simulation-results.md` +
+   corrections #55, spec-conflicts M10 + M9 closure, revisit ×2, CHANGELOG, traceability ×4,
+   PLAN tail, explainer results section, this handoff.
+
+Results in one line: learned arm +2.5 pp (base world, ceiling 4.1) / +5.4 pp (amplified,
+ceiling 7.8), direction right in 96 % / 100 % of replicated studies; File 06 power 0.84 / 0.82
+at N = 30; every estimator except replay unbiased; four things came out differently and are
+reported as such (results §5): replay bias under a variable |A_m(x)| (M10), morning types lose
+1–2 pp under the learned arm, H4 underpowered within-study, two mis-specified criteria.
+
+## Exact next actions (next session, in order)
+
+1. **Merge the `post-p12/simulation-study` PR** if auto-merge has not (six required jobs; the
+   `train.yml` synthetic job is path-filtered and will run because `training/**` changed).
+2. **Thesis-text support** (corrections 1–55 + rollup). #54 = the decision + wording rule; #55
+   = the simulation study as §5 content with the deviations intact. Grep the draft for "no
+   study", "not executed", "не проводиться" (rollup sanity list).
+3. **iPhone pass — scoped below, owner's call on timing.** Nothing else is queued before it.
+4. Optional owner items: erase the test account on the Pixel 7a (FR-42 from Settings); a
+   third NFR-P1 series on build 6 (revisit).
+
+## iPhone pass — scope, what it needs from the owner, how long (scoped 2026-09-05)
+
+**Status of the iOS rows:** the checklist header promises "one physical iPhone and one
+physical Android"; Android is closed, iOS never ran on hardware. iOS rows are out of scope for
+the _study channel_ (store decision, metadata §7) but not for the verification claim — the
+pass converts ≈ 10 "iOS pending" rows and the two iOS-only ones (real suspension for the lazy
+lapse scan and the UC-03 day boundary; VoiceOver; Dynamic Type + Reduce Motion/Transparency;
+Files/AirDrop export; local-notification delivery under Focus modes). No thesis claim depends
+on it; the device-checklist "Pass status" paragraph does.
+
+**Devices seen by this Mac (`xcrun devicectl list devices`):** an **iPhone 13** (A15, 2021)
+and an **iPhone 12** (A14, 2020), both previously paired, both currently disconnected. The
+iPhone 13 is the better reference (closer to the 2022 device class NFR-P2 names; still faster
+than a mid-range Android — say so, as for the Pixel 7a). Needed: which one, and its iOS
+version (≥ 16 required by File 06 §1.3; ≥ 17 changes the tooling — `devicectl` only).
+
+**What it needs from the owner (⛔ items, one per turn as usual):**
+
+1. The phone connected by cable, unlocked, "Trust this computer" accepted; **Developer Mode**
+   on (Settings → Privacy & Security → Developer Mode; reboots the phone). 10 min.
+2. An **Apple ID signed into Xcode** (Xcode → Settings → Accounts; the free personal team is
+   enough — no Developer Program, no payment). ⛔ login, 5 min. Bundle id `com.hourwell.app`
+   registers under the personal team on first build.
+3. After the first install: approve the developer certificate on the phone (Settings →
+   General → VPN & Device Management) — the "Untrusted Developer" prompt. 2 min.
+4. The phone stays the session's during automated slices; the owner does the hands-on slices
+   listed below. Re-sign (one command, phone connected) every **7 days** if observations run
+   longer.
+
+**What the session can drive vs. what the owner must do (the iOS asymmetry):** there is no
+`adb` equivalent — no shell, no `dumpsys notification/alarm`, no `uiautomator`, no `am kill`.
+The session builds and installs (`npx expo run:ios --device --configuration Release`, Sentry
+upload disabled as in P2), launches/terminates the process (`xcrun devicectl device process
+launch`), reads the server side (plans, events, `notification_response`, sync rows), and times
+cold starts with `xctrace` (App Launch template, 20 launches). Screenshots and everything
+notification-, lock-screen- or Settings-related are the owner's fingers (Xcode's Devices window
+or the side-button screenshot + AirDrop). Maestro 2.8.0 is installed; whether it drives a
+physical iPhone is verified on the day — if not, the e2e sweeps become owner taps +
+screenshots, as the a11y-maxscale evidence was on Android.
+
+**Plan and time (modelled on the Android pass, which took five days including a fix batch):**
+
+| Step      | Who                    | Content                                                                                                                                                                                                                                                                                                                                                                                 | Time                                                 |
+| --------- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| 0         | owner                  | items 1–3 above                                                                                                                                                                                                                                                                                                                                                                         | 15–30 min                                            |
+| 1         | session, owner present | Release build → install → onboarding → first plan; backend proof (Settings write read back); cold-start series (`xctrace`, 20 launches); bundle-host gate as `hw-build-gate.sh`                                                                                                                                                                                                         | 45–90 min (first-time provisioning hiccups included) |
+| 2         | owner, session guiding | full day loop (focus, skip, move picker, undo 6 s), **VoiceOver listening pass** (≈ 30 min), Dynamic Type max + Reduce Motion + Reduce Transparency sweep with screenshots (≈ 20 min), export via the share sheet (Files/AirDrop), notification permission + one reminder delivered with the phone locked, the 20:00 ritual to a **force-quit** app (owner swipes it away before 20:00) | 2–3 h, same day                                      |
+| overnight | nobody                 | app suspended/jetsammed; the ritual delivered to a dead process; nobody taps                                                                                                                                                                                                                                                                                                            | 0                                                    |
+| 3         | session, owner pings   | reconstruct overnight from records; UC-03 `new_day` on the first foreground; the lazy lapse scan after real suspension; background → foreground sync timing (> 10 min in the background)                                                                                                                                                                                                | 30–60 min next morning                               |
+| 4         | both                   | **likely a fix batch → build 7 → re-check** (the free-provisioned build, notification categories, the BlurView panels and the iOS share sheet have never run on hardware; Android's first day produced six findings)                                                                                                                                                                    | ½–1 day if needed                                    |
+
+**Total: 2 days elapsed, ≈ 4–6 h of owner attendance, of which ≈ 1.5 h are hands-on tasks the
+session cannot drive** (VoiceOver, Settings toggles, share sheets, lock-screen checks), plus
+½–1 day if a fix batch opens. Nothing in it costs money.
+
+**Still gated by ⛔ 6 even with the iPhone:** magic-link deep links (mailbox), Google Calendar
+consent (Web client), and the **two-device sync row** (File 05 §2 on both phones needs the same
+account on both — anonymous accounts cannot be shared; needs magic link or Google sign-in).
+Out of scope by the store decision: store-signed binary / TestFlight behaviour, APNs (unused).
+
+## Build 6 — state (2026-09-05 late evening, unchanged)
 
 - **Phone:** build 6 (`7e5e2fd8cef659b0…`), test account `a4c86ab5-f944-43a9-a42d-a65f6d4461d4`
   (anonymous). Device zone / auto time zone / font scale restored (`Europe/Kiev`, on, 1.0). Today
-  shows the 13-block plan `3aa1342a` (planned 20:59 EEST under a Pacific-time horizon; a legacy plan
-  on a day off again, rendered 9:00 PM onwards). Alarms: five exact block reminders tonight (21:35,
-  00:35, 01:20, 02:05, 02:50) + the Sunday review 20:00, all `window=0`. Nobody taps them; the lapses
-  they produce are test facts. Server profile back to Mon–Fri 09:00–18:00, sleep 23:00–07:00, ritual
-  20:00, `Europe/Kiev`. Plans 3 (17:37 zero-block, 17:39 seven, 20:59 thirteen), tasks 25 (12 of the
-  seeded titles repeat — two seeding runs). FR-42 erasure from Settings is the one-minute clean-up
-  if the owner wants the project free of the account.
-- **Server:** `plan-request` v13 ACTIVE (owner deploy 20:47 EEST) — the only function the fix batch
-  changed; checked on the device by the no-row manual tap (build-6 notes item 10).
-- **Recipe learnt tonight (notes item 9):** a ≥ 10-block list in the evening needs a longer
-  horizon, not more tasks (min block 30 min; the 00–06 rule ends the grid at midnight) — shift the
-  device zone AND the profile zone west (`cmd alarm set-timezone`; profile SQL), give the day a
-  window, HOME → `am kill` → `am start`; `hw-blank-cards-sweep.sh <out> 6 5` reaches the bottom of 13
-  cards at default density, 7 drags at 1.3×. Restore: zone + `auto_time_zone 1`, font scale, profile
-  zone, `--remove sat`, one more kill + start so the alarms are rescheduled in the right zone.
-- **Not in this batch, by the owner's list (stay in revisit):** the ritual answered after the
-  morning's `new_day` re-plans today; the third-skip diagnostic card is not persisted; the heatmap
-  label rough edges; the Move picker's silent snapping.
-
-## Exact next actions (next session, in order)
-
-1. **Merge the `post-p12/sweep-13blocks` PR** if auto-merge has not (six required jobs).
-2. **OSF freeze** (decided 2026-09-01, sequenced after the pass; the pass, the fix batch and its
-   re-check are closed → the owner says go). Material staged in `docs/thesis/corrections-rollup.md`
-   (H1 / M9 / #34–36 / G5). Session side: assemble the registration text into one file the owner
-   pastes; ⛔ the registration itself is the owner's (OSF login; published + irreversible).
-3. **Thesis-text support** (corrections 1–53 + rollup); #52 and #53 carry their build-6 evidence.
-4. **iPhone pass — the owner's call** (asked 2026-09-05 evening; recommendation given: after the
-   freeze). Feasible at zero cost with Xcode free provisioning (personal team, 7-day re-sign, local
-   notifications work, no APNs, no store) on the owner's own iPhone; a first iOS hardware run will
-   most likely open a fix batch → build 7. It does not gate the freeze: the study channel is
-   Android-only (store decision 2026-08-31) and the File 06 protocol is device-agnostic.
-5. Optional owner items: a third NFR-P1 series on build 6 to tighten the 3.7–4.1 s reference
-   (revisit); erase the test account.
-
-## Day 5 — state and queue (2026-09-05)
-
-**Done (details = day-5 notes items 1–11):** ritual re-check on build 5 ✅ (item 7–8); 4 Sep export complete,
-12/12 paired, post-L1 pre-plan sync p50 936 / p95 2367 ms, build-4 series client p50 2627 / p95 4127 ms —
-NFR-P1 reference restated as 3.7–4.1 s (item 4; corrections #51, spec-conflicts L40, explainer); the three
-owed `owner-*` screenshots pulled from the phone and cropped into `android-20260902-1030/` — they settle
-the 2 Sep question (item 3); expo-doctor drift → PR #48 merged, #45/#46/#47 merged after it (item 5);
-shared helpers `hw-shade-tap.py`, `hw-posthog-pair.mjs`, `hw-set-working-hours.mjs`, `hw-blank-cards.py`
-(item 6); Saturday got a server-side working window and a 10-block plan for the owner-attended checks
-(item 10); **blank-card defect** found by the owner, reproduced 5/5, traced to the Android `GlassPanel`
-`overflow: hidden` clip, and classified as data integrity — the owner's two taps on blank cards became
-facts 567/568 (item 9).
-
-**Afternoon (owner back 16:03) — all done, details = notes items 12–17:** reminder records read from the
-device (three exact posts on an unplugged phone; the cap dropped the fourth); owner decision on the
-accidental completion (no DB edit; the product has only UC-04 A1 lapse → done and the 6-s undo → fact 567
-annotated as a test artefact; product gap in revisit); first foreground since 10:3x cleared the delivered
-reminders and wrote 7 lapses; Re-plan → a 2-block plan (no blank card on a 2-card list — the defect needs a
-list longer than the viewport); UC-07 move ✅ (5:37 → 5:30 inside the picker; `block_moved` fact); TalkBack
-pass ✅ (flags: gear role = link → `role="button"`; heatmap label rough edges); Saturday hours removed
-(`--remove sat`); FR-42 erasure ✅ (audit `e1d0b2eb-…`, 180 ms, all user tables 0, 0 alarms, welcome screen
-after Start over and after a cold relaunch).
-
-**Post-pass fix batch (build 6), in order:** ADR-0019 (no plan / no ritual for days without a window);
-**blank cards** (drop `overflow: 'hidden'` on the Android `GlassPanel`; then FlashList 2.3.1 + `getItemType`
-if it still reproduces; verify with `hw-blank-cards.py` on hardware — release-blocking); the Settings gear /
-Inbox "+" `role="button"` (expo-router `Link asChild` overrides `accessibilityRole`); the exact-alarm
-in-app prompt; stale-ritual re-plans; the diagnostic card persistence (revisit). Build 6 carries the PR #48
-Expo patches.
-
-**Gotchas learnt today:** `am kill` only works on a backgrounded process (HOME first); the shade row arrives
-collapsed — tap its chevron before locating buttons; `uiautomator dump` works on Today when nothing animates
-but fails while the shade is open; the `Plan my day` button replaces `Re-plan` when the day's plan has 0
-blocks; `feedback_rewards` has `attributed_at`, not `created_at`; `tasks` has no `completed_at`; a 20-s wait
-for a known alarm is `adb shell 'sleep 20'` (the local `sleep` is blocked in this harness).
-
-## Day 4 — state and remaining queue (2026-09-04)
-
-**Done this morning (build 3 unless noted; details = day-4 notes items 1–12):** the order question
-answered (new_day first, button second — the accept plans the ritual's own next day = today);
-morning reads (ritual posted 20:26:28, untouched; the "killed" process revived natively for the
-delivery, no JS); **F1 offline first open = DEFECT** (expired token + no radio → "Sign in to plan
-your day"; the first online foreground inside auth-js's 60 s refresh-failure cache planned nothing);
-**UC-03 `new_day` = PASS** on the second foreground (one row 08:41:01, learned, 11 blocks); **FR-26 ritual has NO action buttons on Android = DEFECT** (probable cause: the empty block category registered first → Android rejects it → the ritual category never stored; the owner recalls a button on 2 Sep — notes item 14); **FR-26 killed-app body tap = PASS** (one
-`open` fact, no plan, 843 ms cold start); **FR-50 alarms inexact (+31–60 min) = DEFECT**
-(`SCHEDULE_EXACT_ALARM` absent); fixes c2995be / 68ca0eb / 24808ad on PR #41, gates green (519
-jest); **build 4 installed 09:11**, exact alarms confirmed (`window=0 exactAllowReason=permission`).
-
-**Remaining today, in order:**
-
-1. ✅ **F1 on build 4 — engine half verified 10:47 (notes item 16):** Settings read "Offline — changes
-   are queued" with the token expired and no radio, and recovered by itself 70 s after the radios
-   returned. The plan half needs an unplanned morning (app dead overnight, no plan for the day → the
-   first open shows "Offline — showing your last plan." offline and requests by itself once online).
-   Superseded plan text, kept for the recipe: the auth path ran exactly as modelled
-   (failure +26 s, 60 s cache, refresh 09:41:01) but the `hourwell://settings` deep link opened
-   Today, so the Settings line is still unread. **Next window: token expired again from 10:42**
-   (app killed 09:44:21; the 10:20 / 11:05 alarms revive the process natively but run no JS):
-   radios off → `am start` → tap the gear (top-right, ≈ (1021, 202) at default density) → the sync
-   line must read **"Offline — changes are queued"** (build 3: "Sign in to sync across devices")
-   → radios on → it recovers on the next poll/tick. The plan-request half is unit-tested; on the
-   device it needs an unplanned morning (only if the account survives tonight).
-2. ✅ **FR-50 exactness:** 09:35 → 09:35:00.345, 10:20 → 10:20:00.531. The series re-planned the
-   afternoon; the next block alarm is 11:50 (exact).
-3. **PostHog 3 Sep — done (notes item 15):** complete, 21/21 paired; before ADR-0018 p95 4.58 s
-   (not met), after 3.68 s (met); pre-plan sync 1158 / 1540 ms pre-L1. **Series done 10:51–10:53 on build 4** (10/10 learned, function p50 1057 / p95 1282, budget
-   22/30). Still owed: the owner's **4 Sep** export of `plan_requested` + `sync_completed` this
-   evening (rows from 09:11 = build 4; all post-L1) → the post-L1 client figure and the `pre_plan`
-   share. **NFR-P1 DECIDED (owner, 2026-09-04): ≤ 6.0 s p95 tap → plan received, warm, on a 2022 low-end Android over a weak link; Pixel 7a reference 3.7 s alongside; server ≤ 1.5 s; caveats: SQLite mirror after the timer, backlog-carrying pre-plan sync; two-thirds of the reference p95 is server-side (the L2/L3 share). Recorded in corrections #51, spec-conflicts L40, revisit, day-3 notes item 15, day-4 notes.**
-4. ✅ **Evening (notes items 19–22):** ritual posted 20:00:00.335 with `actions=2`; "Plan tomorrow" from a killed app → one `accept` fact + one `evening_ritual` plan for the 5th in ≈ 2 s — **0 blocks (Saturday, no working hours; revisit)**. Defects: the notification stayed posted after the action; "Adjust tasks" on the same notification was dropped by the dedup key → **fix 7c8f67c, PR #45** (auto-merge armed); **build 5** (`d7fc4280bf56…`) **installed 22:36:49** (owner reversal: verify the fixes on hardware). Tonight's on-demand attempt hit the ≤ 5/day cap (notes item 25); **tomorrow, at the owner's ping (any time):** `node docs/verification/hw-set-ritual-time.mjs HH:MM` with HH:MM = ping + 5 min → `am start` (pull + reschedule; check `dumpsys alarm` shows the time for the 5th, `window=0`) → HOME + `am kill` → natural fire → read the record (`actions=2`) → one adb tap on **"Adjust tasks"** (first response; row located by icon template + colour guard, notes item 22) → expect Inbox, one `adjust` fact, the notification gone from the shade → restore `20:00`. Then the owner-attended items and FR-42 erasure LAST. **The Saturday zero-block plan is a product defect → ADR-0019** (rule decided: no request / no row / no daily ritual for a day without a working window; truthful Today copy) — **implementation is the first item of the post-pass fix batch** (function + client + tests, build 6), unverified on hardware by choice. **Tomorrow's F1 plan half is off:** the 5th already has a (zero-block) plan row, so no `new_day` request can fire on Saturday; next chance = Monday morning or a fresh account after erasure. Superseded plan text: the app must be dead before 20:00 (`am kill` after HOME — `am kill` is a
-   no-op on a foregrounded process); the 20:00 alarm is exact now. After the ping: `dumpsys
-notification` (record must carry `actions=2`), then ONE adb tap on **"Plan tomorrow"** with the
-   app killed → one `notification_response` with `action: accept` + one `evening_ritual` plan for
-   the 5th; "Adjust" is not tested on the same notification (it is consumed). Shade navigation
-   recipe: notes item 10 (`find-ritual.py`; the button will sit under the body once expanded).
-5. **Owner-attended:** off-grid move snap (5:37 in the native picker), TalkBack listening pass,
-   the three `owner-*` screenshots of the 2 Sep deliveries → `android-20260902-1030/`. Then
-   **FR-42 erasure LAST** (ends the device account; kills tomorrow's F1 plan-half check — say so
-   before doing it).
-6. **Thesis follow-ups:** the ADR-0018 window re-pin after a week of plans; revisit.md carries
-   three new day-4 lines (exact-alarm prompt, stale ritual re-plans today, diagnostic card not
-   persisted).
+  shows the 13-block plan `3aa1342a`. Five exact block reminders tonight + the Sunday review
+  20:00, all `window=0`; nobody taps them. Server profile Mon–Fri 09:00–18:00, sleep 23:00–07:00,
+  ritual 20:00, `Europe/Kiev`. FR-42 erasure from Settings is the one-minute clean-up if the
+  owner wants the project free of the account.
+- **Server:** `plan-request` v13 ACTIVE (owner deploy 20:47 EEST).
+- **Recipe (build-6 notes item 9):** a ≥ 10-block list in the evening needs a longer horizon,
+  not more tasks — shift the device zone AND the profile zone west, give the day a window,
+  HOME → `am kill` → `am start`; `hw-blank-cards-sweep.sh <out> 6 5`. Restore zone +
+  `auto_time_zone 1`, font scale, profile zone, `--remove sat`, one more kill + start.
+- **Not in the fix batch, by the owner's list (revisit):** stale-ritual re-plans, the
+  third-skip diagnostic card persistence, heatmap label rough edges, the Move picker's silent
+  snapping.
 
 ## Where we are
 
-- **P0–P11 merged** (PRs #1–#29); **P12 on PR #30**: Art. 35 **DPIA** drafted for owner
-  signature (`docs/privacy/dpia.md` — 12-risk table, none high → no Art. 36; transfers
-  annex = ADR-0011 §2; cohort record for G6); `apps/mobile/eas.json` (dev/preview/
-  production, remote versions); **store pack** `docs/store/` (listing copy within verified
-  limits, data-safety answers from the DPIA, privacy-policy draft, name search CLEAN — no
-  Hourwell app or indexed mark anywhere); real repo **README**; **runbook** duplicate
-  §10–§12 renumbered → §13–§15 + new **§16** scheduled-job triage / **§17** model-registry
-  rollback (demote-never-delete) / **§18** `recsys_service` activation; **least-privilege
-  role** migration `20260831150000_p12_recsys_role.sql` (grants = exactly `repo.py`,
-  20 pgTAP, compose `RECSYS_DATABASE_URL` fallback override — behaviour unchanged until
-  rotation); v0.1.0 **CHANGELOG rollup**; `docs/thesis/corrections-rollup.md` (all 47
-  worklist items grouped per draft chapter); 14 revisit dispositions (done / closed-for-v1
-  / re-dated with reasons).
-- **Store economics — DECIDED (owner, 2026-08-31): buy neither.** No Play Console, no
-  Apple Developer Program. The store pack stays **prepared but unsubmitted** — framing:
-  "ready to release; only release and marketing remain" (thesis-corrections #48). Study
-  installs: Android sideload APK; **no iOS participant channel** (enrollment checklist §1
-  gate). Decision block: `docs/store/metadata.md` §7; reversal condition: revisit.md.
-- **Docs current:** PLAN board + tail (P0–P12), traceability (5 P12 rows), CHANGELOG,
-  versions.md P12 pins (eas-cli 23.1.0; expo 57.0.18 drift), device-checklist (+2 P12
-  entries), explainer P12 section + decisions 29–31, revisit dispositions.
-
-## Exact next actions (next session, in order)
-
-1. ✅ PR #30 merged; `main` current (2026-08-31).
-2. ✅ **First scheduled nightly run — timer proven** (fired 2026-09-01, ran
-   00:33:28–00:33:38 UTC, clean finish): summary matches the cohort expectations —
-   priors carry-over (240 cells, 0 refit), ALS skip (1 distinct cluster), mc_backfill
-   1 filled / 9 skipped-by-design (aggregate check: all 9 nulls belong to users with no
-   `bandit_state` — the P11 run-3 day-0 class); `reports/2026-09-01/report.json` exists
-   in the `models` bucket. All three training-container checklist items flipped.
-3. Walk the ⛔ ladder below **one step per turn** (owner directive 2026-08-27), verifying
-   each from the session side before offering the next.
-4. No further build phases exist in PLAN. **The Android hardware pass closed 2026-09-05** (ladder step 5
-   ✅ for Android; iOS out of scope by the store decision). Session work from here, in order:
-   (a) merge PR #50 (day-5 afternoon docs); (b) ✅ **post-pass fix batch → build 6** (PR #51 2026-09-05; the build-6 re-check + the 13-block sweep close it) (order in the Day-5 block:
-   ADR-0019, blank cards, gear role, exact-alarm prompt, stale-ritual re-plans, diagnostic-card persistence;
-   PR #48's Expo patches ride along) with a short owner-run device re-check of the flipped rows
-   (`hw-blank-cards.py`, a Saturday/Sunday plan attempt, one ritual); (c) **OSF freeze** — decided 2026-09-01 to
-   run strictly after the pass closes → it is now unblocked; the owner says go; (d) thesis-text support
-   (corrections 1–53 + rollup). Enrollment support stays retired-conditional (#49).
-
-## Hardware pass — live state (2026-09-04 morning, read before touching the phone)
-
-- **Day 4 in one paragraph:** see the block above. Phone state now: **build 4**, app `am kill`ed
-  at 09:13:31 (alarms exact and intact: 09:35 / 10:20 / 11:05 block reminders, 20:00 today,
-  20:00 tomorrow), today's plan (1 row, 11 blocks) in place, the 3 Sep ritual consumed by the
-  body tap, `SCHEDULE_EXACT_ALARM` appop = allow (adb), persistent logcat writer running on the Mac
-  into the session scratchpad (never commit the raw file — notes item 10). Budget 22/30 at 09:12.
-- **Tooling learnt today:** HOME before `am kill`; `uiautomator dump` fails while the shade is
-  open — screenshots + icon template match (`find-ritual.py` in the notes) instead; a fast/long
-  swipe collapses a short shade; prettier pads table cells (anchor scripted edits on cell CONTENT);
-  raw logcat / whole-shade screenshots stay out of the repo.
-- **Older state (day 3) below still applies where not superseded.**
-
-## Hardware pass — live state (2026-09-03 afternoon)
-
-- **Day 3 in one paragraph:** the PostHog export made NFR-P1 a device number — manual series
-  p50 3271 / p95 3836 ms, of which the function was 1662 / 1908 and the rest a 1.0–1.5 s pre-plan
-  sync push plus ≈ 0.5 s transport/mirror (notes item 1). The learned path's proof stall was
-  reproduced from the device's own inbox (15 interchangeable admin tasks → 24/24 solves at the
-  1.0 s slice, bound gap 0.38–1.21; a gap limit alone is inert there) and fixed by **ADR-0018**
-  (gap limit 0.01 + 0.3 s no-improvement early stop + trajectory telemetry; concurrent reads in
-  the function). After the rollout: device 0/10 fallbacks (before 1/10), function p50 1091 /
-  p95 1342 ms, solve p50 400 / max 665 ms; sweep 0/36 (before 1/36). NFR-P1 restated as a
-  measured requirement (corrections #51 — proposed ≤ 4.0 s p95 device end-to-end, owner to
-  confirm). Also done: first open on the 3rd added no request (warm + cold); NFR-A2 at 2.0 on
-  build 3 (F2/F3/F4/F6 hold, four cosmetic residuals); F7 and the post-reboot cold start — see
-  notes items 11–12.
-- **Phone state at the end of day 3 (13:0x EEST):** font/density restored to defaults, the 12:34
-  focus session NOT finished (the Focus tab did not take adb taps at default density — notes item 13; the 2 h abandon rule closes it), app
-  backgrounded and **`am kill`ed** (alarms intact: 13:05 block reminder, 20:00 today, 20:00
-  tomorrow) so tonight's ritual is delivered to a dead process; nobody taps it. 24-h plan count
-  was 29/30 at 11:42 — it frees up from 10:37 EEST on the 4th (the before-series rows) and 11:40
-  (the after-series rows).
-- **Server-side changes today, for attribution:** recsys `813cdbade0e9` + `plan-request` v12
-  at 11:06 (ADR-0018 + concurrent reads), `sync-resolve` v6 at 13:16 (PR #40, pre-plan sync
-  without the reward pass). The APK is unchanged (build 3).
-- **Standing rule from today:** no Monitor / cron / sleep-loop for time-triggered checks; the
-  owner pings when the moment has passed and the session reads the records. The only live-state
-  step left in the queue is the action-button tap on the 4th's ritual (it needs the notification
-  posted) — say so before starting it and let the owner decide.
-- **Older state (day 2) below still applies.**
-
-- **Phone ownership:** the phone is the session's while a step runs; a foreground by the owner
-  mid-flow sent flows into the wrong app twice (day-2 finding 11). Never `KEYCODE_BACK` on the
-  Today root (it backgrounds the app); `uiautomator dump` fails while a Focus timer or a sync
-  spinner animates — use adb screenshots then.
-- **Builds:** three in one day — see the "Results by build" table in the day-2 notes before
-  citing any number. Build 2 is VOID (no project URL in its bundle: a worktree build whose `.env`
-  copy never reached the bundle). `scripts`: `build3-checks.sh` pattern = bundle-host gate →
-  install → backend proof (Settings write read back from `profiles`) → behavioural checks.
-- **Done on hardware (Android):** UC-01 E2E; NFR-P2 cold start 1582 ms p90 post-reboot (build 1)
-  / 551 ms warm (build 3); scroll 60 fps 0 janky; NFR-S1 reboot; first learned plan; NFR-P1 series
-  server side (p95 1908 ms, 1/10 timeout fallback; client `duration_ms` in PostHog — ⛔ 5b); real
-  offline round trip; undo 6 s; Ukrainian NL; FR-30 both halves; lazy lapse scan (server);
-  UC-07 move (snap from an off-grid minute = owner); a11y trees (TalkBack listening = owner);
-  max-scale screenshots; **UC-03 dedup on build 3 (0 requests / 20 cold starts)**; Settings
-  scrolls; ritual delivered at 20:00 (+1 h window, seen by 20:14).
-- **Tonight — done:** ritual tapped 20:22 (backgrounded) → `evening_ritual` plan for the 3rd
-  (10 blocks, heuristic `fallback:timeout` 1909 ms), one `notification_response` (action `open` —
-  button-vs-body open question, day-2 note 29), today unchanged, tomorrow line shown. Export share
-  sheet on build 3 ✓ ("Export ready — 14 tables shared."; the sheet screenshot was dropped — it
-  showed contact names).
-- **Tomorrow (day 3):** first open must add NO request (tomorrow's plan exists — ADR-0014 §3);
-  the `new_day` case needs an evening without the ritual (skip tapping it on the 3rd → check on
-  the 4th); offline first open → retries on the next foreground (F1); a delivered reminder for a
-  started/moved block leaves the shade (F7); cold start ×20 post-reboot on build 3; gutter /
-  heatmap / quick-add at 2.0 on build 3 (`a11y-max.sh` pattern); TalkBack tab label; the killed-app
-  ritual variant at 20:00; FR-42 erasure LAST (ends the device account).
-- **Plan-budget sweep done (20:31–20:34, 45 requests, `hw-plan-budget-sweep.mjs`):** the
-  fallback has a measured shape (day-2 notes, last section; revisit.md last entry) — 0.43 s
-  round-trip floor + 0.45–0.9 s function overhead + a 1.0 s solver slice; reliable under ≈ 0.6 s
-  of solve time, a coin flip once the first rung runs to its slice. **Owner decision pending:**
-  which lever (gap limit / parallel context reads / budget / co-location) becomes a fix and which
-  is reported as a thesis result.
-- **Still open beyond Android:** everything on iOS (not started); the DST clock item; auth items
-  needing the mailbox / Google client (⛔ 6); revisit entries (learned path at the fallback
-  budget's edge; re-plan drops a running block; zero-block rows in the plan limit; jest open
-  handle).
+- **P0–P12 merged** (PRs #1–#30); post-P12: hardware pass days 1–5 (PRs #31–#50), fix batch →
+  build 6 (#51), 13-block sweep (#52), **this PR: ADR-0020 + the simulation study**.
+- **Decisions in force:** store accounts — buy neither (2026-08-31); the field study is out of
+  scope (2026-09-01); **no OSF, pre-registration in git, the evaluation is a simulation study
+  (2026-09-05, ADR-0020)**; NFR-P1 = ≤ 6.0 s p95 on a 2022 low-end Android over a weak link,
+  reference 3.7–4.1 s on the Pixel 7a (2026-09-04).
+- **Docs current:** PLAN (§5 row 12, tail), CHANGELOG, traceability (+4 rows), revisit (+2),
+  spec-conflicts (M10, M9 closure, 2026-09-05 overlay), corrections #54–#55 + rollup,
+  explainer (decision, pre-registration, code, results), device-checklist unchanged.
 
 ## ⛔ ACTION REQUIRED (owner — ordered; one per turn)
 
-1. ✅ **Migration push** — done 2026-08-31; the remote migration list shows
-   `20260831150000` and the linked pgTAP re-check is green (all 20 role assertions;
-   `pgtap-linked.sh` allowlist extended to capture `table_privs_are` — see Gotchas).
-2. ✅ **Role activation** — done live 2026-08-31 (runbook §18): compose shipped via
-   tar-sync + install.sh, role password set, `RECSYS_DATABASE_URL` on the box, container
-   DSN = `recsys_service.<ref>` (count-verified), `/healthz` ok/postgres, **live plan
-   `engine=learned model=recsys-p5.0`** through the new role, undelivered rewards 0. One
-   live failure found+fixed: double-typed password → auth fail (set both sides from one
-   variable — runbook §18). Rollback stays = remove the env var.
-3. ✅ **DPIA signed + consent contact block filled** (2026-09-01): §10 = signed by the
-   owner with a status note — the assessment is complete but **the processing it
-   describes has not commenced; no field study will run** (owner statement at signing).
-   Any future enrollment re-reads the DPIA against triggers 1–7 first. R4 cell updated
-   (role rotation done 2026-08-31). Steps 6–7 below are pre-enrollment items and are now
-   **conditional on that decision reversing**.
-4. ✅ **Store economics — DECIDED 2026-08-31: no accounts.** Nothing left in this step:
-   no `eas login`/credentials, no privacy-policy hosting, no register screenshots — the
-   pack stays prepared-but-unsubmitted (metadata §7 decision block; thesis-corrections
-   #48; the enrollment checklist carries the no-iOS gate; reversal condition in
-   revisit.md).
-5. ✅ **Hardware pass — account-free scope** — **Android days 1–5 done on the Pixel 7a, closed 2026-09-05**
-   (day notes `android-2026090*`); iOS not started and out of scope (store decision, metadata §7).
-   **5a ✅** lockout cleared (owner ran `hw-unblock.mjs --apply`, 30 rows). **5b ✅ (2026-09-03):** the owner's PostHog CSV export carried every column; decomposition in
-   the day-3 notes item 1. **5b-bis (open, no key):** re-export 3 Sep `plan_requested` +
-   `sync_completed` (Day 4 item 2). **5c:** the 2 Sep ritual tap is done (backgrounded variant,
-   20:22); the three `owner-*` screenshots (14:18 / 14:28 / 20:1x deliveries) are still owed to
-   `android-20260902-1030/`. **3 Sep ritual left untouched → `new_day` observed on the 4th ✅.** **5d (4 Sep):** the
-   ritual buttons exist only from build 4 — tonight's ritual is the first with `actions=2`; the
-   owner pings after 20:00, the session taps over adb.
-6. **Hardware-pass prerequisites only** (re-scoped by #49): the Google OAuth second Web
-   client and a real mailbox matter only for the device-checklist auth/calendar items;
-   PostHog EU / Sentry EU are optional (keys env-gated; own-use telemetry).
-7. ~~Pre-enrollment list~~ — **retired-conditional** (#49, no field study): Art. 27
-   representative, Oracle PAYG revisit, consent screen → production re-arm only if the
-   decision reverses (after the DPIA §11 re-read). The OSF freeze is **DECIDED
-   (owner, 2026-09-01): register — but only after the hardware pass (step 5) closes**;
-   "pre-registration-ready" then becomes "pre-registered" in the thesis text. The H1/M9/
-   #34–36/G5 material stays staged in the rollup; do not start the freeze before step 5
-   is closed.
+1. ✅ Migration push (2026-08-31). 2. ✅ Role activation (2026-08-31). 3. ✅ DPIA signed
+   (2026-09-01). 4. ✅ Store economics decided — no accounts (2026-08-31). 5. ✅ Hardware pass,
+   Android, days 1–5 (closed 2026-09-05); build-6 re-check ✅; **iOS: scoped above, not started**.
+2. **Hardware-pass prerequisites only** (re-scoped by #49): the Google OAuth second Web
+   client and a real mailbox matter only for the device-checklist auth/calendar items and the
+   two-device sync row; PostHog EU / Sentry EU optional.
+3. ~~Pre-enrollment list~~ — retired-conditional (#49). ~~OSF freeze~~ — **retired (ADR-0020,
+   2026-09-05)**: no registration; the material stays in-repo; the simulation study carries
+   the pre-registration discipline in git.
 
-## Gotchas (P12 additions; earlier lists in git history of this file still apply)
+## Gotchas (this session's additions; earlier lists in git history of this file still apply)
 
-- **Branch protection is on `main` since 2026-09-03** (six required CI jobs; the path-filtered
-  synthetic-cohort job cannot be required) and the repository's auto-merge setting is on —
-  `gh pr merge --auto --merge` now waits for CI. Before that, PR #39 auto-merged with three
-  checks pending (they passed on `main` afterwards).
-- **`hw-plan-budget-sweep.mjs` plan dates now roll from today** (tomorrow / +2 / +3). The
-  hard-coded dates had turned the "9 h" row into a 6.75 h window on a re-run — compare sweeps
-  only on the same horizon dates (weekday vs weekend cells differ slightly).
-- **`am force-stop` cancels the app's AlarmManager alarms** (they come back on the next
-  foreground, when the scheduler pass runs); **`am kill` keeps them** — use `am kill` for the
-  "delivered to a dead process" variants.
-- **The 30-plans-per-24 h limit counts every row** (`countPlansLast24h`): two 10-request series
-  plus a day's normal traffic reach it — plan series around the expiry of yesterday's rows.
-- **PostHog client timestamps are taken after the SQLite mirror**, so `timestamp − duration_ms`
-  overshoots the true request start by the mirror time (0.1–0.9 s); pair rows by
-  `plans.generated_at` falling inside the client interval and treat the head/tail split as
-  ± that much (the sum is exact).
-- **zsh `[ "$now" -ge 083200 ]` treats leading-zero numbers as octal** — compare epoch seconds.
-
-- **Key audit lives in runbook §14, training container §13, Tailscale §15** (renumbered
-  P12; §10–§12 are Operations/Rotation/Re-verify as always). Update any old note citing
-  "§11 key formats".
-- **Prettier pads markdown table cells** — scripted edits must anchor on cell CONTENT,
-  never on `| padded | row |` substrings, and insert table rows line-based then re-run
-  `pnpm format` (bit twice in P12).
-- **`set -e` did not abort a multi-heredoc Bash call** in this harness — one failing
-  python stage let later stages run and a "commit" landed half a batch. Verify each
-  stage's output before the next; keep asserts inside the python.
-- **pgTAP + custom roles:** PG16+ CREATEROLE grants the creator ADMIN but not SET on a
-  created role — `p12_role_test.sql` carries a transaction-local
-  `grant recsys_service to postgres;` before `set local role` (pattern to reuse).
-- **compose nested default** `${RECSYS_DATABASE_URL:-${DATABASE_URL:-}}` resolves against
-  the project-dir `.env`; `environment:` beats `env_file`. Both unset → empty string →
-  `app.py` falls back to InMemoryRepo (same as before the change).
-- **Deploy-dir changes reach the box only via install.sh/tar-sync** — never assume the
-  5-min rollout ships compose.yml (it pulls images only). §18 step 0 exists because of
-  exactly this.
-- **SSH to the VM:** the public `ssh oracle-recsys` path is allow-list-bound (runbook §0)
-  and timed out from the 2026-08-31 session network; daily admin is the tailnet — start
-  Tailscale on the Mac, then `ssh ubuntu@recsys-oracle` (runbook §15).
-- **`pgtap-linked.sh` captures only allowlisted pgTAP functions** — `table_privs_are` was
-  missing, so 10 of the 20 P12 assertions went silently uncaptured on the first run; fixed
-  2026-08-31 (`[a-z_]+_are` in the allowlist + a plan-vs-captured mismatch guard that
-  exits 2). If a new test uses an exotic assertion, the guard now fails loudly.
-- **§18 activation, live findings (2026-08-31):** the Minimal image ships NO editor
-  (runbook §6 now says `cat >>`/sed, not nano); the documented `recsys_service@` grep can
-  never match — the pooler username carries the tenant suffix (`recsys_service.<ref>@`,
-  runbook §18 fixed); a double-typed password caused a live auth failure — generate once
-  and fill the SQL editor + `.env` from the same shell variable (runbook §18).
+- **Pre-registration order matters and is checkable:** `git log --format='%h %ad %s' -- docs/study/preregistration.md training/src/hourwell_training/simstudy docs/study/results` must show the file before the code before the results. Never amend those commits.
+- **`hourwell-simstudy --quick` writes `*_quick.json`** — never into `docs/study/results/`
+  proper; the registered run is the only unsuffixed output and takes ≈ 80 s with 8 workers.
+- **A `zip(strict=True)` inside `all()` only raises when nothing short-circuits** — the tiny
+  test passed and the full replicate crashed. Keep list lengths explicit.
+- **The exploratory diagnostic in results §4 monkeypatches `sample_thetas`** in two modules
+  (`hourwell_recsys.estimates` and the simstudy module's imported name) — a rerun must patch
+  both or the diagnostic silently runs the registered σ².
+- **Branch protection is on `main`** (six required CI jobs; auto-merge on) — `gh pr merge
+--auto --merge` waits for CI.
+- **Prettier pads markdown table cells** — scripted edits anchor on cell content, then
+  `pnpm format`.
+- **`am kill` keeps alarms, `am force-stop` cancels them** (Android; unchanged).
 
 ## Open questions (owner)
 
 - Two-device ritual (unchanged from P10; several revisit lines wait on it).
-- ~~OSF freeze~~ — **DECIDED (owner, 2026-09-01): register**, sequenced strictly after
-  the hardware pass closes; "pre-registration-ready" → "pre-registered" once the
-  registration exists. Material staged in the rollup (items 8/10/21/35/36 + H1/M9/G5).
+- Whether to run the iPhone pass at all (scoped above; optional for the thesis claims).
