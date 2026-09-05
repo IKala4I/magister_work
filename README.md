@@ -10,9 +10,10 @@ This repository is the engineering artifact of a Master's thesis: a contextual-b
 planner with an 8-week within-subject field-study protocol (ABAB/BABA) that is designed,
 instrumented and verified end to end — exact logged propensities on a randomized slice and an
 off-policy-evaluation harness (replay, IPS/clipped, SNIPS, DR with ESS gating) proven to
-recover ground truth on synthetic data. The study itself is deliberately not executed (a
-resource boundary of a master's project — see `docs/thesis/`); the system is release-ready
-and the protocol is runnable as designed. The specification set in `specs/` uses the internal codename
+recover ground truth on synthetic data. The field study is out of scope (a resource boundary
+of a master's project — see `docs/thesis/`); the evaluation was performed in simulation as a
+pre-registered study (`docs/study/`); the system is release-ready and the protocol is runnable
+as designed. The specification set in `specs/` uses the internal codename
 **Kairos**; the public product name is **Hourwell** (`docs/naming.md`).
 
 ## Architecture (four tiers, one loop)

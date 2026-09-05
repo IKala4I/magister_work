@@ -23,8 +23,8 @@ Blinding integrity outranks baseline purity: a broken blind undermines the prima
 while a slightly perturbed baseline is a describable limitation. Conditions bound to this
 approval: (1) arm A is renamed and re-described everywhere as **"heuristic + matched
 randomization"** — no longer "a faithful Motion/Reclaim-class rule engine" — stating plainly
-that the matched randomization is what buys the blind (File 06 §1.1, OSF text,
-thesis-corrections #8); (2) File 06 §1.6's robustness refit excluding exploration-labeled
+that the matched randomization is what buys the blind (File 06 §1.1, the pre-registration
+material, thesis-corrections #8); (2) File 06 §1.6's robustness refit excluding exploration-labeled
 blocks is kept and reported **for both arms** — that analysis recovers the unperturbed
 comparison; (3) File 06 §4 gains a threat entry: matched randomization slightly depresses both
 arms' adherence and makes A a perturbed incumbent; symmetry (same ε, same m, same rendering)
@@ -34,8 +34,8 @@ spans both arms; (5) the rejected alternative — sham "experiment" badges on no
 arm-A blocks — is recorded with its rejection reasons (it falsifies logged-propensity
 semantics: a badge would claim uniform randomization that never happened, poisoning the OPE
 slice; and it deceives participants about when the system actually experiments) in
-pojasnennia.uk.md and here. **Status: approved; text changes land before the OSF freeze (still
-a stop condition); ε-symmetric engineering lands P5/P6.**
+pojasnennia.uk.md and here. **Status: approved; the text changes belong to the field protocol's
+pre-registration material, kept in-repo (ADR-0020 — no OSF); ε-symmetric engineering landed P5/P6.**
 
 ### H2. PAR and the reward table are related but distinct — never derive one from the other
 
@@ -212,8 +212,21 @@ decision rule (defensibility → consistency → measurability → pragmatics) a
   2026-08-26:** eligibility is |A_m(x)| ∈ {2, 3, 4} with the exact per-row p = ε/|A_m(x)|
   (uniform within the logged set — File 04 §2.2 replay stays valid per row); P(eligible) becomes
   0.86 (three tasks) / 0.22–0.48 (heavy day) ⇒ ≈ 4.3 vs. 1.1–2.4 experiments per user-week
-  before drops. File 06's power must be recomputed against that rate before the OSF freeze
-  (thesis-corrections #21). ADR-0008 §1.
+  before drops. File 06's power must be recomputed against that rate in the pre-registration
+  material (thesis-corrections #21; the simulation study's E2 carries the recomputation —
+  ADR-0020). ADR-0008 §1. **Closed 2026-09-05 (simulation study E1 §2.3):** ESS/n = 0.333 for a
+  deterministic target policy, 0.361 for replay — ≈ 930 plain-week slice rows give ESS ≈ 310
+  (3× the gate), heavy weeks 80–175 (marginal at the low end).
+- **M10.** (simulation study, 2026-09-05) File 04 §2.2's replay unbiasedness argument is
+  per-context; with M9's variable slice size (|A_m(x)| ∈ {2, 3, 4}, p = 1/|A_m(x)|) the matched
+  subsample over-represents small slices (matched with probability 1/|A_m|), so replay
+  estimates a context distribution reweighted by 1/|A_m(x)|. Measured (E1, 200 × 1,000 rows):
+  −0.6 pp on the oracle policy and +0.7 pp on the anti-oracle (3.2 / 4.6 MC SE); closed-form
+  replay targets −0.55 / +0.54 pp (and +0.27 pp for the alphabetical policy) agree with them;
+  IPS, SNIPS and DR, which weight each match by |A_m(x)|, are unbiased. Normative: on the slice replay is
+  reported beside SNIPS/DR (File 04 §2.3 already makes DR primary) or its matches are weighted
+  by |A_m(x)| — which is IPS. `docs/study/simulation-results.md` §5 item 1; thesis-corrections
+  #55; revisit.
 - **L17.** NFR-R2 "fall back to a deterministic heuristic scheduler, **labeled as such**" vs.
   H1's blind: arm A is also `engine = heuristic`. Normative: the label is tied to the
   provenance (`plans.telemetry.ef.reason` starting with `fallback:`), never to the engine tag,
@@ -357,8 +370,9 @@ export from the EU processors to the researcher is a Chapter V transfer (EDPB 05
 people is not anonymous by relabelling. **Resolution (owner decision 2026-08-28, ADR-0011
 accepted — option A):** analysis + training on the EU VM, `train.yml` on synthetic data only,
 `artifact_uri` = Supabase Storage (EU), public release = synthetic dataset + replay harness, the
-real log as a restricted-access OSF deposit (Frankfurt storage). Text: thesis-corrections
-#34–36. PLAN P11 amended accordingly.
+real log as a restricted-access deposit on EU storage — a clause that applies only if a field
+study is ever run (ADR-0020 §4; no OSF project). Text: thesis-corrections #34–36. PLAN P11
+amended accordingly.
 
 - **L34.** (P10) specs/07 §4.1 lists `profiles.settings` ("notification prefs incl. per-category
   mute") but the P8 `sync_apply_profile` replay body never wrote the column — a `profile_update`
@@ -404,14 +418,28 @@ real log as a restricted-access OSF deposit (Frankfurt storage). Text: thesis-co
 ## Post-P12 status overlay (2026-09-01) — File 06 is design, not report
 
 Owner decision, recorded at the DPIA signature (`dpia.md` §10) and as thesis-corrections
-#49: **the field study File 06 specifies is not executed.** The reason is a resource
+#49: **the field study File 06 specifies is out of scope.** The reason is a resource
 boundary, not an engineering shortfall — platform developer accounts, a recruitment
 budget, and eight weeks of volunteer retention sit outside a master's project. Normative
 reading of File 06 from here on: every statement about participants, arms, waves, power
 (N = 30) and hypotheses H1–H4 describes the **designed, instrumented and end-to-end
 verified protocol**, not events that occurred. The H1 blinding resolution above and the
-OSF-freeze conditions attach to the artifact; the freeze itself is now optional (doing it
-strengthens the protocol-as-artifact claim). Evidence that exists: OPE on synthetic
-ground-truth data (the estimator family recovers closed-form truth) and the researcher's
-own live use of the deployed system. Neither can test — let alone falsify — a behavioural
-claim about humans; H1–H4 remain untested hypotheses.
+pre-registration conditions attach to the artifact, which is kept in-repo (no OSF —
+ADR-0020, 2026-09-05). Evidence that exists: the simulation study (overlay below) and the
+researcher's own live use of the deployed system. Neither can test — let alone falsify — a
+behavioural claim about humans; H1–H4 as claims about people remain untested hypotheses.
+
+## Post-P12 status overlay (2026-09-05) — the evaluation is a simulation study (ADR-0020)
+
+Owner decision 2026-09-05 (ADR-0020): **no OSF registration** — that requirement came from
+File 06 being written as a full research project, and no thesis requirement calls for an
+external pre-registration. The discipline it stood for is kept locally: the simulation
+evaluation's hypotheses, expected directions and analysis plan are committed as
+`docs/study/preregistration.md` **before** the evaluation runs (the git history is the
+timestamp), the evaluation runs once at the registered configuration, and
+`docs/study/simulation-results.md` compares every prediction with its outcome, including
+the ones that came out differently. Normative wording from here on, in every document and
+in the thesis: **"field study out of scope; evaluation performed in simulation"** — the
+simulation evaluation is itself a study with hypotheses, method and results; nothing may
+read as "no study was conducted". File 06 §2.3's pre-registered simulation-based power
+analysis is part of that study (M9/#21 recomputed at the measured experiment rate).

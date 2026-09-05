@@ -6,7 +6,8 @@
 > `[legal]`; wording that names a system behaviour is marked `[system]` and is tested or
 > measured in the phase named.
 >
-> **Status update (2026-09-01):** the field study will not run (thesis-corrections #49);
+> **Status update (2026-09-01 / 2026-09-05):** the field study is out of scope (thesis-corrections
+> #49); the evaluation was performed in simulation (ADR-0020);
 > this document stands as part of the executable protocol artifact, not an active consent
 > instrument. The open items (version number, Ukrainian translation) matter only for the
 > artifact's completeness.
@@ -67,8 +68,8 @@ is needed.
 
 `[legal]` Data retention: raw behavioural events are kept for 24 months after the study, then
 reduced to a pseudonymised research archive that is deposited with restricted access on EU
-storage (OSF, Frankfurt) under a data-use agreement; only a synthetic dataset is published.
-(ADR-0011 Decision 3; thesis-corrections #36.)
+storage under a data-use agreement; only a synthetic dataset is published.
+(ADR-0011 Decision 3; thesis-corrections #36; the platform is chosen if the study runs — ADR-0020.)
 
 ## 4. Residence question (enrollment checklist, study mode — P11)
 

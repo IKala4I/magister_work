@@ -127,7 +127,7 @@ the keep-busy timer into useful work. B is the fallback if GitHub orchestration 
 4. **rMEQ answers.** Sleep-timing questions are not an Art. 9 category on their face but sit close
    to health data; the DPIA should say so explicitly (P12).
 
-## 7. Facts verified 2026-08-27 (re-check at the OSF freeze)
+## 7. Facts verified 2026-08-27 (re-check before any field study — ADR-0020)
 
 - Commission adequacy list: 17 decisions, no Ukraine —
   https://commission.europa.eu/law/law-topic/data-protection/international-dimension-data-protection/adequacy-decisions_en
@@ -191,3 +191,10 @@ the keep-busy timer into useful work. B is the fallback if GitHub orchestration 
   `model_registry.artifact_uri` semantics (EU storage URI, not HF Hub).
 - **Traceability:** NFR-S2 gains a "flows" row pointing here; the claim flips to ✅ only after
   the owner's decision is implemented and the consent form carries the clause.
+
+## Amendment (2026-09-05, ADR-0020)
+
+No OSF project is created. The public artefact (synthetic dataset + replay harness, Decision 3)
+lives in this repository; the restricted-access deposit (§4 option iii) is a clause that applies
+only if a field study is ever run, and its platform is chosen then. §7's re-check is due before
+any field study, not at a freeze.

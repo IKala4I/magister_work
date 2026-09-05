@@ -44,8 +44,8 @@
    this in the A-vs-B contrast; (d) §2.6/§5.3 OPE text: note baseline traffic now carries
    exact propensities, so the randomized slice spans both arms; (e) mention the rejected
    alternative (sham badges on non-randomized A-blocks) and why: it would falsify
-   logged-propensity semantics and deceive participants. Same edits go into the OSF
-   pre-registration text before freeze.
+   logged-propensity semantics and deceive participants. Same edits go into the field
+   protocol's pre-registration material, which stays in-repo (ADR-0020 — no OSF).
 9. **§4.5:** draft states SASRec-lite is trained nightly from the start; the system defers the
    sequence model to the post-v1 feature channel (specs/07 §3.6 rung 3) — no FR requires it and
    the v1 serving path never reads it. Either mark it "запланований компонент конвеєра" or
@@ -147,7 +147,7 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
 
 ## Appended after P6 (plan E2E), 2026-08-26
 
-21. **§5 (MRT slice / power) — flag for the OSF freeze.** The draft and File 06 §2.3 compute the
+21. **§5 (MRT slice / power) — flag for the pre-registration text (in-repo since ADR-0020).** The draft and File 06 §2.3 compute the
     MRT-slice power from "1 randomized slot per day". Measured on the planner's own grid and
     eligibility code (`services/recsys/scripts/experiment_rate.py`): under the strict "≥ 4
     reachable buckets" rule a plain 09–18 weekday makes every task ≥ 60 min ineligible, so a
@@ -277,14 +277,17 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
 36. **File 06 §5 / §3.x (artefact statement):** "anonymized event dataset (Parquet, HF
     datasets)" over-claims — a row-level dataset of 42 people with 8 weeks of timestamped
     behaviour is pseudonymised, not anonymous, and HF datasets is US-hosted. Replace with the
-    release option chosen at the OSF freeze. **Decided 2026-08-28 — replace the phrase with:**
+    release option decided 2026-08-28 (ADR-0011 §3), as re-read by ADR-0020 (amendment below). **Decided 2026-08-28 — replace the phrase with:**
     "a synthetic event dataset generated from the fitted models, together with the one-command
     replay harness that reproduces every offline-evaluation table from it (public, on OSF); the
     real event log (Parquet) is pseudonymised, not anonymous — 42 participants × 8 weeks of
     timestamped behaviour is re-identifiable by linkage — and is deposited with restricted
     access on EU storage (OSF, Frankfurt region) under a data-use agreement". Also replace "HF
     Hub" for the model registry with "Supabase Storage (EU)" wherever `artifact_uri` is
-    described. spec-conflicts H5; ADR-0011 §4, Decision 3.
+    described. spec-conflicts H5; ADR-0011 §4, Decision 3. **Amended 2026-09-05 (owner,
+    ADR-0020 §4):** no OSF project exists — read "public, on OSF" as "public, in the project
+    repository", and the restricted-access deposit as a clause that applies only if a field
+    study is ever run (platform chosen then; nothing exists to deposit today).
 37. **§3.x / File 04 §1.5 ("meeting NFR-P1 on 2 vCPU") and the reported ladder parameter —
     measured on the deployment box 2026-08-28:** report the container numbers, not the Mac's
     (item 11): day plan (12 tasks) OPTIMAL 20/20, end-to-end p50 135 ms / p90 487 ms on the
@@ -375,23 +378,25 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     recruitment limitation next to the M9 power note. `docs/store/metadata.md` §7 decision
     block; enrollment checklist §1.
 49. **§5 evaluation / §conclusions / abstract (the field study, N = 30, H1–H4 "results"):**
-    owner decision 2026-09-01 (recorded at the DPIA signature): **the field study is not
-    executed.** State the reason as a boundary, not a shortfall: running it requires
+    owner decision 2026-09-01 (recorded at the DPIA signature): **the field study is out of
+    scope.** State the reason as a boundary, not a shortfall: running it requires
     resources outside a master's project — platform developer accounts, a recruitment
     budget, and eight weeks of volunteer retention that engineering effort cannot
     substitute for. The protocol is **designed, instrumented, and verified end to end**
     (exact per-row propensities M-01, first-class arm switching, blocked ABAB/BABA
-    randomization, PAR from facts, the aggregate report, the OSF-freeze bundle prepared —
-    "pre-registration-ready"; **owner decision 2026-09-01: the OSF freeze WILL run,
-    sequenced after the hardware pass closes — once registered, replace
-    "pre-registration-ready" with "pre-registered" wherever this item applies and cite
-    the registration id in §5 and in the artifact statement, item 36**) and the deployed
-    system is ready to run it. Rewrite
-    every passage that asserts or implies empirical results from real users:
-    - **What stands as evidence:** (a) OPE on synthetic ground-truth data — the estimator
-      family (replay, IPS/clipped, SNIPS, DR with the ESS < 100 non-evidence rule)
-      RECOVERS closed-form truth, which validates the estimators and the logging
-      substrate; (b) the researcher's own live use of the deployed system — the full loop
+    randomization, PAR from facts, the aggregate report, the pre-registration material
+    assembled and kept in-repo — "pre-registration-ready"; **owner decision 2026-09-05
+    (ADR-0020): no OSF registration — "pre-registration-ready" stays; the pre-registration
+    discipline is applied in git to the simulation study (#54, #55)**) and the deployed
+    system is ready to run it. **Wording rule (ADR-0020 §3, #54): the field study is _out
+    of scope_; the evaluation _was performed in simulation_ and is a study with hypotheses,
+    method and results — never "no study was conducted" or "the study is not executed".**
+    Rewrite every passage that asserts or implies empirical results from real users:
+    - **What stands as evidence:** (a) the simulation study (#55; `docs/study/`) — OPE on
+      synthetic ground-truth data, where the estimator family (replay, IPS/clipped, SNIPS,
+      DR with the ESS < 100 non-evidence rule) RECOVERS closed-form truth, which validates
+      the estimators and the logging substrate, plus the pre-registered power and
+      closed-loop policy experiments; (b) the researcher's own live use of the deployed system — the full loop
       (plan → facts → rewards → nightly training → scheduled runs) demonstrated in
       production, including the first timer-fired training run (2026-09-01).
     - **What simulation and own-use CANNOT establish — the thesis must say this
@@ -399,7 +404,7 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
       H1–H4 remain untested hypotheses; adherence effects, learning-during-A, and
       chronotype-prior benefits are NOT findings, and no sentence may report them as
       outcomes.
-    - **Why the unexecuted protocol is itself a contribution — argue it precisely:** the
+    - **Why the out-of-scope field protocol is itself a contribution — argue it precisely:** the
       protocol is an executable, auditable artifact: a within-subject design with matched
       randomization and a nested micro-randomized ε-slice, exact propensities logged by a
       live system (not a simulator), an OPE harness proven against ground truth, a power
@@ -516,3 +521,63 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     different implementation. Device evidence for (a): build 6 on the Pixel 7a, 0 BLANK in 72 card
     scans over 7- and 13-block lists at default density and 1.3× font scale
     (`android-20260905-1725-build6/notes.md` items 5 and 9).
+
+54. **§5 / §conclusions / abstract / §artefacts — no OSF registration; pre-registration in
+    git; the evaluation is a simulation study (owner decision 2026-09-05, ADR-0020).** (a)
+    Remove every promise of an OSF registration: the field protocol stays
+    "pre-registration-ready" and the assembled registration material is cited as an in-repo
+    artifact (`docs/thesis/corrections-rollup.md` + items 8/10/21/35/36), never as a
+    submission. (b) §5 gains the simulation study as a study in its own right: its
+    hypotheses, expected directions and analysis plan were committed as
+    `docs/study/preregistration.md` before the evaluation ran (cite the commit), the run
+    happened once at the registered configuration, and the results chapter presents the
+    prediction-by-prediction comparison (#55), deviations included. Present this as the
+    same protection against fitting hypotheses to results that a registry provides, applied
+    inside version control. (c) **Wording rule everywhere** — abstract, §5, conclusions,
+    limitations: _"the field study is out of scope; the evaluation was performed in
+    simulation"_. Replace every "the study is not executed", "no study was conducted",
+    "дослідження не проводилось" with that phrase; keep #49's boundary bullet (what
+    simulation cannot establish about people) verbatim. (d) Artefact statement (#36
+    amendment): the synthetic dataset + replay harness are public in the repository; the
+    restricted-access deposit is a conditional clause for a field study that may never run.
+
+55. **§5 (new subsection "Evaluation in simulation") / §results / §discussion / §limitations —
+    the simulation study, reported against its pre-registration (run 2026-09-05 on commit
+    `ec1b869`; `docs/study/simulation-results.md`).** Structure the section as the study it is:
+    (a) design — three experiments on the committed synthetic world (E1 estimator study, E2
+    the File 06 §2.3 simulation-based power, E3 the closed-loop ABAB study on the service's
+    own Stage 2–4 code), hypotheses and analysis plan frozen in git before any run (commit
+    `11b71a9`, 22:11:53; code `ec1b869`, 22:19:16); (b) results, each pre-registered
+    prediction next to its outcome with the verdict — E1 8/9 confirmed, E2 6/7, E3 3 confirmed,
+    5 partly, 1 not; (c) the deviations, stated as such. Numbers to carry: the learned arm beats
+    the heuristic by **2.5 pp** (ceiling 4.1, efficiency 0.62) in the base world and **5.4 pp**
+    (ceiling 7.8, efficiency 0.69) in the amplified one, direction right in 96 % / 100 % of
+    replicated studies, detected by a 30-user ABAB study 26 % / 79 % of the time; the
+    paired-means floor of File 06's analysis has power **0.84 / 0.82** at N = 30 (ICC 0.10 /
+    0.20; N = 28 → 0.78, the analytic 28 is optimistic because the random intercept attenuates
+    +8 pp to 6.8–7.2 pp) **under the registered heterogeneity, which is τ ≈ 0.10 — at File 06's
+    own pessimistic τ = 0.12 the floor is 0.77 / 0.74 and 0.80 needs N ≈ 34–40 or the §1.6
+    GLMM's efficiency (not fitted); quote both**;
+    every estimator except replay is unbiased at the designed data rate and the ESS ≥ 100
+    gate holds 3× over on plain weeks (ESS ≈ 310 of ≈ 930 slice rows; 80–175 on heavy weeks,
+    M9 closed). **The four findings that came out differently — present them, do not
+    smooth them:** (1) replay is biased (−0.6 / +0.7 pp, 3–5 MC SE) on policies whose value
+    correlates with |A_m(x)| — a consequence of the 2026-08-26 variable slice size (rows with
+    small slices are matched more often); IPS/SNIPS/DR are unbiased, so on the slice replay is
+    reported beside them, never alone (spec-conflicts M10); (2) morning chronotypes lose
+    1–2 pp under the learned arm where the heuristic is already optimal — posterior-sampling
+    noise on an untrained bandit (σ² = 0.25) plus one mis-ordered prior cell (File 04 §3.2 puts
+    AF above MD for DM/MM; the world has the reverse) — the price of a prior and of exploration,
+    paid exactly where the incumbent rule is right; (3) the learning signature (File 06 H4) is
+    real under a flat prior (+0.75 / +1.26 pp growth between phase pairs, 2.5–4 MC SE) but a
+    single 30-user study sees it positive only 59–63 % of the time and significant 3–10 % — H4
+    is underpowered as a within-study test; under the File 04 prior the plateau is reached
+    inside phase pair 1 (growth ≈ 0, as predicted); (4) three registered statements were
+    mis-specified (a two-sided type-I band against a one-directional rule; per-replicate MAE
+    monotonicity and a ±0.03 per-estimate band for mean statements; the E2 slope-SD rationale
+    above) and E2's seeding differs from the registered rule — say so and report the
+    consistent reading beside them. Limitations to carry verbatim from the results §6: nothing about people; the
+    worlds are the P11 generator and its registered amplification; fatigue, busy time,
+    deadlines, heterogeneous tasks and the CP-SAT packing are outside E3; the E2 GLMM is not
+    fitted (E2 is a lower bound). Cite the run's `run.json` (commit, timings) and the
+    one-command reproduction.

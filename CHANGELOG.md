@@ -30,6 +30,30 @@ Everything below condenses P0–P11 for release notes and the thesis; per-phase 
 - **Ops:** Supabase (eu-west-1) + Oracle A1 VM (eu-marseille-1) with pull-based rollout,
   hardened SSH + Tailscale admin path, nightly training timer, runbooks for every timer.
 
+## Post-P12 — no OSF; pre-registration in git; the simulation study (2026-09-05, post-p12/simulation-study)
+
+- **ADR-0020 (owner decisions 2026-09-05):** no OSF registration — the freeze is retired from every
+  pending list and the assembled material stays in-repo; the pre-registration discipline moves
+  into git; wording rule "field study out of scope; evaluation performed in simulation"
+  (thesis-corrections #54). Release artefacts re-read: synthetic dataset + harness public in-repo,
+  the restricted deposit conditional on a field study.
+- **docs(study): `preregistration.md`** committed before any study code (`11b71a9`): E1 estimator
+  study (9 hypotheses), E2 File 06 §2.3 power (7), E3 closed-loop ABAB on the service's own Stage
+  2–4 code (9), with analytic ceilings (4.1 / 7.8 pp) and the expected directions.
+- **feat(training): `simstudy/` package + `hourwell-simstudy` CLI** (`ec1b869`): E1/E2/E3 exactly
+  per the pre-registration; `synthetic.q_true` gains an optional `scale`; 11 new tests on
+  hand-computed cases (90 pytest); ruff + mypy strict clean.
+- **docs(study): `simulation-results.md` + `results/*.json`** — the registered run (E1 23.8 s,
+  E2 10.6 s, E3 41.3 s on `ec1b869`): learned arm +2.5 pp (base, ceiling 4.1) / +5.4 pp
+  (amplified, ceiling 7.8), direction right in 96 % / 100 % of replicated studies; File 06
+  paired-floor power 0.84 / 0.82 at N = 30 under the registered τ ≈ 0.10 (0.77 / 0.74 at File 06's
+  τ = 0.12 → N ≈ 34–40, exploratory); ESS gate met 3× on plain weeks. Deviations reported: the
+  under-registered E2 heterogeneity, replay biased under a variable |A_m(x)| (spec-conflicts M10),
+  morning types lose 1–2 pp under the learned arm, H4 underpowered within-study, mis-specified
+  criteria (thesis-corrections #55). Adversarial pass (fresh subagent): 2 MAJOR / 10 MINOR / 4
+  NOTE — all addressed on the branch; the study code refactor after the run is byte-identical
+  (E3 re-run diffed); `scripts/simstudy_exploratory.py` reproduces the post-results analyses.
+
 ## Post-P12 — fix batch after the Android pass: days off, blank cards, button roles, exact alarms (2026-09-05, post-p12/fix-batch-build6)
 
 - **feat(edge) + feat(mobile) — ADR-0019 implemented:** `plan-request` answers

@@ -40,7 +40,8 @@ path cannot be exercised live in this phase.
    with 5 tasks 0.76 → 0.96; on a heavy day (4 meetings, ~3.5 h busy) it rises 0.00 → 0.22–0.48
    (3–8 tasks). With ε = 1 and five weekday plans that is ≈ 4.3 (plain) / 1.1–2.4 (heavy)
    experiments per user-week before drops — the realistic rate File 06's MRT-slice power must
-   use instead of "1 slot/day" (thesis-corrections #21; OSF freeze item).
+   use instead of "1 slot/day" (thesis-corrections #21; pre-registration item — the material
+   stays in-repo, ADR-0020; the simulation study's E2 recomputes the rate's consequence).
 
 2. **Arm A = "heuristic + matched randomization" (`supabase/functions/_shared/heuristic.ts`).**
    A deterministic list scheduler on the identical grid, F_τ, φ and feature snapshot (TypeScript
