@@ -223,6 +223,7 @@ describe('runNotificationScheduler', () => {
       muted: 1,
       past: 0,
       reason: 'ok',
+      exact: 'not_applicable', // jest runs as iOS: no exact-alarm switch there
     });
     expect(readLedger().scheduled.map((s) => s.id)).toEqual(ids);
   });

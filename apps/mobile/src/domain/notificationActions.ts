@@ -14,8 +14,14 @@ import {
   type PermissionState,
   requestPermission,
 } from '../notifications/setup';
+import { track } from '../observability/analytics';
 import { appStorage, StorageKeys } from '../storage/mmkv';
 import { scheduleSync } from '../sync/engine';
+import {
+  type ExactAlarmState,
+  exactAlarmState,
+  openExactAlarmSettings,
+} from '../../modules/exact-alarm';
 
 import {
   type NotificationSettings,
@@ -61,4 +67,28 @@ export function isRemindersPromptDismissed(): boolean {
 
 export function dismissRemindersPrompt(): void {
   appStorage.set(StorageKeys.remindersPromptDismissed, '1');
+}
+
+/**
+ * FR-50 on Android 12+ (build 6): whether the OS lets Hourwell schedule reminders exactly.
+ * `denied` on a fresh Android 13+ install until the user flips "Alarms & reminders" — the Today
+ * card and the Settings row route there; `not_applicable` on iOS and below Android 12.
+ */
+export function reminderExactness(): ExactAlarmState {
+  return exactAlarmState();
+}
+
+/** The Today card / Settings row: open the system screen (the grant itself is the OS's). */
+export function openExactAlarmSettingsAction(source: 'today_card' | 'settings'): void {
+  track('exact_alarm_prompt', { action: 'open_settings', source });
+  openExactAlarmSettings();
+}
+
+export function isExactAlarmPromptDismissed(): boolean {
+  return appStorage.getString(StorageKeys.exactAlarmPromptDismissed) === '1';
+}
+
+export function dismissExactAlarmPrompt(): void {
+  track('exact_alarm_prompt', { action: 'dismiss', source: 'today_card' });
+  appStorage.set(StorageKeys.exactAlarmPromptDismissed, '1');
 }

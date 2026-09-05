@@ -22,6 +22,8 @@ import { track } from '../observability/analytics';
 import { dismissStaleReminders } from './dismiss';
 import { commitScheduled, settleLedger } from './ledger';
 import { type NotificationSpec, OPEN_STATUSES, planNotifications } from './plan';
+import { exactAlarmState } from '../../modules/exact-alarm';
+
 import { CATEGORY_RITUAL, CHANNEL_REMINDERS, CHANNEL_RITUAL, getPermissionState } from './setup';
 
 const localDb = db as unknown as LocalDb;
@@ -187,6 +189,7 @@ async function pass(now: Date): Promise<void> {
     muted: plan.dropped.muted,
     past: plan.dropped.past,
     reason: plan.reason,
+    exact: exactAlarmState(),
   });
 }
 

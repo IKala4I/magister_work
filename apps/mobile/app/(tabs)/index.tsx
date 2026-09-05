@@ -44,9 +44,13 @@ import {
 } from '../../src/domain/blockActions';
 import { applyTradeoffAction, rejectTradeoffsAction } from '../../src/domain/insightsActions';
 import {
+  dismissExactAlarmPrompt,
   dismissRemindersPrompt,
   enableRemindersAction,
+  isExactAlarmPromptDismissed,
   isRemindersPromptDismissed,
+  openExactAlarmSettingsAction,
+  reminderExactness,
   reminderPermissionState,
 } from '../../src/domain/notificationActions';
 import { notificationSettingsOf, timeOnDay } from '../../src/domain/notificationSettings';
@@ -64,6 +68,7 @@ import { useLapseScan } from '../../src/sync/useLapseScan';
 import { runPlanRequest, usePlanTrigger } from '../../src/sync/usePlanTrigger';
 import { useCurrentProfile } from '../../src/db/useProfile';
 import type { PermissionState } from '../../src/notifications/setup';
+import type { ExactAlarmState } from '../../modules/exact-alarm';
 import { type BlockAction, BlockActions } from '../../src/ui/plan/BlockActions';
 import { MovePicker } from '../../src/ui/plan/MovePicker';
 import { SkipDiagnosticCard } from '../../src/ui/plan/SkipDiagnosticCard';
@@ -144,12 +149,18 @@ export default function TodayScreen() {
   const notifySettings = notificationSettingsOf(profile?.settings ?? null);
   const [permission, setPermission] = useState<PermissionState | null>(null);
   const [promptDismissed, setPromptDismissed] = useState(() => isRemindersPromptDismissed());
+  // FR-50 on Android 12+ (build 6): the exact-alarm app-op, re-read on every foreground — the
+  // user flips it on the system screen the card opens
+  const [exactness, setExactness] = useState<ExactAlarmState | null>(null);
+  const [exactDismissed, setExactDismissed] = useState(() => isExactAlarmPromptDismissed());
   useEffect(() => {
     let alive = true;
-    const refresh = () =>
+    const refresh = () => {
+      setExactness(reminderExactness());
       void reminderPermissionState().then((p) => {
         if (alive) setPermission(p);
       });
+    };
     refresh();
     // back from the OS settings screen: re-read the permission (P10 adversarial #9)
     const sub = AppState.addEventListener('change', (state) => {
@@ -267,6 +278,13 @@ export default function TodayScreen() {
     notifySettings.block_reminders &&
     permission === 'undetermined' &&
     !promptDismissed;
+  // FR-50 (build 6): reminders are on and allowed, but Android would deliver them inexactly
+  const exactAlarmPrompt =
+    hasBlocks &&
+    notifySettings.block_reminders &&
+    permission === 'granted' &&
+    exactness === 'denied' &&
+    !exactDismissed;
   // FR-26: after the ritual time, with tasks waiting and no plan for tomorrow, offer the one tap
   const inboxCount = taskRows.filter((task) => task.status === 'inbox').length;
   const ritualDue =
@@ -392,6 +410,31 @@ export default function TodayScreen() {
               onPress={() => {
                 dismissRemindersPrompt();
                 setPromptDismissed(true);
+              }}
+            />
+          </View>
+        </View>
+      ) : null}
+      {exactAlarmPrompt ? (
+        <View
+          style={[styles.banner, { backgroundColor: theme.colors.primaryContainer }]}
+          accessibilityRole="summary"
+          accessibilityLabel={t('today.exactAlarm.title')}
+        >
+          <ThemedText>{t('today.exactAlarm.title')}</ThemedText>
+          <ThemedText variant="caption">{t('today.exactAlarm.body')}</ThemedText>
+          <View style={styles.bannerActions}>
+            <Button
+              kind="secondary"
+              label={t('today.exactAlarm.allow')}
+              onPress={() => openExactAlarmSettingsAction('today_card')}
+            />
+            <Button
+              kind="secondary"
+              label={t('today.exactAlarm.later')}
+              onPress={() => {
+                dismissExactAlarmPrompt();
+                setExactDismissed(true);
               }}
             />
           </View>

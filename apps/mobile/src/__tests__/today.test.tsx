@@ -27,12 +27,21 @@ const mockNotify = {
   dismissed: false,
   dismiss: jest.fn(),
   enable: jest.fn<Promise<string>, [unknown]>(() => Promise.resolve('granted')),
+  // FR-50 exact alarms (build 6): 'not_applicable' = iOS / below Android 12
+  exactness: 'not_applicable' as string,
+  exactDismissed: false,
+  exactDismiss: jest.fn(),
+  openExactSettings: jest.fn(),
 };
 jest.mock('../domain/notificationActions', () => ({
   reminderPermissionState: () => mockNotify.permission(),
   isRemindersPromptDismissed: () => mockNotify.dismissed,
   dismissRemindersPrompt: () => mockNotify.dismiss(),
   enableRemindersAction: (source: unknown) => mockNotify.enable(source),
+  reminderExactness: () => mockNotify.exactness,
+  isExactAlarmPromptDismissed: () => mockNotify.exactDismissed,
+  dismissExactAlarmPrompt: () => mockNotify.exactDismiss(),
+  openExactAlarmSettingsAction: (source: unknown) => mockNotify.openExactSettings(source),
 }));
 const mockProfile = {
   settings: null as unknown,
@@ -684,10 +693,60 @@ describe('trade-off sheet (FR-24 / UC-05)', () => {
   });
 });
 
+describe('FR-50 exact-alarm card (Android 12+, build 6)', () => {
+  beforeEach(() => {
+    mockNotify.permission.mockResolvedValue('granted');
+    mockNotify.exactness = 'denied';
+    mockNotify.exactDismissed = false;
+    mockProfile.settings = null;
+  });
+  it('with reminders allowed but inexact: the card offers the system screen; "Allow" opens it', async () => {
+    rows({ plans: [plan()], recs: [rec()], tasks: [task()] });
+    await render(withSafeArea(<TodayScreen />));
+    await act(async () => {});
+    expect(screen.getByText(en['today.exactAlarm.title'])).toBeTruthy();
+    expect(screen.queryByText(en['today.reminders.title'])).toBeNull(); // the OS permission is decided
+    await fireEvent.press(screen.getByLabelText(en['today.exactAlarm.allow']));
+    expect(mockNotify.openExactSettings).toHaveBeenCalledWith('today_card');
+  });
+  it('"Not now" dismisses it for good', async () => {
+    rows({ plans: [plan()], recs: [rec()], tasks: [task()] });
+    await render(withSafeArea(<TodayScreen />));
+    await act(async () => {});
+    await fireEvent.press(screen.getByLabelText(en['today.exactAlarm.later']));
+    expect(mockNotify.exactDismiss).toHaveBeenCalled();
+    expect(screen.queryByText(en['today.exactAlarm.title'])).toBeNull();
+  });
+  it('no card when alarms are exact, where the OS has no such switch, or without the OS permission', async () => {
+    rows({ plans: [plan()], recs: [rec()], tasks: [task()] });
+    mockNotify.exactness = 'allowed';
+    await render(withSafeArea(<TodayScreen />));
+    await act(async () => {});
+    expect(screen.queryByText(en['today.exactAlarm.title'])).toBeNull();
+    mockNotify.exactness = 'not_applicable';
+    await render(withSafeArea(<TodayScreen />));
+    await act(async () => {});
+    expect(screen.queryByText(en['today.exactAlarm.title'])).toBeNull();
+    mockNotify.exactness = 'denied';
+    mockNotify.permission.mockResolvedValue('undetermined');
+    await render(withSafeArea(<TodayScreen />));
+    await act(async () => {});
+    expect(screen.queryByText(en['today.exactAlarm.title'])).toBeNull();
+    expect(screen.getByText(en['today.reminders.title'])).toBeTruthy(); // the permission card first
+  });
+  it('no card without blocks to remind about', async () => {
+    rows({ tasks: [task()] });
+    await render(withSafeArea(<TodayScreen />));
+    await act(async () => {});
+    expect(screen.queryByText(en['today.exactAlarm.title'])).toBeNull();
+  });
+});
+
 describe('P10 — reminders card (FR-50) and the evening ritual on Today (FR-26)', () => {
   beforeEach(() => {
     mockNotify.dismissed = false;
     mockNotify.permission.mockResolvedValue('undetermined');
+    mockNotify.exactness = 'not_applicable';
     mockProfile.settings = null;
     mockRunPlanRequest.mockClear();
   });

@@ -59,6 +59,7 @@ export async function forgetLocalState(): Promise<void> {
   appStorage.delete(StorageKeys.lastSyncAt);
   appStorage.delete(StorageKeys.pendingWipeUserId);
   appStorage.delete(StorageKeys.remindersPromptDismissed);
+  appStorage.delete(StorageKeys.exactAlarmPromptDismissed);
   appStorage.delete(StorageKeys.lastNotificationResponse);
   if (supabase) {
     // the server already deleted the user; the token is dead — drop it locally only

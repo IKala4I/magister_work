@@ -23,6 +23,10 @@ jest.mock('../domain/notificationActions', () => ({
   dismissRemindersPrompt: () => {},
   enableRemindersAction: () => Promise.resolve('granted'),
   updateNotificationSettingsAction: () => {},
+  reminderExactness: () => 'not_applicable',
+  isExactAlarmPromptDismissed: () => true,
+  dismissExactAlarmPrompt: () => {},
+  openExactAlarmSettingsAction: () => {},
 }));
 jest.mock('../privacy/exportData', () => ({ exportDataAction: jest.fn() }));
 jest.mock('../privacy/deleteAccount', () => ({ deleteAccountAction: jest.fn() }));

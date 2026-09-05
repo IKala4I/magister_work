@@ -25,6 +25,8 @@ export const StorageKeys = {
   notificationLedger: 'notify.ledger',
   /** The Today reminder-permission card was dismissed ("not now"). */
   remindersPromptDismissed: 'notify.promptDismissed',
+  /** The Today exact-alarm card (Android 12+, FR-50) was dismissed ("not now"). */
+  exactAlarmPromptDismissed: 'notify.exactPromptDismissed',
   /** Last notification response handled (id@date) — cold-start dedup (P10). */
   lastNotificationResponse: 'notify.lastResponse',
   /**
