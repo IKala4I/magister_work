@@ -2,57 +2,55 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-05 18:10 — **Post-pass fix batch DONE → build 6 verified on the Pixel 7a**
-> (branch `post-p12/fix-batch-build6`, PR #51). Four fixes: ADR-0019 implemented (function +
-> client + ritual + the in-app tomorrow card), the Android `GlassPanel` clip (blank cards), `role=
-"button"` on the header gear / Inbox "+", the exact-alarm prompt (local Expo module
-> `apps/mobile/modules/exact-alarm`). Fresh-context adversarial pass: 1 MAJOR (the in-app "Plan
-> tomorrow?" card offered a day off) + hardening, all folded in before the build. Device re-check
-> (fresh anonymous account `a4c86ab5-…`, a real Saturday, all over adb, no clock waited on):
-> `docs/verification/device-pass/android-20260905-1725-build6/notes.md` items 1–8 — every row
-> flipped ✅ with one written caveat (blank-card sweep on a 7-block list, 0/36 scans). Gates: 546
-> jest · 190 Deno · typecheck/lint/format · expo-doctor 21/21. Server unchanged except the
-> `plan-request` **source** (the function is NOT redeployed — see ⛔ below).
-> Read first: the build-6 notes, then "Exact next actions".
+> Last update: 2026-09-05 21:30 — **Build 6 fully verified on the Pixel 7a; `plan-request` v13 live;
+> the blank-card caveat closed.** PR #51 (the fix batch) merged 17:57Z. Same evening: the owner
+> deployed `plan-request` v13 (20:47 EEST); the blank-card sweep re-ran on a **13-block list** at
+> both densities — 0 BLANK in 36 scans (72 with the 7-block series), bottom reached every cycle →
+> the checklist row is ✅ without a caveat; a manual re-plan on a windowless day persisted no row on
+> v13; the TalkBack listen was skipped by the owner (the dump is the evidence). Branch
+> `post-p12/sweep-13blocks` carries build-6 notes items 9–10 + evidence, the checklist /
+> traceability / CHANGELOG / revisit / corrections #53 / explainer updates and a `swipes` argument
+> on `hw-blank-cards-sweep.sh`. Nothing in the build-6 batch is half-checked any more.
+> Read first: the build-6 notes items 9–10, then "Exact next actions".
 
-## Build 6 — state (2026-09-05 evening)
+## Build 6 — state (2026-09-05 late evening)
 
-- **Phone:** build 6 (post-review APK `7e5e2fd8cef659b0…`, installed 17:37 over the pre-review cut)
-  on the test account `a4c86ab5-f944-43a9-a42d-a65f6d4461d4` (anonymous, onboarded 17:25 by the
-  maestro flow; profile restored to Mon–Fri / sleep 23:00–07:00 / ritual 20:00). Today shows the
-  7-block Saturday plan (a legacy plan on a day that is a day off again); five exact block
-  reminders 18:20–21:50 and the Sunday review 20:00 are scheduled (`window=0`); `POST_NOTIFICATIONS`
-  and `SCHEDULE_EXACT_ALARM` granted (the latter via the app's own prompt). Nobody taps tonight's
-  reminders. **The account is a test account** — FR-42 erasure from Settings (two confirmations) is
-  the one-minute clean-up if the owner wants the project free of it; otherwise it can stay.
-- **Server:** the fix batch changes `supabase/functions/plan-request` (+ `_shared/grid.ts`,
-  `_shared/types.ts`) — **not deployed**. The device never needed it (the client answers a day off
-  locally; the one manual tap that reached the function found a window). ⛔ **Deploy
-  `plan-request` v13** = `supabase functions deploy plan-request` (owner-run, ~1 min; the deploy
-  classifier blocked `db push` before — try it, else print the command). Until then a stale client
-  (builds ≤ 5, none installed) could still persist a zero-block plan; build 6 cannot.
+- **Phone:** build 6 (`7e5e2fd8cef659b0…`), test account `a4c86ab5-f944-43a9-a42d-a65f6d4461d4`
+  (anonymous). Device zone / auto time zone / font scale restored (`Europe/Kiev`, on, 1.0). Today
+  shows the 13-block plan `3aa1342a` (planned 20:59 EEST under a Pacific-time horizon; a legacy plan
+  on a day off again, rendered 9:00 PM onwards). Alarms: five exact block reminders tonight (21:35,
+  00:35, 01:20, 02:05, 02:50) + the Sunday review 20:00, all `window=0`. Nobody taps them; the lapses
+  they produce are test facts. Server profile back to Mon–Fri 09:00–18:00, sleep 23:00–07:00, ritual
+  20:00, `Europe/Kiev`. Plans 3 (17:37 zero-block, 17:39 seven, 20:59 thirteen), tasks 25 (12 of the
+  seeded titles repeat — two seeding runs). FR-42 erasure from Settings is the one-minute clean-up
+  if the owner wants the project free of the account.
+- **Server:** `plan-request` v13 ACTIVE (owner deploy 20:47 EEST) — the only function the fix batch
+  changed; checked on the device by the no-row manual tap (build-6 notes item 10).
+- **Recipe learnt tonight (notes item 9):** a ≥ 10-block list in the evening needs a longer
+  horizon, not more tasks (min block 30 min; the 00–06 rule ends the grid at midnight) — shift the
+  device zone AND the profile zone west (`cmd alarm set-timezone`; profile SQL), give the day a
+  window, HOME → `am kill` → `am start`; `hw-blank-cards-sweep.sh <out> 6 5` reaches the bottom of 13
+  cards at default density, 7 drags at 1.3×. Restore: zone + `auto_time_zone 1`, font scale, profile
+  zone, `--remove sat`, one more kill + start so the alarms are rescheduled in the right zone.
 - **Not in this batch, by the owner's list (stay in revisit):** the ritual answered after the
   morning's `new_day` re-plans today; the third-skip diagnostic card is not persisted; the heatmap
   label rough edges; the Move picker's silent snapping.
-- **Recipes learnt (build-6 notes):** `input swipe` must START inside the list (y ≳ 500) or the
-  Today list never moves — `hw-blank-cards-sweep.sh` does that; `hw-set-working-hours.mjs`,
-  `hw-set-ritual-time.mjs`, `hw-seed-tasks.mjs`, `hw-account-reads.mjs` all take `--user <uuid>`;
-  `hw-build-gate.sh` before every install; a ritual-due check needs no clock: move the ritual time
-  on the server to two minutes ago and foreground.
 
 ## Exact next actions (next session, in order)
 
-1. **Merge PR #51** if CI has not auto-merged it (auto-merge is armed; six required jobs).
-2. ⛔ **Deploy `plan-request`** (see above). Then, optionally, one server-side check: a manual
-   plan request for a day without a window must answer `{status:'no_working_window'}` — e.g. the
-   test account on a Sunday with `hw-plan-budget-sweep.mjs`-style invoke, or simply
-   `hw-set-working-hours.mjs --remove` for the day and a Re-plan on the device.
-3. **OSF freeze** (decided 2026-09-01, sequenced after the pass; the pass and the fix batch are
-   closed → unblocked; the owner says go). Material staged in `docs/thesis/corrections-rollup.md`.
-4. **Thesis-text support** (corrections 1–53 + rollup); the ADR-0019 story (#52) and the
-   blank-card story (#53) now have their build-6 evidence.
-5. Optional owner items: the 10-s TalkBack listen for "Open settings, button"; a third NFR-P1
-   series on build 6 to tighten the 3.7–4.1 s reference (revisit); erase the test account.
+1. **Merge the `post-p12/sweep-13blocks` PR** if auto-merge has not (six required jobs).
+2. **OSF freeze** (decided 2026-09-01, sequenced after the pass; the pass, the fix batch and its
+   re-check are closed → the owner says go). Material staged in `docs/thesis/corrections-rollup.md`
+   (H1 / M9 / #34–36 / G5). Session side: assemble the registration text into one file the owner
+   pastes; ⛔ the registration itself is the owner's (OSF login; published + irreversible).
+3. **Thesis-text support** (corrections 1–53 + rollup); #52 and #53 carry their build-6 evidence.
+4. **iPhone pass — the owner's call** (asked 2026-09-05 evening; recommendation given: after the
+   freeze). Feasible at zero cost with Xcode free provisioning (personal team, 7-day re-sign, local
+   notifications work, no APNs, no store) on the owner's own iPhone; a first iOS hardware run will
+   most likely open a fix batch → build 7. It does not gate the freeze: the study channel is
+   Android-only (store decision 2026-08-31) and the File 06 protocol is device-agnostic.
+5. Optional owner items: a third NFR-P1 series on build 6 to tighten the 3.7–4.1 s reference
+   (revisit); erase the test account.
 
 ## Day 5 — state and queue (2026-09-05)
 
@@ -174,7 +172,7 @@ notification` (record must carry `actions=2`), then ONE adb tap on **"Plan tomor
    each from the session side before offering the next.
 4. No further build phases exist in PLAN. **The Android hardware pass closed 2026-09-05** (ladder step 5
    ✅ for Android; iOS out of scope by the store decision). Session work from here, in order:
-   (a) merge PR #50 (day-5 afternoon docs); (b) **post-pass fix batch → build 6** (order in the Day-5 block:
+   (a) merge PR #50 (day-5 afternoon docs); (b) ✅ **post-pass fix batch → build 6** (PR #51 2026-09-05; the build-6 re-check + the 13-block sweep close it) (order in the Day-5 block:
    ADR-0019, blank cards, gear role, exact-alarm prompt, stale-ritual re-plans, diagnostic-card persistence;
    PR #48's Expo patches ride along) with a short owner-run device re-check of the flipped rows
    (`hw-blank-cards.py`, a Saturday/Sunday plan attempt, one ritual); (c) **OSF freeze** — decided 2026-09-01 to

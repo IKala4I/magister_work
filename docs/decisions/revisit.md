@@ -378,7 +378,9 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   the training signal silently; invariant 2 makes facts ground truth). **Fix (1) shipped 2026-09-05
   (build 6, `e7bb05e`): the plain-View branch of `GlassPanel` carries no clip. Hardware verification
   with `hw-blank-cards.py` on build 6 — see the device checklist; FlashList 2.3.1 only if it
-  reproduces.**
+  reproduces. Device-verified 2026-09-05 evening (build 6, Pixel 7a): 0 BLANK in 72 card scans
+  over 7- and 13-block lists at two densities (build-6 notes items 5, 9) — CLOSED; FlashList stays
+  2.0.2.**
 - **(hardware pass day 5, 2026-09-05) NFR-P1 reference figure is series-dependent** — 3.7 s p95
   (3 Sep) vs 4.1 s (4 Sep, one 4.7 s request carrying a 3.0 s backlog sync); pooled 4.0 s (n = 20).
   Corrections #51 amended to "3.7–4.1 s"; the ≤ 6.0 s bound and the 1.5 s server bound stand. A
@@ -395,4 +397,5 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   spoken after "Switch to the text view for every hour." — move the hint out of the label (the
   "Show as text" button already exists) or drop the role. (3) "On weekdays … / On weekends …" is
   easy to miss at speech speed — lead with "Weekdays:" / "Weekends:" as separate phrases. **(1)
-  DONE 2026-09-05 (build 6, `57aa541`: `role="button"` on both). (2) and (3) stay open.**
+  DONE 2026-09-05 (build 6, `57aa541`: `role="button"` on both; the spoken confirmation was skipped
+  by the owner — the dump showing `Button` is the evidence). (2) and (3) stay open.**
