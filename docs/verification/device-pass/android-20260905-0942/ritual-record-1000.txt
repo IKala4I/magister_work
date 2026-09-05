@@ -1,0 +1,80 @@
+    NotificationRecord(0x0fc87adf: pkg=com.hourwell.app user=UserHandle{0} id=0 tag=ritual:2026-09-05 importance=3 key=0|com.hourwell.app|0|ritual:2026-09-05|10465: Notification(channel=ritual shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=AUTO_CANCEL color=0xff4f46e5 actions=2 vis=PRIVATE))
+      uid=10465 userId=0
+      opPkg=com.hourwell.app
+      icon=Icon(typ=RESOURCE pkg=com.hourwell.app id=0x7f0e0000)
+      flags=AUTO_CANCEL
+      originalFlags=AUTO_CANCEL
+      pri=1
+      key=0|com.hourwell.app|0|ritual:2026-09-05|10465
+      seen=false
+      groupKey=0|com.hourwell.app|0|ritual:2026-09-05|10465
+      notification=
+            fullscreenIntent=null
+            contentIntent=PendingIntent{546732c: PendingIntentRecord{4c230c com.hourwell.app startActivity (allowlist: bde333b:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+            deleteIntent=null
+            number=0
+            groupAlertBehavior=0
+            when=1788591600471/1788591600471
+            tickerText=null
+            vis=0
+            contentView=null
+            bigContentView=null
+            headsUpContentView=null
+            color=0xff4f46e5
+            timeout=PT72H
+            actions={
+                [0] "Plan tomorrow" -> PendingIntent{61ea1f5: PendingIntentRecord{a60c455 com.hourwell.app startActivity (allowlist: bde333b:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+                [1] "Adjust tasks" -> PendingIntent{8e1cb8a: PendingIntentRecord{a597e3f com.hourwell.app startActivity (allowlist: bde333b:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+              }
+            extras={
+                android.title=String (Plan tomorrow?)
+                android.reduced.images=Boolean (true)
+                android.subText=null
+                expo.notification_request=byte[] (696)
+                  [0] 17
+                  [1] 0
+                  [2] 0
+                  [3] 0
+                  [4] 114
+                  [5] 0
+                  [6] 105
+                  [7] 0
+                  [8] 116
+                  [9] 0
+                  [10] 117
+                  [11] 0
+                  [12] 97
+                  [13] 0
+                  [14] 108
+                  [15] 0
+                  [16] 58
+                  [17] 0
+                  [18] 50
+                  [19] 0
+                  [20] 48
+                  [21] 0
+                  [22] 50
+                  [23] 0
+                  [24] 54
+                  [25] 0
+                  [26] 45
+                  [27] 0
+                  [28] 48
+                  [29] 0
+                  [30] 57
+                  [31] 0
+                  [32] 45
+                  [33] 0
+                  [34] 48
+                  [35] 0
+                  [36] 53
+                  [37] 0
+                  [38] 0
+                  [39] 0
+                  [40] 66
+                  [41] 0
+                  [42] 0
+                  [43] 0
+                  [44] 101
+                  [45] 0
+                  [46] 120

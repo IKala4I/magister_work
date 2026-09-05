@@ -2,15 +2,60 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-04 11:00 — **hardware pass, Android day 4: PRs #41–#44, build 4 verified (exact
-> alarms, F1 engine half, 10-tap series); NFR-P1 revised to 6.0 s p95 (owner); evening ritual done on build 4 (buttons present, accept from a killed app ✅, two defects fixed in PR #45); ADR-0019 (non-working days) accepted; build 5 installed, its ritual re-check runs on demand at tomorrow's ping (cap blocked it tonight); then the owner items + FR-42 erasure; owed: 4 Sep export tomorrow morning, then the post-pass fix batch (ADR-0019 first).**
-> Read first: `docs/verification/device-pass/android-20260904-0827/notes.md` (items 1–12), then the
-> "Day 4 — state and remaining queue" block. Merged/open today: **PR #41**
-> (`fix/mobile-hardware-pass-day4`: ritual category registration, `readSession()` offline-vs-no-session
-> with the plan-trigger re-check on token refresh, `SCHEDULE_EXACT_ALARM`). The phone runs **build 4**
-> (`e6c9ea1ef9f0…`, 24808ad) since 09:11 with the exact-alarm appop granted over adb; server unchanged
-> (`plan-request` v12, `sync-resolve` v6, recsys `813cdbade0e9`). Every 4 Sep client row is post-#40;
-> rows from 09:11 on are build 4.
+> Last update: 2026-09-05 10:45 — **hardware pass, Android day 5 (branch `post-p12/hardware-pass-day5`, PR pending):**
+> build-5 ritual actions verified on an on-demand 10:00 ritual ("Adjust tasks" first response from a
+> killed app → Inbox, one `adjust` fact, notification dismissed); 4 Sep PostHog export paired 12/12
+> (build-4 series client p95 4.13 s → corrections #51 now says 3.7–4.1 s); the 2 Sep button question
+> settled by the owner's own screenshots (no buttons on build 3; root cause established); CI drift
+> fixed by PR #48 and #45/#46/#47 merged; **MAJOR data-integrity defect: blank Today cards whose
+> buttons still fire** (notes item 9, corrections #53, revisit) — fix batch item, build 6. **The owner
+> left with the phone (unplugged) at 10:3x:** UC-07 off-grid move, TalkBack listening pass and FR-42
+> erasure resume when it is back; nothing time-bound is pending.
+> Read first: `docs/verification/device-pass/android-20260905-0942/notes.md` (items 1–11), then the
+> "Day 5 — state and queue" block below. Server unchanged (`plan-request` v12, `sync-resolve` v6,
+> recsys `813cdbade0e9`). Phone: build 5 (`d7fc4280bf56…`, 7c8f67c, older Expo patches than main).
+
+## Day 5 — state and queue (2026-09-05)
+
+**Done (details = day-5 notes items 1–11):** ritual re-check on build 5 ✅ (item 7–8); 4 Sep export complete,
+12/12 paired, post-L1 pre-plan sync p50 936 / p95 2367 ms, build-4 series client p50 2627 / p95 4127 ms —
+NFR-P1 reference restated as 3.7–4.1 s (item 4; corrections #51, spec-conflicts L40, explainer); the three
+owed `owner-*` screenshots pulled from the phone and cropped into `android-20260902-1030/` — they settle
+the 2 Sep question (item 3); expo-doctor drift → PR #48 merged, #45/#46/#47 merged after it (item 5);
+shared helpers `hw-shade-tap.py`, `hw-posthog-pair.mjs`, `hw-set-working-hours.mjs`, `hw-blank-cards.py`
+(item 6); Saturday got a server-side working window and a 10-block plan for the owner-attended checks
+(item 10); **blank-card defect** found by the owner, reproduced 5/5, traced to the Android `GlassPanel`
+`overflow: hidden` clip, and classified as data integrity — the owner's two taps on blank cards became
+facts 567/568 (item 9).
+
+**When the phone is back (owner-attended, in this order):**
+
+1. Read tonight's ritual record (`dumpsys notification`, `when=` for the 20:00 alarm on an unplugged phone —
+   the FR-50 unplugged/Doze case) and the day's block-reminder posts (11:05 / 11:50 / 12:35 / 13:20 were
+   pending when the phone left); no facts expected (the owner does not tap).
+2. **UC-07 off-grid move:** "email replies" 3:45 PM → Move… → keyboard → 5:37 PM → Move here → expect
+   5:30/5:45 (a refusal over the completed 5:15 slot also counts); verify `recommendations.status = moved`
+   - `slot_start` on the server; screenshot. Only tap visible controls.
+3. **TalkBack listening pass** (owner enables it in Android Settings → Accessibility): tab names (F6),
+   block cards ("title, start to end, Experiment, Confidence N percent"), the heatmap summary, Settings
+   switches, rating chips; the owner reports what is announced; the session records per checklist row.
+4. Restore the profile: `node docs/verification/hw-set-working-hours.mjs --remove sat`.
+5. **FR-42 erasure LAST** (Settings → Delete, two confirmations → reference screen → relaunch → onboarding;
+   session: `deletion_audit` aggregate count, no Hourwell alarms in `dumpsys alarm`, no notifications).
+   Say before doing it that it ends the device account (facts 567/568 die with it).
+6. Close the day: notes, checklist rows, HANDOFF, PR.
+
+**Post-pass fix batch (build 6), in order:** ADR-0019 (no plan / no ritual for days without a window);
+**blank cards** (drop `overflow: 'hidden'` on the Android `GlassPanel`; then FlashList 2.3.1 + `getItemType`
+if it still reproduces; verify with `hw-blank-cards.py` on hardware — release-blocking); the exact-alarm
+in-app prompt; stale-ritual re-plans; the diagnostic card persistence (revisit). Build 6 carries the PR #48
+Expo patches.
+
+**Gotchas learnt today:** `am kill` only works on a backgrounded process (HOME first); the shade row arrives
+collapsed — tap its chevron before locating buttons; `uiautomator dump` works on Today when nothing animates
+but fails while the shade is open; the `Plan my day` button replaces `Re-plan` when the day's plan has 0
+blocks; `feedback_rewards` has `attributed_at`, not `created_at`; `tasks` has no `completed_at`; a 20-s wait
+for a known alarm is `adb shell 'sleep 20'` (the local `sleep` is blocked in this harness).
 
 ## Day 4 — state and remaining queue (2026-09-04)
 

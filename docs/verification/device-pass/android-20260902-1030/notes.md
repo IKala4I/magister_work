@@ -204,6 +204,11 @@ ritual (`RTC_WAKEUP`, `window=+1h`). All numbers here are from this physical dev
     the 15:20 alarm (block 15:30) was visible in the shade by 15:23:36 and dismissed by the
     owner 15:34:47 — within Android's +7.5 min window for a 10-min lead. Exact post times of the
     12:35/13:20/14:05 alarms are not in the log any more; the owner's screenshots may carry them.
+    **Read on 2026-09-05 from the owner's screenshots** (`owner-blocks-1418.png`, `owner-blocks-1428.png`; Android's
+    relative labels floor to the minute): "real offline" (14:05 alarm, 14:15 block) shows 11m at 14:18:21 and 21m at
+    14:28:00 → posted 14:06:21–14:07:00, i.e. **+1–2 min**; "grant budget check" (13:20 alarm) 55m at 14:18:21 →
+    13:22:21–13:23:21, **+2–3 min**; "email replies" (12:35 alarm) 1h → posted before 13:18, inside the +1 h inexact
+    window (day-4 item 8). All three rows were still in the shade at 14:28 (the F7 finding above).
 
 ## Device findings (day 2, afternoon)
 

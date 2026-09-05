@@ -1,0 +1,29 @@
+plan_requested rows 12 | plans on the server 2026-09-04 12 | paired 12 | unpaired client 0 | unpaired server 0
+
+SERIES from 05:41:02.907 (new_day): n=1 | client p50 3040 p95 3040 max 3040 | function p50 1009 p95 1009 | client−function p50 2031 p95 2031 | fallbacks 0/1
+   end 05:41:02.907 client  3040  fn  1009  svc   835  solve  379  tail  2031  new_day         learned  learned  recs 11
+
+SERIES from 07:51:53.947 (manual): n=10 | client p50 2627 p95 4127 max 4732 | function p50 1057 p95 1282 | client−function p50 1619 p95 3070 | fallbacks 0/10
+   end 07:51:53.947 client  1994  fn  1356  svc   890  solve  389  tail   638  manual          learned  learned  recs 9
+   end 07:52:04.843 client  4732  fn  1052  svc   838  solve  388  tail  3680  manual          learned  learned  recs 9
+   end 07:52:11.659 client  3387  fn  1062  svc   871  solve  425  tail  2325  manual          learned  learned  recs 9
+   end 07:52:18.998 client  2543  fn  1061  svc   961  solve  663  tail  1482  manual          learned  learned  recs 9
+   end 07:52:27.377 client  2849  fn   916  svc   788  solve  338  tail  1933  manual          learned  learned  recs 9
+   end 07:52:34.662 client  2076  fn   940  svc   795  solve  339  tail  1136  manual          learned  learned  recs 9
+   end 07:52:43.522 client  2711  fn   956  svc   828  solve  379  tail  1755  manual          learned  learned  recs 9
+   end 07:52:50.481 client  1590  fn  1192  svc  1054  solve  606  tail   398  manual          learned  learned  recs 9
+   end 07:52:59.998 client  2925  fn  1126  svc   839  solve  389  tail  1799  manual          learned  learned  recs 9
+   end 07:53:07.684 client  2481  fn  1008  svc   821  solve  369  tail  1473  manual          learned  learned  recs 9
+
+SERIES from 19:13:30.075 (evening_ritual): n=1 | client p50 3089 p95 3089 max 3089 | function p50 762 p95 762 | client−function p50 2327 p95 2327 | fallbacks 0/1
+   end 19:13:30.075 client  3089  fn   762  svc   522  solve    3  tail  2327  evening_ritual  learned  learned  recs 0
+
+
+sync_completed rows 59 (05:34:22.922–19:39:22.148)
+   poll         n  38  p50 946  p95 1812  max 3516
+   foreground   n   9  p50 1686  p95 3512  max 3912
+   pre_plan     n   9  p50 936  p95 2367  max 3024
+   write        n   2  p50 809  p95 883  max 891
+   reconnect    n   1  p50 1618  p95 1618  max 1618
+   pre_plan syncs inside a plan_requested interval: 9/9; requests with a pre-plan sync: 9/12
+   pre_plan rows: 05:41:02.307 1381ms pushed 0 pulled 0 synced | 07:52:03.061 3024ms pushed 13 pulled 25 synced | 07:52:09.270 1097ms pushed 15 pulled 25 synced | 07:52:17.319 936ms pushed 11 pulled 21 synced | 07:52:25.576 1123ms pushed 15 pulled 25 synced | 07:52:33.267 721ms pushed 9 pulled 19 synced | 07:52:41.605 823ms pushed 9 pulled 19 synced | 07:52:57.659 639ms pushed 15 pulled 25 synced | 07:53:05.975 851ms pushed 15 pulled 25 synced

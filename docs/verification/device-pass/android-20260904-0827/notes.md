@@ -163,6 +163,11 @@ SCHEDULE_EXACT_ALARM allow` → after the first foreground's scheduler pass ever
     right; the write-up therefore records the cause as **probable**, not established. What settles
     it: tonight's ritual record on build 4 must carry `actions=2` (fix effective); the pre-fix store
     contents cannot be read back on a release build, so the 2 Sep question stays open on evidence.
+    **Settled on 2026-09-05 (day-5 notes item 3):** the owner's own 2 Sep screenshots, pulled from the phone, show the
+    ritual row EXPANDED (chevron up) at 20:14:43 and 20:22:34 with title + body only — no action row — and the
+    "Plan tomorrow / Adjust tasks" pair on the Today card at 20:22:41 (`android-20260902-1030/owner-ritual-2014.png`,
+    `owner-ritual-expanded-2022.png`, `owner-today-after-tap-2022.png`). The button seen on 2 Sep was the in-app card;
+    the root cause is established, not merely probable.
 
 15. **PostHog 3 Sep exports (owner, 06:35Z / 06:36Z on the 4th) — complete, no re-export needed.**
     `plan_requested`: 21 rows 07:37:06Z–08:41:50Z = the 21 `plans` rows of 3 Sep, **21/21 paired**
