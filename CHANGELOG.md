@@ -30,6 +30,37 @@ Everything below condenses P0–P11 for release notes and the thesis; per-phase 
 - **Ops:** Supabase (eu-west-1) + Oracle A1 VM (eu-marseille-1) with pull-based rollout,
   hardened SSH + Tailscale admin path, nightly training timer, runbooks for every timer.
 
+## Post-P12 — fix batch after the Android pass: days off, blank cards, button roles, exact alarms (2026-09-05, post-p12/fix-batch-build6)
+
+- **feat(edge) + feat(mobile) — ADR-0019 implemented:** `plan-request` answers
+  `no_working_window` before any engine for a plan day without a working window (nothing
+  persisted, no budget); the client answers such a day from its local profile without a round
+  trip and counts it as answered (dedup key written), Today reads "No working hours today —
+  Hourwell plans your working days." and hides the deferred line, the daily ritual is not
+  scheduled when the day it would plan has no window (the Sunday review keeps its slot). Found
+  when the Friday ritual planned a zero-block Saturday (+2 Deno, +18 jest).
+- **fix(ui) — blank Today cards (MAJOR, data integrity):** the Android `GlassPanel` no longer
+  clips (`overflow: hidden` stays on the iOS blur only) — on build 5 the clip evaluated empty for
+  one FlashList cell at a time and two taps on unpainted cards became real facts. Release-blocking
+  until `hw-blank-cards.py` reports 0 BLANK on build 6.
+- **fix(mobile) — a11y roles:** the header gear and the Inbox "+" pass `role="button"` (expo-router
+  `Link asChild` injected `role="link"`, which outranks `accessibilityRole`); TalkBack said "link".
+- **feat(notifications) — exact alarms (FR-50, Android 12+):** a local Expo module
+  (`modules/exact-alarm`, Kotlin) reads `canScheduleExactAlarms()` and opens the system "Alarms &
+  reminders" screen; Today shows "Reminders may arrive late" (Allow / Not now) once reminders are
+  on and allowed but inexact, Settings carries the same hint under the reminders switch;
+  `notifications_planned.exact` and `exact_alarm_prompt` telemetry (+7 jest).
+- **Adversarial pass (fresh context) before the build:** 1 MAJOR fixed — the in-app "Plan
+  tomorrow?" card still offered a day off (now gated like the notification); manual re-plan asks
+  the server after the pre-plan sync; the client predicate mirrors `buildGrid` on malformed profile
+  data; the exact-alarm module never throws into JS; `unavailable` state in telemetry (+4 tests).
+- **Device re-check on the Pixel 7a (build 6, fresh account, a real Saturday, all over adb):**
+  ADR-0019 first open → day-off copy, 0 plan rows, no request; only the Sunday review alarm;
+  header buttons dump as `Button`; **blank cards 0/36 scans** (7-block list, two sweeps, 1.3× font
+  scale — caveat recorded); exact-alarm card → OS switch → all alarms `window=0`; the tomorrow
+  card hidden / shown by tomorrow's window. `docs/verification/device-pass/android-20260905-1725-build6/`.
+- Build 6 carries the Expo SDK 57 patch drift (3) from PR #48.
+
 ## Post-P12 — hardware pass day 4, evening: handled notifications are dismissed; the response dedup keys by action (2026-09-04, fix/mobile-ritual-dismiss)
 
 - **fix(notifications):** the first ritual after the category fix carried its two actions on the

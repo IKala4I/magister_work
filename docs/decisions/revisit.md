@@ -236,7 +236,11 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   `notification_response` latency.
 - [P10, 2026-08-30] **Android DATE triggers are inexact by default** on API 31+ (no
   `SCHEDULE_EXACT_ALARM`); a reminder may land minutes late under Doze. — Device pass measures
-  the drift; if it matters for the study, request the exact-alarm permission in P12.
+  the drift; if it matters for the study, request the exact-alarm permission in P12. — **Measured
+  (hardware pass day 4: +31–60 min, one reminder never shown) → `SCHEDULE_EXACT_ALARM` declared
+  (build 4) → DONE 2026-09-05 (build 6):** a local Expo module reads
+  `AlarmManager.canScheduleExactAlarms()` and opens the system screen; Today card + Settings row
+  when reminders are on but inexact; `notifications_planned.exact` on every pass.
 - [P10, 2026-08-30] **Tomorrow's reminders are scheduled tonight** (ADR-0014 §1: the ritual's
   plan for tomorrow gets tomorrow's budget) but only if the app is opened after the plan lands
   — a ritual accepted from the notification opens the app, so this holds; a plan made by the
@@ -358,7 +362,9 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   empty row counts toward the 30/24 h budget. Suggest: skip the ritual (or word it "no working hours
   tomorrow") when the next plan day has no working window; never persist a zero-block ritual plan. — **DECIDED 2026-09-04 (owner: a product defect, not a rough
   edge) → ADR-0019:** the rule covers the ritual, the day-boundary trigger and manual re-plan;
-  implementation in the post-pass fix batch.
+  implementation in the post-pass fix batch. **DONE 2026-09-05 (build 6, ADR-0019 implementation
+  notes).** Still open from the same day: the ritual answered after the morning's `new_day` plan
+  re-plans today (the line above).
 - **(hardware pass day 5, 2026-09-05) Blank Today cards with live controls — MAJOR, data integrity
   (`android-20260905-0942/notes.md` item 9; corrections #53).** On Android the `GlassPanel`'s
   `overflow: hidden` clip evaluated empty for one FlashList cell at a time: the card's content was
@@ -369,7 +375,10 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   on hardware only (`hw-blank-cards.py`, fresh plan, six scrolls, 0 BLANK). Open question for the
   design: controls inside cards fire on any touch — a "seen" guard is not feasible in RN, so the
   paint path itself is the data-integrity boundary; say so in the thesis (a client defect corrupts
-  the training signal silently; invariant 2 makes facts ground truth).
+  the training signal silently; invariant 2 makes facts ground truth). **Fix (1) shipped 2026-09-05
+  (build 6, `e7bb05e`): the plain-View branch of `GlassPanel` carries no clip. Hardware verification
+  with `hw-blank-cards.py` on build 6 — see the device checklist; FlashList 2.3.1 only if it
+  reproduces.**
 - **(hardware pass day 5, 2026-09-05) NFR-P1 reference figure is series-dependent** — 3.7 s p95
   (3 Sep) vs 4.1 s (4 Sep, one 4.7 s request carrying a 3.0 s backlog sync); pooled 4.0 s (n = 20).
   Corrections #51 amended to "3.7–4.1 s"; the ≤ 6.0 s bound and the 1.5 s server bound stand. A
@@ -385,4 +394,5 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   `role="button"` on both Pressables (fix batch, minor). (2) The heatmap's role word "image" is
   spoken after "Switch to the text view for every hour." — move the hint out of the label (the
   "Show as text" button already exists) or drop the role. (3) "On weekdays … / On weekends …" is
-  easy to miss at speech speed — lead with "Weekdays:" / "Weekends:" as separate phrases.
+  easy to miss at speech speed — lead with "Weekdays:" / "Weekends:" as separate phrases. **(1)
+  DONE 2026-09-05 (build 6, `57aa541`: `role="button"` on both). (2) and (3) stay open.**

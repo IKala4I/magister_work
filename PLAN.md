@@ -341,5 +341,5 @@ model_registry columns; ALS λ and confidence weighting; River blend target.
 _P0–P12 built; the post-P12 ladder is walked: `recsys_service` DSN live, DPIA signed, store
 decision (no accounts), first scheduled nightly run proven. **The field study is not executed**
 (owner, 2026-09-01 — a resource boundary, not a shortfall; thesis-corrections #49): remaining
-owner-run work is the account-free hardware pass (**Android closed 2026-09-05**, days 1–5 on the Pixel 7a; iOS out of scope by the store decision) and the thesis-text pass; enrollment-conditioned
+owner-run work is the account-free hardware pass (**Android closed 2026-09-05**, days 1–5 on the Pixel 7a; iOS out of scope by the store decision), the **post-pass fix batch → build 6** (2026-09-05: ADR-0019 implemented, the blank-card clip, button roles, the exact-alarm prompt — device re-check in `docs/verification/device-pass/android-20260905-1725-build6/`), the OSF freeze and the thesis-text pass; enrollment-conditioned
 gates are retired unless the decision reverses. docs/HANDOFF.md carries the state._
