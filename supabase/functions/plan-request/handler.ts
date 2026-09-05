@@ -10,7 +10,7 @@
  * reason (so outage days are distinguishable from arm-A days — File 06 excludes the former).
  */
 import { type BetaCell } from '../_shared/energy.ts';
-import { daysBetween, parseIsoDate, wallClock } from '../_shared/grid.ts';
+import { daysBetween, hasWorkingWindow, parseIsoDate, wallClock } from '../_shared/grid.ts';
 import { heuristicPlan } from '../_shared/heuristic.ts';
 import {
   EPSILON,
@@ -201,6 +201,23 @@ export async function handlePlanRequest(req: Request, deps: Deps): Promise<Respo
       detail:
         `plan_date must be within ${PLAN_DATE_PAST_DAYS} day back and ${PLAN_DATE_FUTURE_DAYS} days ahead`,
     });
+  }
+  // ADR-0019: a plan day without a working window is answered before any engine runs — nothing
+  // persisted, no recommendation rows, no budget consumed. It precedes the empty-inbox check:
+  // on a non-working day the truthful reason is the day, not the inbox.
+  if (
+    !hasWorkingWindow({
+      planDate: body.plan_date,
+      horizon,
+      timezone: ctx.profile.timezone,
+      workingHours: ctx.profile.working_hours,
+      sleepWindow: ctx.profile.sleep_window,
+    })
+  ) {
+    return json(
+      200,
+      { status: 'no_working_window', plan_date: body.plan_date } satisfies PlanRequestResponse,
+    );
   }
   if (ctx.tasks.length === 0) {
     return json(200, { status: 'empty_inbox' } satisfies PlanRequestResponse);
