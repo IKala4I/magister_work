@@ -103,16 +103,16 @@ revisit).
 **Normative annex: ADR-0011 §2** (the path-by-path table; per its Consequences, "DPIA
 §transfers = §2 of this ADR"). Summary of dispositions after option A:
 
-| Path                                            | Disposition                                                                                                                                                                         |
-| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Device → Supabase (EU); Supabase ⇄ VM (EU ⇄ EU) | not transfers                                                                                                                                                                       |
-| Edge functions                                  | pinned to eu-west-1 (G4 closed P8)                                                                                                                                                  |
-| Researcher ← dashboards/CLI (path 4)            | **transfer when a participant row is shown** → operator access rule (§5), purpose-built RPCs, Art. 49(1)(a) consent clause as backstop, access log                                  |
-| Researcher ← study dataset (path 5)             | **designed away**: analysis + training + OPE run on the EU VM; researcher receives aggregates only                                                                                  |
-| CI runners / HF Hub (path 6)                    | **designed away**: `train.yml` synthetic-only; registry in Supabase Storage (EU); no hosted-project secret in CI                                                                    |
-| Public artefacts (path 8)                       | synthetic dataset + replay harness public; real pseudonymized archive → restricted-access OSF deposit (Frankfurt) under a data-use agreement — final wording at the OSF freeze (G5) |
-| Notifications                                   | local-only (ADR-0014 §6) — no push relay exists                                                                                                                                     |
-| Google (sign-in, calendar)                      | independent-controller leg at the user's instruction (G7)                                                                                                                           |
+| Path                                            | Disposition                                                                                                                                                                                                                     |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Device → Supabase (EU); Supabase ⇄ VM (EU ⇄ EU) | not transfers                                                                                                                                                                                                                   |
+| Edge functions                                  | pinned to eu-west-1 (G4 closed P8)                                                                                                                                                                                              |
+| Researcher ← dashboards/CLI (path 4)            | **transfer when a participant row is shown** → operator access rule (§5), purpose-built RPCs, Art. 49(1)(a) consent clause as backstop, access log                                                                              |
+| Researcher ← study dataset (path 5)             | **designed away**: analysis + training + OPE run on the EU VM; researcher receives aggregates only                                                                                                                              |
+| CI runners / HF Hub (path 6)                    | **designed away**: `train.yml` synthetic-only; registry in Supabase Storage (EU); no hosted-project secret in CI                                                                                                                |
+| Public artefacts (path 8)                       | synthetic dataset + replay harness public; real pseudonymized archive → restricted-access deposit on EU storage under a data-use agreement — a clause that applies only if a field study is run (G5; ADR-0020 — no OSF project) |
+| Notifications                                   | local-only (ADR-0014 §6) — no push relay exists                                                                                                                                                                                 |
+| Google (sign-in, calendar)                      | independent-controller leg at the user's instruction (G7)                                                                                                                                                                       |
 
 ### 2.7 Retention
 
@@ -270,7 +270,8 @@ Re-open this DPIA when any of the following happens — and record the change he
 1. Any new processor, hosting region, or data path (e.g. a mail provider — ADR-0016 keeps
    Brevo pre-wired; a push relay; a week-view service).
 2. The first EU/EEA-resident enrollment (Case E flips on; §8).
-3. The OSF-freeze release decision (G5) — final wording of path 8.
+3. The release decision for a real archive (G5) — arises only if a field study is run
+   (ADR-0020, 2026-09-05: no OSF project) — final wording of path 8.
 4. The Oracle PAYG revisit (G1) and the Google consent screen going to production.
 5. The Supabase legacy-key migration (end-2026 deprecation).
 6. Any personal-data breach, or any access-log entry that the §5 rule did not anticipate.

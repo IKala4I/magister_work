@@ -70,7 +70,7 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   Insights beliefs render solidity from the belief's own confidence (both arms see the same
   model document — the tab is not arm-specific), so no new cue; the Today comparison stays —
   **re-dated 2026-08-31**: needs real per-arm rendering data; run at the first-real-data review
-  (pre-OSF-freeze), not in P11 (no participants exist).
+  (before any field study — ADR-0020), not in P11 (no participants exist).
 - [P6, 2026-08-26] `persist.ts` writes plans + recommendations + supersede as three PostgREST
   calls with a compensating delete (ADR-0008 §4). — P8 (sync-resolve needs transactional writes
   anyway): one `security definer` RPC, service-role only, for plan persistence. — **DONE P8**
@@ -82,7 +82,7 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
 - [P7, 2026-08-27] Appendix A λ_f = 0.5 retune (the P5 line above, scheduled "P7") — no live
   feedback exists yet (the service host is the open ADR-0009 decision), so there are no observed
   q̂ scales to retune against; retuning on synthetic data would be invention. — **re-dated
-  2026-08-31 (P11 has no participants):** first-real-data review, pre-OSF-freeze; keep 0.5.
+  2026-08-31 (P11 has no participants):** first-real-data review, before any field study; keep 0.5.
 - [P7, 2026-08-27] ADR-0010 §6 one override pair per placement — a user who moves a block twice
   teaches only the first move; the second is logged but unrewarded. — P9/P11: decide whether a
   second move should replace the pair (correction semantics) once override frequency is known.
@@ -91,7 +91,7 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
 - [P7, 2026-08-27] ADR-0010 §9 duration multiplier applied to est_minutes for both engines — this
   changes the task's feature 11 (log duration) and its feasibility, i.e. the planner's inputs
   drift with learning even for arm A. Symmetric by design, but the pre-registration should say
-  so. — OSF freeze: add one sentence. — **P11:** the nightly report counts scaling-active
+  so. — pre-registration material (field protocol, in-repo since ADR-0020): add one sentence. — **P11:** the nightly report counts scaling-active
   users (`duration_estimates.n >= 3`); the per-arm split runs in the File 06 analysis where
   arm-days are known.
 - [P7, 2026-08-27] `attribution_sweep_tick()` posts to the function with the backend key from
@@ -118,8 +118,9 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   A.** Open follow-ups: P8 — region pin on `functions.invoke` + consent clause + "EU/EEA
   resident?" in enrollment; P10 — local notifications only; P11 — `training/` container on the
   VM (check arm64 wheels for `implicit`/`scikit-learn`), `train.yml` on synthetic data, registry
-  in Supabase Storage, `erase_user`/`diagnose_user` RPCs (privacy README §7); OSF freeze —
-  synthetic dataset + restricted deposit (Frankfurt). `docs/privacy/README.md` G2–G6, §7.
+  in Supabase Storage, `erase_user`/`diagnose_user` RPCs (privacy README §7); release (ADR-0011
+  §3, re-read by ADR-0020) — synthetic dataset + harness in-repo; the restricted deposit only
+  if a field study ever runs. `docs/privacy/README.md` G2–G6, §7.
 - [P7.1, 2026-08-27] Oracle sub-processor list is My-Oracle-Support-only and Always Free
   tenancies have no support access (privacy README G1). — **Owner 2026-08-27: PAYG deferred**
   (no reclamation exemption; keep-busy stays on); revisit before participant enrollment, when
@@ -260,7 +261,7 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   completers cannot be reached on Android alone — reversal costs the fee + the metadata §8
   steps plus a categories/deep-link re-verify on a store-signed iOS binary
   (device-checklist "Release builds" residual); no new build work.
-- [#49, 2026-09-01] **The field study is not executed (owner)** — enrollment-conditioned
+- [#49, 2026-09-01] **The field study is out of scope (owner)** — enrollment-conditioned
   lines above (consent screen → production, PAYG "before enrollment", the mail-processor
   decision, `sync_ops` prune "for the study", two-device items tied to study use) lose
   their study deadline and re-arm only if the decision reverses (after the DPIA §11
@@ -270,7 +271,11 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   protocol**, sequenced strictly after the hardware pass (ladder step 5) closes; the
   thesis phrasing then flips "pre-registration-ready" → "pre-registered" (corrections
   #49 update; rollup "How to run the pass" step 2). Material: items 8/10/21/35/36
-  verbatim + H1/M9/G5 in the rollup.
+  verbatim + H1/M9/G5 in the rollup. — **SUPERSEDED 2026-09-05 (owner, ADR-0020): no OSF
+  registration.** The assembled material stays in-repo as an artifact; the pre-registration
+  discipline is applied in git to the simulation study (`docs/study/preregistration.md`
+  committed before the run; `docs/study/simulation-results.md` compares predictions with
+  outcomes). "Pre-registration-ready" stays the thesis wording for the field protocol.
 - [hardware pass, 2026-09-02] **Learned path runs at the fallback budget's edge on a full
   inbox.** Pixel 7a, 14 tasks, day window 12:00–18:00: CP-SAT hits the 1.5 s `SOLVER_TIME_CAP_S`
   (FEASIBLE) on 8 of 10 re-plans, so service ≈ 1.5 s + function/network ≈ 0.2–0.4 s brushes the

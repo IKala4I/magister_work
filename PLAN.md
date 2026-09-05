@@ -59,10 +59,12 @@ checks; semantic conflicts go to `sync-resolve` domain rules.
 heuristic promoted to primary with pixel-identical UI and template rationales; the ε-slice is a
 nested micro-randomized trial. Engineering consequence: condition flags and arm-switching must be
 first-class, and every recommendation event carries model version + feature snapshot (NFR-O1).
-**Status (owner decision 2026-09-01): the study is designed, instrumented and verified end to
-end but NOT executed — a resource boundary, not a shortfall (thesis-corrections #49,
-spec-conflicts overlay); the evidence that exists is OPE on synthetic ground truth plus the
-researcher's own use.**
+**Status (owner decisions 2026-09-01 / 2026-09-05): the field study is out of scope of the
+master's project — a resource boundary, not a shortfall (thesis-corrections #49) — and the
+evaluation was performed in simulation as a study in its own right: hypotheses pre-registered
+in git before the run, method, results, prediction-by-prediction comparison (ADR-0020,
+`docs/study/preregistration.md`, `docs/study/simulation-results.md`). The field protocol
+itself stays designed, instrumented and verified end to end.**
 
 ---
 
@@ -269,9 +271,9 @@ k-means clusters (silhouette), fold-in ≥30 outcomes, empirical-Bayes prior ref
 (`model_registry.artifact_uri`); `train.yml` in CI exercises the same pipeline on **synthetic
 data only**. OPE harness (on the VM): replay (randomized slice only), IPS/clipped/SNIPS/DR, ESS
 gate <100 = non-evidence, MC propensities for TS traffic (K=32); outputs to the researcher are
-aggregates. Event archive to Parquet stays on EU storage (restricted-access OSF deposit,
-Frankfurt) + a **synthetic public dataset** with the replay harness (File 06 §5, spec-conflicts
-H5). Study-mode condition flags (A/B arms, template rationales in A) so File 06 is runnable;
+aggregates. Event archive to Parquet stays on EU storage (a restricted-access deposit only if a
+field study runs — ADR-0020) + a **synthetic public dataset** with the replay harness (File 06 §5,
+spec-conflicts H5). Study-mode condition flags (A/B arms, template rationales in A) so File 06 is runnable;
 enrollment checklist records "resident in the EU/EEA?" (Art. 27 trigger, privacy README G6).
 _Accept:_ estimator unit tests vs. hand-computed cases; ESS gate test; slice-restriction test
 (replay refuses non-randomized rows); one-command replay harness reproduces tables. → File 04 §2,
@@ -332,14 +334,16 @@ model_registry columns; ALS λ and confidence weighting; River blend target.
 | —   | Name **Hourwell approved**; formal trademark/store search stays in P12. Commit convention applies from the very first P0 commit.                                                                                                                                                                                                                                     |
 
 | 8 | (2026-08-24, post-P0) **P0 gate passed; specs/07 approved** — read-only truth. ADR-0001 (Node 24) + ADR-0003 (jest 29) accepted. **MIT license** for code; a future dataset gets CC-BY-4.0 `DATA_LICENSE`. ADR-0004: Expo 57/RN 0.86 accepted, **TS pinned 5.9** (openapi-typescript peer). |
-| 9 | (2026-08-24) **Autonomous working mode** — phases back-to-back, PRs self-merged when green; stop conditions + decision rule in CLAUDE.md "Working mode". Owner keeps thesis-claim decisions only (open: spec-conflicts H1, ε-symmetric arms, decided at OSF freeze). |
+| 9 | (2026-08-24) **Autonomous working mode** — phases back-to-back, PRs self-merged when green; stop conditions + decision rule in CLAUDE.md "Working mode". Owner keeps thesis-claim decisions only (spec-conflicts H1 ε-symmetric arms approved 2026-08-24; its text edits belong to the pre-registration material kept in-repo — ADR-0020). |
 | 10 | (2026-08-24) Thesis integration: `docs/thesis/` = pojasnennia.uk.md (living Ukrainian explainer, same-commit rule) + spec-conflicts.md (errata layer over frozen specs) + thesis-corrections.md (draft edit worklist); draft.docx is a consistency target, git-ignored. |
 | 11 | (2026-08-26) **Simulator ≠ device evidence** — simulator runs are smoke checks; device-conditioned requirements flip to ✅ only at the owner-run hardware pass before P12 (one iPhone + one Android; running list `docs/verification/device-checklist.md`, maintained every phase). Refines row 4: the P10 "Android device pass" becomes "prepare for device verification"; the actual device pass is the pre-P12 gate. Full rule: CLAUDE.md "Simulator evidence". |
+| 12 | (2026-09-05) **No OSF registration; pre-registration in git; the simulation evaluation is the study** — ADR-0020. The hypotheses, expected directions and analysis plan are committed as `docs/study/preregistration.md` before the evaluation runs; the run happens once at the registered configuration; `docs/study/simulation-results.md` compares every prediction with its outcome. Wording rule: "field study out of scope; evaluation performed in simulation" — never "no study was conducted". |
 
 ---
 
 _P0–P12 built; the post-P12 ladder is walked: `recsys_service` DSN live, DPIA signed, store
-decision (no accounts), first scheduled nightly run proven. **The field study is not executed**
-(owner, 2026-09-01 — a resource boundary, not a shortfall; thesis-corrections #49): remaining
-owner-run work is the account-free hardware pass (**Android closed 2026-09-05**, days 1–5 on the Pixel 7a; iOS out of scope by the store decision), the **post-pass fix batch → build 6** (2026-09-05: ADR-0019 implemented, the blank-card clip, button roles, the exact-alarm prompt — device re-check in `docs/verification/device-pass/android-20260905-1725-build6/`), the OSF freeze and the thesis-text pass; enrollment-conditioned
+decision (no accounts), first scheduled nightly run proven. **The field study is out of scope**
+(owner, 2026-09-01 — a resource boundary, not a shortfall; thesis-corrections #49) **and the
+evaluation was performed in simulation** (ADR-0020, 2026-09-05): remaining
+owner-run work is the account-free hardware pass (**Android closed 2026-09-05**, days 1–5 on the Pixel 7a; iOS out of scope by the store decision), the **post-pass fix batch → build 6** (2026-09-05: ADR-0019 implemented, the blank-card clip, button roles, the exact-alarm prompt — device re-check in `docs/verification/device-pass/android-20260905-1725-build6/`), the simulation study (pre-registered in git, run once, compared — `docs/study/`) and the thesis-text pass; enrollment-conditioned
 gates are retired unless the decision reverses. docs/HANDOFF.md carries the state._

@@ -117,8 +117,10 @@ re-verifiable with `deploy/verify.sh`):
   the P11 archive job, never by a delete sweep. Recorded here so the DPIA cites the mechanism.
 - **G5 — Public dataset (File 06 §5).** A row-level event dataset of 42 people is not anonymous
   by relabelling; publication is lawful only if genuinely anonymous. ADR-0011 §4: synthetic
-  dataset + replay harness, and/or restricted-access OSF deposit (Frankfurt storage). ⛔ owner
-  decision at the OSF freeze.
+  dataset + replay harness, and/or a restricted-access deposit on EU storage. **Decided
+  (owner, 2026-09-05, ADR-0020 §4):** the synthetic dataset + replay harness are public in this
+  repository (no OSF project); the deposit clause applies only if a field study is ever run —
+  nothing exists to deposit today.
 - **G6 — Art. 27 representative — conditional obligation (owner decision 2026-08-28).**
   Recruitment is in Ukraine, so by default the GDPR does not bind the researcher and no
   representative is needed. **Trigger:** the first EU/EEA-resident participant. From then on the

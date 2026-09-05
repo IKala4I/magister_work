@@ -96,7 +96,7 @@ for re-runs (a new Google project, a rotated secret, the device pass).
   refresh tokens after **7 days** — every participant would be silently disconnected in week 2.
   Unverified production apps show a warning page and are capped at 100 users; that is enough
   for the study. The verification review (sensitive scopes) is optional and needs a privacy
-  policy URL and a demo video; decide by the OSF freeze.
+  policy URL and a demo video; decide before any field study (ADR-0020 — there is no OSF freeze).
 - The sweep handles users serially in one invocation (`loadConnected` limit 500): fine below
   ~50 connected calendars; beyond that split the sweep by user cohort (pg_net's 60 s timeout).
 - Keep the OAuth client secret out of every log, screenshot and chat.

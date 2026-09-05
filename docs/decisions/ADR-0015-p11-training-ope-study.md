@@ -150,8 +150,8 @@ export whitelist. The rest is routine under the standard Definition of Done.
 17. **Parquet archive** (`hourwell-train --archive`, run at study end, not nightly): the
     whitelist surface to Parquet with **hashed user ids** (SHA-256 over uid + `ARCHIVE_SALT`
     from the VM env — the deposit cannot be joined back to the live DB), uploaded to
-    `models/archive/<date>/`; the restricted-access OSF deposit stays an owner action at the
-    freeze (H5/ADR-0011 §3).
+    `models/archive/<date>/`; the restricted-access deposit stays an owner action if a field
+    study is ever run (H5/ADR-0011 §3; ADR-0020 — no OSF project).
 
 ## Consequences
 
