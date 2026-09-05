@@ -52,6 +52,8 @@
   handling) and TalkBack has no simulator equivalent that counts.
   **Android 2026-09-02, structural half (uiautomator tree):** task rows are one element with the composed label; block cards one focusable element ("title, start to end, Experiment, Confidence N percent", inner texts not focusable); Settings switch checkable + checked, mute chips CheckBox with full labels; heatmap one ImageView carrying the daypart summary. Finding: tab labels carry the icon glyph before the name. The TalkBack listening pass is the owner's.
 
+  **Android 2026-09-05 (build 5), owner listening pass:** tabs, Today cards + action row, Inbox rows + quick-add, the heatmap summary and Settings all announce as designed; one role defect — the Settings gear says "link" (expo-router `Link asChild` injects `role`, overriding `accessibilityRole`; fix: `role="button"`), two rough edges on the heatmap label (day-5 notes item 16). Rating chips not exercised (no completed block).
+
 - ⬜ **FR-22 / NFR-A2 — Today timeline at 200 % font scale and with reduced motion** (added P6).
   Set the OS text size to maximum and Reduce Motion on; open Today with ≥ 6 blocks incl. one
   "Experiment" block and a two-line rationale: no clipped text, no overlapping cards, the "Now"
@@ -65,6 +67,8 @@
   verifiable without a real screen reader.
 
 ## Behaviour the simulator under-tests
+
+**Android ✅ 2026-09-05 (build 5, owner):** header → date → Re-plan → cards in slot order, each card one utterance ("references fix, 5:30 PM to 6:00 PM, confidence 44 percent") followed by its four actions.
 
 - ⬜ **FR-11 — quick-add with real keyboards/IMEs** (added P3). Type NL inputs with the on-screen
   keyboard, autocorrect on, on both platforms (incl. a Ukrainian keyboard once i18n lands).
@@ -114,6 +118,7 @@
   Each action must announce "Skip write report" style labels; the rating chips must be
   reachable in order and announce "Rate your energy: High"; the progress bar must announce its
   value. Screen readers are not exercised on the simulator.
+  **Android 2026-09-05 (build 5, owner), action row ✅:** "Start references fix, button", "Done …", "Skip …", "Move… …"; rating chips untested (need a completed block).
 - ⬜ **NFR-A2 — 200 % font scale on the Today card with actions and on the Focus tab**
   (added P7). Four action buttons and the status caption must wrap, never clip or overlap the
   next block; the timer digits (JetBrains Mono) must not overflow the panel. The P2 sweep ran on
@@ -132,6 +137,7 @@
   picker was never rendered on hardware (iOS-first development).
   **Android ✅ 2026-09-02 (partial):** Move sheet → Android TimePicker (radial + keyboard mode) → "Move here" → the block re-renders in slot order and the server row is `moved` (17:30–18:00). The snap from an off-grid minute is still attended (type 5:37 by hand; expect :30/:45).
   **2026-09-05: pending — the owner left with the phone before the move.** Saturday got a server-side working window for it (`hw-set-working-hours.mjs`, day-5 notes item 10); target when resumed: "email replies" 3:45 PM → 5:37 PM (a refusal over the completed 5:15 slot also counts). Only tap controls that are visible (the blank-card defect above).
+  **Android ✅ 2026-09-05 (build 5, owner):** "references fix" 5:00 PM → keyboard entry 5:37 → the picker itself reset the minutes to :30 (typing :40 gave :45) before confirmation; "Move here" → the card reads 5:30 PM–6:00 PM, server row `moved` v2 at 17:30–18:00, fact `block_moved` (distance 30 min). Mechanism: `minuteInterval={15}` on the native dialog plus the app's own `snapToGrid` (unit-tested; unreachable through this picker). Observation for revisit: the snap is silent — no hint that times follow a 15-minute grid (day-5 notes item 15).
 
 ## Auth & identity
 
@@ -215,6 +221,7 @@
   row. Why: `accessible` grouping and `importantForAccessibility` behave differently on real
   TalkBack (Android has never run on hardware).
   **Android 2026-09-02, structural:** the grid is one ImageView with the best/lowest daypart summary; hour and weekday labels are non-focusable texts. Listening pass = owner.
+  **Android ✅ 2026-09-05 (build 5, owner listening):** the grid is one element reading "Energy map for {category}. On weekdays your best time is early morning (78 percent) and your lowest is night (30 percent). On weekends … Switch to the text view for every hour." + the role word "image"; labels not focusable. Two rough edges (revisit): the role suffix lands after the switch hint, and the weekday/weekend lead-in is easy to miss at speech speed.
 - ⬜ **FR-41 — ✓/✗ toggles: 44 px targets, `selected` state announced, "pending" caption read**
   (added P9). Tap each toggle by screen reader; confirm the label state sentence and the
   "Saved — applies at the next sync" caption are read; confirm nothing renders red (invariant
@@ -261,19 +268,20 @@
   native paths; the share sheet itself has no simulator equivalent worth counting.
   **Android 2026-09-02 — BLOCKED by a MAJOR defect:** the Settings screen has no scroll container, so "Export my data" is unreachable on a phone (day-2 notes 23; fix batch F8). Re-run on the rebuilt APK.
   **Android ✅ 2026-09-02 (build 3, device half):** Settings → My data → Export → the Android share sheet offered Gmail / Quick Share / Telegram; status "Export ready — 14 tables shared." Opening the JSON on the device = owner. Erasure stays last.
-- ⬜ **FR-42 — erasure on device** (P10). Settings → Delete (two confirmations) → the
+- ✅ **FR-42 — erasure on device** (P10). Settings → Delete (two confirmations) → the
   confirmation screen with a reference → relaunch → onboarding; notifications scheduled before
   the deletion never fire afterwards; the reference exists in `deletion_audit` (owner: an
   aggregate `count(*) where id = …` — no row browsing). Why: the local wipe + `signOut(local)`
   - cancelled notifications is a device lifecycle path.
     **Android 2026-09-02:** same blocker as export (Settings unscrollable); deliberately last in the pass anyway.
-    **2026-09-05:** still last; pending the owner's return with the phone (ends the device account; the two accidental facts of day-5 item 9 die with it).
+    **Android ✅ 2026-09-05 (build 5, owner):** two confirmations → "Your account is deleted" with the reference `e1d0b2eb-…`; server: all eight user tables at 0, `auth.users` row gone, `deletion_audit` +1 with that id (`user_request`, 180 ms); device: 0 pending Hourwell alarms (tonight's ritual cancelled), empty shade; "Start over" and a cold relaunch both land on the welcome screen (day-5 notes item 17).
 - ⬜ **NFR-A1 — VoiceOver / TalkBack on the P10 surfaces** (P10). Settings: switches announce
   label + state; mute chips read "checkbox, Mute reminders for Admin, checked"; ritual time
   chips read as radios in a labelled group; the export/delete status line is announced
   (live region). Today: the reminders card and the tomorrow card are single summaries with
   two buttons each. Account-deleted: the reference is read as a whole. Why: composed labels
   and live regions are not verifiable without a real screen reader.
+  **Android 2026-09-05 (build 5, owner):** "Delete account and data, button" ✅; the gear that opens Settings is announced as "Open settings, link" ✗ (minor; fix batch).
 - ⬜ **NFR-A2 — `p10-a11y-sweep.yaml` on both devices** (P10). Run via `scripts/device-pass.sh`
   at max text size (Android: + display size) with Reduce Motion (+ Reduce Transparency on iOS),
   light and dark; keep the screenshots for `p10-a11y-audit.md` §2. Why: the flow was written
@@ -313,6 +321,7 @@
 - ⬜ **NFR-A1 — TalkBack reads the tab as its name only** (F6): the tree label is "Today", not the
   icon glyph first; the owner's listening pass confirms the announcement.
   **Android 2026-09-03 (build 3), structural half ✅:** the tab nodes' `content-desc` are "Today" / "Inbox" / "Focus" / "Insights" with the glyph in a separate, unlabeled node; the visible "Insight…" truncates at 2.0 (visual only). Listening pass = owner.
+  **Android ✅ 2026-09-05 (build 5, owner listening):** "selected, Today, tab, double tap to activate", "Inbox, tab", "Focus, tab", "Insights, tab" — names only.
 - ⬜ **Maestro p3/p4/p10 flows on hardware** (F5): the `(?i)` title selectors pass end to end on
   the rebuilt APK (p3 tail incl. the undo expiry; p10 at max scale needs adb screenshots — see
   day-2 finding 14).
@@ -385,3 +394,12 @@ never substituted. Command: runbook `docs/runbooks/oracle-vm.md` §7.
 - ⬜ **Store screenshots captured on hardware** (added P12; **optional** since 2026-08-31 —
   the pack stays prepared-but-unsubmitted, metadata §7). Capture only if wanted for a
   thesis appendix; nothing gates on it.
+
+## Pass status (2026-09-05)
+
+The **Android pass on the Pixel 7a is closed** (days 1–5, builds 1–5; day notes under
+`device-pass/android-2026090*`). Rows still ⬜ fall into three groups: (1) iOS-only rows — out of
+scope by the owner's store decision (no Apple developer account, no iOS participant channel;
+`docs/store/metadata.md` §7); (2) rows that need the mailbox / Google client (⛔ 6 in HANDOFF);
+(3) Android rows re-verified on build 6 after the post-pass fix batch (blank cards, ADR-0019, the
+Settings gear role, the exact-alarm prompt) — listed in `docs/HANDOFF.md`.

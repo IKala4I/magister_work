@@ -374,3 +374,15 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   (3 Sep) vs 4.1 s (4 Sep, one 4.7 s request carrying a 3.0 s backlog sync); pooled 4.0 s (n = 20).
   Corrections #51 amended to "3.7–4.1 s"; the ≤ 6.0 s bound and the 1.5 s server bound stand. A
   third series after the fix batch (build 6) would tighten the reference; not required for the text.
+- **(hardware pass day 5, 2026-09-05) Silent grid snapping in the Move picker.** On Android the
+  time dialog (`minuteInterval={15}`) rewrites typed minutes (:37 → :30, :40 → :45) with no
+  explanation; functionally right (UC-07 ✅), but the digits change under the user's fingers.
+  Suggest a one-line hint in the Move sheet ("times snap to 15 minutes") or a light haptic on
+  snap; the app-side `snapToGrid` guard stays. Not a defect; owner observation, day-5 notes item 15.
+- **(hardware pass day 5, 2026-09-05) TalkBack pass — one role defect, two label rough edges
+  (notes item 16).** (1) The Settings gear (and the Inbox "+") announce as _link_: expo-router's
+  `Link asChild` injects `role`, which overrides `accessibilityRole="button"` in RN ≥ 0.73 → set
+  `role="button"` on both Pressables (fix batch, minor). (2) The heatmap's role word "image" is
+  spoken after "Switch to the text view for every hour." — move the hint out of the label (the
+  "Show as text" button already exists) or drop the role. (3) "On weekdays … / On weekends …" is
+  easy to miss at speech speed — lead with "Weekdays:" / "Weekends:" as separate phrases.
