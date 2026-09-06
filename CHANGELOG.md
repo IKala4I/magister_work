@@ -39,7 +39,11 @@ Everything below condenses P0–P11 for release notes and the thesis; per-phase 
   are enough — replaces "wins categorically" / "the moat compounds"; File 01's competitive claims and the
   §3.2 matrix reconciled (#59). **M16:** viva sweep — 15 further selling points contradicted by measurement
   or by what was built, amended in place in Files 01–04 and 06 (#60). Defence passage in the explainer.
-- spec-conflicts: my 2026-09-05/06 entries renumbered M13–M15 (the labels M10–M12 already existed from P7/P8).
+  Adversarial pass (fresh subagent, 5 MAJOR / 8 MINOR / 9 NOTE, all on over-reaching wording) addressed before
+  merge: "only with individual deviation" (six wins at ≥ 1.5× population strength), "plateaus inside two weeks"
+  (the gap grows 0.3–1.4 pp per four weeks), "a rule engine cannot" (untested against declared-preference
+  engines), RQ1(b) not run, the ablation is five worlds not 75; the sweep grew to 18 items.
+- spec-conflicts: my 2026-09-05/06 entries renumbered M13–M15 (M10 already existed from P7; M11–M12 are left unused).
 
 ## Post-P12 — sensitivity study across simulated worlds; power recomputed; spec rewrites; auto-merge gap closed (2026-09-06, post-p12/sensitivity-grid)
 
