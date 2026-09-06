@@ -440,6 +440,20 @@ amended accordingly.
   measured figures are reported alongside it and under-delivering against it is expected; the Pixel 7a on home Wi-Fi is a favourable case, not the average one (thesis-corrections #51). **Revised 2026-09-04 (owner decision, derivation in `android-20260904-0827/notes.md`): NFR-P1 = ≤ 6.0 s p95 tap → plan received, warm, on a 2022 low-end Android over a weak-signal link; the Pixel 7a reference 3.7–4.1 s (two series of ten, 3 and 4 Sep; pooled 4.0 s — day-5 notes item 4) p95 is reported alongside; server ≤ 1.5 s and the 1.9 s bound unchanged; the SQLite mirror after the timer and a backlog-carrying pre-plan sync are named as outside the figure. Two-thirds of the reference p95 (2.6 of 3.9 s) is server-side work independent of the user's phone and network — the share L2/L3 would address.** Appendix A gains two service
   rows from ADR-0018: `relative gap limit` = 0.01 and `no-improvement window` = 0.3 s; the
   `solver time cap` (1.5 s, SPEC-FIXED) and the `/plan EF fallback budget` (1.9 s) are unchanged.
+- **L41.** (2026-09-06, ADR-0021) File 02 §3.2 names `danger` for "destructive actions" but has
+  no text-role token for a destructive LABEL: `#EF4444` at body size measures 3.76:1 on the
+  elevated white and 3.60:1 on the light surface — below AA (4.5:1) — and white on a filled danger
+  button 3.76:1. Normative: a derived `danger-text` token (`#B91C1C` light, 6.47:1; `#F87171`
+  dark, 6.10:1 on `#1A1D24`) for destructive labels; `danger` stays a fill/icon colour like the
+  other accents (L39). §3.2 amended in place; pinned by `colors.test.ts` and `a11yAudit.test.ts`.
+- **L42.** (2026-09-06, owner directive) File 02 §3.4 "spring-based transitions ≤ 250 ms;
+  reduced-motion honored" — the shipped app had **no transitions at all** before the in-app
+  dialog: Reanimated was pinned since P2 and imported nowhere, the motion tokens existed unused,
+  and the device checklist described the absence as "by design". That is a divergence from the
+  spec, recorded here and never a precedent: the dialog is the first conforming transition
+  (`springs.standard` in, `springs.fast` out, `resolveMotion` collapsing every duration to 0 under
+  reduced motion — the same code path, not a "never animate" branch); the remaining surfaces are
+  `revisit.md` items. §3.4 amended with a note; the checklist wording corrected.
 
 ## Post-P12 status overlay (2026-09-01) — File 06 is design, not report
 

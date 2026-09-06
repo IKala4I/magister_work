@@ -57,7 +57,7 @@ A key semantic device: **confidence = solidity.** High-confidence recommendation
 | `danger` | `#EF4444` | `#F87171` | Destructive actions, missed hard deadlines |
 | `focus-gradient` | `#4F46E5 → #7C3AED` | same | Focus-session timer ring |
 
-Energy heatmaps interpolate `energy-low → energy-high` perceptually (OKLCH interpolation, not raw RGB). All pairings meet WCAG 2.2 AA (≥4.5:1 body text). **Amended (P10 audit, spec-conflicts L39):** body text meets 4.5:1; accent colours used as text and white-on-primary measured 2.1–2.98:1 and are used only for non-text or large-text roles — "all pairings" is not true as written.
+Energy heatmaps interpolate `energy-low → energy-high` perceptually (OKLCH interpolation, not raw RGB). All pairings meet WCAG 2.2 AA (≥4.5:1 body text). **Amended (P10 audit, spec-conflicts L39):** body text meets 4.5:1; accent colours used as text and white-on-primary measured 2.1–2.98:1 and are used only for non-text or large-text roles — "all pairings" is not true as written. **Amended (2026-09-06, spec-conflicts L41):** destructive _labels_ at body size use a derived `danger-text` token (`#B91C1C` light / `#F87171` dark; 6.47:1 / 6.10:1 on the elevated surface) — `danger` itself measures 3.6–3.8:1 as text in light and stays a fill/icon colour.
 
 ### 3.3 Typography
 
@@ -67,7 +67,7 @@ Energy heatmaps interpolate `energy-low → energy-high` perceptually (OKLCH int
 
 ### 3.4 Motion & Interaction Principles
 
-1. **Physics, not flourish:** spring-based transitions ≤ 250 ms; reduced-motion honored (NFR-A2).
+1. **Physics, not flourish:** spring-based transitions ≤ 250 ms; reduced-motion honored (NFR-A2). **Amended (2026-09-06, spec-conflicts L42):** until the in-app dialog (ADR-0021) the shipped app had no transitions at all; the dialog is the first conforming one (200 ms in, 120 ms out, reduced motion → 0 ms on the same path); the remaining surfaces are tracked in `docs/decisions/revisit.md`.
 2. **Drag = teach:** dragging a suggested block to another slot is a first-class negative/positive feedback pair (logged as such — see File 3 §3.4).
 3. **One-thumb reachability:** all primary actions in bottom 60% of screen; bottom-sheet-first navigation.
 4. **Forgiving defaults:** destructive actions undoable for 6 s; "skip" never uses red.
