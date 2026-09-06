@@ -18,6 +18,7 @@ placement, which is the ILP optimum for identical tasks (preregistration §4.1).
 from __future__ import annotations
 
 import math
+from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime, timedelta
@@ -204,7 +205,11 @@ def _score(user: _User, free: dict[str, int], thetas: dict[str, np.ndarray],
 
 
 def _plan_day(user: _User, arm: str, day: int, phase: int, plan_at: datetime,
-              rng: np.random.Generator, scale: float, cfg: StudyConfig) -> list[_Row]:
+              rng: np.random.Generator, scale: float, cfg: StudyConfig,
+              q_of: Callable[[str], float] | None = None) -> list[_Row]:
+    """One plan-day for one user. `q_of(bucket_id)` overrides the P11 world's completion
+    probability (the sensitivity study's world model); the RNG call sequence is identical
+    either way, so E3's registered outputs do not change."""
     cells_post: dict[tuple[str, str, str], Posterior] = {
         (CATEGORY, dp, DAY_TYPE): posterior(c, plan_at) for dp, c in user.cells.items()
     }
@@ -219,7 +224,8 @@ def _plan_day(user: _User, arm: str, day: int, phase: int, plan_at: datetime,
 
     def place(bid: str, is_exp: bool, top: tuple[str, ...], p: float, x: np.ndarray) -> None:
         free[DAYPART_OF[bid]] -= 1
-        reward = float(rng.random() < synthetic.q_true(bid, user.klass, scale))
+        q = q_of(bid) if q_of is not None else synthetic.q_true(bid, user.klass, scale)
+        reward = float(rng.random() < q)
         rows.append(_Row(user.uid, user.klass, day, phase, arm, bid, is_exp, top, p, reward, x))
 
     # the ε = 1 slice: one of the (identical) tasks, bucket uniform over the arm's top-m

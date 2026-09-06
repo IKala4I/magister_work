@@ -415,3 +415,14 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   DM/MM). First-real-data review: consider σ² annealing with the bandit's evidence, and let the
   EB prior refresh (ADR-0015 §6) correct the AF/MD cell — both are Appendix A parameter matters,
   no code change now.
+- [2026-09-06] **File 04 §3.2 AF-above-MD for morning types is an unmeasured ordering** (spec note
+  added; spec-conflicts M11): the table encodes a post-lunch dip with afternoon recovery, the P11
+  generator a monotone decline; the E3 morning-type loss came from that disagreement. First-real-data
+  review: read the mature DM/MM users' MD vs AF cell rates from the nightly report (aggregates only)
+  and let the EB refresh (ADR-0015 §6) decide; no table edit before data.
+- [2026-09-06] **Branch protection now enforces for administrators** (`enforce_admins` on `main`,
+  set 2026-09-06 after PR #53 and #39 merged with checks pending): `gh pr merge` on a fresh push is
+  refused with "6 of 6 required status checks are expected" (proven on PR #54). Rule from here:
+  arm auto-merge once, right after `gh pr create`, never re-run `gh pr merge --auto` after a push
+  (gh merges immediately when the stale state looks clean — the protection now blocks it, but the
+  habit is the defect).

@@ -227,6 +227,32 @@ decision rule (defensibility → consistency → measurability → pragmatics) a
   reported beside SNIPS/DR (File 04 §2.3 already makes DR primary) or its matches are weighted
   by |A_m(x)| — which is IPS. `docs/study/simulation-results.md` §5 item 1; thesis-corrections
   #55; revisit.
+- **M11.** (2026-09-06, owner directive "rewrite the spec to match") **File 04 §2.2 rewritten:**
+  the replay unbiasedness argument is stated as per-context, and an amendment adds the
+  $|A_m(x)|$-weighted replay (= SNIPS on the slice) as the estimator to use when the slice size
+  varies, with the measured bias. **Provenance of the bias:** it is a consequence of the owner's
+  2026-08-26 decision (M9) to allow $|A_m(x)| \in \{2, 3, 4\}$ — a trade of unweighted-replay
+  validity for data volume. The alternatives were (i) keep the strict $|A_m| = 4$ rule: ≈ 2.9
+  instead of 4.3 experiments per user-week (P(eligible) 0.57 vs 0.86 at three tasks/day), so a
+  30-user, 8-week run logs ≈ 615 rows with unbiased replay ESS ≈ 154, against ≈ 930 rows with IPS
+  ESS ≈ 310 under the variable rule; (ii) keep the variable rule and weight replay by $|A_m(x)|$
+  — free, and what the amendment prescribes. The trade therefore cost nothing for the IPS
+  family (which File 04 §2.3 makes primary) and is repaired for replay by the weighting; RQ4
+  validity was not traded away, only the unweighted estimator's. **File 04 §3.2 gains a note**
+  (not a table change) recording that the AF-above-MD ordering for morning types is an
+  unmeasured assumption on which the table and the P11 generator disagree — the source of the
+  E3 morning-type loss (results §4.1 of the simulation study); the sensitivity study uses the
+  table's own pattern.
+- **M12.** (2026-09-06, owner directive) **File 06 §2 amended:** the +8 pp smallest effect of
+  interest and N = 30 were assumptions; the sensitivity study across 75 simulated worlds
+  (`docs/study/sensitivity-results.md`) puts the completers needed at 20 … > 120 (> 120 in 48
+  worlds, including the literature-like adult population at the table's own strength). N now
+  follows a pilot estimate of the individual slot-effect spread; the protocol is worth running
+  at N ≈ 30–45 only if that spread is ≈ 0.6 logits or the population effect ≥ 2× the table's.
+  The E1–E3 study's E2 result (0.84 / 0.82 at N = 30) stands as what the File 06 §1.6 model
+  gives under its own +8 pp assumption; it is not evidence about the effect the system
+  produces. Also recorded: the §2.2 hand calculation's 28 is the normal approximation of an
+  exact 30.
 - **L17.** NFR-R2 "fall back to a deterministic heuristic scheduler, **labeled as such**" vs.
   H1's blind: arm A is also `engine = heuristic`. Normative: the label is tied to the
   provenance (`plans.telemetry.ef.reason` starting with `fallback:`), never to the engine tag,

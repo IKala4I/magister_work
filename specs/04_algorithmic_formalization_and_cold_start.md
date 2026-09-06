@@ -88,7 +88,13 @@ from logs $\{(x_i, a_i, r_i, p_i)\}_{i=1}^n$ produced by the deployed logging po
 
 $$\hat{V}_{\text{replay}}(\pi) \;=\; \frac{\displaystyle\sum_{i=1}^{n} \mathbb{1}\!\big[\pi(x_i) = a_i\big]\; r_i}{\displaystyle\sum_{i=1}^{n} \mathbb{1}\!\big[\pi(x_i) = a_i\big]}$$
 
-Unbiased **iff** the logging policy chooses uniformly at random over $\mathcal{A}(x)$ and rewards are independent of the logger — which our greedy/TS traffic violates. Therefore replay is computed **only on the randomized exploration slice** of §1.4, where within the top-$m$ set the draw *is* uniform: candidate policies are evaluated restricted to $\mathcal{A}_m(x)$, matches are exact, and Li et al.'s unbiasedness argument applies. Effective data rate is $\approx \varepsilon/m$ of exploration events — the price of validity, budgeted deliberately.
+Unbiased **iff** the logging policy chooses uniformly at random over $\mathcal{A}(x)$ and rewards are independent of the logger — which our greedy/TS traffic violates. Therefore replay is computed **only on the randomized exploration slice** of §1.4, where within the top-$m$ set the draw *is* uniform: candidate policies are evaluated restricted to $\mathcal{A}_m(x)$, matches are exact, and Li et al.'s unbiasedness argument applies **per context**. Effective data rate is $\approx \varepsilon/m$ of exploration events — the price of validity, budgeted deliberately.
+
+**Amendment (2026-09-06, simulated evidence — spec-conflicts M10/M11).** Because $|\mathcal{A}_m(x)|$ varies across rows (ADR-0008 §1: $|\mathcal{A}_m(x)| \in \{2,3,4\}$ with $p = \varepsilon/|\mathcal{A}_m(x)|$), a row is matched with probability $1/|\mathcal{A}_m(x)|$, so the unweighted replay average estimates the policy value under a context distribution reweighted by $1/|\mathcal{A}_m(x)|$, not $V(\pi)$. Measured on the P11 synthetic world (200 × 1,000 rows): $-0.6$ / $+0.7$ pp on policies whose value correlates with the slice size. The corrected estimator weights each matched row by $|\mathcal{A}_m(x)|$,
+
+$$\hat{V}_{\text{replay},m}(\pi) \;=\; \frac{\sum_i |\mathcal{A}_m(x_i)|\,\mathbb{1}[\pi(x_i) = a_i]\, r_i}{\sum_i |\mathcal{A}_m(x_i)|\,\mathbb{1}[\pi(x_i) = a_i]},$$
+
+which is SNIPS on the slice (§2.3) — a ratio estimator, consistent (unbiased in the limit) under the same per-row uniformity, with an O(1/n) finite-sample bias measured at ≤ 0.002 for n = 1,000. Unweighted replay is reported only beside it, never alone; DR stays primary.
 
 ### 2.3 Inverse Propensity Scoring family (all logged traffic)
 
@@ -142,6 +148,8 @@ Dayparts $p$: EM 06–09 · MO 09–12 · MD 12–14 · AF 14–17 · EV 17–20
 | NT 20–24 | .30 | .36 | .48 | .62 | .74 |
 
 Direction and ordering follow chronotype–performance literature (synchrony effect); the **absolute values are a day-zero bootstrap only** and are re-fit quarterly by empirical Bayes from mature users (§3.5) — this is the honest answer to "where do these numbers come from."
+
+**Note (2026-09-06).** One ordering in the table is an unmeasured assumption that matters for the planner: for morning types (DM, MM) the table puts **AF above MD** (0.55 > 0.50; 0.58 > 0.52 — a post-lunch dip followed by an afternoon recovery), whereas a monotone morning-to-evening decline would put MD above AF. The P11 synthetic generator (`training/.../synthetic.py`) encodes the monotone decline and therefore disagrees with this table on that cell; the E3 closed-loop study showed the consequence (a 1–2 pp loss for morning types while the AF cell's evidence overrides the prior). The table is left unchanged — neither ordering is measured — and the sensitivity study uses this table's own pattern as the world's shape so that the prior/world relation is explicit. The empirical-Bayes refresh (§3.5) is the mechanism that settles it from data.
 
 ### 3.3 Category transform and Beta parameters
 

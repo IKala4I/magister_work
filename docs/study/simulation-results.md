@@ -280,6 +280,15 @@ rebuild_from_stored_tuples` pins the equivalence for the placement order). Pre-r
   erratum: §4.1's parenthetical "`repo.fallback_cells`' shape" is wrong (that helper uses
   n₀ = 4); the registered and executed flat prior is μ₀ = 0.5, n₀ = 8.
 
+## 6a. Superseded by the sensitivity study (2026-09-06)
+
+E3's worlds (the P11 generator and its amplification) gave intermediate types no slot pattern
+and therefore nothing to lose; the 2.5 / 5.4 pp effects are properties of those worlds. The
+sensitivity study (`docs/study/sensitivity-results.md`) makes the world an object of study and
+finds that in the world the cold-start prior was written for the learned policy only ties. The
+E1 and E2 results stand; E2's power figures are what File 06's own model gives under its own
++8 pp assumption (File 06 §2 amendment; spec-conflicts M12).
+
 ## 7. Files
 
 - `docs/study/preregistration.md` — frozen design (commit `11b71a9`).

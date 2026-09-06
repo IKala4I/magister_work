@@ -227,3 +227,102 @@ def test_e2_null_rate_matches_the_one_directional_rule() -> None:
     cell = e2_power.simulate_cell(REGISTERED, icc=0.2, log_or=0.0, n_users=30,
                                   replicates=400, seed=2)
     assert 0.005 <= cell["power_paired_t"] <= 0.05  # 0.025 ± 3 binomial SE at R = 400
+
+
+# ---------------------------------------------------------------------------
+# sensitivity grid (docs/study/sensitivity-grid.md) — mechanics on hand-computed cases
+# ---------------------------------------------------------------------------
+def test_sensitivity_centred_pattern_matches_the_frozen_grid_numbers() -> None:
+    from hourwell_training.simstudy import sensitivity as sens
+
+    dm = sens.centred_pattern("DM")
+    assert dm["MO"] == pytest.approx(0.84, abs=0.01) and dm["EV"] == pytest.approx(-0.62, abs=0.01)
+    de = sens.centred_pattern("DE")
+    assert de["EV"] == pytest.approx(0.61, abs=0.01) and de["MO"] == pytest.approx(-0.42, abs=0.01)
+    assert sum(dm.values()) == pytest.approx(0.0, abs=1e-9)  # centred
+
+
+def test_sensitivity_apportionment_prefixes_carry_the_mix() -> None:
+    from hourwell_training.simstudy import sensitivity as sens
+
+    seq = sens.apportion(120, sens.MIXES["adult"])
+    # 120 · 0.52 = 62.4 and 120 · 0.08 = 9.6: sequential largest-remainder lands within ±1
+    assert len(seq) == 120 and abs(seq.count("INT") - 62.4) <= 1 and seq.count("DE") == 10
+    first30 = seq[:30]  # every prefix carries the mix within ±1 per class
+    assert abs(first30.count("INT") - 15.6) <= 1 and abs(first30.count("DE") - 2.4) <= 1
+    for k, share in sens.MIXES["adult"].items():
+        assert abs(first30.count(k) - 30 * share) <= 1
+    assert sens.apportion(5, sens.MIXES["uniform"]) == ["DM", "MM", "INT", "ME", "DE"]
+
+
+def test_sensitivity_grid_has_75_distinct_cells_with_blocks() -> None:
+    from hourwell_training.simstudy import sensitivity as sens
+
+    cells = sens.grid()
+    assert len(cells) == 75 and len({s.key for _, s in cells}) == 75
+    blocks = [b for b, _ in cells]
+    assert blocks.count("A") == 45 and blocks.count("B") == 10 and blocks.count("C") == 6
+    assert blocks.count("D") == 9 and blocks.count("E") == 5
+    assert sens.CENTRE.key in {s.key for _, s in cells}
+
+
+def test_sensitivity_analytic_n80_hand_cases() -> None:
+    from hourwell_training.simstudy import sensitivity as sens
+
+    # File 06 §2.2's hand calculation (normal approximation) gives 27.6 → 28 for Δ = 0.08,
+    # SD_d = 0.15; the exact noncentral-t answer is 30 — the spec's rounding is optimistic
+    assert sens.analytic_n80(0.08, 0.15) == 30
+    assert sens.analytic_n80(0.0, 0.1) is None and sens.analytic_n80(0.01, 0.1, n_max=50) is None
+
+
+def test_sensitivity_verdict_thresholds() -> None:
+    from hourwell_training.simstudy import sensitivity as sens
+
+    assert sens.verdict(0.02, 0.95, 0.05) == "WIN"
+    assert sens.verdict(0.02, 0.80, 0.20) == "TIE"  # direction share below 0.9
+    assert sens.verdict(-0.02, 0.05, 0.95) == "LOSS"
+    assert sens.verdict(0.005, 1.0, 0.0) == "TIE"  # inside the 1 pp band
+
+
+def test_sensitivity_one_tiny_cell_replicate_has_the_registered_shape() -> None:
+    from hourwell_training.simstudy import sensitivity as sens
+
+    cfg = replace(REGISTERED.quick(), e3_runin_days=1, e3_phase_days=1, sens_n_users=10,
+                  sens_ns=(5, 10))
+    spec = replace(sens.CENTRE, s=0.0, sigma_shape=0.0, sigma_day=0.0)
+    rep = sens.run_cell_replicate(spec, cfg, seed=3)
+    assert rep["ceiling_gap"] == pytest.approx(0.0, abs=1e-12)  # no slot effect → no ceiling
+    assert set(rep["rejects_at"]) == {"5", "10"}
+    assert 0.0 <= rep["mean_A"] <= 1.0 and rep["heuristic_ceiling"] == pytest.approx(0.45)
+    again = sens.run_cell_replicate(spec, cfg, seed=3)
+    assert again["effect"] == rep["effect"]
+
+
+def test_mu0_deep_equals_every_entry_of_the_file04_table() -> None:
+    """Adversarial finding 10: the whole 30-entry table, parsed from the spec, not one cell."""
+    import re
+    from pathlib import Path
+
+    spec = next(Path(__file__).resolve().parents[2].glob("specs/04_*.md")).read_text()
+    rows: dict[str, list[float]] = {}
+    for line in spec.splitlines():
+        m = re.match(r"\|\s*(EM|MO|MD|AF|EV|NT)\s[^|]*\|" + r"\s*(\.\d+)\s*\|" * 5, line)
+        if m:
+            rows[m.group(1)] = [float(x) for x in m.groups()[1:]]
+    assert set(rows) == {"EM", "MO", "MD", "AF", "EV", "NT"}
+    for dp, vals in rows.items():
+        assert vals == [e3_closedloop.MU0_DEEP[dp][k] for k in ("DM", "MM", "INT", "ME", "DE")]
+
+
+def test_sensitivity_seed_map_and_n80_median_rule() -> None:
+    from hourwell_training.simstudy import sensitivity as sens
+
+    assert [sens.cell_seed_base(REGISTERED, i) for i in (0, 1, 19, 74)] == [5000, 5100, 6900, 12400]
+    assert sens.n80_median_over_replicates([30, 40, None, 50]) == 45.0  # None = +inf
+    assert sens.n80_median_over_replicates([None, None, 30]) is None  # median is +inf
+    assert sens.n80_median_over_replicates([]) is None
+    cfg = replace(REGISTERED.quick(), sens_replicates=1, sens_n_users=10, sens_ns=(10,),
+                  e3_runin_days=1, e3_phase_days=1)
+    doc = sens.run_sensitivity(cfg, workers=1)
+    assert [c["seed_base"] for c in doc["cells"][:3]] == [5000, 5100, 5200]
+    assert len(doc["cells"]) == 75

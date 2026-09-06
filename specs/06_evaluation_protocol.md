@@ -2,7 +2,7 @@
 
 > **Project:** Kairos — Personal Time Optimization via Recommendation Systems
 > **Document:** Pre-registered field-study design (ABAB) · Power analysis · Related-work matrix · Validity threats
-> **Status:** v1.0 (SDD Phase 5) · To be frozen as an OSF pre-registration before first participant enrollment.
+> **Status:** v1.0 (SDD Phase 5) · To be frozen as an OSF pre-registration before first participant enrollment. **Amended 2026-09-05/06 (ADR-0020; spec-conflicts overlay, M12):** no OSF registration — the pre-registration discipline runs in git; the field study is out of scope and the evaluation is performed in simulation; §2's N is amended below to follow the simulated effect.
 
 ---
 
@@ -78,6 +78,8 @@ $$n \;=\; \frac{(z_{0.975} + z_{0.80})^2}{(\Delta / SD_d)^2} \;=\; \frac{(1.96 +
 | +10 pp | 12 | 18 | 26 |
 
 **Decision: N = 30 completers** (covers Δ = 8 pp at the pessimistic $SD_d$ = 0.15 with margin); **recruit 42** assuming ≤30% attrition over 8 weeks (typical for 2-month app studies). Note the paired-means calculation is the *conservative floor*: the pre-registered primary GLMM exploits within-phase block-level variation and is strictly more efficient.
+
+**Amendment (2026-09-06, simulated evidence — spec-conflicts M12; owner rule "derived numbers follow their inputs").** The +8 pp smallest effect of interest (§2.1) and the N = 30 derived from it were assumptions. The sensitivity study (`docs/study/sensitivity-results.md`; grid frozen before the run in `docs/study/sensitivity-grid.md`) simulated this protocol with the deployed learned policy against the earliest-first heuristic across 75 worlds (population slot-effect strength 0–2× the §3.2 table of File 04, individual deviation 0–0.6 logits, day noise, three population mixes, three baselines, two to eight tasks a day, two priors). The learned-vs-heuristic effect is 0–6.6 pp depending on the world, and the completers needed for 0.80 power on the paired-means floor (exact noncentral t) range from **20 to more than 120: > 120 in 48 of the 75 worlds**, including the literature-like adult population at the strength the table assumes, where a 30-user study rejects 5 % of the time. N₈₀ ≤ 60 occurs in 13 of the 75 worlds: where individuals deviate from their chronotype profile by σ ≈ 0.6 logits (33–52 without day-to-day noise, 43–68 at moderate noise, 50–84 at high noise), where the population effect is at least 1.5–2× the table's on an extreme-heavy sample (31–43), or with six tasks a day at 2× (21). **Normative reading from here on: N is not fixed by this document.** It follows a pilot estimate of the individual slot-effect spread: N ≈ 35–70 completers (recruit 50–100) if the pilot shows that spread at ≈ 0.6 logits (≈ ±14 pp per daypart), N ≈ 30–45 only if it shows a population effect ≥ 1.5–2× the table's on an extreme-heavy sample; otherwise N ≥ 120 (recruit ≥ 170) and the study is not worth running as designed. The hand calculation above (27.6 → 28) uses the normal approximation; the exact noncentral-t figure for the same inputs is 30. The GLMM remains more efficient than the paired floor, but not by the factor of four the literature-like world would need.
 
 ### 2.3 Pre-registered simulation-based power (primary method)
 

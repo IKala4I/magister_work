@@ -581,3 +581,50 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     deadlines, heterogeneous tasks and the CP-SAT packing are outside E3; the E2 GLMM is not
     fitted (E2 is a lower bound). Cite the run's `run.json` (commit, timings) and the
     one-command reproduction.
+
+56. **§5 (new main subsection) / §results / §discussion / §limitations — the sensitivity study
+    across simulated worlds as the thesis's main quantitative contribution (owner directive
+    2026-09-06; grid frozen `2a48a51`, run on `2ad8a94`; `docs/study/sensitivity-grid.md`,
+    `docs/study/sensitivity-results.md`).** Present the world as an object of study: (a) the
+    world model verbatim from grid §1 — the logistic completion model, the File 04 §3.2 pattern
+    as the population term, individual deviation σ_shape, day shock σ_day, the class mix, the
+    baseline, the inbox — with each range's source (the 2025 synchrony-effect systematic
+    review, the MEQ worker split 28/52/20, File 06's ICC range, the Pixel 7a inbox sizes) and
+    the explicit list of what it cannot represent (people who change, task heterogeneity,
+    calendars, fatigue, imperfect attribution); (b) the 75-cell table in full (appendix), 58
+    WIN / 17 TIE / 0 LOSS, and the boundary statement of results §1: **the learned policy beats
+    the earliest-first heuristic when there is enough individual slot structure to learn
+    (σ_shape ≥ 0.3 logits) or a population pattern ≥ 1.5× File 04's; it ties when completion
+    barely depends on the slot, when the world is exactly the table's pattern at its assumed
+    strength without individual deviation (the 52 % intermediates and the morning types lose
+    1–2 pp each to the variance of per-user learning and cancel the evening types' +5 to
+    +10 pp), when the day is nearly full or nearly empty, and at a low baseline with a weak
+    pattern; it never loses by more than 0.5 pp on average**; (c) the registered
+    substantive-failure test firing (TIE in the world the prior was written for) reported as
+    the study's central negative result, with the §5.1 decomposition (sampler variance, the
+    prior's level bias at p₀ = 0.45, and estimation noise — each with its measured share); (d)
+    the prior's value
+    (±0.4 pp) and the fact that individual deviation, not the chronotype pattern, drives the
+    wins — i.e. the system's value is per-person profile learning; (e) predictions S1–S12
+    against outcomes under the frozen criteria as written — 2 confirmed, 5 partly, 5 not — and
+    the seven substantive differences (results §4). Replace every
+    sentence that quotes E3's 2.5 / 5.4 pp as "the" effect: those were properties of the P11
+    world, whose intermediate types had no pattern and nothing to lose.
+
+57. **§5 sample size / §2 assumptions / abstract / conclusions — N recomputed from the
+    simulated effect (owner item 1; File 06 §2 amended, spec-conflicts M12).** State that N = 30
+    came from an assumed +8 pp effect and no longer stands as a derived number. Report the
+    completers needed for 0.80 power **as a range across worlds — 21 to more than 120, above
+    120 in 48 of 75 worlds** — never a single figure; name the worlds where N ≤ 60 holds
+    (individual deviation ≈ 0.6 logits: 33–52 without day noise, 43–68 at moderate, 50–84 at
+    high; a population effect ≥ 1.5–2× the table's on an extreme-heavy sample: 31–43; six tasks a
+    day at 2×: 21) and the literature-like adult world where it does not (> 120; a 30-user study
+    rejects 5 % of the time). Be explicit that every effect is a property of the world model,
+    not a measured fact about people. Then draw the conclusion plainly, with N following its
+    inputs: **the designed ABAB study needs N ≈ 35–70 if a pilot shows individual slot-effect
+    spread of ≈ 0.6 logits (≈ ±14 pp per daypart), N ≈ 30–45 only if it shows a population
+    effect 1.5–2× File 04's on an extreme-heavy sample; otherwise N ≥ 120 (recruit ≥ 170) and it
+    is not worth running as designed.** Keep #55's E2 numbers (0.84 / 0.82) only as "what File 06's
+    own model gives under its own assumption", and note the 28 → 30 normal-approximation
+    correction. Cross-refs: File 06 §2 amendment block; grid §4 S11 (the prediction that
+    failed and why).

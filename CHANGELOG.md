@@ -30,6 +30,32 @@ Everything below condenses P0–P11 for release notes and the thesis; per-phase 
 - **Ops:** Supabase (eu-west-1) + Oracle A1 VM (eu-marseille-1) with pull-based rollout,
   hardened SSH + Tailscale admin path, nightly training timer, runbooks for every timer.
 
+## Post-P12 — sensitivity study across simulated worlds; power recomputed; spec rewrites; auto-merge gap closed (2026-09-06, post-p12/sensitivity-grid)
+
+- **Owner directive (CLAUDE.md "Specs are generated assumptions"):** rewrite specs on measured or
+  simulated evidence and record why; derived numbers follow their inputs; simulated evidence
+  describes its world model and treats the world as an object of study.
+- **docs(study): `sensitivity-grid.md` frozen before any run (`2a48a51`)** — world model with argued
+  bounds (File 04 §3.2 pattern; 2025 synchrony-effect systematic review; MEQ 28/52/20; File 06 ICC
+  range; Pixel 7a inbox sizes), 75 cells, verdict thresholds, N₈₀ method, predictions S1–S12.
+- **feat(training): `simstudy/sensitivity.py` + `--sensitivity`** (`2ad8a94`); E3 gains a reward hook
+  with byte-identical outputs; 6 tests (101 pytest).
+- **docs(study): `sensitivity-results.md` + `results/sensitivity.json`** (301 s on `2ad8a94`): 58 WIN /
+  17 TIE / 0 LOSS; the registered substantive-failure test fires (TIE in the prior's own world —
+  intermediates and morning types lose 1–2 pp each); wins are driven by individual deviation, not the
+  chronotype pattern; the prior is worth ±0.4 pp; N₈₀ 21 … > 120, > 120 in 48 of 75 worlds; under the
+  frozen criteria 2 predictions confirmed, 5 partly, 5 not. Adversarial pass (fresh subagent, 3 MAJOR /
+  7 MINOR / 3 NOTE) addressed on the branch: N sentences made to follow their inputs, three verdicts
+  downgraded, the σ² diagnostic re-run on the cell's own 40 seeds with a level-matched-prior setting
+  and SEs, slice-aware attainable ceilings added, the N₈₀ median rule fixed (no number changed).
+- **Spec rewrites (M10–M12):** File 04 §2.2 (|A_m|-weighted replay; the 2026-08-26 trade stated),
+  File 04 §3.2 (note on the unmeasured AF/MD ordering — the P11 generator disagreed, not the
+  transcription), File 06 §2 (N follows the simulated effect; 28 → 30 normal-approximation fix).
+  Thesis: corrections #56, #57.
+- **ci/repo: branch protection now enforces for administrators** — PRs #39 and #53 merged with checks
+  pending because `gh pr merge --auto` merges immediately on a stale clean state and admins could
+  bypass; `enforce_admins` on since 2026-09-06, proven on PR #54 (premature merge refused).
+
 ## Post-P12 — no OSF; pre-registration in git; the simulation study (2026-09-05, post-p12/simulation-study)
 
 - **ADR-0020 (owner decisions 2026-09-05):** no OSF registration — the freeze is retired from every
