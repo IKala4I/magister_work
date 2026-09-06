@@ -31,6 +31,13 @@ Commits on `post-p12/sensitivity-grid`, in order (the order is the evidence):
    note, File 06 §2 amendment (N follows the simulated effect), spec-conflicts M11/M12,
    corrections #56/#57, revisit ×2, CHANGELOG, traceability, explainer, this handoff, the
    exploratory diagnostic (`scripts/simstudy_exploratory.py --only int-loss`).
+4. `e10a7f5` + follow-up: **adversarial pass addressed** (fresh subagent: 3 MAJOR / 7 MINOR /
+   3 NOTE — all on reporting, none on the run): N sentences rewritten to follow their inputs
+   (N ≈ 35–70 under σ_shape ≈ 0.6; 30–45 only under a 1.5–2× population effect), S4/S6/S9
+   downgraded to ◐ and S12 to ❌ (tally 2 / 5 / 5), the §5.1 diagnostic re-run on the cell's own
+   40 seeds with a level-matched-prior setting and SEs (three-way decomposition), slice-aware
+   attainable ceilings for all cells (§5.2, `ceilings_attainable.json`), the N₈₀ median rule
+   fixed (no number changed), N₈₀ rounded up, two spec notes (SNIPS consistency; File 06 header).
 
 **Results in one paragraph.** 58 WIN / 17 TIE / 0 LOSS over 75 worlds, but the registered
 substantive-failure test fires: in the world the cold-start prior was written for (File 04's
