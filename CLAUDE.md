@@ -4,7 +4,8 @@
 
 - **Public name: Hourwell** ("The planner that learns your best hours"). Internal codename in
   `specs/`: **Kairos**. Mapping: `docs/naming.md`. Use Hourwell in app config, bundle ids
-  (`com.hourwell.app`), UI strings, store metadata, service names. `specs/` is **read-only**.
+  (`com.hourwell.app`), UI strings, store metadata, service names. `specs/` is **read-only**
+  except under the "Specs are generated assumptions" rule below (evidence + record required).
 - Source of truth for scope/math/schema/UX: `specs/01–06`. `PLAN.md` maps phases → requirement
   IDs. Requirement IDs (FR-xx, NFR-xx, UC-xx, M-01/M-02) appear in commits (`Refs:`),
   `docs/traceability.md`, and test names.

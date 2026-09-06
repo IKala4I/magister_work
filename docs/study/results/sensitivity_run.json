@@ -1,0 +1,44 @@
+{
+  "commit": "2ad8a94837a8efdd843c8906a25df21bb0631e1a",
+  "registered": true,
+  "config": {
+    "e1_seed_base": 1000,
+    "e2_seed_base": 2000,
+    "e3_seed_base": 3000,
+    "e3_cell_seed_stride": 100,
+    "e1_replicates": 200,
+    "e1_rows": 1000,
+    "e2_replicates": 5000,
+    "e2_sweep_replicates": 2000,
+    "e2_n_users": 30,
+    "e2_blocks_per_condition": 80,
+    "e2_iccs": [0.1, 0.2],
+    "e2_odds_ratio": 1.38,
+    "e2_baseline": 0.45,
+    "e2_slope_sd_logit": 0.48,
+    "e2_n_sweep": [20, 24, 28, 30, 34, 40],
+    "e2_phase1_blocks": 40,
+    "e3_replicates": 100,
+    "e3_n_users": 30,
+    "e3_tasks_per_day": 4,
+    "e3_runin_days": 5,
+    "e3_phase_days": 10,
+    "e3_phases": 4,
+    "e3_worlds": [
+      ["base", 0.5],
+      ["amplified", 1.0]
+    ],
+    "e3_prior_settings": ["informative", "flat"],
+    "e3_start_iso": "2026-09-07",
+    "sens_replicates": 40,
+    "sens_n_users": 120,
+    "sens_seed_base": 5000,
+    "sens_cell_seed_stride": 100,
+    "sens_ns": [30, 60, 120]
+  },
+  "timings_s": {
+    "sensitivity": 301.4
+  },
+  "workers": 8,
+  "python": "3.12.14"
+}

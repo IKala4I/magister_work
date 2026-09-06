@@ -122,10 +122,49 @@ def replay_closed_form_targets() -> dict[str, Any]:
     return out
 
 
+def intermediate_loss_diagnostic(n_reps: int = 10) -> dict[str, Any]:
+    """Sensitivity results §5.1: the s = 1, σ_shape = 0, σ_day = 0.6 cell (adult mix) with the
+    TS variance forced to ≈ 0 — does the intermediate/morning-type loss vanish?"""
+    from dataclasses import replace
+
+    from hourwell_training.simstudy import sensitivity as sens
+
+    spec = replace(sens.CENTRE, sigma_shape=0.0)
+    orig = est.sample_thetas
+
+    def tiny(states: Any, rng: Any, *, policy: str, sigma_sq: float = 0.25) -> Any:
+        return orig(states, rng, policy=policy, sigma_sq=1e-6)
+
+    seeds = [5000 + 100 * 10 + i for i in range(n_reps)]  # the cell's own seed base (index 10)
+    out: dict[str, Any] = {"cell": spec.key, "replicates": n_reps, "seeds": seeds}
+    for label, fn in (("registered_sigma_sq_0.25", orig), ("diagnostic_sigma_sq_1e-6", tiny)):
+        est.sample_thetas = fn
+        e3_closedloop.sample_thetas = fn
+        reps = [sens.run_cell_replicate(spec, REGISTERED, seed=s) for s in seeds]
+        out[label] = {
+            "effect": statistics.mean(r["effect"] for r in reps),
+            "per_class": {k: statistics.mean(r["per_class_effect"][k] for r in reps)
+                          for k in synthetic.CLASSES},
+            "exploration_cost_B": statistics.mean(r["exploration_cost_B"] for r in reps),
+        }
+    est.sample_thetas = orig
+    e3_closedloop.sample_thetas = orig
+    return out
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path, default=None)
+    ap.add_argument("--only", choices=["int-loss"], default=None,
+                    help="run one diagnostic; writes exploratory_<name>.json")
     args = ap.parse_args()
+    if args.only == "int-loss":
+        doc = {"note": "EXPLORATORY — sensitivity results §5.1", **intermediate_loss_diagnostic()}
+        text = json.dumps(doc, indent=2)
+        print(text)
+        if args.out:
+            (args.out / "exploratory_sensitivity.json").write_text(text + "\n")
+        return 0
     doc = {
         "note": "EXPLORATORY — run after the registered study; not part of it",
         "ts_variance_diagnostic": ts_variance_diagnostic(),
