@@ -9,7 +9,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import {
-  Alert,
   AppState,
   Linking,
   Pressable,
@@ -56,6 +55,7 @@ import { useSyncStore, type SyncUiStatus } from '../src/state/sync';
 import { syncNow } from '../src/sync/engine';
 import { gcalConnect, gcalDisconnect, gcalSetWriteBack, gcalStatus } from '../src/sync/gcal';
 import type { GcalStatus } from '../src/sync/types';
+import { confirmDialog } from '../src/ui/dialog';
 import { Button, Screen, ThemedText } from '../src/ui/primitives';
 import { useTheme } from '../src/ui/theme';
 
@@ -148,18 +148,16 @@ function AccountSection() {
           }
           // An anonymous account has no way back in — signing out orphans the server-side
           // profile and priors forever (finding m5). Confirm, steering toward conversion.
-          Alert.alert(
-            t('settings.account.signOutAnonymous.title'),
-            t('settings.account.signOutAnonymous.body'),
-            [
-              { text: t('settings.account.signOutAnonymous.cancel'), style: 'cancel' },
-              {
-                text: t('settings.account.signOutAnonymous.confirm'),
-                style: 'destructive',
-                onPress: () => void signOut(),
-              },
-            ],
-          );
+          void confirmDialog({
+            title: t('settings.account.signOutAnonymous.title'),
+            body: t('settings.account.signOutAnonymous.body'),
+            confirmLabel: t('settings.account.signOutAnonymous.confirm'),
+            cancelLabel: t('settings.account.signOutAnonymous.cancel'),
+            destructive: true,
+            testID: 'dialog-sign-out-anonymous',
+          }).then((ok) => {
+            if (ok) void signOut();
+          });
         }}
       />
     </View>
@@ -284,14 +282,16 @@ function CalendarSection() {
             label={t('settings.gcal.disconnect')}
             disabled={busy}
             onPress={() =>
-              Alert.alert(t('settings.gcal.disconnect.title'), t('settings.gcal.disconnect.body'), [
-                { text: t('settings.gcal.disconnect.cancel'), style: 'cancel' },
-                {
-                  text: t('settings.gcal.disconnect.confirm'),
-                  style: 'destructive',
-                  onPress: () => void run(() => gcalDisconnect()),
-                },
-              ])
+              void confirmDialog({
+                title: t('settings.gcal.disconnect.title'),
+                body: t('settings.gcal.disconnect.body'),
+                confirmLabel: t('settings.gcal.disconnect.confirm'),
+                cancelLabel: t('settings.gcal.disconnect.cancel'),
+                destructive: true,
+                testID: 'dialog-gcal-disconnect',
+              }).then((ok) => {
+                if (ok) void run(() => gcalDisconnect());
+              })
             }
           />
         </>
@@ -511,26 +511,26 @@ function DataSection() {
     else if (r.code === 'no_session') setMessage('settings.data.delete.noSession');
     else setMessage('settings.data.delete.failed');
   };
-  const confirmDelete = () =>
-    Alert.alert(t('settings.data.delete.confirm1.title'), t('settings.data.delete.confirm1.body'), [
-      { text: t('settings.data.delete.confirm1.cancel'), style: 'cancel' },
-      {
-        text: t('settings.data.delete.confirm1.next'),
-        onPress: () =>
-          Alert.alert(
-            t('settings.data.delete.confirm2.title'),
-            t('settings.data.delete.confirm2.body'),
-            [
-              { text: t('settings.data.delete.confirm2.cancel'), style: 'cancel' },
-              {
-                text: t('settings.data.delete.confirm2.confirm'),
-                style: 'destructive',
-                onPress: () => void runDelete(),
-              },
-            ],
-          ),
-      },
-    ]);
+  // Two distinct confirmations (ADR-0014 §9, ADR-0016): a neutral gate, then the destructive one.
+  const confirmDelete = async () => {
+    const proceed = await confirmDialog({
+      title: t('settings.data.delete.confirm1.title'),
+      body: t('settings.data.delete.confirm1.body'),
+      confirmLabel: t('settings.data.delete.confirm1.next'),
+      cancelLabel: t('settings.data.delete.confirm1.cancel'),
+      testID: 'dialog-delete-1',
+    });
+    if (!proceed) return;
+    const confirmed = await confirmDialog({
+      title: t('settings.data.delete.confirm2.title'),
+      body: t('settings.data.delete.confirm2.body'),
+      confirmLabel: t('settings.data.delete.confirm2.confirm'),
+      cancelLabel: t('settings.data.delete.confirm2.cancel'),
+      destructive: true,
+      testID: 'dialog-delete-2',
+    });
+    if (confirmed) await runDelete();
+  };
   return (
     <View style={styles.block}>
       <ThemedText variant="caption" tone="secondary">
@@ -549,7 +549,7 @@ function DataSection() {
         label={t('settings.data.delete')}
         kind="secondary"
         disabled={busy !== null}
-        onPress={confirmDelete}
+        onPress={() => void confirmDelete()}
       />
       {message ? (
         <ThemedText variant="caption" tone="secondary" accessibilityLiveRegion="polite">

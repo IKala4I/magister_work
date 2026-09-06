@@ -7,7 +7,9 @@
  *   • no raw <Text> outside the primitives — ThemedText caps font scaling at 200 % and never
  *     disables it (NFR-A2), so text that bypasses it is a layout-breakage risk;
  *   • every text/surface pairing of BOTH palettes meets AA (body 4.5:1; large/UI 3:1);
- *   • Switches carry a label (the OS reads "switch, on/off" — nothing else without one).
+ *   • Switches carry a label (the OS reads "switch, on/off" — nothing else without one);
+ *   • no `Alert.alert` — every confirmation goes through the in-app dialog (ADR-0021), so the
+ *     roles, contrast and 200 % behaviour above apply to it too (an OS alert escapes all of it).
  * Device-conditioned items (reading order, real font scaling, Doze) stay on device-checklist.md.
  */
 import { readdirSync, readFileSync, statSync } from 'node:fs';
@@ -122,6 +124,15 @@ describe('a11y source audit (NFR-A1)', () => {
     expect(offenders).toEqual([]);
   });
 
+  it('no OS alert anywhere — confirmations use the in-app dialog (ADR-0021)', () => {
+    const offenders: string[] = [];
+    for (const f of files) {
+      const src = readFileSync(f, 'utf8');
+      if (/\bAlert\.(alert|prompt)\(/.test(src)) offenders.push(path.relative(ROOT, f));
+    }
+    expect(offenders).toEqual([]);
+  });
+
   it('ThemedText keeps font scaling on with the 200 % cap (NFR-A2)', () => {
     const src = readFileSync(path.join(PRIMITIVES_DIR, 'ThemedText.tsx'), 'utf8');
     expect(src).toMatch(/maxFontSizeMultiplier=\{MAX_FONT_SCALE\}/);
@@ -147,20 +158,30 @@ describe('contrast matrix (WCAG 2.2 AA, both palettes) — the rules the UI foll
       expect(contrastRatio(c.primary, c.surface)).toBeGreaterThanOrEqual(WCAG_AA_LARGE);
       expect(contrastRatio(c.danger, c.surface)).toBeGreaterThanOrEqual(WCAG_AA_LARGE);
     });
+    it(`${name}: the dialog's labels on the elevated card ≥ ${WCAG_AA_BODY}:1 — dangerText (destructive), primary (confirm/cancel), body text`, () => {
+      const card = c.surfaceElevated.color;
+      expect(contrastRatio(c.dangerText, card)).toBeGreaterThanOrEqual(WCAG_AA_BODY);
+      expect(contrastRatio(c.dangerText, c.surface)).toBeGreaterThanOrEqual(WCAG_AA_BODY);
+      expect(contrastRatio(c.primary, card)).toBeGreaterThanOrEqual(WCAG_AA_BODY);
+      expect(contrastRatio(c.textPrimary, card)).toBeGreaterThanOrEqual(WCAG_AA_BODY);
+    });
     it(`${name}: on-primary button text ≥ ${WCAG_AA_BODY}:1 (white in light, the dark surface in dark)`, () => {
       const onPrimary = name === 'dark' ? c.surface : '#FFFFFF';
       expect(contrastRatio(onPrimary, c.primary)).toBeGreaterThanOrEqual(WCAG_AA_BODY);
     });
   }
-  it('accent colours (success, warning, energy) are never text — the source uses them as fills only', () => {
-    // light success 2.4:1, warning 2.7:1, energyHigh 2.1:1 on the surface (P10 audit): fine for
-    // fills with a text alternative (heatmap), never for body text (1.4.3)
+  it('accent colours (success, warning, energy, danger) are never text — the source uses them as fills only', () => {
+    // light success 2.4:1, warning 2.7:1, energyHigh 2.1:1, danger 3.6–3.8:1 on the surfaces
+    // (P10 audit; danger measured 2026-09-06): fine for fills with a text alternative (heatmap)
+    // or icons, never for body text (1.4.3) — destructive LABELS use `dangerText`
     const offenders: string[] = [];
     for (const f of files) {
       const src = readFileSync(f, 'utf8');
       const lines = src.split('\n');
       lines.forEach((line, i) => {
-        if (/color:\s*(theme\.)?colors\.(success|warning|energyHigh|energyLow)\b/.test(line)) {
+        if (
+          /color:\s*(theme\.)?colors\.(success|warning|energyHigh|energyLow|danger)\b/.test(line)
+        ) {
           // a `color:` (text) assignment from an accent token; backgroundColor/borderColor are fills
           if (!/backgroundColor|borderColor/.test(line))
             offenders.push(`${path.relative(ROOT, f)}:${i + 1}`);

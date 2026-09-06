@@ -99,7 +99,7 @@ jest.mock('../auth/accountTransition', () => ({
 
 import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
 import type { ReactElement } from 'react';
-import { Alert, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import TodayScreen from '../../app/(tabs)/index';
@@ -110,13 +110,17 @@ import { en } from '../i18n/en';
 import type { CalendarEventRow } from '../db/calendar';
 import { usePlanStore } from '../state/plan';
 import { useSyncStore } from '../state/sync';
+import { DialogHost, useDialogStore } from '../ui/dialog';
 
 const initialMetrics = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
   insets: { top: 47, left: 0, right: 0, bottom: 34 },
 };
 const withSafeArea = (ui: ReactElement) => (
-  <SafeAreaProvider initialMetrics={initialMetrics}>{ui}</SafeAreaProvider>
+  <SafeAreaProvider initialMetrics={initialMetrics}>
+    {ui}
+    <DialogHost />
+  </SafeAreaProvider>
 );
 
 const today = new Date();
@@ -613,7 +617,7 @@ describe('Today — P8 sync surfaces', () => {
   });
 
   it('the deferred-wipe banner offers Keep / Discard; Discard confirms first (ADR-0012 §11, invariant 14)', async () => {
-    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    useDialogStore.setState({ current: null });
     useSyncStore.setState({ pendingWipe: { userId: 'prev', ops: 4 } });
     await render(withSafeArea(<TodayScreen />));
     expect(
@@ -627,15 +631,20 @@ describe('Today — P8 sync surfaces', () => {
       fireEvent.press(screen.getByText(en['today.wipe.discard']));
     });
     expect(mockWipe.discard).not.toHaveBeenCalled();
-    expect(alert).toHaveBeenCalledWith(
-      en['today.wipe.confirm.title'],
-      en['today.wipe.confirm.body'],
-      expect.any(Array),
-    );
-    const buttons = alert.mock.calls[0]?.[2] as Array<{ style?: string; onPress?: () => void }>;
-    buttons.find((b) => b.style === 'destructive')?.onPress?.();
+    expect(screen.getByTestId('dialog-wipe-discard')).toBeTruthy();
+    expect(screen.getByRole('header', { name: en['today.wipe.confirm.title'] })).toBeTruthy();
+    expect(screen.getByText(en['today.wipe.confirm.body'])).toBeTruthy();
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: en['today.wipe.confirm.cancel'] }));
+    });
+    expect(mockWipe.discard).not.toHaveBeenCalled();
+    await act(async () => {
+      fireEvent.press(screen.getByText(en['today.wipe.discard']));
+    });
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: en['today.wipe.confirm.discard'] }));
+    });
     expect(mockWipe.discard).toHaveBeenCalledTimes(1);
-    alert.mockRestore();
   });
 
   it('a pending displacement reads as an overlap that still counts, not as a loss', async () => {

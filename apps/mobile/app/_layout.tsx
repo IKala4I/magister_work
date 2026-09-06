@@ -1,6 +1,7 @@
 /**
  * Root layout: fonts behind the splash screen (system-fallback stack per File 02 §3.3),
- * gesture-handler root, themed navigation chrome, Settings as a modal over the tab shell.
+ * gesture-handler root, themed navigation chrome, Settings as a modal over the tab shell, and
+ * the one in-app dialog host (ADR-0021) — RN Modal presents above the native modal screens.
  */
 import {
   Inter_400Regular,
@@ -25,6 +26,7 @@ import { initAuth } from '../src/auth/session';
 import { db } from '../src/db/client';
 import { t } from '../src/i18n';
 import { NotificationResponder } from '../src/notifications/NotificationResponder';
+import { DialogHost } from '../src/ui/dialog';
 import { initNotifications } from '../src/notifications/setup';
 import { initAnalytics } from '../src/observability/analytics';
 import { initSentry, Sentry } from '../src/observability/sentry';
@@ -85,6 +87,7 @@ function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }} onLayout={markFirstFrame}>
       <StatusBar style={theme.scheme === 'dark' ? 'light' : 'dark'} />
       <NotificationResponder />
+      <DialogHost />
       <Stack
         screenOptions={{
           headerStyle: { backgroundColor: theme.colors.surface },
