@@ -93,6 +93,21 @@
   pressure: stop at the nearest clean commit, write the handoff, say so. Resume line is:
   "Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."
 
+## Specs are generated assumptions (owner directive, 2026-09-06)
+
+- `specs/01–06` are **generated assumptions, not ground truth**. Where a measured (hardware) or
+  simulated result contradicts a spec statement, **rewrite the spec to match and record why**
+  (spec-conflicts entry + the commit that changes the spec cites the evidence). The read-only
+  rule above now means "never edit a spec without evidence and a record", not "never edit".
+- **Derived numbers follow their inputs.** Never adjust a derived quantity (a sample size, a
+  power figure, a threshold) so that a claim survives; recompute it from the new inputs and
+  let the claim change. If the honest result makes a design impractical, say so plainly.
+- Simulated evidence reports the **world model explicitly** (what it assumes about people,
+  where each assumption comes from, what it cannot represent) and treats the world as an
+  object of study: ranges, not single worlds; every cell reported, including losses and ties.
+- Pre-registration in git before any run (ADR-0020): the grid/hypotheses commit predates the
+  code and the results; deviations are reported, never smoothed.
+
 ## No wall-clock polling (owner directive, 2026-09-03)
 
 - **Never sit in a polling loop waiting on a wall clock** — no Monitor, cron, or sleep-loop
