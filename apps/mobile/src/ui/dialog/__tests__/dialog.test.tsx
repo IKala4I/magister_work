@@ -12,7 +12,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react-n
 import { AccessibilityInfo } from 'react-native';
 import { getAnimatedStyle } from 'react-native-reanimated';
 
-import { DIALOG_ENTER_SCALE, DialogHost } from '../DialogHost';
+import { DIALOG_ANNOUNCE_DELAY_MS, DIALOG_ENTER_SCALE, DialogHost } from '../DialogHost';
 import { confirmDialog, requestDialog, useDialogStore } from '../store';
 import { lightColors } from '../../tokens/colors';
 import { MOTION_MAX_MS, springs } from '../../tokens/motion';
@@ -111,26 +111,51 @@ describe('DialogHost — roles, labels, outcomes (NFR-A1)', () => {
     expect(label('Continue').color).toBe(lightColors.primary);
   });
 
-  it('announces title + body once and moves accessibility focus to the title when shown', async () => {
+  it('announces title + body once per request and moves accessibility focus to the title — the first via onShow, a replacement (erasure step 2) after the delay, never twice', async () => {
+    jest.useFakeTimers();
     const announce = jest
       .spyOn(AccessibilityInfo, 'announceForAccessibility')
       .mockImplementation(() => undefined);
     const send = jest
       .spyOn(AccessibilityInfo, 'sendAccessibilityEvent')
       .mockImplementation(() => undefined);
-    await render(<DialogHost />);
-    await act(async () => {
-      void confirmDialog(spec);
-    });
-    await act(async () => {
-      fireEvent(screen.getByTestId('dialog'), 'show');
-    });
-    expect(announce).toHaveBeenCalledTimes(1);
-    expect(announce).toHaveBeenCalledWith(`${spec.title}. ${spec.body}`);
-    expect(send).toHaveBeenCalledTimes(1);
-    expect(send.mock.calls[0]?.[1]).toBe('focus');
-    announce.mockRestore();
-    send.mockRestore();
+    try {
+      await render(<DialogHost />);
+      await act(async () => {
+        void confirmDialog(spec);
+      });
+      await act(async () => {
+        fireEvent(screen.getByTestId('dialog'), 'show');
+      });
+      expect(announce).toHaveBeenCalledTimes(1);
+      expect(announce).toHaveBeenCalledWith(`${spec.title}. ${spec.body}`);
+      expect(send).toHaveBeenCalledTimes(1);
+      expect(send.mock.calls[0]?.[1]).toBe('focus');
+      // the delayed path must not announce the same request again
+      await act(async () => {
+        jest.advanceTimersByTime(DIALOG_ANNOUNCE_DELAY_MS * 2);
+      });
+      expect(announce).toHaveBeenCalledTimes(1);
+      // step 2 replaces the content while the Modal stays visible: onShow never fires again
+      await act(async () => {
+        fireEvent.press(screen.getByRole('button', { name: spec.confirmLabel }));
+      });
+      await act(async () => {
+        void confirmDialog({ ...spec, title: 'This cannot be undone', body: 'Delete now?' });
+      });
+      expect(announce).toHaveBeenCalledTimes(1);
+      await act(async () => {
+        jest.advanceTimersByTime(DIALOG_ANNOUNCE_DELAY_MS * 2);
+      });
+      expect(announce).toHaveBeenCalledTimes(2);
+      expect(announce).toHaveBeenLastCalledWith('This cannot be undone. Delete now?');
+      expect(send).toHaveBeenCalledTimes(2);
+    } finally {
+      announce.mockRestore();
+      send.mockRestore();
+      jest.runOnlyPendingTimers();
+      jest.useRealTimers();
+    }
   });
 
   it('a second request while one is open is answered as a cancel at once; the open one keeps the screen', async () => {

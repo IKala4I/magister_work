@@ -18,10 +18,13 @@
  * action's promise resolves on the press, before the exit — nothing depends on an animation
  * completing (NFR-A2); a request arriving mid-exit cancels the exit and shows immediately.
  *
- * NFR-A1: title `header` and focused on show, one announcement of title + body, the card is
- * `accessibilityViewIsModal` (iOS ignores siblings — the scrim), the scrim itself hidden from
- * readers. NFR-A2: ThemedText (200 % cap), the title/body scroll inside a bounded card, actions
- * wrap on their own rows.
+ * NFR-A1: title `header` and focused on show, one announcement of title + body PER REQUEST —
+ * the Modal's own `onShow` fires only on its first presentation, and the second erasure step
+ * replaces the content while the Modal stays visible, so the announcement is driven by the
+ * request id (a short delay lets the first presentation settle; `onShow` is kept as the earlier
+ * of the two, guarded so no request is announced twice). The card is `accessibilityViewIsModal`
+ * (iOS ignores siblings — the scrim), the scrim itself hidden from readers. NFR-A2: ThemedText
+ * (200 % cap), the title/body scroll inside a bounded card, actions wrap on their own rows.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -40,6 +43,8 @@ import { useReducedMotion } from '../useReducedMotion';
 import { resolveDialog, useDialogStore, type DialogRequest } from './store';
 
 export const DIALOG_SCRIM = 'rgba(0, 0, 0, 0.5)';
+/** Delay before announcing a request the Modal did not just present (its presentation is async). */
+export const DIALOG_ANNOUNCE_DELAY_MS = 100;
 /** Card scale at progress 0 — a settle, not a zoom (File 02 §3.4 "physics, not flourish"). */
 export const DIALOG_ENTER_SCALE = 0.96;
 
@@ -54,6 +59,7 @@ export function DialogHost() {
   const shownRef = useRef<DialogRequest | null>(null);
   const progress = useSharedValue(0);
   const titleRef = useRef<View>(null);
+  const announcedId = useRef<number | null>(null);
 
   const animateTo = useCallback(
     (target: 0 | 1, spring: SpringSpec, onDone?: () => void) => {
@@ -96,12 +102,25 @@ export function DialogHost() {
     transform: [{ scale: DIALOG_ENTER_SCALE + (1 - DIALOG_ENTER_SCALE) * progress.value }],
   }));
 
-  const onShow = useCallback(() => {
-    if (shown === null) return;
-    AccessibilityInfo.announceForAccessibility(`${shown.title}. ${shown.body}`);
+  const announce = useCallback((request: DialogRequest) => {
+    if (announcedId.current === request.id) return;
+    announcedId.current = request.id;
+    AccessibilityInfo.announceForAccessibility(`${request.title}. ${request.body}`);
     const node = titleRef.current;
     if (node !== null) AccessibilityInfo.sendAccessibilityEvent(node, 'focus');
-  }, [shown]);
+  }, []);
+
+  // every request is announced: on the Modal's first presentation via onShow, otherwise (the
+  // content replaced while the Modal stays up) after a short delay from this effect
+  useEffect(() => {
+    if (shown === null) return undefined;
+    const timer = setTimeout(() => announce(shown), DIALOG_ANNOUNCE_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [shown, announce]);
+
+  const onShow = useCallback(() => {
+    if (shown !== null) announce(shown);
+  }, [shown, announce]);
 
   if (shown === null) return null;
   const { id, title, body, actions, testID } = shown;
