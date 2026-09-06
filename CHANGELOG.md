@@ -30,6 +30,21 @@ Everything below condenses P0–P11 for release notes and the thesis; per-phase 
 - **Ops:** Supabase (eu-west-1) + Oracle A1 VM (eu-marseille-1) with pull-based rollout,
   hardened SSH + Tailscale admin path, nightly training timer, runbooks for every timer.
 
+## Post-P12 — the narrative rewritten on the sensitivity result (2026-09-06, post-p12/narrative-rewrite)
+
+- **Owner directive:** the two findings reshape the thesis argument. **spec-conflicts H6:** File 01 §1/§2 and
+  File 02 §2 no longer sell chronotype/energy rhythms — the system exploits individual deviation from the
+  class profile (corrections #58, exact Ukrainian wording). **H7:** the headline finding — the method needs
+  individual variation to be worth its complexity; where behaviour follows the population pattern, rules
+  are enough — replaces "wins categorically" / "the moat compounds"; File 01's competitive claims and the
+  §3.2 matrix reconciled (#59). **M16:** viva sweep — 15 further selling points contradicted by measurement
+  or by what was built, amended in place in Files 01–04 and 06 (#60). Defence passage in the explainer.
+  Adversarial pass (fresh subagent, 5 MAJOR / 8 MINOR / 9 NOTE, all on over-reaching wording) addressed before
+  merge: "only with individual deviation" (six wins at ≥ 1.5× population strength), "plateaus inside two weeks"
+  (the gap grows 0.3–1.4 pp per four weeks), "a rule engine cannot" (untested against declared-preference
+  engines), RQ1(b) not run, the ablation is five worlds not 75; the sweep grew to 18 items.
+- spec-conflicts: my 2026-09-05/06 entries renumbered M13–M15 (M10 already existed from P7; M11–M12 are left unused).
+
 ## Post-P12 — sensitivity study across simulated worlds; power recomputed; spec rewrites; auto-merge gap closed (2026-09-06, post-p12/sensitivity-grid)
 
 - **Owner directive (CLAUDE.md "Specs are generated assumptions"):** rewrite specs on measured or
@@ -48,7 +63,7 @@ Everything below condenses P0–P11 for release notes and the thesis; per-phase 
   7 MINOR / 3 NOTE) addressed on the branch: N sentences made to follow their inputs, three verdicts
   downgraded, the σ² diagnostic re-run on the cell's own 40 seeds with a level-matched-prior setting
   and SEs, slice-aware attainable ceilings added, the N₈₀ median rule fixed (no number changed).
-- **Spec rewrites (M10–M12):** File 04 §2.2 (|A_m|-weighted replay; the 2026-08-26 trade stated),
+- **Spec rewrites (M13–M15):** File 04 §2.2 (|A_m|-weighted replay; the 2026-08-26 trade stated),
   File 04 §3.2 (note on the unmeasured AF/MD ordering — the P11 generator disagreed, not the
   transcription), File 06 §2 (N follows the simulated effect; 28 → 30 normal-approximation fix).
   Thesis: corrections #56, #57.
@@ -74,7 +89,7 @@ Everything below condenses P0–P11 for release notes and the thesis; per-phase 
   (amplified, ceiling 7.8), direction right in 96 % / 100 % of replicated studies; File 06
   paired-floor power 0.84 / 0.82 at N = 30 under the registered τ ≈ 0.10 (0.77 / 0.74 at File 06's
   τ = 0.12 → N ≈ 34–40, exploratory); ESS gate met 3× on plain weeks. Deviations reported: the
-  under-registered E2 heterogeneity, replay biased under a variable |A_m(x)| (spec-conflicts M10),
+  under-registered E2 heterogeneity, replay biased under a variable |A_m(x)| (spec-conflicts M13),
   morning types lose 1–2 pp under the learned arm, H4 underpowered within-study, mis-specified
   criteria (thesis-corrections #55). Adversarial pass (fresh subagent): 2 MAJOR / 10 MINOR / 4
   NOTE — all addressed on the branch; the study code refactor after the run is byte-identical

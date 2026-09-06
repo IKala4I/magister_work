@@ -141,7 +141,7 @@ GLMM's would be lower — but not by the factor of four the centre world needs.
 | S9 prior                   | informative ≥ flat for s ≥ 1; flat ≥ informative at s = 0; within ±1 pp at 0.5                                    | s = 1: informative 1.44 < flat 1.48 (0.3 MC SE) — the "≥" fails as written; 1.5 / 2: +0.30 / +0.38 for informative ✓; s = 0: flat +0.24 ✓; s = 0.5: within 1 pp ✓                                         | ◐                           |
 | S10 per class              | DM/MM within [−1, +1.5] at s ≥ 1, σ_shape 0                                                                       | over the nine (s ≥ 1, σ_day) cells: DM −1.35 … +0.41 (outside the band at s = 1, σ_day 0), **MM −2.11 … −0.25**, **INT −1.88 … −1.13 (unpredicted)**; ME +4.8 … +14.1, DE +8.3 … +22.0                    | ❌                          |
 | S11 sample size            | centre N₈₀ 50–100 and rejection at 30 of 0.25–0.50; s = 0.5 > 120; s = 1.5 25–50; s = 2 ≤ 30; uniform s = 1 25–50 | centre **> 120**, rejection **0.05**; s = 0.5 > 120 ✓; s = 1.5 > 120; s = 2 105; uniform s = 1 99                                                                                                         | ❌ (only the s = 0.5 half)  |
-| S12 learning signature     | ḡ > 0 on average **only** in flat-prior and σ_shape 0.6 cells; \|ḡ\| ≤ 0.5 pp in informative σ_shape 0 cells      | flat +0.28 … +1.58 ✓ and σ_shape 0.6 +1.36 … +1.80 ✓ — but informative σ_shape 0.3 cells also grow (+0.44 … +1.31), and the informative σ_shape 0 cells exceed 0.5 pp in 8 of 15 (+0.76 … +1.38 at s ≥ 1) | ❌                          |
+| S12 learning signature     | ḡ > 0 on average **only** in flat-prior and σ_shape 0.6 cells; \|ḡ\| ≤ 0.5 pp in informative σ_shape 0 cells      | flat +0.28 … +1.58 ✓ and σ_shape 0.6 +0.81 … +1.80 ✓ — but informative σ_shape 0.3 cells also grow (+0.44 … +1.31), and the informative σ_shape 0 cells exceed 0.5 pp in 8 of 15 (+0.76 … +1.38 at s ≥ 1) | ❌                          |
 
 Tally under the frozen criteria as written: **2 confirmed (S1, S5), 5 partly (S2, S4, S6, S8,
 S9), 5 not confirmed (S3, S7, S10, S11, S12)**. **Too-kind test:** passed — the null world ties,
@@ -188,8 +188,8 @@ and 17 of 75 cells tie. **Substantive-failure test:** fires — TIE at s = 1, σ
    arm's exploited blocks are close to random for most classes (cost −0.3 … +12 pp), the
    learned arm's are not (0.03 … 17 pp). §5.2 restates the ceiling with the slice inside.
 7. **The learning signature (File 06 H4) appears where there is something to learn (S12):**
-   +0.9 to +1.8 pp phase-pair growth with a flat prior or with σ_shape 0.6, and +0.9 even with
-   the informative prior at s = 2 (the table under-states that world). It is a real but small
+   +0.3 to +1.8 pp phase-pair growth with a flat prior or with σ_shape 0.6, and +0.3 to +1.4 pp
+   even with the informative prior at σ_shape 0 for s ≥ 1 (the table under-states those worlds). It is a real but small
    quantity that a 30-user study cannot detect (E3 finding, unchanged).
 
 ## 5. Exploratory (after the results; not registered)

@@ -217,7 +217,7 @@ decision rule (defensibility → consistency → measurability → pragmatics) a
   ADR-0020). ADR-0008 §1. **Closed 2026-09-05 (simulation study E1 §2.3):** ESS/n = 0.333 for a
   deterministic target policy, 0.361 for replay — ≈ 930 plain-week slice rows give ESS ≈ 310
   (3× the gate), heavy weeks 80–175 (marginal at the low end).
-- **M10.** (simulation study, 2026-09-05) File 04 §2.2's replay unbiasedness argument is
+- **M13.** (simulation study, 2026-09-05) File 04 §2.2's replay unbiasedness argument is
   per-context; with M9's variable slice size (|A_m(x)| ∈ {2, 3, 4}, p = 1/|A_m(x)|) the matched
   subsample over-represents small slices (matched with probability 1/|A_m|), so replay
   estimates a context distribution reweighted by 1/|A_m(x)|. Measured (E1, 200 × 1,000 rows):
@@ -227,7 +227,7 @@ decision rule (defensibility → consistency → measurability → pragmatics) a
   reported beside SNIPS/DR (File 04 §2.3 already makes DR primary) or its matches are weighted
   by |A_m(x)| — which is IPS. `docs/study/simulation-results.md` §5 item 1; thesis-corrections
   #55; revisit.
-- **M11.** (2026-09-06, owner directive "rewrite the spec to match") **File 04 §2.2 rewritten:**
+- **M14.** (2026-09-06, owner directive "rewrite the spec to match") **File 04 §2.2 rewritten:**
   the replay unbiasedness argument is stated as per-context, and an amendment adds the
   $|A_m(x)|$-weighted replay (= SNIPS on the slice) as the estimator to use when the slice size
   varies, with the measured bias. **Provenance of the bias:** it is a consequence of the owner's
@@ -243,9 +243,9 @@ decision rule (defensibility → consistency → measurability → pragmatics) a
   unmeasured assumption on which the table and the P11 generator disagree — the source of the
   E3 morning-type loss (results §4.1 of the simulation study); the sensitivity study uses the
   table's own pattern.
-- **M12.** (2026-09-06, owner directive) **File 06 §2 amended:** the +8 pp smallest effect of
+- **M15.** (2026-09-06, owner directive) **File 06 §2 amended:** the +8 pp smallest effect of
   interest and N = 30 were assumptions; the sensitivity study across 75 simulated worlds
-  (`docs/study/sensitivity-results.md`) puts the completers needed at 20 … > 120 (> 120 in 48
+  (`docs/study/sensitivity-results.md`) puts the completers needed at 21 … > 120 (> 120 in 48
   worlds, including the literature-like adult population at the table's own strength). N now
   follows a pilot estimate of the individual slot-effect spread; the protocol is worth running
   at N ≈ 30–45 only if that spread is ≈ 0.6 logits or the population effect ≥ 2× the table's.
@@ -454,6 +454,52 @@ pre-registration conditions attach to the artifact, which is kept in-repo (no OS
 ADR-0020, 2026-09-05). Evidence that exists: the simulation study (overlay below) and the
 researcher's own live use of the deployed system. Neither can test — let alone falsify — a
 behavioural claim about humans; H1–H4 as claims about people remain untested hypotheses.
+
+### H6. File 01 §1/§2 and File 02 §2 sell chronotype and energy rhythms; the evaluation says individual deviation is the mechanism (2026-09-06)
+
+The sensitivity study (`docs/study/sensitivity-results.md`) contradicts the framing: at the
+strength File 04 §3.2 assumes or weaker, the population chronotype pattern by itself gives
+the learned policy no advantage over the earliest-first heuristic (tie in the world the prior
+describes, matched in shape: +0.4 / −0.1 / +0.0 pp); the cold-start prior is worth ±0.4 pp in
+the five ablation worlds; wins of ≈ 1–6.6 pp appear where individuals deviate from their
+class by ≥ 0.3 logits (52 of 60 such worlds), and of 1.2–2.8 pp where the population effect is
+≥ 1.5× the table's without any individual deviation. **Rewritten (File 01 §0, File 02 §2
+amendment):** what the system exploits is that people deviate from their class profile — a
+per-user learner captures that from behaviour without the user declaring it; a rule engine
+carries it only if hand-authored (SkedPal Time Maps), a comparison that was not run — the rule
+beaten or tied is earliest-first. Thesis text: corrections #58. **Status: spec rewritten on
+evidence.**
+
+### H7. File 01 §1.3/§3.3/§3.4 claim a categorical win of learning over rules; the evaluation locates a boundary (2026-09-06)
+
+"A learning system wins categorically", "every week of usage widens the gap" and the §3.2
+matrix's unconditional ✅ rows are contradicted: 58 WIN / 17 TIE / 0 LOSS over 75 worlds with
+the registered substantive-failure test firing (tie in the prior's own world; morning and
+intermediate types lose 0.8–2.1 pp where a fixed rule is near-optimal); the personalization
+gap grows by only +0.3 to +1.4 pp per four-week half under the informative prior (+0.3 to
++1.8 with a flat prior or strong individual deviation), too small for a 30-user study to
+detect, and plateaued within the first phase pair on the P11 world (E3). **Rewritten (File 01
+§0):** the method needs individual variation to be worth its complexity; where behaviour
+follows the population pattern at the strength File 04 assumes, the earliest-first rule is
+enough. Thesis text: corrections #59. **Status: spec rewritten on evidence.**
+
+- **M16.** (2026-09-06, viva sweep) Other selling points in Files 01–04 and 06 contradicted by
+  measurement or by what was built, now amended in place: File 01 §1.2 "measurably better every
+  week" (growth 0.3–1.4 pp per four weeks); §1.1 "2–3 h/day" (unsourced); §1.3/§1.4/§3.2 Hugging
+  Face Spaces (withdrawn, H4) and on-device/ONNX rankers (not delivered, #60 (d)); §2.3 RQ1(b)
+  (not run — no population-average arm; the prior's marginal value ±0.4 pp), RQ2 (not
+  answerable without real feedback), RQ3 (slice cost measured 0–4 pp at arm level; TS variance
+  cost decomposed; exploration-vs-exploitation not run; trust unmeasurable); §2.4 (2) ablation
+  (partly: table prior ±0.4 pp in five worlds; ALS layer never simulated), (3) attribution
+  comparison (not done), (4) N = 20–40 field study (out of scope; N 21 … > 120), (5) open
+  dataset (synthetic only); §5 cold-start risk mitigation (priors do not de-risk week 1). File
+  02 §3 "all pairings meet WCAG AA" (L39: accents-as-text 2.1–2.98:1), NFR-P1 (≤ 2.5 s → ≤ 6.0 s
+  device, 3.7–4.1 s reference; L40/#51), NFR-P3 (base API only; composites 477/714/736 ms;
+  #47), NFR-Sc1 (10 k → ≈ 3 k MAU, the audit's estimate; #3). File 03 diagram (HF Spaces →
+  Oracle A1; HF Hub → Supabase Storage; SASRec/ONNX deferred; nightly training on the VM). File
+  04 §1.4 "1 slot/day" (ε = 1 with |A_m| ∈ {2, 3, 4}; 4.3/user-week computed on the eligibility
+  code; measured slice cost) and §1.5 (ladder threshold 3·10³ on the box; 15-task fallback
+  1/10 → 0/10). File 06 §3 matrix D7 ✓ → ◐ and the gap statement. Thesis text: corrections #60.
 
 ## Post-P12 status overlay (2026-09-05) — the evaluation is a simulation study (ADR-0020)
 

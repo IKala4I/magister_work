@@ -9,6 +9,8 @@
 
 ## 1. System Architecture
 
+> **Amended 2026-09-06 (File 01 §0):** in the diagram below, "Hugging Face Spaces (Docker, free CPU tier)" → Oracle Cloud Always-Free A1 VM, EU (ADR-0009; the free Docker CPU tier no longer exists — spec-conflicts H4); "Model registry (HF Hub)" → Supabase Storage, EU (ADR-0011/ADR-0015); "PyTorch (SASRec-lite) → ONNX" and "(later: onnxruntime-rn ranker)" → deferred to future work, not delivered (thesis-corrections #9 for SASRec-lite, #60 (d) for the on-device ranker); "GitHub Actions cron" for nightly training → a systemd timer on the EU VM, CI runs the pipeline on synthetic data only (ADR-0011 option A).
+
 ### 1.1 High-Level Overview
 
 ```

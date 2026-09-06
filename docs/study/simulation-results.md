@@ -199,7 +199,7 @@ re-simulating the paired floor (3,000 replicates per cell, seeds 99–104):
 | 0.10 | 0.545              | 0.768 / 0.742  | 0.824 / 0.806  | 0.894 / 0.877  | 7.2 pp |
 | 0.20 | 0.578              | 0.735 / 0.712  | 0.766 / 0.748  | 0.831 / 0.819  | 6.7 pp |
 
-**4.3 The replay bias in closed form (E1-H1, M10).** Over the 200 registered worlds, the
+**4.3 The replay bias in closed form (E1-H1, M13).** Over the 200 registered worlds, the
 replay target E[q(π(x))/m] / E[1/m] minus the truth E[q(π(x))] is **+0.0027** (alpha-first),
 **−0.0055** (oracle), **+0.0054** (anti-oracle), MC SE ≤ 0.0001 — the measured replay biases
 (+0.0008 ± 0.0017, −0.0061 ± 0.0019, +0.0074 ± 0.0016) agree within their SE. The mechanism is
@@ -229,7 +229,7 @@ a power artefact of R = 200. The m-weighted replay equals SNIPS identically.
    resolution). IPS, SNIPS and DR weight each match by |A_m(x)| and are unbiased. Thesis
    consequence: on the slice, report replay only alongside SNIPS/DR (File 04 §2.3 already
    names DR primary), or weight replay matches by |A_m(x)| — which is IPS. Recorded as
-   spec-conflicts M10 and revisit.
+   spec-conflicts M13 and revisit.
 2. **The E2 type-I band was mis-specified (E2-H4).** The registered rejection rule counts one
    direction of a two-sided test (its calibrated null rate is 0.025), while the band was
    written for a two-sided 0.05. The observed 0.028–0.030 is calibrated against the correct
@@ -287,7 +287,7 @@ and therefore nothing to lose; the 2.5 / 5.4 pp effects are properties of those 
 sensitivity study (`docs/study/sensitivity-results.md`) makes the world an object of study and
 finds that in the world the cold-start prior was written for the learned policy only ties. The
 E1 and E2 results stand; E2's power figures are what File 06's own model gives under its own
-+8 pp assumption (File 06 §2 amendment; spec-conflicts M12).
++8 pp assumption (File 06 §2 amendment; spec-conflicts M15).
 
 ## 7. Files
 

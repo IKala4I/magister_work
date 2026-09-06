@@ -65,14 +65,16 @@ then solve the ILP with the resulting $w$. The returned assignment is thereby a 
 
 **Budgeted explicit exploration (for §2's evaluability).** Independently, with probability $\varepsilon$ per plan (default 1 slot/day): one non-critical task's placement is drawn **uniformly from its top-$m$ candidate buckets** ($m = 4$) and pinned into the solve. Its propensity is *known exactly*, $p = \varepsilon / m$, is logged on the recommendation row, and the block renders as an "experiment" (FR-22). This randomized slice is the substrate for unbiased offline evaluation.
 
+**Amendment (2026-09-06; spec-conflicts M9, M16).** "1 slot/day" is the probability ε = 1 per plan, not a guaranteed daily experiment: eligibility is $|\mathcal{A}_m(x)| \in \{2, 3, 4\}$ with the exact per-row $p = \varepsilon/|\mathcal{A}_m(x)|$ (ADR-0008 §1), and the rate computed on the service's eligibility code for a modelled 09–18 weekday (`scripts/experiment_rate.py`, nothing observed) is ≈ 4.3 experiments per user-week on plain weeks, 1.1–2.4 on heavy weeks. The slice's cost, measured in simulation, is 0.03–17 pp of completion on the randomized blocks (≈ 0–4 pp at arm level) — the draw is identical in both arms, its cost is not.
+
 ### 1.5 Solver implementation & complexity (CP-SAT)
 
 Implementation uses CP-SAT's native modeling rather than raw ILP: `NewOptionalIntervalVar(start_τ, d_τ+b, end_τ, y_τ)` + `AddNoOverlap` replaces (C2) with a far tighter propagated global constraint; weights enter via a channeled objective on start-domain literals.
 
 - **Size:** worst case $\sum_\tau |\mathcal{F}_\tau| \le 50 \times 300 \approx 1.5\times10^4$ literals — small for CP-SAT.
-- **Anytime:** `max_time_in_seconds = 1.5`; best feasible solution returned (CP-SAT is anytime), meeting NFR-P1 on 2 vCPU.
+- **Anytime:** `max_time_in_seconds = 1.5`; best feasible solution returned (CP-SAT is anytime), meeting NFR-P1 on 2 vCPU. **Measured (2026-08-28, 2026-09-02/03):** day plans (12 tasks) OPTIMAL 20/20 at p90 487 ms on the 2-core Oracle A1; on a 15-task inbox the learned path fell to the heuristic fallback 1 of 10 times before ADR-0018 (gap limit + no-improvement stop) and 0 of 10 after (the 2 Sep 14-task series had 1 of 10 with no "after"); NFR-P1 itself is restated in File 02 (≤ 6.0 s device end-to-end).
 - **Stability:** previous plan injected via `AddHint(...)` — warm start *and* an anti-"thrashing" prior (placements only move when the objective says it's worth it).
-- **Degradation ladder:** $|\text{literals}| > 4\times10^4$ → 30-min granularity; still hot → rolling day-by-day decomposition. Both flagged in telemetry.
+- **Degradation ladder:** $|\text{literals}| > 4\times10^4$ → 30-min granularity; still hot → rolling day-by-day decomposition. Both flagged in telemetry. **Measured:** the practical threshold on the deployment box is $3\times10^3$ literals (the 15-min week rung is presolve-bound at $3.6\times10^3$ there; ADR-0007 §11, thesis-corrections #17/#37); $4\times10^4$ remains the outer bound of the design, not the operating value.
 
 ## 2. Offline Policy Evaluation — Formalization (RQ4)
 
@@ -90,7 +92,7 @@ $$\hat{V}_{\text{replay}}(\pi) \;=\; \frac{\displaystyle\sum_{i=1}^{n} \mathbb{1
 
 Unbiased **iff** the logging policy chooses uniformly at random over $\mathcal{A}(x)$ and rewards are independent of the logger — which our greedy/TS traffic violates. Therefore replay is computed **only on the randomized exploration slice** of §1.4, where within the top-$m$ set the draw *is* uniform: candidate policies are evaluated restricted to $\mathcal{A}_m(x)$, matches are exact, and Li et al.'s unbiasedness argument applies **per context**. Effective data rate is $\approx \varepsilon/m$ of exploration events — the price of validity, budgeted deliberately.
 
-**Amendment (2026-09-06, simulated evidence — spec-conflicts M10/M11).** Because $|\mathcal{A}_m(x)|$ varies across rows (ADR-0008 §1: $|\mathcal{A}_m(x)| \in \{2,3,4\}$ with $p = \varepsilon/|\mathcal{A}_m(x)|$), a row is matched with probability $1/|\mathcal{A}_m(x)|$, so the unweighted replay average estimates the policy value under a context distribution reweighted by $1/|\mathcal{A}_m(x)|$, not $V(\pi)$. Measured on the P11 synthetic world (200 × 1,000 rows): $-0.6$ / $+0.7$ pp on policies whose value correlates with the slice size. The corrected estimator weights each matched row by $|\mathcal{A}_m(x)|$,
+**Amendment (2026-09-06, simulated evidence — spec-conflicts M13/M14).** Because $|\mathcal{A}_m(x)|$ varies across rows (ADR-0008 §1: $|\mathcal{A}_m(x)| \in \{2,3,4\}$ with $p = \varepsilon/|\mathcal{A}_m(x)|$), a row is matched with probability $1/|\mathcal{A}_m(x)|$, so the unweighted replay average estimates the policy value under a context distribution reweighted by $1/|\mathcal{A}_m(x)|$, not $V(\pi)$. Measured on the P11 synthetic world (200 × 1,000 rows): $-0.6$ / $+0.7$ pp on policies whose value correlates with the slice size. The corrected estimator weights each matched row by $|\mathcal{A}_m(x)|$,
 
 $$\hat{V}_{\text{replay},m}(\pi) \;=\; \frac{\sum_i |\mathcal{A}_m(x_i)|\,\mathbb{1}[\pi(x_i) = a_i]\, r_i}{\sum_i |\mathcal{A}_m(x_i)|\,\mathbb{1}[\pi(x_i) = a_i]},$$
 

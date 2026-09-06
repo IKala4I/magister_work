@@ -489,7 +489,7 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     Tensor G2). Scaled with public single-core ratios (Snapdragon 695 ×1.3, Snapdragon 680 ×2.9
     slower) and Opensignal latency ranges (4G 30–58 ms, weak cell 100–150 ms, 3G ≈ 90 ms): a
     2022 mid-range phone on a weak LTE cell ≈ 4.5 s, a 2022 low-end phone on a 3G-grade link ≈ 5.7 s.
-    **DECIDED (owner, 2026-09-04) — final wording: NFR-P1 = "a plan request completes on the device (tap → plan received) in ≤ 6.0 s at p95, warm, on a 2022 low-end Android over a weak-signal link; the reference measurement is 3.7 s p95 on a Pixel 7a over home Wi-Fi (4.6 s before ADR-0018); the server-side `plan-request` ≤ 1.5 s p95; the heuristic fallback bounds the server wait at 1.9 s." Two caveats travel with it: the client timer stops before the SQLite mirror (0.1–0.9 s on the reference device, scaling with the phone) — reported separately, not folded in; and a pre-plan sync carrying a day's backlog costs more than the measured syncs.** This supersedes the 4.5 s wording above (which was set on the reference device alone). **Amended 2026-09-05 (4 Sep export, `android-20260905-0942/notes.md` item 4): the reference is two series of ten, 3.7 s p95 on 3 Sep and 4.1 s on 4 Sep (one 4.7 s request carried a 3.0 s backlog sync — the second caveat, observed); pooled p95 4.0 s (n = 20). State the reference as 3.7–4.1 s, never as one number; the 6.0 s bound and the 1.5 s server bound (function p95 1.28 s on 4 Sep) are unaffected.** **The more useful finding, stated plainly: of the 3.9 s p95 reference sum, 2.6 s — two-thirds — is server-side work (the plan function, its invoke overhead, the sync-resolve call) that scales with nothing on the user's side, not the phone and not the network. That is the share L2 (one RPC for the sync hops) and L3 (ops carried inside the plan request) address; the device and network multipliers act only on the remaining third.** **Network figures — a stated limitation:** the typical-case latency is current (Ookla, Q4 2024: country-wide median mobile latency 32 ms in Europe, 35 ms in the Americas; a 2023 London campaign measured ≈ 25 ms average on 4G LTE); the weak-cell (100–150 ms) and 3G (≈ 90 ms) values are conservative estimates taken from older public measurements (Opensignal country reports, 2018), because current reports publish experience scores rather than milliseconds or could not be retrieved — the derivation errs on the slow side deliberately.
+    **DECIDED (owner, 2026-09-04) — final wording: NFR-P1 = "a plan request completes on the device (tap → plan received) in ≤ 6.0 s at p95, warm, on a 2022 low-end Android over a weak-signal link; the reference measurement is 3.7 s p95 on a Pixel 7a over home Wi-Fi (4.6 s before ADR-0018); the server-side `plan-request` ≤ 1.5 s p95; the heuristic fallback bounds the server wait at 1.9 s." Two caveats travel with it: the client timer stops before the SQLite mirror (0.1–0.9 s on the reference device, scaling with the phone) — reported separately, not folded in; and a pre-plan sync carrying a day's backlog costs more than the measured syncs.** This supersedes the 4.5 s wording above (which was set on the reference device alone). **Amended 2026-09-05 (4 Sep export, `android-20260905-0942/notes.md` item 4): the reference is two series of ten, 3.7 s p95 on 3 Sep and 4.1 s on 4 Sep (one 4.7 s request carried a 3.0 s backlog sync — the second caveat, observed); pooled p95 4.0 s (n = 20). State the reference as 3.7–4.1 s, never as one number; the 6.0 s bound and the 1.5 s server bound (function p95 1.28 s on 4 Sep) are unaffected.** **The more useful finding, stated plainly: of the 3.9 s p95 reference sum, 2.6 s — two-thirds — is server-side work (the plan function, its invoke overhead, the sync-resolve call) that scales with nothing on the user's side, not the phone and not the network. That is the share L2 (one RPC for the sync hops) and L3 (ops carried inside the plan request) address; the device and network multipliers act only on the remaining third.** **Network figures — a stated limitation:** the typical-case latency is current (Ookla, Q4 2024: country-wide median mobile latency 32 ms in Europe, 35 ms in the Americas; a 2023 London campaign measured ≈ 25 ms average on 4G LTE); the weak-cell (100–150 ms) and 3G (≈ 90 ms) values are conservative estimates taken from older public measurements (Opensignal country reports, 2018), because current reports publish experience scores rather than milliseconds or could not be retrieved — the derivation errs on the slow side deliberately. **Erratum 2026-09-06:** the before/after fallback pair (1/10 → 0/10) was measured on the 15-task inbox of 3 Sep; the 14-task series of 2 Sep had 1/10 with no "after" — where this item says "14-task" for the pair, read 15-task.
 
 52. **§verification / §discussion — add the non-working-day finding as the example of what only a
     multi-day run on a real calendar can surface (hardware pass day 4, 2026-09-04; ADR-0019).**
@@ -564,7 +564,7 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     smooth them:** (1) replay is biased (−0.6 / +0.7 pp, 3–5 MC SE) on policies whose value
     correlates with |A_m(x)| — a consequence of the 2026-08-26 variable slice size (rows with
     small slices are matched more often); IPS/SNIPS/DR are unbiased, so on the slice replay is
-    reported beside them, never alone (spec-conflicts M10); (2) morning chronotypes lose
+    reported beside them, never alone (spec-conflicts M13); (2) morning chronotypes lose
     1–2 pp under the learned arm where the heuristic is already optimal — posterior-sampling
     noise on an untrained bandit (σ² = 0.25) plus one mis-ordered prior cell (File 04 §3.2 puts
     AF above MD for DM/MM; the world has the reverse) — the price of a prior and of exploration,
@@ -612,7 +612,7 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     world, whose intermediate types had no pattern and nothing to lose.
 
 57. **§5 sample size / §2 assumptions / abstract / conclusions — N recomputed from the
-    simulated effect (owner item 1; File 06 §2 amended, spec-conflicts M12).** State that N = 30
+    simulated effect (owner item 1; File 06 §2 amended, spec-conflicts M15).** State that N = 30
     came from an assumed +8 pp effect and no longer stands as a derived number. Report the
     completers needed for 0.80 power **as a range across worlds — 21 to more than 120, above
     120 in 48 of 75 worlds** — never a single figure; name the worlds where N ≤ 60 holds
@@ -628,3 +628,107 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     own model gives under its own assumption", and note the 28 → 30 normal-approximation
     correction. Cross-refs: File 06 §2 amendment block; grid §4 S11 (the prediction that
     failed and why).
+
+58. **§1 (актуальність) / §2 (постановка задачі) / анотація / висновки — механізм: не хронотип,
+    а індивідуальне відхилення від профілю класу (owner directive 2026-09-06; spec-conflicts
+    H6; File 01 §0, File 02 §2 amendment).** Every sentence that sells the system on "energy
+    rhythms", "chronotype" or "learns your best hours as a morning/evening type" is replaced.
+    Exact wording for the draft (Ukrainian; English gloss follows):
+    - **Анотація / §1:** «Система експлуатує не хронотипний ритм як такий, а те, що конкретна
+      людина _відхиляється_ від профілю свого хронотипного класу. Навчальник на рівні окремого
+      користувача виявляє ці відхилення з поведінки, без того, щоб людина їх описувала; рушій
+      правил несе їх лише тоді, коли користувач сам їх задасть (як «карти часу» у SkedPal), — і
+      таке порівняння в цій роботі не проводилося: правило, яке навчена політика перемагає або
+      з яким грає внічию, — «найраніший вільний слот».»
+    - **§2 (постановка задачі), після формулювання RQ1:** «У симуляційному дослідженні на 75
+      світах за припущеної у Файлі 04 сили популяційного візерунка або слабшої навчена
+      політика вигравала в евристики «найраніший вільний слот» лише там, де люди відхилялися
+      від профілю свого класу щонайменше на 0,3 логіта (≈ 1–2 п.п. виконання; при 0,6 логіта —
+      4–6 п.п.); популяційний ефект, щонайменше в 1,5 раза сильніший за табличний, також давав
+      виграш (1,2–2,8 п.п.) без індивідуальних відхилень. Сам по собі хронотипний візерунок за
+      припущеної сили переваги не давав (нічия у світі, який описує приор: +0,4 / −0,1 / 0,0
+      п.п. за різного денного шуму), а приор холодного старту був вартий щонайбільше ±0,4 п.п.
+      у п'яти світах абляції.»
+    - **§4/§5 (де описано онбординг і приори):** «Хронотипне опитування й популяційні приори
+      лишаються стартовим наближенням, а не механізмом: у симуляції плоский приор давав той
+      самий результат у межах 0,4 п.п. (п'ять світів абляції; крос-користувацьке ALS-оновлення
+      в симуляції не брало участі).»
+      Gloss: the system exploits that a person deviates from their class profile; the per-user
+      learner captures that from behaviour without the user declaring it; a rule engine carries
+      it only if hand-authored, a comparison not run — the rule beaten or tied is earliest-first;
+      at the table's strength or weaker, wins need individual deviation ≥ 0.3 logits (1–2 pp;
+      4–6 pp at 0.6), a ≥ 1.5× population effect also wins (1.2–2.8 pp); the pattern alone gives
+      a tie; the prior is worth ±0.4 pp in five ablation worlds. Do not delete the chronotype
+      material — reposition it as the bootstrap. RQ1 is reworded per File 01 §0: (a) answered
+      against earliest-first within the boundary; (b) not run.
+
+59. **§5 (результати) / §6 (обговорення) / висновки / анотація — головний висновок і
+    узгодження з конкурентними твердженнями Файлу 01 (spec-conflicts H7; File 01 §0).** State
+    as the headline result, not as a caveat, and drop every "wins categorically" / "the moat
+    compounds every week" sentence. Exact wording:
+    - **Головний висновок (§5, перший абзац результатів; повторити у висновках):** «Метод
+      потребує індивідуальної варіації, щоб бути вартим своєї складності; там, де поведінка
+      йде за популяційним візерунком за припущеної у Файлі 04 сили, достатньо правила
+      «найраніший вільний слот». У світі, який описує приор холодного старту (візерунок Файлу
+      04 §3.2 при припущеній силі, без індивідуальних відхилень; збіг за формою, рівень
+      приору на 0,12–0,14 вищий за світ), навчена політика лише грає внічию з евристикою:
+      52 % проміжних і 28 % ранкових хронотипів втрачають по 0,8–2,1 п.п. через шум навчання
+      на людину, і це гасить виграш вечірніх типів у 5–10 п.п.»
+    - **Межа методу (§5, після таблиці сітки):** «Навчена політика виграє в евристики, коли є
+      що вчити на рівні людини — індивідуальне відхилення від профілю класу ≥ 0,3 логіта (52 з
+      60 таких світів; нічиї — за сильного денного шуму зі слабким візерунком, за 2 або 8
+      задач на день і за базового рівня 0,30) — або коли популяційний ефект щонайменше в 1,5
+      раза сильніший за припущений у Файлі 04; вона грає внічию, коли поведінка йде за
+      популяційним візерунком за припущеної сили або слабше без індивідуальних відхилень;
+      вона ніколи не програє більш як на 0,5 п.п. у середньому — але ранкові та проміжні типи
+      програють по 0,8–2,1 п.п. там, де фіксоване правило вже майже оптимальне.»
+    - **Узгодження з Файлом 01 (§1 або §6):** «Первинне позиціонування («навчання, а не
+      правила; перевага зростає з кожним тижнем; навчальна система виграє категорично») у
+      симуляції не підтверджується: розрив у персоналізації не накопичується — він зростає
+      на 0,3–1,4 п.п. за чотиритижневу половину дослідження за інформативного приору (0,3–1,8
+      за плоского приору або сильних індивідуальних відхилень), що замало для виявлення
+      дослідженням на 30 осіб; у світі P11 (дослідження E3) він вийшов на плато вже в першій
+      парі фаз. Матриця порівняння з конкурентами читається так: система вчить не
+      «енергію/хронотип», а відхилення людини від популяційного профілю — з поведінки;
+      крос-користувацькі приори збудовано, але виміряний внесок табличного приору ±0,4 п.п., а
+      ALS-оновлення в симуляції не перевірялося; рандомізований зріз коштує 0–4 п.п. на рівні
+      плеча, а порівняння «розвідка проти чистої експлуатації» не проводилося.»
+      Gloss: headline = the method needs individual variation to be worth its complexity; where
+      behaviour follows the population pattern at File 04's assumed strength, earliest-first is
+      enough; the boundary as located (52 of 60; ties listed); the gap grows 0.3–1.4 pp per
+      four-week half, does not compound; the File 01 competitive claims reconciled.
+
+60. **Sweep of specs/01–06 for selling points contradicted by measurement or by what was built
+    (owner request 2026-09-06; spec-conflicts M16; amendments in place in Files 01–04, 06).**
+    Each item: where the draft is likely to repeat the spec, the evidence, and the wording.
+    (a) «план стає вимірно кращим щотижня» (File 01 §1.2) → «розрив зростає на 0,3–1,4 п.п. за
+    чотиритижневу половину за інформативного приору — замало для виявлення дослідженням на 30
+    осіб» (sensitivity S12 as measured; results §4 item 7). (b) «2–3 продуктивні години на
+    день» (File 01 §1.1) → без джерела; вилучити або дати джерело. (c) Hugging Face Spaces
+    (File 01 §1.4, File 03) → Oracle A1 Always-Free у ЄС (ADR-0009; H4). (d) on-device / ONNX /
+    SASRec-lite (File 01 §1.3–§1.4, File 03) → не реалізовано; перспективи (#9 для SASRec-lite;
+    on-device ранжувальник не будувався); приватність тримається на обробці в ЄС, RLS,
+    мінімізації та стиранні. (e) «відкритий набір даних із анонімізованих журналів» (File 01
+    §2.4) → лише синтетичний набір + скрипт відтворення (#36, ADR-0020). (f) «польове
+    дослідження N = 20–40» (File 01 §2.4) → поза межами; оцінювання в симуляції; N₈₀ 21 … понад
+    120 (#57). (g) «абляція внеску кожного шару» (File 01 §2.4) → частково: табличний приор
+    проти плоского — ±0,4 п.п. у п'яти світах; ALS-шар у симуляції не брав участі й на
+    реальних даних не запускався. (h) RQ3 «ціна розвідки для довіри» (File 01 §2.3) → виміряно
+    лише вартість рандомізованого зрізу (0,03–17 п.п. на рандомізованих блоках, ≈ 0–4 п.п. на
+    плечі) й розкладено внесок дисперсії відбору Томпсона; порівняння «розвідка проти
+    експлуатації» не проводилося; довіра в симуляції не вимірюється. (i) NFR-P1 «≤ 2,5 с» (File 02) → ≤ 6,0 с на пристрої; еталон 3,7–4,1 с на Pixel 7a (#51). (j) NFR-Sc1 «10 тис. MAU» →
+    ≈ 3 тис. — оцінка аудиту, не виміряно під навантаженням (#3). (k) NFR-P3 → лише базовий
+    API; складені функції 477 / 714 / 736 мс p95 (#47). (l) «1 слот/день» (File 04 §1.4) →
+    ε = 1 за план з |A_m| ∈ {2, 3, 4}; ≈ 4,3 експерименти на користувача за тиждень —
+    пораховано на коді придатності, не спостережено (M9). (m) Драбина деградації 4·10⁴ (File
+    04 §1.5) → практичний поріг 3·10³ на машині розгортання (#17/#37); резерв 1/10 → 0/10 на
+    15-задачній скриньці. (n) Матриця Файлу 06 §3, D7 «розгорнуте польове оцінювання ✓» → ◐.
+    (o) Ризик холодного старту «приори» (File 01 §5) → приори не знижують ризик першого тижня
+    вимірно; лишається чесний «режим навчання» і навчання на людину. (p) «усі пари кольорів
+    відповідають WCAG 2.2 AA» (File 02 §3) → L39: акцентні кольори як текст і білий на
+    основному 2,1–2,98:1; для основного тексту — так. (q) RQ2 (вага сигналів зворотного
+    зв'язку; File 01 §2.3) → без реальних даних не відповісти; абляції не проводилися. (r)
+    «емпіричне порівняння стратегій атрибуції» (File 01 §2.4 (3)) → не проводилося; правила
+    атрибуції реалізовано й протестовано. Not contradicted but bounded: File 04 §3.3 "evidence
+    overtakes the prior in 1.5–2 weeks" concerns a cell's evidence outweighing n₀ = 8 at ≈ 4
+    outcomes a day — consistent with the simulation; the policy-level gap keeps growing slowly.
