@@ -26,6 +26,8 @@ Teams/shared scheduling, meeting coordination, enterprise admin. Kairos v1 is **
 
 > **"A planner that learns you."** Kairos observes when you *actually* complete things, learns your energy rhythms and task affinities, and builds each day's plan around the real you — then explains every choice in one sentence and adapts without judgment when life happens.
 
+**Amended 2026-09-06 (File 01 §0; spec-conflicts H6):** "learns your energy rhythms" is replaced by *learns where you differ from people like you* — the simulation showed the population chronotype pattern gives no advantage by itself; the individual's deviations from it are what the learner captures and a rule engine cannot. The three promises below stand.
+
 Three promises, in priority order: **(1) Believable plans** (probability-optimized, not just conflict-free), **(2) Zero-guilt adaptation** (a skip is a data point, not a failure), **(3) Legible intelligence** (every recommendation carries a "because…").
 
 ---
@@ -119,15 +121,15 @@ Priority: **M**ust / **S**hould / **C**ould (MoSCoW). IDs are stable and referen
 
 | ID | Category | Requirement |
 |---|---|---|
-| NFR-P1 | Performance | Plan generation ≤ 2.5 s p95 end-to-end (warm backend); optimistic UI while computing |
+| NFR-P1 | Performance | ~~Plan generation ≤ 2.5 s p95 end-to-end (warm backend)~~ **Amended 2026-09-04 (measured on the Pixel 7a; spec-conflicts L40, thesis-corrections #51):** ≤ 6.0 s p95 tap → plan received, warm, on a 2022 low-end Android over a weak link; reference 3.7–4.1 s p95 on the Pixel 7a over home Wi-Fi; server-side `plan-request` ≤ 1.5 s p95; heuristic fallback bounds the wait at 1.9 s; optimistic UI while computing |
 | NFR-P2 | Performance | Cold app start ≤ 2 s p90 on a 2022 mid-range device; 60 fps timeline scrolling |
-| NFR-P3 | Performance | Core read/write API ≤ 300 ms p95 (excluding ML planning endpoint) |
+| NFR-P3 | Performance | Core read/write API ≤ 300 ms p95 (excluding ML planning endpoint) — **amended (P10 measurement, thesis-corrections #47):** met for the base PostgREST API; the composed edge functions (`sync-resolve`, `attribute-rewards`) are reported as their own numbers and are not covered by this figure |
 | NFR-R1 | Reliability | Offline-first: view plan, edit tasks, run focus sessions offline; sync + conflict resolution (last-write-wins with event-log reconciliation) on reconnect |
 | NFR-R2 | Reliability | Graceful ML degradation: if the RecSys service is cold/unreachable, fall back to deterministic heuristic scheduler, labeled as such (feeds baseline data — a feature, not just a fallback) |
 | NFR-S1 | Security | All traffic TLS 1.3; Supabase Row-Level Security on every table; JWT (asymmetric) auth; no service keys in the mobile client |
 | NFR-S2 | Privacy | GDPR by design: data minimization (no content beyond user-entered task text), EU region hosting, export & erasure (FR-42), no third-party ad/tracking SDKs |
 | NFR-S3 | Privacy | Cross-user (collaborative) training uses only pseudonymized categorical/behavioral features — never raw task text |
-| NFR-Sc1 | Scalability | Architecture serves 10 k MAU within free tiers; documented migration path to ~$25–50/mo at 50 k MAU (File 3 §2.2) |
+| NFR-Sc1 | Scalability | ~~Architecture serves 10 k MAU within free tiers~~ **amended (thesis-corrections #3):** ≈ 3 k MAU within the free tiers as re-derived from the measured per-user load; documented migration path beyond that (File 3 §2.2) |
 | NFR-M1 | Maintainability | ≥ 70% unit-test coverage on scheduling/feedback domain logic; CI gates on lint + tests |
 | NFR-A1 | Accessibility | WCAG 2.2 AA: contrast, ≥44 px touch targets, full screen-reader labels incl. chart alternatives |
 | NFR-A2 | Accessibility | Honor OS reduced-motion & font-scaling up to 200% without layout breakage |

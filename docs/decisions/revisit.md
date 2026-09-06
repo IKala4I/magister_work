@@ -405,7 +405,7 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   DONE 2026-09-05 (build 6, `57aa541`: `role="button"` on both; the spoken confirmation was skipped
   by the owner — the dump showing `Button` is the evidence). (2) and (3) stay open.**
 - [simulation study, 2026-09-05] **Replay under a variable slice size is biased** (spec-conflicts
-  M10; results §5 item 1): the nightly report's OPE table (`report.ope_table`) prints replay next
+  M13; results §5 item 1): the nightly report's OPE table (`report.ope_table`) prints replay next
   to IPS/SNIPS/DR without a caveat. Before any real slice is reported: either label the replay
   column "unweighted — biased when |A_m(x)| varies" or weight matches by |A_m(x)| (= IPS) and drop
   the column. Not a thesis-claim change (DR is primary by File 04 §2.3).
@@ -416,7 +416,7 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   EB prior refresh (ADR-0015 §6) correct the AF/MD cell — both are Appendix A parameter matters,
   no code change now.
 - [2026-09-06] **File 04 §3.2 AF-above-MD for morning types is an unmeasured ordering** (spec note
-  added; spec-conflicts M11): the table encodes a post-lunch dip with afternoon recovery, the P11
+  added; spec-conflicts M14): the table encodes a post-lunch dip with afternoon recovery, the P11
   generator a monotone decline; the E3 morning-type loss came from that disagreement. First-real-data
   review: read the mature DM/MM users' MD vs AF cell rates from the nightly report (aggregates only)
   and let the EB refresh (ADR-0015 §6) decide; no table edit before data.

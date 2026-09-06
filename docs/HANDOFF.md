@@ -2,7 +2,10 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-06 — **the sensitivity study across simulated worlds is done and
+> Last update: 2026-09-06 (later) — **the narrative is rewritten on the sensitivity result** (branch
+> `post-p12/narrative-rewrite`, PR opened by this session; adversarial pass before merge): File 01 §0
+> amendments, File 02/03/04/06 amendments, spec-conflicts H6/H7/M16, corrections #58–#60 with the
+> exact Ukrainian wording, the defence passage in the explainer. Before that: **the sensitivity study across simulated worlds is done and
 > reported** (branch `post-p12/sensitivity-grid`, PR #54). Power was recomputed from simulated
 > effects (owner item 1), the world grid was frozen before the run (item 2), the two loose
 > ends are closed in the specs (item 3), the auto-merge gap is closed for good. **The iPhone
@@ -28,7 +31,7 @@ Commits on `post-p12/sensitivity-grid`, in order (the order is the evidence):
    pytest); E3's `_plan_day` gained a `q_of` hook, re-run byte-identical.
 3. (this commit) **the run** (`results/sensitivity.json`, 301 s on `2ad8a94`) +
    `docs/study/sensitivity-results.md` + File 04 §2.2 rewrite (m-weighted replay) and §3.2
-   note, File 06 §2 amendment (N follows the simulated effect), spec-conflicts M11/M12,
+   note, File 06 §2 amendment (N follows the simulated effect), spec-conflicts M14/M15,
    corrections #56/#57, revisit ×2, CHANGELOG, traceability, explainer, this handoff, the
    exploratory diagnostic (`scripts/simstudy_exploratory.py --only int-loss`).
 4. `e10a7f5` + follow-up: **adversarial pass addressed** (fresh subagent: 3 MAJOR / 7 MINOR /
@@ -52,13 +55,11 @@ population effect is ≥ 1.5–2× the table's on an extreme-heavy sample; N = 3
 
 ## Exact next actions (next session, in order)
 
-1. **Merge PR #54** once green. Auto-merge is armed once at creation; never re-run
-   `gh pr merge --auto` after a push (Gotchas).
-2. **Thesis-text support** (corrections 1–57 + rollup). Load-bearing now: #55 (E1–E3), #56
-   (the sensitivity study as the main quantitative contribution — world model, boundary
-   statement, the intermediate-type finding), #57 (N recomputed; File 06 §2 no longer fixes
-   N = 30; the "N ≈ 35–70 if a pilot shows σ_shape ≈ 0.6, N ≈ 30–45 only under a 1.5–2×
-   population effect, otherwise ≥ 120" conclusion).
+1. **Merge the narrative PR** once green (PR #54 merged 07:16Z; the protection blocks anything
+   premature).
+2. **Thesis-text support** (corrections 1–60 + rollup). Load-bearing now: #58 (mechanism reframed —
+   exact Ukrainian sentences), #59 (headline finding + File 01 reconciliation), #60 (the 15-item
+   viva sweep), then #55–#57. The defence passage is in the explainer ("Відповідь на захисті").
 3. **iPhone pass** — scoped below; starts when the owner names the device and iOS version.
 
 ## iPhone pass — scope, what it needs from the owner, how long (scoped 2026-09-05, unchanged)
@@ -146,7 +147,7 @@ Out of scope by the store decision: store-signed binary / TestFlight behaviour, 
 - **Spec rewrites so far under the 2026-09-06 rule:** File 04 §2.2 (m-weighted replay,
   amendment block), File 04 §3.2 (note on the unmeasured AF/MD ordering), File 06 §2
   (amendment: N follows the simulated effect; the +8 pp / N = 30 pair is an assumption) —
-  each recorded in spec-conflicts (M10–M12).
+  each recorded in spec-conflicts (M13–M15).
 
 ## ⛔ ACTION REQUIRED (owner — ordered; one per turn)
 

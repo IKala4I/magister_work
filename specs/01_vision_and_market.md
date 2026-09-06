@@ -3,6 +3,28 @@
 > **Project:** Kairos — Personal Time Optimization via Recommendation Systems
 > **Document:** Vision, Scientific Novelty & Market Analysis
 > **Status:** v1.0 (SDD Phase 1) · **Audience:** Founders, thesis committee, contributors
+> **Amended 2026-09-06** (owner rule: specs are generated assumptions; rewritten where measured or simulated results contradict them — §0 below is normative over §§1–5; spec-conflicts H6, H7, M16).
+
+---
+
+## 0. Amendments (2026-09-06) — what the evidence changed
+
+The sensitivity study across 75 simulated worlds (`docs/study/sensitivity-results.md`; grid frozen before the run) and the Android hardware pass (`docs/verification/device-pass/`) contradict several selling points below. Each is restated here; the original text stays for the record.
+
+- **§1 pitch, §1.2, and File 02 §2 — "learns your energy rhythms / chronotype".** Replaced by: *what the system exploits is that a person deviates from the profile of their chronotype class; those individual deviations are what a per-user learner captures and a rule engine cannot.* In simulation the population chronotype pattern by itself gave the learned policy no advantage over the earliest-first heuristic (tie, +0.4 pp, in the world the File 04 §3.2 prior describes), the cold-start prior was worth at most ±0.4 pp, and the 2–6 pp wins appeared only where individuals deviated from their class by ≥ 0.3 logits. The chronotype survey and the population prior remain as a bootstrap, not as the mechanism.
+- **§1.3 (1), §3.3 (1), §3.4 — "learning, not rules; the moat compounds; every week widens the gap; a learning system wins categorically".** Replaced by the located boundary: *the learned policy beats the heuristic when there is enough individual slot structure to learn (individual deviation ≥ 0.3 logits, or a population effect ≥ 1.5× the table's); it ties where behaviour follows the population pattern; it never loses by more than 0.5 pp on average, but morning and intermediate types lose 1–2 pp each where a fixed rule is already near-optimal. The personalization gap plateaus inside two weeks under the informative prior and grows by 0.3–1.8 pp per phase pair only with a flat prior or individual variation.* The honest version of the claim: **the method needs individual variation to be worth its complexity; where behaviour follows the population pattern, rules are enough.**
+- **§1.2 — "the plan gets measurably better every week"; the "2.4× more often before 11:00" example.** The first is contradicted (plateau, above); the second is an illustration of a rationale format, not a finding, and must not be quoted as one.
+- **§1.1 — "2–3 productive hours/day lost to poor task-time fit".** Unsourced; not measured by this project. Drop or source; it is not load-bearing.
+- **§1.3 (3), §1.4, §3.2 "Price", "Free-tier cloud … Hugging Face Spaces".** The free Docker CPU tier no longer exists (spec-conflicts H4); the service runs on an Oracle Cloud Always-Free A1 VM in the EU (ADR-0009). The free-tier claim holds; the provider does not.
+- **§1.3 (4), §1.4, §3.2 "on-device / sub-10 MB ONNX rankers".** Not delivered: ranking runs server-side in the EU; SASRec-lite/ONNX is deferred to future work (thesis-corrections #9). The privacy claim rests on EU processing, RLS, minimization and erasure (File 02 NFR-S2/S3), not on on-device inference.
+- **§2.3 RQ1.** Answered in simulation as: *better than rule-based baselines only where individual variation exists (Q1 boundary); population averages (the prior) are not a competitive policy input — their measured value is ±0.4 pp.* The "significantly better" framing is dropped.
+- **§2.3 RQ3.** The measured exploration cost of the ε-slice is 0.03–17 pp of completion on the randomized blocks (≈ 0–4 pp at arm level) and its learning signature 0.3–1.8 pp per phase pair; "cost to user trust" is not measurable in simulation and stays a hypothesis.
+- **§2.4 (2) — "an ablation quantifying each layer's contribution".** Done (Block E and the σ_shape axis of the grid): the cross-user/cold-start prior layer contributes within ±0.4 pp in all 75 worlds; the per-user bandit/Beta-cell layer carries the entire effect. Note the cross-user ALS refresh itself never ran on real data; the ablation concerns the File 04 §3.2 table prior.
+- **§2.4 (4) — "N = 20–40 within-subject field study".** Out of scope (owner, 2026-09-01); the evaluation was performed in simulation (ADR-0020); the completers needed for 0.80 power are 21 to > 120 depending on the world (File 06 §2 amendment).
+- **§2.4 (5) — "an open dataset of anonymized task-slot interaction logs".** No real logs exist; the public artefact is a synthetic dataset plus the replay harness (ADR-0011 §3, ADR-0020 §4).
+- **§3.2 comparison matrix.** "Learns personal energy/chronotype from behavior ✅ core" → *learns the individual's deviations from the population profile (✅ built and measured); the chronotype prior itself is worth ±0.4 pp*. "Cross-user cold-start priors ✅" → *✅ built; measured contribution ≈ 0 in simulation*. "Exploration ✅ (Thompson sampling)" → *✅; measured cost 0–4 pp at arm level, symmetric draw across arms*. "On-device / privacy-preserving option ✅ planned" → *not delivered; EU-only server-side processing*.
+- **§5 risk "Cold start: model useless in week 1 → chronotype onboarding + collaborative priors".** The priors do not de-risk week 1 measurably (flat prior ties the informative one within 0.4 pp); what remains of the mitigation is the honest "learning mode" UX and the speed of per-user learning (the plateau inside two weeks).
+- **File 06 §3 matrix, D7 "deployed field evaluation ✓" for this work.** ◐: the system is deployed and the field protocol is designed and instrumented; the evaluation was performed in simulation.
 
 ---
 

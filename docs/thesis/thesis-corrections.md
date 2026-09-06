@@ -564,7 +564,7 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     smooth them:** (1) replay is biased (−0.6 / +0.7 pp, 3–5 MC SE) on policies whose value
     correlates with |A_m(x)| — a consequence of the 2026-08-26 variable slice size (rows with
     small slices are matched more often); IPS/SNIPS/DR are unbiased, so on the slice replay is
-    reported beside them, never alone (spec-conflicts M10); (2) morning chronotypes lose
+    reported beside them, never alone (spec-conflicts M13); (2) morning chronotypes lose
     1–2 pp under the learned arm where the heuristic is already optimal — posterior-sampling
     noise on an untrained bandit (σ² = 0.25) plus one mis-ordered prior cell (File 04 §3.2 puts
     AF above MD for DM/MM; the world has the reverse) — the price of a prior and of exploration,
@@ -612,7 +612,7 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     world, whose intermediate types had no pattern and nothing to lose.
 
 57. **§5 sample size / §2 assumptions / abstract / conclusions — N recomputed from the
-    simulated effect (owner item 1; File 06 §2 amended, spec-conflicts M12).** State that N = 30
+    simulated effect (owner item 1; File 06 §2 amended, spec-conflicts M15).** State that N = 30
     came from an assumed +8 pp effect and no longer stands as a derived number. Report the
     completers needed for 0.80 power **as a range across worlds — 21 to more than 120, above
     120 in 48 of 75 worlds** — never a single figure; name the worlds where N ≤ 60 holds
@@ -628,3 +628,85 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     own model gives under its own assumption", and note the 28 → 30 normal-approximation
     correction. Cross-refs: File 06 §2 amendment block; grid §4 S11 (the prediction that
     failed and why).
+
+58. **§1 (актуальність) / §2 (постановка задачі) / анотація / висновки — механізм: не хронотип,
+    а індивідуальне відхилення від профілю класу (owner directive 2026-09-06; spec-conflicts
+    H6; File 01 §0, File 02 §2 amendment).** Every sentence that sells the system on "energy
+    rhythms", "chronotype" or "learns your best hours as a morning/evening type" is replaced.
+    Exact wording for the draft (Ukrainian; English gloss follows):
+    - **Анотація / §1:** «Система експлуатує не хронотипний ритм як такий, а те, що конкретна
+      людина _відхиляється_ від профілю свого хронотипного класу. Саме ці індивідуальні
+      відхилення здатен виявити навчальник на рівні окремого користувача — і не здатен рушій
+      правил, який оперує лише популяційними закономірностями.»
+    - **§2 (постановка задачі), після формулювання RQ1:** «У симуляційному дослідженні на 75
+      світах популяційний хронотипний візерунок сам по собі не дав навченій політиці переваги
+      над евристикою «найраніший вільний слот» (нічия, +0,4 п.п., у світі, який описує приор
+      холодного старту); приор холодного старту був вартий щонайбільше ±0,4 п.п.; виграш у 2–6
+      п.п. з'являвся лише там, де індивідуальні відхилення від класу сягали ≥ 0,3 логіта
+      (≈ ±7 п.п. ймовірності виконання на частину доби).»
+    - **§4/§5 (де описано онбординг і приори):** «Хронотипне опитування й популяційні приори
+      лишаються стартовим наближенням, а не механізмом: у симуляції плоский приор давав той
+      самий результат у межах 0,4 п.п.»
+      Gloss: the system exploits that a person deviates from their class profile; that is what a
+      per-user learner captures and a rule engine cannot; the chronotype pattern alone gave no
+      advantage; the prior is worth ±0.4 pp; wins need individual deviation ≥ 0.3 logits. Do not
+      delete the chronotype material — reposition it as the bootstrap. RQ1 is reworded
+      accordingly (File 01 §0): "better than rule-based baselines where individual variation
+      exists; population averages are not a competitive policy input".
+
+59. **§5 (результати) / §6 (обговорення) / висновки / анотація — головний висновок і
+    узгодження з конкурентними твердженнями Файлу 01 (spec-conflicts H7; File 01 §0).** State
+    as the headline result, not as a caveat, and drop every "wins categorically" / "the moat
+    compounds every week" sentence. Exact wording:
+    - **Головний висновок (§5, перший абзац результатів; повторити у висновках):** «Метод
+      потребує індивідуальної варіації, щоб бути вартим своєї складності; там, де поведінка
+      йде за популяційним візерунком, достатньо правил. У світі, який описує приор холодного
+      старту (візерунок Файлу 04 §3.2 при припущеній силі, без індивідуальних відхилень),
+      навчена політика лише грає внічию з евристикою: 52 % проміжних і 28 % ранкових
+      хронотипів втрачають по 1–2 п.п. через шум навчання на людину, і це гасить виграш
+      вечірніх типів у 5–10 п.п.»
+    - **Межа методу (§5, після таблиці сітки):** «Навчена політика виграє в евристики, коли є
+      що вчити на рівні людини — індивідуальне відхилення від профілю класу ≥ 0,3 логіта за
+      будь-якої сили популяційного ефекту, або популяційний ефект щонайменше в 1,5 раза
+      сильніший за припущений у Файлі 04; вона грає внічию, коли виконання майже не залежить
+      від слоту, коли поведінка йде рівно за популяційним візерунком без індивідуальних
+      відхилень, коли день майже повний або майже порожній; вона ніколи не програє більш як
+      на 0,5 п.п. у середньому — але ранкові та проміжні типи програють по 1–2 п.п. там, де
+      фіксоване правило вже майже оптимальне.»
+    - **Узгодження з Файлом 01 (§1 або §6):** «Первинне позиціонування («навчання, а не
+      правила; перевага зростає з кожним тижнем; навчальна система виграє категорично»)
+      симуляцією не підтверджується: розрив у персоналізації виходить на плато протягом двох
+      тижнів за інформативного приору і зростає на 0,3–1,8 п.п. за пару фаз лише за плоского
+      приору або індивідуальної варіації. Матриця порівняння з конкурентами читається так:
+      система вчить не «енергію/хронотип», а відхилення людини від популяційного профілю;
+      крос-користувацькі приори збудовано, але їхній виміряний внесок ≈ 0; розвідка коштує
+      0–4 п.п. на рівні плеча.»
+      Gloss: headline = the method needs individual variation to be worth its complexity; where
+      behaviour follows the population pattern, rules are enough; the boundary as located; the
+      File 01 competitive claims reconciled (plateau, matrix rows reread).
+
+60. **Sweep of specs/01–06 for selling points contradicted by measurement or by what was built
+    (owner request 2026-09-06; spec-conflicts M16; amendments in place in Files 01–04, 06).**
+    Each item: where the draft is likely to repeat the spec, the evidence, and the wording.
+    (a) «план стає вимірно кращим щотижня» (File 01 §1.2) → «розрив виходить на плато протягом
+    двох тижнів; далі зростає лише за плоского приору або індивідуальної варіації» (sensitivity
+    S12, results §4 item 7). (b) «2–3 продуктивні години на день» (File 01 §1.1) → без джерела;
+    вилучити або дати джерело. (c) Hugging Face Spaces (File 01 §1.4, File 03) → Oracle A1
+    Always-Free у ЄС (ADR-0009; H4). (d) on-device / ONNX / SASRec-lite (File 01 §1.3–§1.4,
+    File 03) → не реалізовано; перспективи (#9); приватність тримається на обробці в ЄС, RLS,
+    мінімізації та стиранні. (e) «відкритий набір даних із анонімізованих журналів» (File 01
+    §2.4) → лише синтетичний набір + скрипт відтворення (#36, ADR-0020). (f) «польове
+    дослідження N = 20–40» (File 01 §2.4) → поза межами; оцінювання в симуляції; N₈₀ 21 … понад
+    120 (#57). (g) «абляція внеску кожного шару» (File 01 §2.4) → виконано: шар
+    крос-користувацьких приорів ≈ 0 (±0,4 п.п.), весь ефект несе персональний шар; ALS-оновлення
+    на реальних даних не запускалося. (h) RQ3 «ціна розвідки для довіри» (File 01 §2.3) → виміряно
+    лише вартість у виконанні (0,03–17 п.п. на рандомізованих блоках, ≈ 0–4 п.п. на плечі);
+    довіра в симуляції не вимірюється. (i) NFR-P1 «≤ 2,5 с» (File 02) → ≤ 6,0 с на пристрої;
+    еталон 3,7–4,1 с на Pixel 7a (#51). (j) NFR-Sc1 «10 тис. MAU» → ≈ 3 тис. (#3). (k) NFR-P3
+    → лише базовий API (#47). (l) «1 слот/день» (File 04 §1.4) → ε = 1 за план з |A_m| ∈ {2, 3, 4};
+    ≈ 4,3 експерименти на користувача за тиждень (M9). (m) Драбина деградації 4·10⁴ (File 04
+    §1.5) → практичний поріг 3·10³ на машині розгортання (#17/#37). (n) Матриця Файлу 06 §3, D7
+    «розгорнуте польове оцінювання ✓» → ◐. (o) Ризик холодного старту «приори» (File 01 §5) →
+    приори не знижують ризик першого тижня вимірно; лишається чесний «режим навчання» і
+    швидкість навчання на людину. Not contradicted but bounded: File 04 §3.3 "evidence
+    overtakes the prior in 1.5–2 weeks" is consistent with the observed plateau.
