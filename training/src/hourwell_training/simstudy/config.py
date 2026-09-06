@@ -42,6 +42,12 @@ class StudyConfig:
     e3_worlds: tuple[tuple[str, float], ...] = (("base", 0.5), ("amplified", 1.0))
     e3_prior_settings: tuple[str, ...] = ("informative", "flat")
     e3_start_iso: str = "2026-09-07"  # a Monday
+    # --- sensitivity grid (docs/study/sensitivity-grid.md §2) ---
+    sens_replicates: int = 40
+    sens_n_users: int = 120
+    sens_seed_base: int = 5000
+    sens_cell_seed_stride: int = 100
+    sens_ns: tuple[int, ...] = (30, 60, 120)
 
     def quick(self) -> StudyConfig:
         """Smoke-test sizes — NOT the registered configuration (the CLI labels the output)."""
@@ -53,6 +59,9 @@ class StudyConfig:
             e2_sweep_replicates=30,
             e3_replicates=2,
             e3_n_users=10,
+            sens_replicates=2,
+            sens_n_users=20,
+            sens_ns=(10, 20),
         )
 
 

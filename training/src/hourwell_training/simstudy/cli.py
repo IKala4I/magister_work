@@ -22,6 +22,7 @@ from hourwell_training.simstudy.config import REGISTERED
 from hourwell_training.simstudy.e1_estimators import run_e1
 from hourwell_training.simstudy.e2_power import run_e2
 from hourwell_training.simstudy.e3_closedloop import run_e3
+from hourwell_training.simstudy.sensitivity import run_sensitivity
 
 __all__ = ["main"]
 
@@ -46,6 +47,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--quick", action="store_true",
                     help="smoke sizes only — NOT the registered configuration")
     ap.add_argument("--only", choices=["e1", "e2", "e3"], default=None)
+    ap.add_argument("--sensitivity", action="store_true",
+                    help="run the frozen sensitivity grid (docs/study/sensitivity-grid.md) "
+                         "instead of E1–E3; writes sensitivity[_quick].json")
     args = ap.parse_args(argv)
     cfg = REGISTERED.quick() if args.quick else REGISTERED
     suffix = "_quick" if args.quick else ""
@@ -53,6 +57,17 @@ def main(argv: list[str] | None = None) -> int:
     if args.quick:
         print("QUICK MODE — smoke sizes, not the registered configuration", file=sys.stderr)
     timings: dict[str, float] = {}
+    if args.sensitivity:
+        t0 = time.perf_counter()
+        doc = run_sensitivity(cfg, workers=args.workers)
+        timings["sensitivity"] = round(time.perf_counter() - t0, 1)
+        _dump(args.out / f"sensitivity{suffix}.json", doc)
+        _dump(args.out / f"sensitivity_run{suffix}.json", {
+            "commit": _commit(), "registered": not args.quick, "config": asdict(cfg),
+            "timings_s": timings, "workers": args.workers, "python": sys.version.split()[0],
+        })
+        print(f"sensitivity: {timings['sensitivity']} s", file=sys.stderr)
+        return 0
     runners = {"e1": run_e1, "e2": run_e2}
     filenames = {"e1": "e1_estimators", "e2": "e2_power", "e3": "e3_closedloop"}
     for name in ("e1", "e2", "e3"):
