@@ -55,7 +55,7 @@ import { useSyncStore, type SyncUiStatus } from '../src/state/sync';
 import { syncNow } from '../src/sync/engine';
 import { gcalConnect, gcalDisconnect, gcalSetWriteBack, gcalStatus } from '../src/sync/gcal';
 import type { GcalStatus } from '../src/sync/types';
-import { confirmDialog } from '../src/ui/dialog';
+import { confirmDialog, DialogHost } from '../src/ui/dialog';
 import { Button, Screen, ThemedText } from '../src/ui/primitives';
 import { useTheme } from '../src/ui/theme';
 
@@ -692,6 +692,8 @@ export default function SettingsScreen() {
           ))}
         </View>
       </ScrollView>
+      {/* a native modal screen is its own presentation context (ADR-0021) */}
+      <DialogHost />
     </Screen>
   );
 }

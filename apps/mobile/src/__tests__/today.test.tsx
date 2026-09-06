@@ -110,7 +110,7 @@ import { en } from '../i18n/en';
 import type { CalendarEventRow } from '../db/calendar';
 import { usePlanStore } from '../state/plan';
 import { useSyncStore } from '../state/sync';
-import { DialogHost, useDialogStore } from '../ui/dialog';
+import { DIALOG_ARM_DELAY_MS, DialogHost, useDialogStore } from '../ui/dialog';
 
 const initialMetrics = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
@@ -617,7 +617,7 @@ describe('Today — P8 sync surfaces', () => {
   });
 
   it('the deferred-wipe banner offers Keep / Discard; Discard confirms first (ADR-0012 §11, invariant 14)', async () => {
-    useDialogStore.setState({ current: null });
+    useDialogStore.setState({ current: null, hosts: [] });
     useSyncStore.setState({ pendingWipe: { userId: 'prev', ops: 4 } });
     await render(withSafeArea(<TodayScreen />));
     expect(
@@ -641,6 +641,7 @@ describe('Today — P8 sync surfaces', () => {
     await act(async () => {
       fireEvent.press(screen.getByText(en['today.wipe.discard']));
     });
+    await act(() => new Promise<void>((r) => setTimeout(r, DIALOG_ARM_DELAY_MS + 20)));
     await act(async () => {
       fireEvent.press(screen.getByRole('button', { name: en['today.wipe.confirm.discard'] }));
     });

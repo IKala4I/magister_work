@@ -35,6 +35,17 @@ function walk(dir: string, out: string[] = []): string[] {
 
 const files = SCAN_DIRS.flatMap((d) => walk(d));
 
+/** Every .ts/.tsx under `dir`, tests included (a test may not smuggle an Alert either). */
+function walkAll(dir: string, out: string[] = []): string[] {
+  for (const name of readdirSync(dir)) {
+    const p = path.join(dir, name);
+    if (statSync(p).isDirectory()) {
+      if (name !== 'node_modules') walkAll(p, out);
+    } else if (/\.tsx?$/.test(p) && !p.endsWith('.d.ts')) out.push(p);
+  }
+  return out;
+}
+
 /**
  * Opening JSX tags of `tag` with their attribute text — brace-aware: the tag ends at the first
  * `>` outside `{…}` and quotes, so `onPress={() => …}` before a role is not a false positive.
@@ -125,11 +136,18 @@ describe('a11y source audit (NFR-A1)', () => {
   });
 
   it('no OS alert anywhere — confirmations use the in-app dialog (ADR-0021)', () => {
+    // every TS/TSX source of the app (flows and modules included), not only the UI scan dirs
+    const all: string[] = [];
+    for (const dir of ['app', 'src', 'modules']) {
+      const d = path.join(ROOT, dir);
+      if (statSync(d, { throwIfNoEntry: false })?.isDirectory()) walkAll(d, all);
+    }
     const offenders: string[] = [];
-    for (const f of files) {
+    for (const f of all) {
       const src = readFileSync(f, 'utf8');
       if (/\bAlert\.(alert|prompt)\(/.test(src)) offenders.push(path.relative(ROOT, f));
     }
+    expect(all.length).toBeGreaterThan(100);
     expect(offenders).toEqual([]);
   });
 

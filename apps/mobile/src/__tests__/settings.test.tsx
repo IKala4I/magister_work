@@ -76,7 +76,7 @@ import { en } from '../i18n/en';
 import { isAnalyticsOptedOut } from '../privacy/state';
 import { useSyncStore } from '../state/sync';
 import { appStorage, StorageKeys } from '../storage/mmkv';
-import { DialogHost, useDialogStore } from '../ui/dialog';
+import { DIALOG_ARM_DELAY_MS, DialogHost, useDialogStore } from '../ui/dialog';
 import { lightColors } from '../ui/tokens/colors';
 
 const initialMetrics = {
@@ -94,6 +94,8 @@ const withSafeArea = (ui: ReactElement) => (
 // share the label (Settings "Disconnect" vs the dialog's "Disconnect")
 const dialogButton = (label: string) =>
   within(screen.getByTestId('dialog-actions')).getByRole('button', { name: label });
+/** A destructive confirm ignores presses for DIALOG_ARM_DELAY_MS after it appears. */
+const armed = () => act(() => new Promise<void>((r) => setTimeout(r, DIALOG_ARM_DELAY_MS + 20)));
 
 const connected = {
   connected: true,
@@ -108,7 +110,7 @@ const connected = {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  useDialogStore.setState({ current: null });
+  useDialogStore.setState({ current: null, hosts: [] });
   useSessionStore.setState({
     status: 'signed_in',
     userId: 'u1',
@@ -195,6 +197,7 @@ describe('Settings — Google Calendar section', () => {
         within(screen.getByTestId('settings-scroll')).getByText(en['settings.gcal.disconnect']),
       );
     });
+    await armed();
     await act(async () => {
       fireEvent.press(dialogButton(en['settings.gcal.disconnect.confirm']));
     });
@@ -335,6 +338,12 @@ describe('Settings — my data (FR-42, P10)', () => {
     ).toBeTruthy();
     expect(mockPrivacy.deleteAccount).not.toHaveBeenCalled();
     const confirm = dialogButton(en['settings.data.delete.confirm2.confirm']);
+    // a tap inside the arming window (the double tap on "Continue") does nothing
+    await act(async () => {
+      fireEvent.press(confirm);
+    });
+    expect(mockPrivacy.deleteAccount).not.toHaveBeenCalled();
+    await armed();
     expect(
       Object.assign(
         {},
@@ -384,6 +393,7 @@ describe('Settings — my data (FR-42, P10)', () => {
     await act(async () => {
       fireEvent.press(dialogButton(en['settings.data.delete.confirm1.next']));
     });
+    await armed();
     await act(async () => {
       fireEvent.press(dialogButton(en['settings.data.delete.confirm2.confirm']));
     });

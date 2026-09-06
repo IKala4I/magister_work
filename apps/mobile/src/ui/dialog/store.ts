@@ -5,6 +5,11 @@
  * `cancelled` at once — the two-step erasure never overlaps because step 2 is asked only after
  * step 1 resolved. Resolution is idempotent per request id (a double tap, or the Android back
  * button after a press, is a no-op).
+ *
+ * Hosts: RN Modal presents from the NEAREST native view controller (both renderers — adversarial
+ * pass 2026-09-06), so a host beside the root Stack is refused by UIKit while a native modal
+ * screen (Settings, the task sheets) is up. Every presentation context therefore mounts its own
+ * DialogHost, and only the most recently mounted one renders — the registry below.
  */
 import { create } from 'zustand';
 
@@ -32,11 +37,32 @@ export interface DialogRequest extends DialogSpec {
 
 interface DialogState {
   current: DialogRequest | null;
+  /** Mounted hosts in mount order; the last one is the active presentation context. */
+  hosts: readonly number[];
 }
 
-export const useDialogStore = create<DialogState>(() => ({ current: null }));
+export const useDialogStore = create<DialogState>(() => ({ current: null, hosts: [] }));
 
 let seq = 0;
+let hostSeq = 0;
+
+/** A host's identity — allocated once per instance (pure; no store write during render). */
+export function newHostId(): number {
+  hostSeq += 1;
+  return hostSeq;
+}
+
+export function registerHost(id: number): void {
+  useDialogStore.setState((s) => ({ hosts: [...s.hosts.filter((h) => h !== id), id] }));
+}
+
+export function unregisterHost(id: number): void {
+  useDialogStore.setState((s) => ({ hosts: s.hosts.filter((h) => h !== id) }));
+}
+
+export function activeHostId(hosts: readonly number[]): number | null {
+  return hosts.length === 0 ? null : (hosts[hosts.length - 1] ?? null);
+}
 
 export function requestDialog(spec: DialogSpec): Promise<DialogResult> {
   return new Promise((resolve) => {

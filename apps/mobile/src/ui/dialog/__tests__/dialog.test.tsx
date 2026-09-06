@@ -12,7 +12,12 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react-n
 import { AccessibilityInfo } from 'react-native';
 import { getAnimatedStyle } from 'react-native-reanimated';
 
-import { DIALOG_ANNOUNCE_DELAY_MS, DIALOG_ENTER_SCALE, DialogHost } from '../DialogHost';
+import {
+  DIALOG_ARM_DELAY_MS,
+  DIALOG_ENTER_SCALE,
+  DIALOG_FOCUS_DELAY_MS,
+  DialogHost,
+} from '../DialogHost';
 import { confirmDialog, requestDialog, useDialogStore } from '../store';
 import { lightColors } from '../../tokens/colors';
 import { MOTION_MAX_MS, springs } from '../../tokens/motion';
@@ -30,8 +35,11 @@ const spec = {
 
 beforeEach(() => {
   mockMotion.reduced = false;
-  useDialogStore.setState({ current: null });
+  useDialogStore.setState({ current: null, hosts: [] });
 });
+
+/** A destructive confirm ignores presses for DIALOG_ARM_DELAY_MS (real timers). */
+const armed = () => act(() => new Promise<void>((r) => setTimeout(r, DIALOG_ARM_DELAY_MS + 20)));
 
 describe('DialogHost — roles, labels, outcomes (NFR-A1)', () => {
   it('renders nothing until asked, then the title as a header, the body, and the actions as buttons', async () => {
@@ -54,15 +62,50 @@ describe('DialogHost — roles, labels, outcomes (NFR-A1)', () => {
     const actions = screen.getByTestId('dialog-actions');
     expect(flatStyle(actions).flexDirection).toBeUndefined();
     expect(actions.props.children).toHaveLength(2);
+    // a destructive confirm is not armed yet: a press inside the window is ignored
+    await act(async () => {
+      fireEvent.press(confirm);
+    });
+    expect(answer).toBeUndefined();
+    await armed();
     await act(async () => {
       fireEvent.press(confirm);
     });
     expect(answer).toBe(true);
   });
 
-  it('the cancel button, the Android back button and the scrim all resolve as a cancel — never as the destructive branch', async () => {
+  it('a neutral confirm needs no arming; a destructive one ignores presses for the arming window only', async () => {
     await render(<DialogHost />);
-    for (const way of ['cancel', 'back', 'scrim'] as const) {
+    let neutral: boolean | undefined;
+    await act(async () => {
+      void confirmDialog({ ...spec, confirmLabel: 'Continue' }).then((ok) => {
+        neutral = ok;
+      });
+    });
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+    });
+    expect(neutral).toBe(true);
+    let destructive: boolean | undefined;
+    await act(async () => {
+      void confirmDialog({ ...spec, destructive: true }).then((ok) => {
+        destructive = ok;
+      });
+    });
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: spec.confirmLabel }));
+    });
+    expect(destructive).toBeUndefined(); // the double tap that would land on "Delete everything"
+    await armed();
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: spec.confirmLabel }));
+    });
+    expect(destructive).toBe(true);
+  });
+
+  it('the cancel button, the Android back button, the scrim, the VoiceOver escape and a native dismissal all resolve as a cancel — never as the destructive branch', async () => {
+    await render(<DialogHost />);
+    for (const way of ['cancel', 'back', 'scrim', 'escape', 'dismiss'] as const) {
       let answer: boolean | undefined;
       await act(async () => {
         void confirmDialog({ ...spec, destructive: true }).then((ok) => {
@@ -73,6 +116,11 @@ describe('DialogHost — roles, labels, outcomes (NFR-A1)', () => {
         if (way === 'cancel')
           fireEvent.press(screen.getByRole('button', { name: spec.cancelLabel }));
         else if (way === 'back') fireEvent(screen.getByTestId('dialog'), 'requestClose');
+        else if (way === 'escape')
+          fireEvent(screen.getByTestId('dialog-card'), 'accessibilityAction', {
+            nativeEvent: { actionName: 'escape' },
+          });
+        else if (way === 'dismiss') fireEvent(screen.getByTestId('dialog'), 'dismiss');
         else fireEvent.press(screen.getByTestId('dialog-scrim', { includeHiddenElements: true }));
       });
       expect(answer).toBe(false);
@@ -111,7 +159,7 @@ describe('DialogHost — roles, labels, outcomes (NFR-A1)', () => {
     expect(label('Continue').color).toBe(lightColors.primary);
   });
 
-  it('announces title + body once per request and moves accessibility focus to the title — the first via onShow, a replacement (erasure step 2) after the delay, never twice', async () => {
+  it('moves accessibility focus to the title once per request — the first via onShow, a replacement (erasure step 2) after the delay, never twice, never an extra announcement', async () => {
     jest.useFakeTimers();
     const announce = jest
       .spyOn(AccessibilityInfo, 'announceForAccessibility')
@@ -119,43 +167,58 @@ describe('DialogHost — roles, labels, outcomes (NFR-A1)', () => {
     const send = jest
       .spyOn(AccessibilityInfo, 'sendAccessibilityEvent')
       .mockImplementation(() => undefined);
+    // the preset's AccessibilityInfo is already a jest.fn: drop the calls of earlier tests
+    announce.mockClear();
+    send.mockClear();
     try {
       await render(<DialogHost />);
       await act(async () => {
-        void confirmDialog(spec);
+        void confirmDialog({ ...spec, confirmLabel: 'Continue' });
       });
       await act(async () => {
         fireEvent(screen.getByTestId('dialog'), 'show');
       });
-      expect(announce).toHaveBeenCalledTimes(1);
-      expect(announce).toHaveBeenCalledWith(`${spec.title}. ${spec.body}`);
       expect(send).toHaveBeenCalledTimes(1);
       expect(send.mock.calls[0]?.[1]).toBe('focus');
-      // the delayed path must not announce the same request again
+      // the delayed path must not focus the same request again
       await act(async () => {
-        jest.advanceTimersByTime(DIALOG_ANNOUNCE_DELAY_MS * 2);
+        jest.advanceTimersByTime(DIALOG_FOCUS_DELAY_MS * 2);
       });
-      expect(announce).toHaveBeenCalledTimes(1);
+      expect(send).toHaveBeenCalledTimes(1);
       // step 2 replaces the content while the Modal stays visible: onShow never fires again
       await act(async () => {
-        fireEvent.press(screen.getByRole('button', { name: spec.confirmLabel }));
+        fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
       });
       await act(async () => {
-        void confirmDialog({ ...spec, title: 'This cannot be undone', body: 'Delete now?' });
+        void confirmDialog({ ...spec, title: 'This cannot be undone', destructive: true });
       });
-      expect(announce).toHaveBeenCalledTimes(1);
+      expect(send).toHaveBeenCalledTimes(1);
       await act(async () => {
-        jest.advanceTimersByTime(DIALOG_ANNOUNCE_DELAY_MS * 2);
+        jest.advanceTimersByTime(DIALOG_FOCUS_DELAY_MS * 2);
       });
-      expect(announce).toHaveBeenCalledTimes(2);
-      expect(announce).toHaveBeenLastCalledWith('This cannot be undone. Delete now?');
       expect(send).toHaveBeenCalledTimes(2);
+      expect(announce).not.toHaveBeenCalled();
     } finally {
       announce.mockRestore();
       send.mockRestore();
       jest.runOnlyPendingTimers();
       jest.useRealTimers();
     }
+  });
+
+  it('only the most recently mounted host renders (a native modal screen is its own presentation context); unmounting it hands the open dialog back', async () => {
+    const { unmount: unmountSheet } = await render(<DialogHost />);
+    await render(<DialogHost />);
+    expect(useDialogStore.getState().hosts).toHaveLength(2);
+    await act(async () => {
+      void confirmDialog(spec);
+    });
+    expect(screen.getAllByTestId('dialog')).toHaveLength(1);
+    await unmountSheet();
+    expect(useDialogStore.getState().hosts).toHaveLength(1);
+    await act(async () => {});
+    expect(screen.getAllByTestId('dialog')).toHaveLength(1);
+    expect(useDialogStore.getState().current).not.toBeNull();
   });
 
   it('a second request while one is open is answered as a cancel at once; the open one keeps the screen', async () => {
@@ -201,6 +264,7 @@ describe('DialogHost — roles, labels, outcomes (NFR-A1)', () => {
       void confirmDialog(spec).then(resolve);
     });
     const confirm = screen.getByRole('button', { name: spec.confirmLabel });
+    await armed();
     await act(async () => {
       fireEvent.press(confirm);
     });
@@ -284,6 +348,28 @@ describe('DialogHost — motion (File 02 §3.4, NFR-A2)', () => {
     expect(screen.queryByTestId('dialog')).toBeNull();
   });
 
+  it('a replacement while the card is up springs on from where it is — no reset to 0 (no blink)', async () => {
+    await render(<DialogHost />);
+    await act(async () => {
+      void confirmDialog({ ...spec, confirmLabel: 'Continue' });
+    });
+    await act(async () => {
+      jest.advanceTimersByTime(MOTION_MAX_MS);
+    });
+    expect(cardStyle().opacity).toBeCloseTo(1, 1);
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+    });
+    await act(async () => {
+      void confirmDialog({ ...spec, title: 'Step two', destructive: true });
+    });
+    await act(async () => {
+      jest.advanceTimersByTime(FRAME_MS);
+    });
+    expect(screen.getByRole('header', { name: 'Step two' })).toBeTruthy();
+    expect(cardStyle().opacity).toBeGreaterThan(0.9);
+  });
+
   it('a request arriving mid-exit cancels the exit and shows at once', async () => {
     await render(<DialogHost />);
     await act(async () => {
@@ -324,5 +410,27 @@ describe('DialogHost — motion (File 02 §3.4, NFR-A2)', () => {
       fireEvent.press(screen.getByRole('button', { name: spec.cancelLabel }));
     });
     expect(screen.queryByTestId('dialog')).toBeNull();
+  });
+
+  it('the arming window is a fixed timer, independent of motion: it applies under reduced motion too', async () => {
+    mockMotion.reduced = true;
+    await render(<DialogHost />);
+    let answer: boolean | undefined;
+    await act(async () => {
+      void confirmDialog({ ...spec, destructive: true }).then((ok) => {
+        answer = ok;
+      });
+    });
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: spec.confirmLabel }));
+    });
+    expect(answer).toBeUndefined();
+    await act(async () => {
+      jest.advanceTimersByTime(DIALOG_ARM_DELAY_MS + 20);
+    });
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: spec.confirmLabel }));
+    });
+    expect(answer).toBe(true);
   });
 });

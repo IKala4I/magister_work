@@ -44,10 +44,13 @@
   Open each dialog — sign out of the trial account, delete ×2, "replace this device's data?",
   "discard unsynced changes"; disconnect calendar once a calendar is connected (device-pending
   by circumstance: the owner connects one by hand during the iPhone pass; the OAuth client is
-  configured) — and check: one announcement of title + body, focus lands on the title, swipe
-  order title → body → confirm → cancel, nothing under the scrim reachable, back (Android
-  button / iOS two-finger Z) cancels. Why: RN Modal's window semantics and the announce/focus
-  events are native behaviour the jest render only asserts as props.
+  configured) — and check: focus lands on the title and it is read as a header (no separate
+  announcement — it would compete with the focus event), swipe order title → body → confirm →
+  cancel, nothing under the scrim reachable, back cancels (Android button; iOS two-finger Z via
+  the card's escape action), and on iOS a dialog opened from Settings actually appears (the
+  Modal presents from its nearest view controller — one host per native modal screen). Why: RN
+  Modal's window/presentation semantics and the focus event are native behaviour the jest render
+  only asserts as props.
 - ⬜ **NFR-A2 — every dialog at 200 % + largest display, both schemes, landscape; the spring
   in/out and the OS reduce-motion toggle** (added 2026-09-06). The long body (sign-out) scrolls
   inside the card with the actions visible; labels wrap on their own rows; the entrance settles
@@ -56,8 +59,9 @@
   Why: font scale and display size compound on Android; Reanimated's jest path simulates the UI
   thread, it is not the UI thread.
 - ⬜ **Android — the dialog scrim covers the status and navigation bars** (added 2026-09-06).
-  `statusBarTranslucent` + `navigationBarTranslucent` are Android-native Modal flags; check light
-  and dark with gesture and 3-button navigation. Why: no simulator equivalent of the edge-to-edge
+  Under SDK 57 edge-to-edge the Modal window is full-bleed regardless of the
+  `statusBarTranslucent` / `navigationBarTranslucent` props (RN forces both); check light and
+  dark with gesture and 3-button navigation. Why: no simulator equivalent of the edge-to-edge
   window insets on a real OEM build.
 - ⬜ **NFR-A2 — 200% font scale + reduced-motion sweep on both platforms** (added P2, extended
   P3). Re-run the 27-item sweep from `p2-manual-verification.md` plus the P3 screens (inbox,
