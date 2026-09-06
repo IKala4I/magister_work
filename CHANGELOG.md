@@ -30,6 +30,33 @@ Everything below condenses P0–P11 for release notes and the thesis; per-phase 
 - **Ops:** Supabase (eu-west-1) + Oracle A1 VM (eu-marseille-1) with pull-based rollout,
   hardened SSH + Tailscale admin path, nightly training timer, runbooks for every timer.
 
+## Post-P12 — one in-app dialog replaces the OS alerts (2026-09-06, post-p12/in-app-dialog)
+
+- **Owner request:** replace the six `Alert.alert` confirmations with one in-app dialog, identical
+  on Android and iOS, on the File 02 §3 tokens; convert everything we own; re-verify the FR-42
+  erasure through it. **ADR-0021.** `src/ui/dialog/`: single-slot Zustand queue + promise API,
+  RN Modal host per presentation context (root, Settings, task sheets — RN presents from the
+  nearest view controller), elevated card, stacked text actions (confirm first, cancel last),
+  destructive labels in the new `dangerText` token (`danger` as text is 3.6–3.8:1 — spec-conflicts
+  L41), 400 ms arming of destructive confirms, back/scrim/escape/native-dismiss all cancel, title
+  focused per request, `accessibilityViewIsModal`. Springs per File 02 §3.4 inside the Modal
+  (200 ms in / 120 ms out) collapsing to 0 under reduced motion on the same path — the app's first
+  transition; the absence elsewhere recorded as a divergence (L42), not a precedent.
+- Not converted (OS-owned): notification permission, `Linking.openSettings`, OAuth browser
+  sessions, native pickers, the share sheet.
+- Tests 566 → 570 (`dialog.test.tsx` 16; the Alert spies replaced by presses on the rendered
+  dialog; `a11yAudit` bans `Alert.alert` across `app/`, `src/`, `modules/`). Adversarial pass
+  (fresh subagent): 2 MAJOR / 7 MINOR / 7 NOTE, all addressed but the optional cancel weight.
+- **Hardware (Pixel 7a, builds 7/8, session over adb):** every dialog its own window; light/dark ×
+  1.0/2.0 × largest display × landscape; entrance 150 ms, reduced motion one frame; the double tap
+  (129 ms) held; FR-42 erasure via the dialogs on a fresh throwaway — reference on screen, audit
+  +1 (113 ms), eight tables at 0, alarms 2 → 0, welcome after a cold relaunch. **iOS simulator
+  smoke:** Settings-launched dialogs present from inside the sheet; dark + XXXL render. Owed on
+  hardware: TalkBack/VoiceOver listening, iOS escape, iPhone erasure, calendar-disconnect dialog
+  (owner connects a calendar by hand on the iPhone).
+- Records: spec-conflicts L41/L42, File 02 §3.2/§3.4 amendments, corrections #61, revisit (other
+  surfaces' transitions), device-checklist entries + flips, p10 a11y audit §5, traceability rows.
+
 ## Post-P12 — the narrative rewritten on the sensitivity result (2026-09-06, post-p12/narrative-rewrite)
 
 - **Owner directive:** the two findings reshape the thesis argument. **spec-conflicts H6:** File 01 §1/§2 and

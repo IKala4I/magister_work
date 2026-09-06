@@ -119,5 +119,92 @@ for step in STEPS:
         xml, ok = expect_dialog(f'{TAG}-delete1-scrim', 'Delete your account?')
         sh('shell', 'input', 'tap', '540', '150'); time.sleep(1.2)  # the scrim, above the card
         xml = dump(f'{TAG}-delete1-after-scrim'); print(f"   -> after scrim tap: dialog gone: {find(xml, 'Delete your account?') is None}")
+    elif step == 'record':
+        # one open (spring in) and one cancel (spring out) under the CURRENT OS motion setting;
+        # per-frame mean brightness of the screen = the scrim's fade; settle = within 2 % of the end
+        import subprocess as sp
+        open_settings()
+        n, xml = scroll_until('Delete account and data', f'{TAG}-settings-rec'); assert n
+        rec = sp.Popen(['adb', 'shell', 'screenrecord', '--time-limit', '5', '--bit-rate', '6000000', '/sdcard/rec.mp4'])
+        time.sleep(1.0); tap(n); time.sleep(1.5)
+        xml = dump(f'{TAG}-rec-open'); c = find(xml, 'Keep my account'); assert c; tap(c)
+        rec.wait(); sh('pull', '/sdcard/rec.mp4', f'{OUT}/rec-{TAG}.mp4'); sh('shell', 'rm', '/sdcard/rec.mp4')
+        frames = f'{OUT}/frames-{TAG}'; os.makedirs(frames, exist_ok=True)
+        sp.run(['ffmpeg', '-loglevel', 'error', '-y', '-i', f'{OUT}/rec-{TAG}.mp4', '-vf', 'fps=60,scale=108:240', f'{frames}/%04d.png'], check=True)
+        from PIL import Image; import numpy as np
+        vals = []
+        for f in sorted(os.listdir(frames)):
+            vals.append(float(np.asarray(Image.open(f'{frames}/{f}').convert('L')).mean()))
+        # transitions: a drop (scrim in) and a rise (scrim out); report each transition's length
+        def transitions(v):
+            out = []; i = 1
+            while i < len(v):
+                if abs(v[i] - v[i-1]) > 0.8:
+                    j = i; start = v[i-1]
+                    while j + 1 < len(v) and abs(v[j+1] - v[j]) > 0.15: j += 1
+                    end = v[j]; out.append((i, j, start, end)); i = j + 1
+                else: i += 1
+            return out
+        tr = transitions(vals)
+        print(f'== {TAG} record: {len(vals)} frames @60fps; transitions (frame_from, frame_to, brightness_from, brightness_to, ms):')
+        for a, b, x, y in tr: print(f'   frames {a}-{b}: {x:.1f} -> {y:.1f}  ({(b - a + 1) * 1000 / 60:.0f} ms)')
+        open(f'{OUT}/rec-{TAG}-brightness.txt', 'w').write('\n'.join(f'{i} {v:.2f}' for i, v in enumerate(vals)))
+        import shutil; shutil.rmtree(frames)
+    elif step == 'talkback':
+        svc = 'com.google.android.marvin.talkback/com.google.android.marvin.talkback.TalkBackService'
+        open_settings()
+        n, xml = scroll_until('Delete account and data', f'{TAG}-settings-tb'); assert n
+        sh('logcat', '-c')
+        sh('shell', 'settings', 'put', 'secure', 'enabled_accessibility_services', svc)
+        sh('shell', 'settings', 'put', 'secure', 'accessibility_enabled', '1'); time.sleep(3.0)
+        # explore-by-touch is on: one tap focuses the button, a double tap activates it
+        x0, y0, x1, y1 = n['bounds']; cx, cy = (x0 + x1) // 2, (y0 + y1) // 2
+        sh('shell', 'input', 'tap', str(cx), str(cy)); time.sleep(1.0)
+        sh('shell', 'input', 'tap', str(cx), str(cy)); time.sleep(0.08); sh('shell', 'input', 'tap', str(cx), str(cy)); time.sleep(2.5)
+        xml = dump(f'{TAG}-talkback-delete1'); show(f'{TAG}-talkback-delete1', xml)
+        print(f"   -> dialog present with TalkBack on: {find(xml, 'Delete your account?') is not None}")
+        log = sh('logcat', '-d', '-v', 'time')
+        lines = [l for l in log.splitlines() if re.search(r'TalkBack|SpeechController|Utterance|speak', l, re.I)]
+        open(f'{OUT}/talkback-logcat-{TAG}.txt', 'w').write('\n'.join(lines))
+        print(f'   -> TalkBack logcat lines: {len(lines)} (utterances are logged only with its developer log level; see the file)')
+        for l in lines[:6]: print('      ' + l[:160])
+        # leave the dialog with the hardware back key (works regardless of explore-by-touch)
+        sh('shell', 'input', 'keyevent', 'KEYCODE_BACK'); time.sleep(1.0)
+        sh('shell', 'settings', 'put', 'secure', 'enabled_accessibility_services', '')
+        sh('shell', 'settings', 'put', 'secure', 'accessibility_enabled', '0'); time.sleep(1.5)
+        xml = dump(f'{TAG}-talkback-off'); print(f"   -> after BACK + TalkBack off: dialog gone: {find(xml, 'Delete your account?') is None}")
+    elif step == 'arming':
+        # the review's MAJOR 2: two taps ~100 ms apart on "Continue" — the second lands where
+        # step 2's "Delete everything" sits; the account must survive
+        open_settings()
+        n, xml = scroll_until('Delete account and data', f'{TAG}-settings-arm'); assert n; tap(n)
+        xml, ok = expect_dialog(f'{TAG}-arm-1', 'Delete your account?')
+        c = find(xml, 'Continue'); assert c
+        x0, y0, x1, y1 = c['bounds']; x, y = (x0 + x1) // 2, y0 + 45  # inside Continue AND inside step 2's confirm
+        t = time.time(); sh('shell', f'input tap {x} {y}; input tap {x} {y}'); dt = time.time() - t
+        time.sleep(1.5)
+        xml = dump(f'{TAG}-arm-after-double-tap')
+        up2 = find(xml, 'This cannot be undone') is not None
+        deleted = find(xml, 'Your account is deleted') is not None
+        print(f'   -> double tap at ({x},{y}), two adb taps issued within {dt*1000:.0f} ms of shell time; step 2 still up: {up2}; account-deleted screen: {deleted}')
+        if up2:
+            k = find(xml, 'Cancel'); assert k; tap(k)
+            xml = dump(f'{TAG}-arm-cancelled'); print(f"   -> Cancel: dialog gone: {find(xml, 'This cannot be undone') is None}")
+    elif step == 'erase':
+        # THE real erasure (FR-42) — only on the throwaway account
+        open_settings()
+        n, xml = scroll_until('Delete account and data', f'{TAG}-settings-erase'); assert n; tap(n)
+        xml, ok = expect_dialog(f'{TAG}-erase-1', 'Delete your account?')
+        c = find(xml, 'Continue'); assert c; tap(c)
+        xml, ok2 = expect_dialog(f'{TAG}-erase-2', 'This cannot be undone')
+        d = find(xml, 'Delete everything'); assert d
+        # inside the arming window a press must do nothing
+        tap(d)  # tap() sleeps 1.2 s AFTER the tap; the tap itself lands < 400 ms after step 2 appeared? not guaranteed — record what happened
+        xml = dump(f'{TAG}-erase-2-after-first-tap')
+        print(f"   -> after the first tap on Delete everything: dialog still up: {find(xml, 'This cannot be undone') is not None}")
+        if find(xml, 'This cannot be undone') is not None:
+            tap(d)
+        t0 = time.time(); time.sleep(4.0)
+        xml = dump(f'{TAG}-account-deleted'); show(f'{TAG}-account-deleted', xml)
     else:
         raise SystemExit(f'unknown step {step}')

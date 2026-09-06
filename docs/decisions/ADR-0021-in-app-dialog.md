@@ -107,6 +107,14 @@ Facts that shaped the design (all verified 2026-09-06):
 - Tests: `dialog.test.tsx` (16), the four `Alert` spies in `settings.test.tsx` / `today.test.tsx`
   replaced by presses on the rendered dialog (+ a back-button test on both erasure steps; the
   arming window on the destructive confirms).
+- Verified the same day: **Android** (Pixel 7a, builds 7 and 8, session over adb —
+  `docs/verification/device-pass/android-20260906-dialog/notes.md`): every dialog its own
+  window, back/scrim/cancel, light/dark × 1.0/2.0 × landscape, entrance 150 ms, reduced motion
+  one frame, the double tap (129 ms) held by the arming, FR-42 erasure through the dialogs with
+  the audit reference (113 ms) and a cold relaunch to the welcome screen; **iOS simulator**
+  (smoke, not device — `ios-sim-20260906-dialog/notes.md`): the Settings-launched dialogs
+  present from inside the sheet (Maestro 1/1), dark + accessibility-XXXL renders. Open on
+  hardware: TalkBack/VoiceOver listening, the escape gesture, the iPhone erasure.
 - Adversarial pass (fresh-context subagent, 2026-09-06): 2 MAJOR (the iOS presentation
   mechanism; the double tap onto "Delete everything") / 7 MINOR / 7 NOTE — all addressed above
   except the optional cancel weight (order and colour carry the distinction, as decided). A

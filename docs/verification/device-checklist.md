@@ -51,6 +51,15 @@
   Modal presents from its nearest view controller — one host per native modal screen). Why: RN
   Modal's window/presentation semantics and the focus event are native behaviour the jest render
   only asserts as props.
+  **Android 2026-09-06 (build 7 + 8, session, structural half ✅):** every dialog is its own
+  window — the uiautomator dump holds only the dialog's nodes (title wrapper focusable with the
+  header role, `android.widget.Button` ×2 with the exact labels, no scrim node, nothing of the
+  screen beneath); back / scrim / Cancel all dismiss with Settings intact; the double tap on
+  "Continue" (two taps within 129 ms) leaves step 2 up. Injected taps are consumed by TalkBack's
+  explore-by-touch and TalkBack logs no utterances at its default level — **the spoken order and
+  the focus landing on the title stay with the owner's listening pass** (optional as before).
+  **iOS 2026-09-06 (simulator smoke, not device):** a Settings-launched dialog presents from
+  inside the sheet (`ios-sim-20260906-dialog/`, Maestro 1/1); VoiceOver, escape = iPhone pass.
 - ⬜ **NFR-A2 — every dialog at 200 % + largest display, both schemes, landscape; the spring
   in/out and the OS reduce-motion toggle** (added 2026-09-06). The long body (sign-out) scrolls
   inside the card with the actions visible; labels wrap on their own rows; the entrance settles
@@ -58,11 +67,19 @@
   `animator_duration_scale 0` over adb reads back as reduced motion; iOS: Settings toggle, owner).
   Why: font scale and display size compound on Android; Reanimated's jest path simulates the UI
   thread, it is not the UI thread.
+  **Android ✅ 2026-09-06 (build 7 + 8, session):** delete ×2, sign-out (long body) and sign-in
+  replace at light/dark × 1.0×/2.0× + 540 dpi + landscape — every dialog present, labels on
+  their own rows, Cancel dismisses (`android-20260906-dialog/`); entrance measured from
+  `screenrecord` **150 ms** (9 frames at 60 fps), reduced motion **one frame**. Exit not
+  captured (unit-pinned at 120 ms). iOS: simulator dark + accessibility-XXXL renders both erasure
+  dialogs (`dialog-delete-*-dark-xxxl.png`); device pending.
 - ⬜ **Android — the dialog scrim covers the status and navigation bars** (added 2026-09-06).
   Under SDK 57 edge-to-edge the Modal window is full-bleed regardless of the
   `statusBarTranslucent` / `navigationBarTranslucent` props (RN forces both); check light and
   dark with gesture and 3-button navigation. Why: no simulator equivalent of the edge-to-edge
   window insets on a real OEM build.
+  **Android 2026-09-06 (build 7, gesture navigation only):** the scrim covers the status bar in
+  light and dark (`shot-*-delete2.png`); 3-button navigation not exercised.
 - ⬜ **NFR-A2 — 200% font scale + reduced-motion sweep on both platforms** (added P2, extended
   P3). Re-run the 27-item sweep from `p2-manual-verification.md` plus the P3 screens (inbox,
   quick-add chips, task sheet, undo bar) with real OS settings. Simulator can't settle it: the
@@ -305,6 +322,7 @@
     **Android 2026-09-02:** same blocker as export (Settings unscrollable); deliberately last in the pass anyway.
     **Android ✅ 2026-09-05 (build 5, owner):** two confirmations → "Your account is deleted" with the reference `e1d0b2eb-…`; server: all eight user tables at 0, `auth.users` row gone, `deletion_audit` +1 with that id (`user_request`, 180 ms); device: 0 pending Hourwell alarms (tonight's ritual cancelled), empty shade; "Start over" and a cold relaunch both land on the welcome screen (day-5 notes item 17).
     **Re-verification owed (2026-09-06, ADR-0021):** the two prompts are in-app dialogs now (the build-5 result stays as history of the OS-alert version). Repeat on a fresh throwaway account with two tasks and one plan: Android over adb (session, this branch), iPhone by the owner during the iPhone pass.
+    **Android ✅ 2026-09-06 (build 8, session over adb, fresh throwaway `d2aade77-…` with two tasks, one plan, two alarms):** in-app dialog 1 → Continue → dialog 2 → Delete everything → "Your account is deleted" with `Reference: 3192fba6-…`; server: `auth.users` row gone, all eight user tables at 0, `deletion_audit` 56 → 57 with that id (`user_request`, **113 ms**); device: alarms 2 → 0, 0 posted notifications; "Start over" and a cold relaunch (562 ms) both land on the welcome screen; a second throwaway proved the 400 ms arming (two taps within 129 ms → step 2 still up) and was then erased the same way (`96719cfd-…`, 78 ms) — `android-20260906-dialog/notes.md`. iPhone pending.
 - ⬜ **NFR-A1 — VoiceOver / TalkBack on the P10 surfaces** (P10). Settings: switches announce
   label + state; mute chips read "checkbox, Mute reminders for Admin, checked"; ritual time
   chips read as radios in a labelled group; the export/delete status line is announced

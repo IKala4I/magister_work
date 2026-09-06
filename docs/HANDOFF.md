@@ -2,65 +2,59 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-06 (later) — **the narrative is rewritten on the sensitivity result** (branch
-> `post-p12/narrative-rewrite`, PR opened by this session; adversarial pass before merge): File 01 §0
-> amendments, File 02/03/04/06 amendments, spec-conflicts H6/H7/M16, corrections #58–#60 with the
-> exact Ukrainian wording, the defence passage in the explainer. Before that: **the sensitivity study across simulated worlds is done and
-> reported** (branch `post-p12/sensitivity-grid`, PR #54). Power was recomputed from simulated
-> effects (owner item 1), the world grid was frozen before the run (item 2), the two loose
-> ends are closed in the specs (item 3), the auto-merge gap is closed for good. **The iPhone
-> pass is scoped (below) and waits for the owner's device and iOS version.** Read first:
-> `docs/study/sensitivity-results.md` "Summary" + §2, then "Exact next actions".
+> Last update: 2026-09-06 (evening) — **one in-app dialog replaces the six OS alerts** (branch
+> `post-p12/in-app-dialog`, ADR-0021; PR opened by this session, auto-merge armed; adversarial
+> pass 2 MAJOR / 7 MINOR / 7 NOTE addressed; verified on the Pixel 7a over adb and smoke-checked
+> on the iPhone 16 simulator). Before that (same day): the narrative rewrite (PR #55) and the
+> sensitivity study (PR #54). **The iPhone pass is scoped (below) and waits for the owner's device
+> and iOS version; it gained the dialog's hands-on items.** Read first: `docs/decisions/ADR-0021-in-app-dialog.md`,
+> then `docs/verification/device-pass/android-20260906-dialog/notes.md`.
 
-## What happened this session (2026-09-06)
+## What happened this session (2026-09-06, evening — post-p12/in-app-dialog)
 
-Owner decisions of 2026-09-06 (recorded in CLAUDE.md "Specs are generated assumptions" and the
-explainer): specs/01–06 are generated assumptions — rewrite them when measured or simulated
-results contradict them and record why; derived numbers follow their inputs, never the claim.
+Owner request: replace the OS alerts with one in-app dialog, identical on both platforms, on the
+File 02 §3 tokens; convert everything we own (the erasure flow included, re-verified on a fresh
+throwaway); animate per File 02 §3.4 with reduced motion collapsing to zero (the app's "no
+animations" is a divergence to record, not a precedent); mark the calendar-disconnect dialog
+device-pending by circumstance (the owner connects a calendar by hand on the iPhone).
 
-Commits on `post-p12/sensitivity-grid`, in order (the order is the evidence):
+Commits, in order: `cec0dcf` dangerText token + destructive Button kind → `b6e5c5a` the dialog
+(store + host + tests, six sites converted, jest wiring for Reanimated, explainer) → `ef20781`
+records (ADR-0021, spec-conflicts L41/L42, File 02 amendments, audit/traceability/checklist,
+revisit, corrections #61) → `c36de47` announce fix → `9593903` **the adversarial-pass fixes**
+(one host per presentation context — RN Modal presents from the NEAREST view controller, so the
+root-only host would be refused by UIKit under the Settings sheet; 400 ms arming of destructive
+confirms against the double tap; focus-only; VoiceOver escape; `onDismiss`; no blink; motion
+config from a ref; wider no-Alert scan) → (this commit) hardware + simulator evidence, checklist
+flips, CHANGELOG, this handoff.
 
-1. `2a48a51` (09:30:11) **`docs/study/sensitivity-grid.md` frozen** — world model with every
-   bound argued (File 04 §3.2 pattern; the 2025 synchrony-effect systematic review; MEQ worker
-   split 28/52/20; File 06's ICC range; the Pixel 7a inbox sizes), 75 cells, verdict
-   thresholds, N₈₀ method, predictions S1–S12, the "too kind" and "substantive failure" tests;
-   CLAUDE.md rule; explainer. No sensitivity code in the tree. **PR #54 opened here and a
-   premature `gh pr merge` was refused** ("6 of 6 required status checks are expected") — the
-   proof that the protection fix works.
-2. `2ad8a94` (09:34:08) **`simstudy/sensitivity.py`** + CLI `--sensitivity` + 6 tests (101
-   pytest); E3's `_plan_day` gained a `q_of` hook, re-run byte-identical.
-3. (this commit) **the run** (`results/sensitivity.json`, 301 s on `2ad8a94`) +
-   `docs/study/sensitivity-results.md` + File 04 §2.2 rewrite (m-weighted replay) and §3.2
-   note, File 06 §2 amendment (N follows the simulated effect), spec-conflicts M14/M15,
-   corrections #56/#57, revisit ×2, CHANGELOG, traceability, explainer, this handoff, the
-   exploratory diagnostic (`scripts/simstudy_exploratory.py --only int-loss`).
-4. `e10a7f5` + follow-up: **adversarial pass addressed** (fresh subagent: 3 MAJOR / 7 MINOR /
-   3 NOTE — all on reporting, none on the run): N sentences rewritten to follow their inputs
-   (N ≈ 35–70 under σ_shape ≈ 0.6; 30–45 only under a 1.5–2× population effect), S4/S6/S9
-   downgraded to ◐ and S12 to ❌ (tally 2 / 5 / 5), the §5.1 diagnostic re-run on the cell's own
-   40 seeds with a level-matched-prior setting and SEs (three-way decomposition), slice-aware
-   attainable ceilings for all cells (§5.2, `ceilings_attainable.json`), the N₈₀ median rule
-   fixed (no number changed), N₈₀ rounded up, two spec notes (SNIPS consistency; File 06 header).
-
-**Results in one paragraph.** 58 WIN / 17 TIE / 0 LOSS over 75 worlds, but the registered
-substantive-failure test fires: in the world the cold-start prior was written for (File 04's
-pattern at its assumed strength, no individual deviation) the learned policy only ties — the
-52 % intermediates and the 28 % morning types lose 1–2 pp each and cancel the evening types'
-+5 to +10 pp. Wins are driven by individual deviation from the class profile (σ_shape), not by
-the population chronotype pattern; the prior is worth ±0.4 pp. N₈₀ ranges 21 … > 120 across
-worlds, > 120 in 48 of 75 cells including the literature-like adult world at the table's
-strength; N ≈ 35–70 where σ_shape ≈ 0.6 (depending on day noise), N ≈ 30–45 only where the
-population effect is ≥ 1.5–2× the table's on an extreme-heavy sample; N = 30 in no cell. Boundary statement: results §1; thesis text: corrections
-#56 (the study) and #57 (N recomputed, File 06 §2 amended).
+**Verified on hardware (Pixel 7a, builds 7 → 8, session over adb, `hw-dialog-drive.py` +
+`hw-dialog-sweep.sh`):** every dialog is its own window (dump holds only the dialog's nodes);
+back / scrim / Cancel dismiss with Settings intact; light/dark × 1.0/2.0 × 540 dpi × landscape
+all fit; entrance 150 ms measured from `screenrecord`, reduced motion one frame; the double tap
+(two taps in 129 ms) leaves step 2 up; **FR-42 through the dialogs** on throwaway `d2aade77-…`
+(two tasks, one plan, two alarms): reference `3192fba6-…` on screen, audit +1 in 113 ms, eight
+tables at 0, alarms 2 → 0, welcome after Start over and a cold relaunch (562 ms); a second
+throwaway (erased too, `96719cfd-…`) served the double-tap check. **iOS simulator (smoke):** a
+Settings-launched dialog presents from inside the sheet (Maestro `e2e/dialog-settings.yaml`
+1/1); dark + accessibility-XXXL renders (`e2e/dialog-settings-a11y.yaml`).
+**Not established:** TalkBack/VoiceOver spoken order (injected taps are consumed by
+explore-by-touch; TalkBack logs no utterances) — owner listening; the iOS escape gesture; the
+iPhone erasure; the calendar-disconnect dialog (device-pending, owner's calendar).
 
 ## Exact next actions (next session, in order)
 
-1. **Merge the narrative PR** once green (PR #54 merged 07:16Z; the protection blocks anything
-   premature).
-2. **Thesis-text support** (corrections 1–60 + rollup). Load-bearing now: #58 (mechanism reframed —
-   exact Ukrainian sentences), #59 (headline finding + File 01 reconciliation), #60 (the 15-item
-   viva sweep), then #55–#57. The defence passage is in the explainer ("Відповідь на захисті").
-3. **iPhone pass** — scoped below; starts when the owner names the device and iOS version.
+1. **Confirm the dialog PR merged** (auto-merge armed once after `gh pr create`; the protection
+   blocks anything premature — never re-run `gh pr merge`).
+2. **Thesis-text support** (corrections 1–61 + rollup): #58–#60 load-bearing; #61 (transitions
+   exist on one surface; no drag physics).
+3. **iPhone pass** — scoped below; starts when the owner names the device and iOS version. The
+   dialog adds to Step 2: VoiceOver on the erasure dialogs (title read as a header on open, body
+   next, actions as buttons, nothing beneath, two-finger Z cancels), Dynamic Type max + Reduce
+   Motion on a dialog, the iPhone erasure on a fresh throwaway, and — once the owner connects a
+   calendar by hand — the disconnect dialog (site 2).
+4. Optional owner item on Android: a 5-minute TalkBack listening pass on the two erasure dialogs
+   (structural half done; spoken order open).
 
 ## iPhone pass — scope, what it needs from the owner, how long (scoped 2026-09-05, unchanged)
 
@@ -122,23 +116,23 @@ consent (Web client), and the **two-device sync row** (File 05 §2 on both phone
 account on both — anonymous accounts cannot be shared; needs magic link or Google sign-in).
 Out of scope by the store decision: store-signed binary / TestFlight behaviour, APNs (unused).
 
-## Build 6 — state (2026-09-05 late evening, unchanged)
+## Build 8 — state (2026-09-06 evening)
 
-- **Phone:** build 6 (`7e5e2fd8cef659b0…`), test account `a4c86ab5-f944-43a9-a42d-a65f6d4461d4`
-  (anonymous). Today shows the 13-block plan `3aa1342a`; five exact block reminders + the
-  Sunday review 20:00 (`window=0`); nobody taps them. Server profile Mon–Fri 09:00–18:00,
-  sleep 23:00–07:00, ritual 20:00, `Europe/Kiev`. FR-42 erasure from Settings is the
-  one-minute clean-up if the owner wants the project free of the account.
-- **Server:** `plan-request` v13 ACTIVE.
-- **Not in the fix batch, by the owner's list (revisit):** stale-ritual re-plans, the
-  third-skip diagnostic card persistence, heatmap label rough edges, the Move picker's silent
-  snapping.
+- **Phone:** build 8 (`e553e637ec061fac…`, tree `9593903`, installed 20:58), a fresh anonymous
+  welcome-screen session (no onboarding, no plan, no alarms); OS state restored (font 1.0,
+  density reset, night off, animator 1, TalkBack off, rotation auto). The build-6 account
+  `a4c86ab5-…` was abandoned by `pm clear` (owner decision: fresh throwaway only) — anonymous,
+  retention-purge material like the seven session-only rows today (`auth.users` 70 → 77).
+- **Simulator:** iPhone 16 has the Release app (tree `9593903`), onboarded, light/medium
+  restored. **It hits the same hosted project as the phone** — see gotchas.
+- **Server:** `plan-request` v13 ACTIVE; `deletion_audit` 58.
 
 ## Where we are
 
 - **P0–P12 merged** (PRs #1–#30); post-P12: hardware pass days 1–5 (#31–#50), fix batch →
-  build 6 (#51), 13-block sweep (#52), ADR-0020 + the E1–E3 simulation study (#53), **the
-  sensitivity study (#54, this branch)**.
+  build 6 (#51), 13-block sweep (#52), ADR-0020 + the E1–E3 simulation study (#53), the
+  sensitivity study (#54), the narrative rewrite (#55), **the in-app dialog (this branch,
+  ADR-0021)**.
 - **Decisions in force:** store accounts — buy neither (2026-08-31); the field study is out of
   scope (2026-09-01); no OSF, pre-registration in git, the evaluation is a simulation study
   (ADR-0020, 2026-09-05); **specs are generated assumptions — rewrite on evidence; derived
@@ -157,6 +151,23 @@ device-checklist auth/calendar rows and the two-device sync row. 7. ~~Pre-enroll
 ~~OSF freeze~~ retired. **8. iPhone pass — waiting for the device and iOS version.**
 
 ## Gotchas (this session's additions; earlier lists in git history of this file still apply)
+
+- **The iOS simulator and the phone share the hosted project.** A "newest auth user" read is
+  ambiguous while both run — the second erasure's uuid was attributed by elimination because the
+  simulator had just created an account. Read the device account's uuid from the device (or
+  pause the simulator) BEFORE an erasure; never rely on `--latest` with two clients alive.
+- **RN Modal presents from its nearest view controller** (both renderers, RN 0.86.3). Any
+  future overlay that must appear above a `presentation: 'modal'` screen needs a host inside
+  that screen — `DialogHost` is mounted in Settings and the task sheets for this reason; a new
+  native modal screen must mount one too (the a11y audit does not catch a missing host).
+- **TalkBack over adb:** with the service on, `input tap` is explore-by-touch (focus), and a
+  second injected tap did not activate; TalkBack logs no utterances at its default level.
+  Structural evidence = the uiautomator dump; spoken order = a person.
+- **Maestro on the simulator cannot dismiss the keyboard** (`hideKeyboard` fails) and cannot walk
+  the P4 onboarding at accessibility-XXXL — `dialog-settings.yaml` skips the quick-add;
+  `dialog-settings-a11y.yaml` assumes an app onboarded at medium size first.
+- **expo-doctor 20/21:** the one miss is TypeScript ~6.0.3 expected vs 5.9.3 pinned (ADR-0004,
+  openapi-typescript peer) — pre-existing, listed in `expo.install.exclude`, still reported.
 
 - **Auto-merge gap — root cause and fix (2026-09-06).** PRs #39 and #53 merged with checks
   pending because (a) `gh pr merge --auto` merges _immediately_ when the PR's cached merge

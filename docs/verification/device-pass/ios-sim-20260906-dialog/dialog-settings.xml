@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="iPhone 16 - iOS 18.3 - 5C080B83-AF7B-467C-91E3-2775717DC943" tests="1" failures="0" time="48.986" timestamp="2026-09-06T21:09:04">
+    <testcase id="dialog-settings" name="dialog-settings" classname="dialog-settings" file="e2e/dialog-settings.yaml" time="48.976" timestamp="2026-09-06T21:09:04" status="SUCCESS"/>
+  </testsuite>
+</testsuites>
