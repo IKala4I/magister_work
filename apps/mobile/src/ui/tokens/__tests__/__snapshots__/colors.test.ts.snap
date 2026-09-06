@@ -4,6 +4,7 @@ exports[`File 02 §3.2 color palette matches the spec table exactly (snapshot) 1
 {
   "dark": {
     "danger": "#F87171",
+    "dangerText": "#F87171",
     "energyHigh": "#FBBF24",
     "energyLow": "#475569",
     "focusGradient": [
@@ -24,6 +25,7 @@ exports[`File 02 §3.2 color palette matches the spec table exactly (snapshot) 1
   },
   "light": {
     "danger": "#EF4444",
+    "dangerText": "#B91C1C",
     "energyHigh": "#F59E0B",
     "energyLow": "#94A3B8",
     "focusGradient": [

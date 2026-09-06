@@ -26,6 +26,14 @@ export interface ColorPalette {
   readonly success: string;
   readonly warning: string;
   readonly danger: string;
+  /**
+   * Destructive LABELS at body size (the in-app dialog's "Delete everything"). Derived, not in
+   * the File 02 §3.2 table: `danger` as body text measures 3.76:1 on the elevated white and
+   * 3.60:1 on the light surface — below AA (4.5:1); as a fill or an icon it stays `danger`.
+   * Light: Tailwind red-700 (6.47:1 on white); dark: the palette's own `danger` (6.10:1 on the
+   * dark elevated surface). Pinned by colors.test.ts and a11yAudit.test.ts; spec-conflicts L41.
+   */
+  readonly dangerText: string;
   readonly focusGradient: readonly [string, string];
 }
 
@@ -41,6 +49,7 @@ export const lightColors: ColorPalette = {
   success: '#10B981',
   warning: '#F97316',
   danger: '#EF4444',
+  dangerText: '#B91C1C',
   focusGradient: ['#4F46E5', '#7C3AED'],
 };
 
@@ -56,6 +65,7 @@ export const darkColors: ColorPalette = {
   success: '#34D399',
   warning: '#FB923C',
   danger: '#F87171',
+  dangerText: '#F87171',
   focusGradient: ['#4F46E5', '#7C3AED'],
 };
 
