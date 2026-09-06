@@ -37,10 +37,10 @@ substantive-failure test fires: in the world the cold-start prior was written fo
 pattern at its assumed strength, no individual deviation) the learned policy only ties — the
 52 % intermediates and the 28 % morning types lose 1–2 pp each and cancel the evening types'
 +5 to +10 pp. Wins are driven by individual deviation from the class profile (σ_shape), not by
-the population chronotype pattern; the prior is worth ±0.4 pp. N₈₀ ranges 20 … > 120 across
+the population chronotype pattern; the prior is worth ±0.4 pp. N₈₀ ranges 21 … > 120 across
 worlds, > 120 in 48 of 75 cells including the literature-like adult world at the table's
-strength; N = 30 is supported only where σ_shape ≈ 0.6 or the population effect is ≥ 2× the
-table's on an extreme-heavy sample. Boundary statement: results §1; thesis text: corrections
+strength; N ≈ 35–70 where σ_shape ≈ 0.6 (depending on day noise), N ≈ 30–45 only where the
+population effect is ≥ 1.5–2× the table's on an extreme-heavy sample; N = 30 in no cell. Boundary statement: results §1; thesis text: corrections
 #56 (the study) and #57 (N recomputed, File 06 §2 amended).
 
 ## Exact next actions (next session, in order)
@@ -50,7 +50,8 @@ table's on an extreme-heavy sample. Boundary statement: results §1; thesis text
 2. **Thesis-text support** (corrections 1–57 + rollup). Load-bearing now: #55 (E1–E3), #56
    (the sensitivity study as the main quantitative contribution — world model, boundary
    statement, the intermediate-type finding), #57 (N recomputed; File 06 §2 no longer fixes
-   N = 30; the "worth running only if a pilot shows σ_shape ≈ 0.6" conclusion).
+   N = 30; the "N ≈ 35–70 if a pilot shows σ_shape ≈ 0.6, N ≈ 30–45 only under a 1.5–2×
+   population effect, otherwise ≥ 120" conclusion).
 3. **iPhone pass** — scoped below; starts when the owner names the device and iOS version.
 
 ## iPhone pass — scope, what it needs from the owner, how long (scoped 2026-09-05, unchanged)

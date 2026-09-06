@@ -296,3 +296,33 @@ def test_sensitivity_one_tiny_cell_replicate_has_the_registered_shape() -> None:
     assert 0.0 <= rep["mean_A"] <= 1.0 and rep["heuristic_ceiling"] == pytest.approx(0.45)
     again = sens.run_cell_replicate(spec, cfg, seed=3)
     assert again["effect"] == rep["effect"]
+
+
+def test_mu0_deep_equals_every_entry_of_the_file04_table() -> None:
+    """Adversarial finding 10: the whole 30-entry table, parsed from the spec, not one cell."""
+    import re
+    from pathlib import Path
+
+    spec = next(Path(__file__).resolve().parents[2].glob("specs/04_*.md")).read_text()
+    rows: dict[str, list[float]] = {}
+    for line in spec.splitlines():
+        m = re.match(r"\|\s*(EM|MO|MD|AF|EV|NT)\s[^|]*\|" + r"\s*(\.\d+)\s*\|" * 5, line)
+        if m:
+            rows[m.group(1)] = [float(x) for x in m.groups()[1:]]
+    assert set(rows) == {"EM", "MO", "MD", "AF", "EV", "NT"}
+    for dp, vals in rows.items():
+        assert vals == [e3_closedloop.MU0_DEEP[dp][k] for k in ("DM", "MM", "INT", "ME", "DE")]
+
+
+def test_sensitivity_seed_map_and_n80_median_rule() -> None:
+    from hourwell_training.simstudy import sensitivity as sens
+
+    assert [sens.cell_seed_base(REGISTERED, i) for i in (0, 1, 19, 74)] == [5000, 5100, 6900, 12400]
+    assert sens.n80_median_over_replicates([30, 40, None, 50]) == 45.0  # None = +inf
+    assert sens.n80_median_over_replicates([None, None, 30]) is None  # median is +inf
+    assert sens.n80_median_over_replicates([]) is None
+    cfg = replace(REGISTERED.quick(), sens_replicates=1, sens_n_users=10, sens_ns=(10,),
+                  e3_runin_days=1, e3_phase_days=1)
+    doc = sens.run_sensitivity(cfg, workers=1)
+    assert [c["seed_base"] for c in doc["cells"][:3]] == [5000, 5100, 5200]
+    assert len(doc["cells"]) == 75

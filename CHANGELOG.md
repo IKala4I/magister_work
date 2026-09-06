@@ -43,8 +43,11 @@ Everything below condenses P0–P11 for release notes and the thesis; per-phase 
 - **docs(study): `sensitivity-results.md` + `results/sensitivity.json`** (301 s on `2ad8a94`): 58 WIN /
   17 TIE / 0 LOSS; the registered substantive-failure test fires (TIE in the prior's own world —
   intermediates and morning types lose 1–2 pp each); wins are driven by individual deviation, not the
-  chronotype pattern; the prior is worth ±0.4 pp; N₈₀ 20 … > 120, > 120 in 48 of 75 worlds; seven of
-  twelve predictions came out differently and are reported. Exploratory σ² diagnostic committed.
+  chronotype pattern; the prior is worth ±0.4 pp; N₈₀ 21 … > 120, > 120 in 48 of 75 worlds; under the
+  frozen criteria 2 predictions confirmed, 5 partly, 5 not. Adversarial pass (fresh subagent, 3 MAJOR /
+  7 MINOR / 3 NOTE) addressed on the branch: N sentences made to follow their inputs, three verdicts
+  downgraded, the σ² diagnostic re-run on the cell's own 40 seeds with a level-matched-prior setting
+  and SEs, slice-aware attainable ceilings added, the N₈₀ median rule fixed (no number changed).
 - **Spec rewrites (M10–M12):** File 04 §2.2 (|A_m|-weighted replay; the 2026-08-26 trade stated),
   File 04 §3.2 (note on the unmeasured AF/MD ordering — the P11 generator disagreed, not the
   transcription), File 06 §2 (N follows the simulated effect; 28 → 30 normal-approximation fix).

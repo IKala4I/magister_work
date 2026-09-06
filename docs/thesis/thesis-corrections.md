@@ -601,27 +601,30 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     +10 pp), when the day is nearly full or nearly empty, and at a low baseline with a weak
     pattern; it never loses by more than 0.5 pp on average**; (c) the registered
     substantive-failure test firing (TIE in the world the prior was written for) reported as
-    the study's central negative result, with the §5.1 diagnostic (sampler variance explains
-    the morning-type loss, estimation noise the intermediate loss); (d) the prior's value
+    the study's central negative result, with the §5.1 decomposition (sampler variance, the
+    prior's level bias at p₀ = 0.45, and estimation noise — each with its measured share); (d)
+    the prior's value
     (±0.4 pp) and the fact that individual deviation, not the chronotype pattern, drives the
     wins — i.e. the system's value is per-person profile learning; (e) predictions S1–S12
-    against outcomes with the seven that came out differently (results §4). Replace every
+    against outcomes under the frozen criteria as written — 2 confirmed, 5 partly, 5 not — and
+    the seven substantive differences (results §4). Replace every
     sentence that quotes E3's 2.5 / 5.4 pp as "the" effect: those were properties of the P11
     world, whose intermediate types had no pattern and nothing to lose.
 
 57. **§5 sample size / §2 assumptions / abstract / conclusions — N recomputed from the
     simulated effect (owner item 1; File 06 §2 amended, spec-conflicts M12).** State that N = 30
     came from an assumed +8 pp effect and no longer stands as a derived number. Report the
-    completers needed for 0.80 power **as a range across worlds — 20 to more than 120, above
+    completers needed for 0.80 power **as a range across worlds — 21 to more than 120, above
     120 in 48 of 75 worlds** — never a single figure; name the worlds where N ≤ 60 holds
-    (individual deviation ≈ 0.6 logits: 33–84; a population effect ≥ 2× the table's on an
-    extreme-heavy sample: 31–43; six tasks a day at that strength: 20) and the literature-like
-    adult world where it does not (> 120; a 30-user study rejects 5 % of the time). Be explicit
-    that every effect is a property of the world model, not a measured fact about people. Then
-    draw the conclusion plainly: **the designed ABAB study is worth running at N ≈ 30–45 only if
-    a pilot shows individual slot-effect spread of ≈ 0.6 logits (≈ ±14 pp per daypart) or a
-    population effect twice File 04's; otherwise it needs N ≥ 120 (recruit ≥ 170) and is not
-    worth running as designed.** Keep #55's E2 numbers (0.84 / 0.82) only as "what File 06's
+    (individual deviation ≈ 0.6 logits: 33–52 without day noise, 43–68 at moderate, 50–84 at
+    high; a population effect ≥ 1.5–2× the table's on an extreme-heavy sample: 31–43; six tasks a
+    day at 2×: 21) and the literature-like adult world where it does not (> 120; a 30-user study
+    rejects 5 % of the time). Be explicit that every effect is a property of the world model,
+    not a measured fact about people. Then draw the conclusion plainly, with N following its
+    inputs: **the designed ABAB study needs N ≈ 35–70 if a pilot shows individual slot-effect
+    spread of ≈ 0.6 logits (≈ ±14 pp per daypart), N ≈ 30–45 only if it shows a population
+    effect 1.5–2× File 04's on an extreme-heavy sample; otherwise N ≥ 120 (recruit ≥ 170) and it
+    is not worth running as designed.** Keep #55's E2 numbers (0.84 / 0.82) only as "what File 06's
     own model gives under its own assumption", and note the 28 → 30 normal-approximation
     correction. Cross-refs: File 06 §2 amendment block; grid §4 S11 (the prediction that
     failed and why).

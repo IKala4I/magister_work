@@ -28,8 +28,10 @@ __all__ = [
     "WorldSpec",
     "analytic_n80",
     "apportion",
+    "cell_seed_base",
     "centred_pattern",
     "grid",
+    "n80_median_over_replicates",
     "run_cell_replicate",
     "run_sensitivity",
     "verdict",
@@ -88,6 +90,22 @@ def analytic_n80(d_mean: float, sd_user: float, *, alpha: float = 0.05, power: f
         if pw >= power:
             return n
     return None
+
+
+def n80_median_over_replicates(n80s: list[int | None]) -> float | None:
+    """Grid §3: the median over ALL replicates, a replicate with no positive effect (or N₈₀ >
+    2000) counting as +∞ — so a cell whose median replicate has no attainable power reports
+    None ("> grid maximum"), never a median over the lucky replicates only."""
+    vals = sorted(float("inf") if x is None else float(x) for x in n80s)
+    if not vals:
+        return None
+    med = float(np.median(vals))
+    return None if math.isinf(med) else med
+
+
+def cell_seed_base(cfg: StudyConfig, index: int) -> int:
+    """Grid §2: seeds are base + stride · cell index + replicate."""
+    return cfg.sens_seed_base + index * cfg.sens_cell_seed_stride
 
 
 def verdict(effect_mean: float, share_positive: float, share_negative: float) -> str:
@@ -277,11 +295,7 @@ def _aggregate(block: str, spec: WorldSpec, reps: list[dict[str, Any]],
     share_neg = sum(1 for e in effects if e < 0) / n
     eff = mc_summary(effects)
     gap = mc_summary([r["ceiling_gap"] for r in reps])
-    n80s = [r["n80"] for r in reps]
-    finite = sorted(x for x in n80s if x is not None)
-    n80_median: float | None = (
-        float(np.median(finite)) if len(finite) > n / 2 else None
-    )  # None = "> 2000 / no positive effect" in more than half the replicates
+    n80_median = n80_median_over_replicates([r["n80"] for r in reps])
     return {
         "block": block,
         **asdict(spec),
@@ -315,7 +329,7 @@ def run_sensitivity(cfg: StudyConfig, *, workers: int = 1) -> dict[str, Any]:
     cells = grid()
     jobs: list[tuple[WorldSpec, StudyConfig, int]] = []
     for idx, (_, spec) in enumerate(cells):
-        base = cfg.sens_seed_base + idx * cfg.sens_cell_seed_stride
+        base = cell_seed_base(cfg, idx)
         jobs.extend((spec, cfg, base + i) for i in range(cfg.sens_replicates))
     if workers > 1:
         with ProcessPoolExecutor(max_workers=workers) as pool:
@@ -325,8 +339,8 @@ def run_sensitivity(cfg: StudyConfig, *, workers: int = 1) -> dict[str, Any]:
     out_cells = []
     for idx, (block, spec) in enumerate(cells):
         reps = results[idx * cfg.sens_replicates:(idx + 1) * cfg.sens_replicates]
-        out_cells.append({"index": idx, "seed_base": cfg.sens_seed_base
-                          + idx * cfg.sens_cell_seed_stride, **_aggregate(block, spec, reps, cfg)})
+        out_cells.append({"index": idx, "seed_base": cell_seed_base(cfg, idx),
+                          **_aggregate(block, spec, reps, cfg)})
     return {
         "config": {
             "replicates": cfg.sens_replicates, "n_users": cfg.sens_n_users,

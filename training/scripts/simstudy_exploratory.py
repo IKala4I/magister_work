@@ -122,40 +122,133 @@ def replay_closed_form_targets() -> dict[str, Any]:
     return out
 
 
-def intermediate_loss_diagnostic(n_reps: int = 10) -> dict[str, Any]:
-    """Sensitivity results §5.1: the s = 1, σ_shape = 0, σ_day = 0.6 cell (adult mix) with the
-    TS variance forced to ≈ 0 — does the intermediate/morning-type loss vanish?"""
+def _se(vals: list[float]) -> float:
+    return statistics.stdev(vals) / math.sqrt(len(vals)) if len(vals) > 1 else float("nan")
+
+
+def intermediate_loss_diagnostic(n_reps: int | None = None) -> dict[str, Any]:
+    """Sensitivity results §5.1: the s = 1, σ_shape = 0, σ_day = 0.6 cell (adult mix) on ITS
+    OWN registered seeds (the cell's index is derived from the frozen grid), under four
+    settings — registered; the TS variance forced to ≈ 0; the informative prior level-matched
+    to the world (its shape kept, its mean over the four dayparts moved to p₀); both — with
+    per-class means ± SE over replicates. Decomposes the intermediate/morning-type loss into
+    sampler variance, prior-level bias and the estimation-noise remainder."""
     from dataclasses import replace
+
+    from hourwell_recsys.energy import BetaCell
 
     from hourwell_training.simstudy import sensitivity as sens
 
     spec = replace(sens.CENTRE, sigma_shape=0.0)
-    orig = est.sample_thetas
+    index = next(i for i, (_, s) in enumerate(sens.grid()) if s.key == spec.key)
+    base = sens.cell_seed_base(REGISTERED, index)
+    seeds = [base + i for i in range(n_reps or REGISTERED.sens_replicates)]
+    orig_sample = est.sample_thetas
+    orig_cells = e3_closedloop.make_cells
 
     def tiny(states: Any, rng: Any, *, policy: str, sigma_sq: float = 0.25) -> Any:
-        return orig(states, rng, policy=policy, sigma_sq=1e-6)
+        return orig_sample(states, rng, policy=policy, sigma_sq=1e-6)
 
-    seeds = [5000 + 100 * 10 + i for i in range(n_reps)]  # the cell's own seed base (index 10)
-    out: dict[str, Any] = {"cell": spec.key, "replicates": n_reps, "seeds": seeds}
-    for label, fn in (("registered_sigma_sq_0.25", orig), ("diagnostic_sigma_sq_1e-6", tiny)):
-        est.sample_thetas = fn
-        e3_closedloop.sample_thetas = fn
+    def level_matched(klass: str, prior: str) -> dict[str, BetaCell]:
+        cells = orig_cells(klass, prior)
+        if prior != "informative":
+            return cells
+        logit = lambda p: math.log(p / (1 - p))  # noqa: E731
+        expit = lambda x: 1 / (1 + math.exp(-x))  # noqa: E731
+        reach = tuple(sens.REACHABLE)
+        mean_logit = sum(logit(e3_closedloop.MU0_DEEP[dp][klass]) for dp in reach) / len(reach)
+        out = {}
+        for dp, c in cells.items():
+            mu = expit(logit(e3_closedloop.MU0_DEEP[dp][klass]) - mean_logit + logit(spec.p0))
+            n0 = c.alpha0 + c.beta0
+            out[dp] = BetaCell(c.category, c.daypart, c.day_type, alpha0=mu * n0,
+                               beta0=(1 - mu) * n0)
+        return out
+
+    settings = {
+        "registered": (orig_sample, orig_cells),
+        "ts_variance_to_zero": (tiny, orig_cells),
+        "prior_level_matched": (orig_sample, level_matched),
+        "ts_zero_and_level_matched": (tiny, level_matched),
+    }
+    out: dict[str, Any] = {"cell": spec.key, "cell_index": index, "seeds": seeds}
+    for label, (sampler, cells_fn) in settings.items():
+        est.sample_thetas = sampler
+        e3_closedloop.sample_thetas = sampler
+        e3_closedloop.make_cells = cells_fn
+        sens.e3.make_cells = cells_fn
         reps = [sens.run_cell_replicate(spec, REGISTERED, seed=s) for s in seeds]
         out[label] = {
             "effect": statistics.mean(r["effect"] for r in reps),
+            "effect_se": _se([r["effect"] for r in reps]),
             "per_class": {k: statistics.mean(r["per_class_effect"][k] for r in reps)
                           for k in synthetic.CLASSES},
-            "exploration_cost_B": statistics.mean(r["exploration_cost_B"] for r in reps),
+            "per_class_se": {k: _se([r["per_class_effect"][k] for r in reps])
+                             for k in synthetic.CLASSES},
         }
-    est.sample_thetas = orig
-    e3_closedloop.sample_thetas = orig
+    est.sample_thetas = orig_sample
+    e3_closedloop.sample_thetas = orig_sample
+    e3_closedloop.make_cells = orig_cells
+    sens.e3.make_cells = orig_cells
+    return out
+
+
+def attainable_ceilings() -> dict[str, Any]:
+    """Adversarial finding 5: both arms carry the ε-slice (one of K blocks uniform over the
+    four dayparts), so the no-slice ceiling overstates what the learned arm can gain. For every
+    grid cell and its registered seeds, reproduce the users' fixed completion probabilities
+    (same RNG call order as `run_cell_replicate`: sequences, then δ) and compute
+    E_b[ top_{K-1}(remaining_b) − earliest_{K-1}(remaining_b) ] / K averaged over users — the
+    attainable B − A given the slice — next to the no-slice ceiling."""
+    from hourwell_training.simstudy import sensitivity as sens
+
+    cfg = REGISTERED
+    out: dict[str, Any] = {}
+    reach = list(sens.REACHABLE)
+    for index, (_, spec) in enumerate(sens.grid()):
+        base = sens.cell_seed_base(cfg, index)
+        pattern = {k: sens.centred_pattern(k) for k in sens.CLASSES}
+        vals_noslice: list[float] = []
+        vals_attain: list[float] = []
+        for rep in range(cfg.sens_replicates):
+            rng = np.random.default_rng(base + rep)
+            n = cfg.sens_n_users
+            classes = sens.apportion(n, sens.MIXES[spec.mix])
+            sens.e3.sequences_balanced(n, rng)  # consumes the same draws as the study
+            delta = rng.normal(0.0, spec.sigma_shape, size=(n, len(reach)))
+            b0 = math.log(spec.p0 / (1 - spec.p0))
+            ns_acc = 0.0
+            at_acc = 0.0
+            for u in range(n):
+                q = {dp: 1 / (1 + math.exp(-(b0 + spec.s * pattern[classes[u]][dp] + delta[u][j])))
+                     for j, dp in enumerate(reach)}
+                slots = [(q[dp], dp) for dp in reach for _ in range(sens.e3.DAYPART_CAPACITY[dp])]
+                K = spec.tasks
+                heur = sum(v for v, _ in slots[:K]) / K
+                orac = sum(sorted((v for v, _ in slots), reverse=True)[:K]) / K
+                ns_acc += orac - heur
+                gain = 0.0
+                for b in reach:  # the slice block lands in b, one unit of b's capacity used
+                    rem = list(slots)
+                    rem.remove((q[b], b))
+                    e = sum(v for v, _ in rem[:K - 1])
+                    o = sum(sorted((v for v, _ in rem), reverse=True)[:K - 1])
+                    gain += (o - e) / K
+                at_acc += gain / len(reach)
+            vals_noslice.append(ns_acc / n)
+            vals_attain.append(at_acc / n)
+        out[spec.key] = {
+            "index": index,
+            "ceiling_noslice": statistics.mean(vals_noslice),
+            "ceiling_attainable": statistics.mean(vals_attain),
+        }
     return out
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path, default=None)
-    ap.add_argument("--only", choices=["int-loss"], default=None,
+    ap.add_argument("--only", choices=["int-loss", "ceilings"], default=None,
                     help="run one diagnostic; writes exploratory_<name>.json")
     args = ap.parse_args()
     if args.only == "int-loss":
@@ -164,6 +257,14 @@ def main() -> int:
         print(text)
         if args.out:
             (args.out / "exploratory_sensitivity.json").write_text(text + "\n")
+        return 0
+    if args.only == "ceilings":
+        doc = {"note": "slice-aware attainable ceilings per grid cell (results §1, §5.2)",
+               "cells": attainable_ceilings()}
+        text = json.dumps(doc, indent=2)
+        if args.out:
+            (args.out / "ceilings_attainable.json").write_text(text + "\n")
+        print(f"{len(doc['cells'])} cells")
         return 0
     doc = {
         "note": "EXPLORATORY — run after the registered study; not part of it",
