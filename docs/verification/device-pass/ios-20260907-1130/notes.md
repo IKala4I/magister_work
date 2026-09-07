@@ -423,3 +423,18 @@ remoted` has no terminal for the password in this session, so the sudo-free rout
     `Launch_com.hourwell.app_<date>.trace` into the working directory instead (and the
     morning's hung attempt had left an empty stub there) — traces are moved to scratch and never
     committed.
+38. **NFR-P2 cold start on the iPhone 12** (`hw-ios-coldstart.sh`, xctrace App Launch,
+    15:15:51–15:20:31, traces in scratch): the launch phases of the probe right after the
+    reboot and the first unlock (15:12) — process creation 413 ms, system frameworks 417 ms,
+    static runtime 40 ms, UIKit init 32 ms, didFinishLaunching 41 ms, **Initial Frame
+    Rendering complete at 0.95 s, Foreground-Active from 0.96 s**. Then 20 back-to-back
+    launches (each terminates and relaunches the process; the binary is page-cached after
+    the first): **n = 19 exported** (one trace's `xctrace export` segfaults twice),
+    initial-frame → foreground-active **min 471 / p50 488 / p90 503 / max 611 ms** (the 611
+    is launch 01). Same event as Android's `am start -W` first frame. Against the Pixel 7a
+    (2026-09-01/03: p90 1582 → 1072 ms right after a reboot, ≈ 551 ms warm): the 2020
+    A14 phone is faster than the 2022 mid-range Android in both conditions; the 2 s p90
+    bound of the row holds here with 4× headroom. What this does NOT measure: the React
+    Native side (Hermes bundle load, first React render of Today) — the initial frame is the
+    launch screen; a JavaScript-ready figure (process launch → the app's first sync request)
+    is being read from the live log separately.
