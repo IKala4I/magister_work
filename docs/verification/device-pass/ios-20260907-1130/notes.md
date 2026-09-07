@@ -452,3 +452,16 @@ remoted` has no terminal for the password in this session, so the sudo-free rout
     Against the Pixel 7a (0 janky of 1733 frames, frame time p99 10 ms): the A14 scrolls the
     same list without a hitch. The 60 fps row is a device-conditioned claim; this is one
     iPhone 12, one 7-block list, dark mode, default text size.
+40. **Cold start, the React Native side, from the phone's log archive** (the 20 launches of
+    item 38, `syslog collect` at 16:1x, `/usr/bin/log show --archive`, per-pid deltas from the
+    process's first log line): UNUserNotificationCenter created at 2 ms; first network task
+    resumed at **p50 172 / p90 179 ms** (framework-level, not the app's sync); the reminder
+    scheduler's "Removing all pending notification requests" — a JavaScript call
+    (`scheduler.ts`, after the store, the first sync and the plan are in hand) — at **p50 277 /
+    p90 286 / max 346 ms**, and "Getting delivered notifications" at p50 289 ms; n = 20 for
+    every marker. The process's first log line comes after dyld / pre-main (xctrace's
+    "process creation" phase, ≈ 410 ms), so the app runs its own JavaScript logic at ≈ 0.7 s
+    from process creation and shows its first (launch-screen) frame at ≈ 0.49 s. Not a
+    "Today rendered" timestamp — the app emits no such line; the scheduler pass is the closest
+    JS-side event the OS log carries. Earlier attempt at "SpringBoard: Process launched" lines
+    found none in the archive's window; the per-process first line is the robust anchor.
