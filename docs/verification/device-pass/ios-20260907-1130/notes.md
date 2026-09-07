@@ -438,3 +438,17 @@ remoted` has no terminal for the password in this session, so the sudo-free rout
     Native side (Hermes bundle load, first React render of Today) — the initial frame is the
     launch screen; a JavaScript-ready figure (process launch → the app's first sync request)
     is being read from the live log separately.
+39. **NFR-P2 timeline scroll on hardware** (16:02:21–16:02:41, xctrace "Animation Hitches"
+    attached to the running app, the owner's thumb scrolling the 7-block Today up and down for
+    ≈ 25 s; trace 255 MB in scratch): **`hitches` table: 0 rows** — no frame missed its
+    display deadline in the app's commits; `hitches-frame-lifetimes`: 841 frames committed,
+    lifetime (commit → on glass) p50 33.5 / p90 50.2 / max 52.8 ms = 2–3 vsyncs of pipeline
+    latency at 60 Hz, none longer; `hitches-gpu`: GPU time per frame p50 2.92 / p90 3.43 /
+    max 4.17 ms (≈ 20 % of a 16.7 ms frame); committed frames per second in the 15 active
+    seconds 32–58 (mean 48) — the shortfall from 60 is the finger's reversals and pauses (a
+    frame is committed only when the content moves), not late frames, which the hitch table
+    would hold. `potential-hangs`: empty. First attempt (30 s) produced a 4.6 GB trace whose
+    save my 150 s bound killed — the 20 s recording saved in 93 s; never bound an xctrace save.
+    Against the Pixel 7a (0 janky of 1733 frames, frame time p99 10 ms): the A14 scrolls the
+    same list without a hitch. The 60 fps row is a device-conditioned claim; this is one
+    iPhone 12, one 7-block list, dark mode, default text size.
