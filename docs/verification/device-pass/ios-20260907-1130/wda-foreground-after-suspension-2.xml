@@ -1,267 +1,142 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<XCUIElementTypeApplication type="XCUIElementTypeApplication" name=" " label=" " enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="" processId="35" bundleId="com.apple.springboard">
-  <XCUIElementTypeWindow type="XCUIElementTypeWindow" enabled="true" visible="false" accessible="false" x="0" y="0" width="1170" height="2532" index="0" traits="">
-    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="1170" height="2532" index="0" traits="">
-      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="1170" height="2532" index="0" traits="">
-        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="1170" height="2532" index="0" traits="">
-          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="1170" height="2532" index="0" traits="">
-            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="1170" height="2532" index="0" traits=""/>
-            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="1170" height="2532" index="1" traits=""/>
-            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="1170" height="2532" index="2" traits=""/>
-            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="1170" height="2532" index="3" traits=""/>
-            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="1170" height="2532" index="4" traits=""/>
-            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="1170" height="2532" index="5" traits=""/>
-          </XCUIElementTypeOther>
-        </XCUIElementTypeOther>
-      </XCUIElementTypeOther>
-    </XCUIElementTypeOther>
-  </XCUIElementTypeWindow>
-  <XCUIElementTypeWindow type="XCUIElementTypeWindow" enabled="true" visible="false" accessible="false" x="0" y="0" width="1170" height="2532" index="1" traits="">
-    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="1170" height="2532" index="0" traits=""/>
-  </XCUIElementTypeWindow>
-  <XCUIElementTypeWindow type="XCUIElementTypeWindow" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="2" traits="">
-    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
-      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="0" traits=""/>
-    </XCUIElementTypeOther>
-  </XCUIElementTypeWindow>
-  <XCUIElementTypeWindow type="XCUIElementTypeWindow" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="3" traits="">
-    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
-      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="0" traits=""/>
-    </XCUIElementTypeOther>
-  </XCUIElementTypeWindow>
-  <XCUIElementTypeWindow type="XCUIElementTypeWindow" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="4" traits="">
-    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
-      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="0" traits=""/>
-    </XCUIElementTypeOther>
-  </XCUIElementTypeWindow>
-  <XCUIElementTypeWindow type="XCUIElementTypeWindow" name="SBCoverSheetWindow" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="5" traits="">
+<XCUIElementTypeApplication type="XCUIElementTypeApplication" name="Hourwell" label="Hourwell" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="" processId="916" bundleId="com.hourwell.app">
+  <XCUIElementTypeWindow type="XCUIElementTypeWindow" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
     <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
-      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
-        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
-          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="0" traits=""/>
-        </XCUIElementTypeOther>
-      </XCUIElementTypeOther>
-      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="1" traits="">
+      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
         <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
-          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="1688" index="0" traits="">
-            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
-              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
-                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
-                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="0" traits=""/>
-                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="1" traits=""/>
-                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="2" traits=""/>
-                </XCUIElementTypeOther>
-              </XCUIElementTypeOther>
-            </XCUIElementTypeOther>
-            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="1" traits="">
-              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
-                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="100" index="0" traits=""/>
-              </XCUIElementTypeOther>
-              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="1" traits="">
-                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="0" traits=""/>
-                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="1" traits="">
-                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
-                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="0" traits=""/>
-                  </XCUIElementTypeOther>
-                </XCUIElementTypeOther>
-                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="2" traits="">
-                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="-141" y="351" width="672" height="634" index="0" traits=""/>
-                </XCUIElementTypeOther>
-                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="3" traits=""/>
-                <XCUIElementTypeScrollView type="XCUIElementTypeScrollView" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="4" traits="">
+          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
                   <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
                     <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
                       <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
                         <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
-                          <XCUIElementTypeScrollView type="XCUIElementTypeScrollView" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
-                            <XCUIElementTypeScrollView type="XCUIElementTypeScrollView" enabled="true" visible="true" accessible="false" x="10" y="0" width="370" height="228" index="0" traits="">
-                              <XCUIElementTypeScrollView type="XCUIElementTypeScrollView" enabled="true" visible="true" accessible="false" x="10" y="0" width="370" height="228" index="0" traits="">
-                                <XCUIElementTypeButton type="XCUIElementTypeButton" name="ListCell" enabled="true" visible="true" accessible="false" x="10" y="0" width="370" height="228" index="0" traits="Button">
-                                  <XCUIElementTypeOther type="XCUIElementTypeOther" name="ListCell.ContentView" enabled="true" visible="true" accessible="false" x="10" y="0" width="370" height="228" index="0" traits="">
-                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="10" y="0" width="370" height="228" index="0" traits="">
-                                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="10" y="0" width="370" height="227" index="0" traits="">
-                                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="10" y="0" width="370" height="227" index="0" traits=""/>
-                                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="10" y="0" width="370" height="227" index="1" traits=""/>
-                                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="10" y="0" width="370" height="227" index="2" traits="">
-                                          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="10" y="0" width="370" height="228" index="0" traits=""/>
-                                        </XCUIElementTypeOther>
-                                      </XCUIElementTypeOther>
-                                    </XCUIElementTypeOther>
-                                  </XCUIElementTypeOther>
-                                </XCUIElementTypeButton>
-                                <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Вертикальна смуга прокручування, 1 сторінка" label="Вертикальна смуга прокручування, 1 сторінка" enabled="true" visible="false" accessible="false" x="347" y="0" width="30" height="228" index="1" traits="Adjustable">
-                                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="374" y="3" width="3" height="222" index="0" traits=""/>
-                                </XCUIElementTypeOther>
-                                <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Вертикальна смуга прокручування, 1 сторінка" label="Вертикальна смуга прокручування, 1 сторінка" enabled="true" visible="false" accessible="false" x="347" y="0" width="30" height="228" index="2" traits="Adjustable">
-                                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="374" y="3" width="3" height="222" index="0" traits=""/>
-                                </XCUIElementTypeOther>
-                              </XCUIElementTypeScrollView>
-                              <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Вертикальна смуга прокручування, 1 сторінка" label="Вертикальна смуга прокручування, 1 сторінка" enabled="true" visible="false" accessible="false" x="347" y="37" width="30" height="191" index="1" traits="Adjustable">
-                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="374" y="40" width="3" height="185" index="0" traits=""/>
-                              </XCUIElementTypeOther>
-                              <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Вертикальна смуга прокручування, 1 сторінка" label="Вертикальна смуга прокручування, 1 сторінка" enabled="true" visible="false" accessible="false" x="347" y="37" width="30" height="191" index="2" traits="Adjustable">
-                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="374" y="40" width="3" height="185" index="0" traits=""/>
-                              </XCUIElementTypeOther>
-                            </XCUIElementTypeScrollView>
-                            <XCUIElementTypeScrollView type="XCUIElementTypeScrollView" enabled="true" visible="false" accessible="false" x="10" y="586" width="370" height="130" index="1" traits="">
-                              <XCUIElementTypeScrollView type="XCUIElementTypeScrollView" name="ListCell" label="НОВИЙ ПРИСТРІЙ В ОБЛІКОВОМУ ЗАПИСІ, Згруповано, Новий пристрій в обліковому записі, iPhone тепер має доступ до FaceTime. Якщо ви не знаєте, що це за пристрій, його можна вилучити в Параметрах." enabled="true" visible="false" accessible="true" x="10" y="586" width="370" height="98" index="0" traits="Button">
-                                <XCUIElementTypeOther type="XCUIElementTypeOther" name="ListCell.ContentView" enabled="true" visible="false" accessible="false" x="10" y="586" width="370" height="98" index="0" traits="">
-                                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="10" y="586" width="370" height="98" index="0" traits="">
-                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="10" y="586" width="370" height="98" index="0" traits="">
-                                      <XCUIElementTypeOther type="XCUIElementTypeOther" name="NotificationShortLookView" label="НОВИЙ ПРИСТРІЙ В ОБЛІКОВОМУ ЗАПИСІ, Згруповано, Новий пристрій в обліковому записі, iPhone тепер має доступ до FaceTime. Якщо ви не знаєте, що це за пристрій, його можна вилучити в Параметрах." enabled="true" visible="false" accessible="false" x="10" y="586" width="370" height="98" index="0" traits="">
-                                        <XCUIElementTypeOther type="XCUIElementTypeOther" name="ShortLook.Platter" enabled="true" visible="false" accessible="false" x="10" y="586" width="370" height="98" index="0" traits="">
-                                          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="10" y="586" width="370" height="98" index="0" traits=""/>
-                                          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="10" y="586" width="370" height="98" index="1" traits=""/>
-                                          <XCUIElementTypeOther type="XCUIElementTypeOther" name="ShortLook.Platter.Content" enabled="true" visible="false" accessible="false" x="10" y="586" width="370" height="98" index="2" traits="">
-                                            <XCUIElementTypeButton type="XCUIElementTypeButton" name="ShortLook.Platter.Content.Seamless" label="Новий пристрій в обліковому записі, iPhone тепер має доступ до FaceTime. Якщо ви не знаєте, що це за пристрій, його можна вилучити в Параметрах." enabled="true" visible="false" accessible="false" x="10" y="586" width="370" height="98" index="0" traits="Button">
-                                              <XCUIElementTypeOther type="XCUIElementTypeOther" name="ShortLook.Platter.Content.Seamless.CrossFade" enabled="true" visible="false" accessible="false" x="10" y="586" width="370" height="98" index="0" traits="">
-                                                <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Новий пристрій в обліковому записі" name="NotificationTitle" label="Новий пристрій в обліковому записі" enabled="true" visible="false" accessible="false" x="74" y="598" width="289" height="19" index="0" traits="StaticText"/>
-                                                <XCUIElementTypeOther type="XCUIElementTypeOther" name="NotificationBody.TopAligned.originalMessage" enabled="true" visible="false" accessible="false" x="74" y="616" width="289" height="55" index="1" traits="">
-                                                  <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="iPhone тепер має доступ до FaceTime. Якщо ви не знаєте, що це за пристрій, його можна вилучити в Параметрах." name="TextContent.Primary" label="iPhone тепер має доступ до FaceTime. Якщо ви не знаєте, що це за пристрій, його можна вилучити в Параметрах." enabled="true" visible="false" accessible="false" x="74" y="616" width="289" height="55" index="0" traits="StaticText"/>
+                          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="761" index="0" traits="">
+                                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="761" index="0" traits="">
+                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="761" index="0" traits="">
+                                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="761" index="0" traits="">
+                                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="761" index="0" traits="">
+                                          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="761" index="0" traits="">
+                                            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="91" index="0" traits="">
+                                              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="91" index="0" traits="">
+                                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="47" index="0" traits=""/>
+                                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="91" index="1" traits="">
+                                                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="91" index="0" traits=""/>
                                                 </XCUIElementTypeOther>
-                                              </XCUIElementTypeOther>
-                                            </XCUIElementTypeButton>
-                                            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="10" y="586" width="370" height="98" index="1" traits="">
-                                              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="10" y="586" width="370" height="98" index="0" traits="">
-                                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="10" y="586" width="370" height="98" index="0" traits="">
-                                                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="10" y="586" width="370" height="98" index="0" traits="">
-                                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="10" y="586" width="370" height="98" index="0" traits="">
-                                                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="10" y="586" width="370" height="81" index="0" traits=""/>
-                                                    </XCUIElementTypeOther>
-                                                  </XCUIElementTypeOther>
-                                                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="10" y="586" width="370" height="98" index="1" traits="">
-                                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="10" y="586" width="370" height="81" index="0" traits=""/>
-                                                  </XCUIElementTypeOther>
+                                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="47" width="150" height="44" index="2" traits=""/>
+                                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="165" y="47" width="60" height="44" index="3" traits="">
+                                                  <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Today" name="Today" label="Today" enabled="true" visible="true" accessible="false" x="165" y="56" width="60" height="26" index="0" traits="StaticText">
+                                                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Today" name="Today" label="Today" enabled="true" visible="true" accessible="true" x="165" y="56" width="60" height="26" index="0" traits="StaticText"/>
+                                                  </XCUIElementTypeStaticText>
+                                                </XCUIElementTypeOther>
+                                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="240" y="47" width="150" height="44" index="4" traits="">
+                                                  <XCUIElementTypeButton type="XCUIElementTypeButton" name="Open settings" label="Open settings" enabled="true" visible="true" accessible="true" x="346" y="47" width="45" height="44" index="0" traits="Button"/>
                                                 </XCUIElementTypeOther>
                                               </XCUIElementTypeOther>
                                             </XCUIElementTypeOther>
+                                            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="91" width="390" height="670" index="1" traits=""/>
+                                            <XCUIElementTypeButton type="XCUIElementTypeButton" name="Re-plan" label="Re-plan" enabled="true" visible="true" accessible="true" x="271" y="107" width="99" height="48" index="2" traits="Button"/>
+                                            <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Monday, 7 September" name="Monday, 7 September" label="Monday, 7 September" enabled="true" visible="true" accessible="false" x="20" y="118" width="212" height="26" index="3" traits="StaticText">
+                                              <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Monday, 7 September" name="Monday, 7 September" label="Monday, 7 September" enabled="true" visible="true" accessible="true" x="20" y="118" width="212" height="26" index="0" traits="StaticText"/>
+                                            </XCUIElementTypeStaticText>
+                                            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="20" y="167" width="350" height="518" index="4" traits="">
+                                              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="20" y="167" width="350" height="518" index="0" traits="">
+                                                <XCUIElementTypeScrollView type="XCUIElementTypeScrollView" enabled="true" visible="true" accessible="false" x="20" y="167" width="350" height="518" index="0" traits="">
+                                                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="20" y="167" width="350" height="1150" index="0" traits="">
+                                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="20" y="167" width="350" height="1150" index="0" traits="">
+                                                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="20" y="167" width="350" height="1126" index="0" traits="">
+                                                        <XCUIElementTypeOther type="XCUIElementTypeOther" name="timeline-gutter-32abf56e-d965-42e8-99c6-45673d55d1d0" enabled="true" visible="true" accessible="false" x="20" y="167" width="64" height="34" index="0" traits=""/>
+                                                        <XCUIElementTypeOther type="XCUIElementTypeOther" name="b6 task 06 deep, 12:15 to 12:45, Confidence 44 percent" label="b6 task 06 deep, 12:15 to 12:45, Confidence 44 percent" enabled="true" visible="true" accessible="true" x="84" y="167" width="286" height="104" index="1" traits=""/>
+                                                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="12:15" name="12:15" label="12:15" enabled="true" visible="true" accessible="false" x="20" y="183" width="64" height="18" index="2" traits="StaticText">
+                                                          <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="12:15" name="12:15" label="12:15" enabled="true" visible="true" accessible="true" x="20" y="183" width="64" height="18" index="0" traits="StaticText"/>
+                                                        </XCUIElementTypeStaticText>
+                                                        <XCUIElementTypeOther type="XCUIElementTypeOther" name="timeline-gutter-b453ca13-1a44-4df0-81d1-d3c7f2190b19" enabled="true" visible="true" accessible="false" x="20" y="285" width="64" height="34" index="3" traits=""/>
+                                                        <XCUIElementTypeOther type="XCUIElementTypeOther" name="Reply to the supervisor, 13:00 to 13:30, Confidence 44 percent" label="Reply to the supervisor, 13:00 to 13:30, Confidence 44 percent" enabled="true" visible="true" accessible="true" x="84" y="285" width="286" height="130" index="4" traits=""/>
+                                                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="13:00" name="13:00" label="13:00" enabled="true" visible="true" accessible="false" x="20" y="301" width="64" height="18" index="5" traits="StaticText">
+                                                          <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="13:00" name="13:00" label="13:00" enabled="true" visible="true" accessible="true" x="20" y="301" width="64" height="18" index="0" traits="StaticText"/>
+                                                        </XCUIElementTypeStaticText>
+                                                        <XCUIElementTypeOther type="XCUIElementTypeOther" name="timeline-gutter-7ede6def-5930-4223-b759-17cb61f4f920" enabled="true" visible="true" accessible="false" x="20" y="447" width="64" height="34" index="6" traits=""/>
+                                                        <XCUIElementTypeOther type="XCUIElementTypeOther" name="b6 task 03 learning, 14:30 to 15:00, Confidence 44 percent" label="b6 task 03 learning, 14:30 to 15:00, Confidence 44 percent" enabled="true" visible="true" accessible="true" x="84" y="447" width="286" height="134" index="7" traits=""/>
+                                                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="14:30" name="14:30" label="14:30" enabled="true" visible="true" accessible="false" x="20" y="463" width="64" height="18" index="8" traits="StaticText">
+                                                          <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="14:30" name="14:30" label="14:30" enabled="true" visible="true" accessible="true" x="20" y="463" width="64" height="18" index="0" traits="StaticText"/>
+                                                        </XCUIElementTypeStaticText>
+                                                        <XCUIElementTypeOther type="XCUIElementTypeOther" name="timeline-gutter-bbd040d2-4de0-45f3-af25-c2286229fc98" enabled="true" visible="true" accessible="false" x="20" y="595" width="64" height="34" index="9" traits=""/>
+                                                        <XCUIElementTypeOther type="XCUIElementTypeOther" name="b6 task 04 physical, 15:15 to 15:45, Confidence 44 percent" label="b6 task 04 physical, 15:15 to 15:45, Confidence 44 percent" enabled="true" visible="true" accessible="true" x="84" y="595" width="286" height="134" index="10" traits=""/>
+                                                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="15:15" name="15:15" label="15:15" enabled="true" visible="true" accessible="false" x="20" y="611" width="64" height="18" index="11" traits="StaticText">
+                                                          <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="15:15" name="15:15" label="15:15" enabled="true" visible="true" accessible="true" x="20" y="611" width="64" height="18" index="0" traits="StaticText"/>
+                                                        </XCUIElementTypeStaticText>
+                                                        <XCUIElementTypeOther type="XCUIElementTypeOther" name="timeline-gutter-73e09736-b873-4c7f-a898-49a08eebbc6b" enabled="true" visible="false" accessible="false" x="20" y="737" width="64" height="34" index="12" traits=""/>
+                                                        <XCUIElementTypeOther type="XCUIElementTypeOther" name="b6 task 02 deep, 15:30 to 16:00, Confidence 44 percent" label="b6 task 02 deep, 15:30 to 16:00, Confidence 44 percent" enabled="true" visible="false" accessible="true" x="84" y="737" width="286" height="158" index="13" traits=""/>
+                                                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="15:30" name="15:30" label="15:30" enabled="true" visible="false" accessible="false" x="20" y="753" width="64" height="18" index="14" traits="StaticText">
+                                                          <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="15:30" name="15:30" label="15:30" enabled="true" visible="false" accessible="true" x="20" y="753" width="64" height="18" index="0" traits="StaticText"/>
+                                                        </XCUIElementTypeStaticText>
+                                                        <XCUIElementTypeOther type="XCUIElementTypeOther" name="timeline-gutter-fca459c4-0fca-43d0-881a-33284343a7a0" enabled="true" visible="false" accessible="false" x="20" y="903" width="64" height="34" index="15" traits=""/>
+                                                        <XCUIElementTypeOther type="XCUIElementTypeOther" name="b6 task 08 physical, 16:00 to 16:30, Confidence 44 percent" label="b6 task 08 physical, 16:00 to 16:30, Confidence 44 percent" enabled="true" visible="false" accessible="true" x="84" y="903" width="286" height="134" index="16" traits=""/>
+                                                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="16:00" name="16:00" label="16:00" enabled="true" visible="false" accessible="false" x="20" y="919" width="64" height="18" index="17" traits="StaticText">
+                                                          <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="16:00" name="16:00" label="16:00" enabled="true" visible="false" accessible="true" x="20" y="919" width="64" height="18" index="0" traits="StaticText"/>
+                                                        </XCUIElementTypeStaticText>
+                                                        <XCUIElementTypeOther type="XCUIElementTypeOther" name="timeline-gutter-f8918618-6209-472f-8a67-4e6962babc73" enabled="true" visible="false" accessible="false" x="20" y="1057" width="64" height="34" index="18" traits=""/>
+                                                        <XCUIElementTypeOther type="XCUIElementTypeOther" name="b6 task 07 learning, 17:00 to 17:30, Experiment, Confidence 41 percent" label="b6 task 07 learning, 17:00 to 17:30, Experiment, Confidence 41 percent" enabled="true" visible="false" accessible="true" x="84" y="1057" width="286" height="228" index="19" traits=""/>
+                                                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="17:00" name="17:00" label="17:00" enabled="true" visible="false" accessible="false" x="20" y="1073" width="64" height="18" index="20" traits="StaticText">
+                                                          <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="17:00" name="17:00" label="17:00" enabled="true" visible="false" accessible="true" x="20" y="1073" width="64" height="18" index="0" traits="StaticText"/>
+                                                        </XCUIElementTypeStaticText>
+                                                      </XCUIElementTypeOther>
+                                                    </XCUIElementTypeOther>
+                                                  </XCUIElementTypeOther>
+                                                  <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Vertical scroll bar, 3 pages" label="Vertical scroll bar, 3 pages" enabled="true" visible="true" accessible="false" x="337" y="167" width="30" height="518" index="1" traits="Adjustable">
+                                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="364" y="170" width="3" height="223" index="0" traits=""/>
+                                                  </XCUIElementTypeOther>
+                                                  <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Horizontal scroll bar, 1 page" label="Horizontal scroll bar, 1 page" enabled="true" visible="true" accessible="false" x="20" y="652" width="350" height="30" index="2" traits="Adjustable">
+                                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="23" y="679" width="341" height="3" index="0" traits=""/>
+                                                  </XCUIElementTypeOther>
+                                                  <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Vertical scroll bar, 3 pages" label="Vertical scroll bar, 3 pages" enabled="true" visible="true" accessible="false" x="337" y="167" width="30" height="518" index="3" traits="Adjustable">
+                                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="364" y="170" width="3" height="223" index="0" traits=""/>
+                                                  </XCUIElementTypeOther>
+                                                  <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Horizontal scroll bar, 1 page" label="Horizontal scroll bar, 1 page" enabled="true" visible="true" accessible="false" x="20" y="652" width="350" height="30" index="4" traits="Adjustable">
+                                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="23" y="679" width="341" height="3" index="0" traits=""/>
+                                                  </XCUIElementTypeOther>
+                                                </XCUIElementTypeScrollView>
+                                              </XCUIElementTypeOther>
+                                            </XCUIElementTypeOther>
+                                            <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="No room today for 5 tasks — they stay in your Inbox." name="No room today for 5 tasks — they stay in your Inbox." label="No room today for 5 tasks — they stay in your Inbox." enabled="true" visible="true" accessible="false" x="20" y="697" width="350" height="18" index="5" traits="StaticText">
+                                              <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="No room today for 5 tasks — they stay in your Inbox." name="No room today for 5 tasks — they stay in your Inbox." label="No room today for 5 tasks — they stay in your Inbox." enabled="true" visible="true" accessible="true" x="20" y="697" width="350" height="18" index="0" traits="StaticText"/>
+                                            </XCUIElementTypeStaticText>
                                           </XCUIElementTypeOther>
                                         </XCUIElementTypeOther>
                                       </XCUIElementTypeOther>
                                     </XCUIElementTypeOther>
+                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="761" index="1" traits="">
+                                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="761" index="0" traits=""/>
+                                    </XCUIElementTypeOther>
                                   </XCUIElementTypeOther>
                                 </XCUIElementTypeOther>
-                              </XCUIElementTypeScrollView>
-                              <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Вертикальна смуга прокручування, 1 сторінка" label="Вертикальна смуга прокручування, 1 сторінка" enabled="true" visible="false" accessible="false" x="347" y="586" width="30" height="130" index="1" traits="Adjustable">
-                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="374" y="627" width="3" height="68" index="0" traits=""/>
-                              </XCUIElementTypeOther>
-                              <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Вертикальна смуга прокручування, 1 сторінка" label="Вертикальна смуга прокручування, 1 сторінка" enabled="true" visible="false" accessible="false" x="347" y="586" width="30" height="130" index="2" traits="Adjustable">
-                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="374" y="627" width="3" height="68" index="0" traits=""/>
-                              </XCUIElementTypeOther>
-                            </XCUIElementTypeScrollView>
-                            <XCUIElementTypeScrollView type="XCUIElementTypeScrollView" enabled="true" visible="false" accessible="false" x="10" y="723" width="370" height="476" index="2" traits="">
-                              <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Вертикальна смуга прокручування, 1 сторінка" label="Вертикальна смуга прокручування, 1 сторінка" enabled="true" visible="false" accessible="false" x="347" y="723" width="30" height="439" index="0" traits="Adjustable">
-                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="374" y="726" width="3" height="470" index="0" traits=""/>
-                              </XCUIElementTypeOther>
-                              <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Вертикальна смуга прокручування, 1 сторінка" label="Вертикальна смуга прокручування, 1 сторінка" enabled="true" visible="false" accessible="false" x="347" y="723" width="30" height="439" index="1" traits="Adjustable">
-                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="374" y="726" width="3" height="470" index="0" traits=""/>
-                              </XCUIElementTypeOther>
-                            </XCUIElementTypeScrollView>
-                          </XCUIElementTypeScrollView>
-                          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="1" traits=""/>
-                        </XCUIElementTypeOther>
-                      </XCUIElementTypeOther>
-                    </XCUIElementTypeOther>
-                  </XCUIElementTypeOther>
-                  <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Вертикальна смуга прокручування, 2 сторінки" label="Вертикальна смуга прокручування, 2 сторінки" enabled="true" visible="false" accessible="false" x="357" y="41" width="30" height="761" index="1" traits="Adjustable">
-                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="384" y="50" width="3" height="791" index="0" traits=""/>
-                  </XCUIElementTypeOther>
-                  <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Вертикальна смуга прокручування, 2 сторінки" label="Вертикальна смуга прокручування, 2 сторінки" enabled="true" visible="false" accessible="false" x="357" y="41" width="30" height="761" index="2" traits="Adjustable">
-                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="384" y="50" width="3" height="791" index="0" traits=""/>
-                  </XCUIElementTypeOther>
-                </XCUIElementTypeScrollView>
-                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="5" traits=""/>
-                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="1688" index="6" traits="">
-                  <XCUIElementTypeOther type="XCUIElementTypeOther" name="lockscreen-date-view" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
-                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Понеділок, 7 вересня" name="Понеділок, 7 вересня" label="Понеділок, 7 вересня" enabled="true" visible="false" accessible="true" x="38" y="80" width="314" height="37" index="0" traits="StaticText"/>
-                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="14:31" name="14:31" label="14:31" enabled="true" visible="false" accessible="true" x="39" y="97" width="316" height="144" index="1" traits="StaticText"/>
-                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="27" y="222" width="336" height="72" index="2" traits="">
-                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="27" y="222" width="336" height="72" index="0" traits=""/>
-                    </XCUIElementTypeOther>
-                  </XCUIElementTypeOther>
-                </XCUIElementTypeOther>
-              </XCUIElementTypeOther>
-              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="2" traits="">
-                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="718" width="390" height="126" index="0" traits="">
-                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="718" width="390" height="126" index="0" traits="">
-                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="718" width="390" height="126" index="0" traits="">
-                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="718" width="390" height="126" index="0" traits="">
-                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="718" width="390" height="126" index="0" traits="">
-                          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="718" width="390" height="126" index="0" traits="">
-                            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="718" width="390" height="126" index="0" traits=""/>
-                          </XCUIElementTypeOther>
-                        </XCUIElementTypeOther>
-                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="718" width="390" height="126" index="1" traits="">
-                          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="718" width="390" height="126" index="0" traits=""/>
-                        </XCUIElementTypeOther>
-                      </XCUIElementTypeOther>
-                    </XCUIElementTypeOther>
-                  </XCUIElementTypeOther>
-                  <XCUIElementTypeButton type="XCUIElementTypeButton" value="Вимкнути" name="flashlight-orb-button" label="Ліхтарик" enabled="false" visible="false" accessible="true" x="28" y="718" width="94" height="94" index="1" traits="NotEnabled, Button"/>
-                  <XCUIElementTypeButton type="XCUIElementTypeButton" name="camera-orb-button" label="Камера" enabled="true" visible="false" accessible="true" x="268" y="718" width="94" height="94" index="2" traits="Button"/>
-                </XCUIElementTypeOther>
-              </XCUIElementTypeOther>
-              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="3" traits="">
-                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="125" index="0" traits="">
-                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="125" index="0" traits="">
-                    <XCUIElementTypeOther type="XCUIElementTypeOther" name="proud-lock" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="125" index="0" traits="">
-                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="125" index="0" traits="">
-                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="189" y="54" width="12" height="17" index="0" traits="">
-                          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="189" y="54" width="12" height="17" index="0" traits="">
-                            <XCUIElementTypeOther type="XCUIElementTypeOther" name="Заблоковано" label="Заблоковано" enabled="true" visible="false" accessible="true" x="189" y="54" width="12" height="17" index="0" traits=""/>
-                          </XCUIElementTypeOther>
-                        </XCUIElementTypeOther>
-                      </XCUIElementTypeOther>
-                    </XCUIElementTypeOther>
-                  </XCUIElementTypeOther>
-                </XCUIElementTypeOther>
-                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="1" traits="">
-                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
-                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="311" y="39" width="48" height="3" index="0" traits="">
-                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="311" y="39" width="48" height="3" index="0" traits=""/>
-                    </XCUIElementTypeOther>
-                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="311" y="67" width="48" height="3" index="1" traits=""/>
-                  </XCUIElementTypeOther>
-                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="1" traits="">
-                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
-                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
-                        <XCUIElementTypeOther type="XCUIElementTypeOther" name="Індикатор початкового екрана" label="Індикатор початкового екрана" enabled="false" visible="false" accessible="false" x="125" y="831" width="140" height="5" index="0" traits="NotEnabled">
-                          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="125" y="831" width="140" height="5" index="0" traits="">
-                            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="125" y="831" width="140" height="5" index="0" traits="">
-                              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="125" y="831" width="140" height="5" index="0" traits="">
-                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="125" y="831" width="140" height="5" index="0" traits=""/>
+                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="761" width="390" height="83" index="1" traits="">
+                                  <XCUIElementTypeButton type="XCUIElementTypeButton" value="1" name="Today, tab, 1 of 4" label="Today, tab, 1 of 4" enabled="true" visible="true" accessible="true" x="0" y="761" width="98" height="50" index="0" traits="Selected, Button"/>
+                                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="761" width="390" height="84" index="1" traits=""/>
+                                  <XCUIElementTypeButton type="XCUIElementTypeButton" name="Inbox, tab, 2 of 4" label="Inbox, tab, 2 of 4" enabled="true" visible="true" accessible="true" x="97" y="761" width="98" height="50" index="2" traits="Button"/>
+                                  <XCUIElementTypeButton type="XCUIElementTypeButton" name="Focus, tab, 3 of 4" label="Focus, tab, 3 of 4" enabled="true" visible="true" accessible="true" x="195" y="761" width="98" height="50" index="3" traits="Button"/>
+                                  <XCUIElementTypeButton type="XCUIElementTypeButton" name="Insights, tab, 4 of 4" label="Insights, tab, 4 of 4" enabled="true" visible="true" accessible="true" x="292" y="761" width="98" height="50" index="4" traits="Button"/>
+                                </XCUIElementTypeOther>
                               </XCUIElementTypeOther>
                             </XCUIElementTypeOther>
                           </XCUIElementTypeOther>
                         </XCUIElementTypeOther>
                       </XCUIElementTypeOther>
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="1" traits="">
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="0" traits=""/>
+                      </XCUIElementTypeOther>
                     </XCUIElementTypeOther>
                   </XCUIElementTypeOther>
-                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="115" y="765" width="160" height="35" index="2" traits=""/>
                 </XCUIElementTypeOther>
               </XCUIElementTypeOther>
-              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="4" traits=""/>
             </XCUIElementTypeOther>
           </XCUIElementTypeOther>
         </XCUIElementTypeOther>
       </XCUIElementTypeOther>
     </XCUIElementTypeOther>
-  </XCUIElementTypeWindow>
-  <XCUIElementTypeWindow type="XCUIElementTypeWindow" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="6" traits="">
-    <XCUIElementTypeStatusBar type="XCUIElementTypeStatusBar" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="47" index="0" traits="">
-      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="47" index="0" traits="">
-        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="47" index="0" traits="">
-          <XCUIElementTypeOther type="XCUIElementTypeOther" value="Немає сигналу" name="Стільниковий звʼязок" label="Стільниковий звʼязок" enabled="true" visible="false" accessible="true" x="302" y="19" width="18" height="12" index="0" traits=""/>
-          <XCUIElementTypeOther type="XCUIElementTypeOther" value="SSID, 3 із 3 поділки Wi‑Fi" name="3 із 3 поділки Wi‑Fi" enabled="true" visible="false" accessible="true" x="324" y="18" width="18" height="13" index="1" traits=""/>
-          <XCUIElementTypeOther type="XCUIElementTypeOther" value="Заряджання" name="Рівень заряду: 100%" label="Рівень заряду: 100%" enabled="true" visible="false" accessible="true" x="346" y="18" width="26" height="13" index="2" traits="UpdatesFrequently"/>
-        </XCUIElementTypeOther>
-      </XCUIElementTypeOther>
-    </XCUIElementTypeStatusBar>
-  </XCUIElementTypeWindow>
-  <XCUIElementTypeWindow type="XCUIElementTypeWindow" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="7" traits="">
-    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="0" traits=""/>
-  </XCUIElementTypeWindow>
-  <XCUIElementTypeWindow type="XCUIElementTypeWindow" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="8" traits="">
-    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="0" traits=""/>
   </XCUIElementTypeWindow>
 </XCUIElementTypeApplication>

@@ -353,3 +353,62 @@ collect`, 1.0 GB, scratch only; `/usr/bin/log show --archive`): locked by WDA 13
       each schedule pass, not a delivery ("Got 0 delivered notifications" at 13:51:05.114); so
       14:20 was the day's first delivery. The earlier passes were the 13:12 relaunch and the
       13:51 foreground; the 12:05 nudge had been cancelled by the 12:04:42 Start.
+33. **First foreground after a real suspension → the pull lands** (invariant 7 / P8 row):
+    suspended 13:51:06 → 14:35:57.6 (44 min, locked, one lock-screen delivery in between); WDA
+    `app activate` → the tree read at **+1.9 s** (`wda-foreground-after-suspension-1.xml`) shows
+    Today intact — seven blocks, "No room today for 5 tasks", no stale action row — and the read
+    at +6.4 s the same; the Inbox then lists **7 rows** (was 6): the task seeded server-side at
+    13:14 (seq 4877) is on the device (`wda-inbox-after-suspension.xml`; pulled DB #4: 13
+    tasks, seq 4877 present). So the foreground trigger carried the pull, the 60 s poll
+    having been suspended for 44 min. The Android-side "before the Today list re-renders" is a
+    finer timing than a 1.9 s tree read can make; what is established is: no stale state was
+    shown at any read. The lapse scan had nothing to attribute (the 14:30 block was in
+    progress at 14:36); the overnight instance stands.
+34. **VoiceOver reading order, structural half, from the accessibility daemon** (14:44–14:50,
+    `ax-today.json`, `ax-insights.json`, `ax-settings.json` — the strings are what VoiceOver
+    speaks, in traversal order):
+    - **Today:** "Today" → "Open settings, Button" → "Re-plan, Button" → the date → each card
+      as ONE element ("b6 task 06 deep, 12:15 to 12:45, Confidence 44 percent"; the ε-slice
+      block "…, Experiment, Confidence 41 percent") followed by its gutter time → the Inbox
+      footer → the tab bar ("Today, tab, 1 of 4, Button, Selected"). Good order and phrasing.
+    - **Insights:** the category chips as "Show Deep work, Selected" (tabs), the heatmap as one
+      sentence ("Energy map for Deep work. On weekdays your best time is early morning (89
+      percent) and your lowest is night (30 percent). On weekends …"), the legend, "Show as
+      text, Button"; each belief as statement + evidence + state ("You finish deep work most
+      reliably in the early morning on weekdays. 4 finished blocks of evidence. You confirmed
+      this.") and its buttons as «Mark "…" as correct, Button, Selected» / «… as incorrect,
+      Button»; the pending caption "assumed, not yet observed" read. FR-41 structurally met.
+    - **Settings sheet:** "Settings, Header"; switches as "Block reminders, 1, Button, Toggle"
+      (the raw value "1" — VoiceOver itself renders a UISwitch's value as on/off; ear item);
+      mute chips as "Mute reminders for Deep work, checkbox, unchecked"; evening times as
+      "Evening time 20:00, radio button, checked". MINOR: each switch's visible label is also
+      a separate static text, so VoiceOver reads "Block reminders" twice in a row.
+35. **DEFECT, MAJOR (NFR-A1, both platforms by construction) — the block action row is not
+    reachable by a screen reader.** The traversal steps from one card summary to the next
+    gutter time; "Start / Done / Skip / Move…" never appear. Cause: `ConfidenceBlock.tsx` wraps
+    the whole card, action row included, in `<View accessible accessibilityLabel={label}>`
+    with no `accessibilityActions` and no `onPress` — a labelled accessible container is a
+    leaf for VoiceOver (BeliefCard's own comment names the trap and avoids it). XCUITest still
+    lists the buttons (it reads identifiers), which is why every WDA tap worked; the Android
+    uiautomator dump listed them for the same reason, and the TalkBack listen was skipped —
+    so this row was never actually exercised by a screen reader on either platform. A
+    VoiceOver user can plan but cannot start, finish, skip or move a block from Today.
+    Fix batch: custom actions on the card (Start / Done / Skip / Move…) with
+    `onAccessibilityAction`, or restrict `accessible` to the header part and leave the row as
+    siblings; jest pins it; re-verify with the daemon (iOS) and a TalkBack listen (Android).
+36. **Both defects confirmed on the real Settings path, driven by WDA in the Settings app**
+    (14:47–14:54; no daemon involved): Settings → Доступність (`com.apple.settings.accessibility`)
+    → Дисплей і розмір тексту (`DISPLAY_AND_TEXT`) → Збільшення шрифту (`LARGER_TEXT`): slider
+    to 100 % (the larger-accessibility-sizes switch did not take, so this is the largest
+    non-accessibility size, ≈ 1.35×) → Hourwell foregrounded on its Settings sheet: **clipped
+    live** ("Svnc no", "Connect Gooale Ca", chips "Deep wo / Adm / Phvsic / Learni",
+    `shot-b1-realsettings-dt-live-today.png`); relaunched: **correct** (`…-dt-relaunch-today.png`;
+    Inbox row 90 px vs 74 default, `wda-realsettings-dt-relaunch-inbox.xml`). Slider and switch
+    restored (50 %, 0; daemon reads DYNAMIC_TYPE 0.2727). Then Рух (`MOTION_TITLE`) → the
+    `REDUCE_MOTION` switch on → Hourwell → Settings → Delete account and data → Continue:
+    **dialog 2 absent at +1.5 s and +5.5 s, no Cancel** (`shot-b1-realsettings-rm-after-continue.png`);
+    switch back off (read back 0). Item 24 therefore holds for the user's own switch, not only
+    the inspector flag. Tooling: iOS 26 Settings cells are identifier-named
+    (`com.apple.settings.*`, `LARGER_TEXT`, `REDUCE_MOTION`); element clicks on their switches
+    do nothing — a coordinate tap at the row's right edge (x ≈ 345) flips them; sliders take a
+    `value` write.
