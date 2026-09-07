@@ -522,3 +522,16 @@ block_reminders && permission === 'granted'` → the reminders switch renders OF
     (title), "Imported meetings are removed from this device and Hourwell …" (body),
     "Disconnect" / "Keep connected" stacked → Keep connected → Settings intact, still
     connected, dialog gone. The iOS instance waits for a completed iPhone consent.
+46. **Item 42 resolved by the session records** (16:41): `auth.sessions` — the connected account
+    `9327f910` was created 16:17:19 from a session with user agent `okhttp/4.9.2` (Android: the
+    Pixel 7a), the iPhone's `7f088974` from `Hourwell/1 CFNetwork/3860.700.1 Darwin/25.6.0`
+    (iOS). The iPhone's `gcal_sync_state` row holds an unconsumed `oauth_state` started
+    16:03:40 (expiry 16:13:40) and was never confirmed; the iPhone's pulled database holds only
+    `7f088974` rows and no `calendar_events`; the iPhone's own Settings tree at 16:26:51 read
+    "Connect Google Calendar". The "Connected · Meetings synced 4 min ago" screen the owner
+    remembered is the Pixel's (the adb dump at 16:40 carries that exact wording). So the app
+    does not show a connection the server lacks — that would have been a data-integrity
+    defect (planning around meetings never imported) — and the account under observation was
+    the right one throughout. The iPhone consent itself is the open item: a retry with the
+    Pixel's Google account, watched by the session (WDA on the SafariViewService is possible),
+    would show why the callback never returned.
