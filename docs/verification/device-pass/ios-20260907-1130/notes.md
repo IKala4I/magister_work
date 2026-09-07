@@ -412,3 +412,14 @@ collect`, 1.0 GB, scratch only; `/usr/bin/log show --archive`): locked by WDA 13
     (`com.apple.settings.*`, `LARGER_TEXT`, `REDUCE_MOTION`); element clicks on their switches
     do nothing — a coordinate tap at the row's right edge (x ≈ 345) flips them; sliders take a
     `value` write.
+37. **The device-connection wedge, resolved by a phone reboot** (15:05): `! sudo killall -9
+remoted` has no terminal for the password in this session, so the sudo-free route was
+    taken — `pymobiledevice3 diagnostics restart` (lockdown, no sudo). The phone was back on
+    USB after ≈ 48 s; after the owner's first unlock since boot, `devicectl` reported
+    `tunnelState: connected`, `ddiServicesAvailable: true`, and an xctrace App Launch
+    recording completed in 47 s. The reboot also gives the cold-start row its "right after a
+    reboot" condition (the Android series was taken the same way). Scheduled local
+    notifications survive the reboot. Gotcha: `xctrace record --output <file.trace>` wrote
+    `Launch_com.hourwell.app_<date>.trace` into the working directory instead (and the
+    morning's hung attempt had left an empty stub there) — traces are moved to scratch and never
+    committed.
