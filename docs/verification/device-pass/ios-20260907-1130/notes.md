@@ -273,3 +273,35 @@ com.hourwell.app /Documents/SQLite/hourwell.db`, 368 KB) holds 88 rows = the ser
 hourwell-export`, keys profile / tasks (12) / calendar_events / plans (11) /
     recommendations (80) / events (89) / feedback_rewards / belief_labels. Opening the saved
     copy in Files is the owner's glance.
+27. **Scroll sample** (13:09:39–13:10:04, `pymobiledevice3 developer dvt graphics`, 1 Hz, while
+    WDA dragged Today up and down twelve times): GPU "Device/Renderer Utilization" **5–8 %**
+    during the drags (34 % once at the start, idle 0 %); `CoreAnimationFramesPerSecond` per
+    second 27 / 59 / 60 / 31 / 0 / 4 / 0 / 53 / 38 / 48 / 43 / 59 / 46 / 42 / 46 / 39 / 46 / 40 /
+    48 / 39. **Not hitch evidence:** the counter is frames per wall-clock second, system-wide,
+    and the scripted drags (0.25 s each, ≈ 1 s of WDA overhead between them) leave idle gaps
+    that read as low FPS. What it does establish: seven solid cards scroll at single-digit GPU
+    load on the A14. The frame-time measurement stays `xctrace --template 'Animation Hitches'`
+    during a real thumb scroll, after the CoreDevice connection is back (replug) — owner batch.
+28. **The per-sync error is tied to the analytics client created at launch** (13:06–13:12):
+    "Usage analytics" off through the Switch element at 13:06:23 (`--using 'class name' --nth 2`;
+    the earlier name-based taps had hit the label) → one last error at 13:06:32 (the sync of the
+    toggle itself), then **the 13:07, 13:08 and 13:09 polls ran without it** — the first
+    error-free polls since 11:34. Back on at 13:10:26 → the 13:10 and 13:11 syncs still clean.
+    So the error is emitted by the PostHog client that `initAnalytics()` builds at launch
+    (posthog-react-native persists its queue through expo-file-system — the
+    "StartAccessing on a URL that is not security-scoped" line that trails every occurrence is
+    an expo-file-system access), and a client re-created by the toggle does not emit it.
+    Relaunched at 13:12:16 to see whether a launch-time client brings it back (below).
+    **Relaunch result (13:12:16):** the launch sync and the 13:13 poll ran clean too. So the
+    emitter was the persistence state the very first launch (11:33, the anonymous sign-in
+    moment) left for the analytics client; every relaunch until 13:06 re-read it, the opt-out
+    rewrote it, and no client since has logged the line. No user-visible effect, no data
+    effect (syncs, plans and facts were correct throughout); the message itself stays
+    unknown. Watch item for the next fresh install (tomorrow's throwaway): does a first launch
+    reproduce the once-per-sync line, and does `analytics.ts` need a guard around the client's
+    first persistence read.
+29. **Locked for the afternoon** (13:13:56, WDA `lock`; app state 2 = background): the 14:20
+    nudge for the 14:30 block is due on the lock screen; one task seeded server-side at 13:14
+    (seq 4877) as the "other device" for the > 10-min background → foreground pull; the lazy
+    lapse scan gets its first real suspension. Nobody touches the phone until the owner pings
+    at ≥ 14:25 and the lock screen is captured.
