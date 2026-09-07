@@ -37,6 +37,15 @@ export default tseslint.config(
     },
   },
   {
+    // Expo config plugins are loaded by the CLI with require(): CommonJS under plain node.
+    files: ['apps/mobile/plugins/**/*.js'],
+    languageOptions: {
+      sourceType: 'commonjs',
+      globals: { require: 'readonly', module: 'writable' },
+    },
+    rules: { '@typescript-eslint/no-require-imports': 'off' },
+  },
+  {
     files: ['apps/mobile/**/*.{ts,tsx}'],
     plugins: { 'react-hooks': reactHooks },
     rules: {
