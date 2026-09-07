@@ -305,3 +305,30 @@ hourwell-export`, keys profile / tasks (12) / calendar_events / plans (11) /
     (seq 4877) as the "other device" for the > 10-min background → foreground pull; the lazy
     lapse scan gets its first real suspension. Nobody touches the phone until the owner pings
     at ≥ 14:25 and the lock screen is captured.
+30. **Interruption (13:20):** the phone goes to another person for ≈ 2 h (unlocked, used for
+    their own app; Hourwell not opened). Consequences: the 14:20 lock-screen capture is lost;
+    the afternoon nudges (14:20 / 15:05 / 15:20 / 15:50) fire unobserved and are reconstructed
+    afterwards from the device's persisted log (`pymobiledevice3 syslog collect` → `log show
+--archive`); the "first foreground after a real absence" check is delayed, not spoiled,
+    unless a Hourwell notification is tapped (that would consume it — re-seed and re-lock then);
+    the app may be jetsammed meanwhile (the killed variant is in the row's scope; the suspended
+    variant is redone with a 15-min lock later). Nothing else depends on the lock: no
+    accessibility hold is active (read back: all defaults), analytics and reminders on, the
+    seeded task waits server-side. The USB-bound helpers (WDA runner, port forward, syslog
+    capture) were stopped for a clean unplug; the replug also resets the wedged CoreDevice
+    connection. The ritual capture will be done the Android way: ritual time set server-side a
+    few minutes out, sync, lock via WDA, capture, then the owner's long-press.
+31. **Accidental foreground, read back from the phone's log archive** (`pymobiledevice3 syslog
+collect`, 1.0 GB, scratch only; `/usr/bin/log show --archive`): locked by WDA 13:14:04;
+    unlock 13:51:03.5 (keybag) → Hourwell, foreground-under-lock, "Scene lifecycle state did
+    change: Foreground" 13:51:04.147 → left the foreground 13:51:06.528 (2.4 s) → locked again.
+    The foreground sync started (49 CFNetwork lines in that minute) but the seeded task (seq 4877) is **not** in the device database afterwards (12 tasks; `journal_mode = delete`, so
+    the pulled file is authoritative): the app was suspended before the pull was applied. So the
+    "first foreground after > 10 min pulls the other device's change" check is not consumed —
+    it moves to the next foreground; a 2-second foreground that does not finish a pull is not
+    a defect of the row (the lease expires, nothing was pending in the outbox). The lapse scan
+    ran with nothing lapsed (all remaining blocks were in the future); the overnight instance
+    stands. The 14:20 nudge capture stands (locked since 13:51:07, before the fire time).
+    Tooling: the WDA runner cannot initialise UI testing on a locked phone
+    (`initializationForUITestingDidFailWithError`) — it must be started while unlocked; DVT
+    screenshots and the log archive work regardless.
