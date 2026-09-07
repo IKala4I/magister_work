@@ -1,0 +1,26 @@
+[
+  {
+    "platform_identifier": "61030000002AC50C01000000FC02000000000000",
+    "estimated_uid": "FC020000-0000-0000-6103-000000000000",
+    "caption": "Sign out of the trial account?, Header",
+    "spoken_description": "Sign out of the trial account?, Header"
+  },
+  {
+    "platform_identifier": "610300009029DB20010000000C03000000000000",
+    "estimated_uid": "0C030000-0000-0000-6103-000000000000",
+    "caption": "This trial account has no email, so there is no way to sign back in to it. Add your email first to keep your data.",
+    "spoken_description": "This trial account has no email, so there is no way to sign back in to it. Add your email first to keep your data."
+  },
+  {
+    "platform_identifier": "610300000021C50C010000000303000000000000",
+    "estimated_uid": "03030000-0000-0000-6103-000000000000",
+    "caption": "Sign out anyway, Button",
+    "spoken_description": "Sign out anyway, Button"
+  },
+  {
+    "platform_identifier": "610300000024C50C010000000403000000000000",
+    "estimated_uid": "04030000-0000-0000-6103-000000000000",
+    "caption": "Keep my data, Button",
+    "spoken_description": "Keep my data, Button"
+  }
+]

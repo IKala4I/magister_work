@@ -1,0 +1,32 @@
+[
+  {
+    "platform_identifier": "35030000C0B0961C010000000400000000000000",
+    "estimated_uid": "04000000-0000-0000-3503-000000000000",
+    "caption": "Hourwell",
+    "spoken_description": "Hourwell"
+  },
+  {
+    "platform_identifier": "3503000070B0961C010000000500000000000000",
+    "estimated_uid": "05000000-0000-0000-3503-000000000000",
+    "caption": "The planner that learns your best hours",
+    "spoken_description": "The planner that learns your best hours"
+  },
+  {
+    "platform_identifier": "3503000020B0961C010000000600000000000000",
+    "estimated_uid": "06000000-0000-0000-3503-000000000000",
+    "caption": "Hourwell places your tasks where you actually finish them — and improves with every day you use it. Three quick steps, under three minutes, every question skippable.",
+    "spoken_description": "Hourwell places your tasks where you actually finish them — and improves with every day you use it. Three quick steps, under three minutes, every question skippable."
+  },
+  {
+    "platform_identifier": "3503000000DBC41A010000000700000000000000",
+    "estimated_uid": "07000000-0000-0000-3503-000000000000",
+    "caption": "Get started, Button",
+    "spoken_description": "Get started, Button"
+  },
+  {
+    "platform_identifier": "3503000000DEC41A010000000800000000000000",
+    "estimated_uid": "08000000-0000-0000-3503-000000000000",
+    "caption": "I already have an account, Button",
+    "spoken_description": "I already have an account, Button"
+  }
+]

@@ -1,0 +1,26 @@
+[
+  {
+    "platform_identifier": "61030000001EC50C010000000203000000000000",
+    "estimated_uid": "02030000-0000-0000-6103-000000000000",
+    "caption": "Delete your account?, Header",
+    "spoken_description": "Delete your account?, Header"
+  },
+  {
+    "platform_identifier": "610300000080F122010000002403000000000000",
+    "estimated_uid": "24030000-0000-0000-6103-000000000000",
+    "caption": "Your tasks, plans, history and what Hourwell learned about you will be erased. Export first if you want a copy.",
+    "spoken_description": "Your tasks, plans, history and what Hourwell learned about you will be erased. Export first if you want a copy."
+  },
+  {
+    "platform_identifier": "610300000024C50C010000000403000000000000",
+    "estimated_uid": "04030000-0000-0000-6103-000000000000",
+    "caption": "Continue, Button",
+    "spoken_description": "Continue, Button"
+  },
+  {
+    "platform_identifier": "610300000027C50C010000000903000000000000",
+    "estimated_uid": "09030000-0000-0000-6103-000000000000",
+    "caption": "Keep my account, Button",
+    "spoken_description": "Keep my account, Button"
+  }
+]
