@@ -516,6 +516,9 @@ block_reminders && permission === 'granted'` → the reminders switch renders OF
       render rule "unknown renders the neutral form, never the negative branch" — three sites
       (gcal, permission, exactness) plus Today's card. Both pinned by jest ("the first render
       carries rows", "null never renders the negative branch"). Fix batch.
+      **Owner, 16:5x:** reopened the app on the Pixel — the calendar row shows "Connect Google
+      Calendar" before flipping to connected there as well; the family is cross-platform by
+      observation, not only by construction.
 45. **Site 2, the calendar-disconnect dialog, on the Pixel 7a over adb** (16:40,
     `android-gcal-disconnect/`): Settings "Connected · Disconnect · Meetings synced 4 min ago" →
     Disconnect → its own window holds only the dialog's nodes — "Disconnect Google Calendar?"
