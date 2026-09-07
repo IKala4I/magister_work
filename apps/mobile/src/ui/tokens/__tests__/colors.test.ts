@@ -36,6 +36,23 @@ describe('File 02 §3.2 color palette', () => {
     expect(contrastRatio(fg, bg)).toBeGreaterThanOrEqual(WCAG_AA_BODY);
   });
 
+  // Destructive labels (the in-app dialog): `danger` itself is 3.6–3.8:1 as text in light —
+  // fills/icons only; `dangerText` is the derived body-size token (spec-conflicts L41).
+  it.each([
+    ['light dangerText on surface', lightColors.dangerText, lightColors.surface],
+    ['light dangerText on glass base', lightColors.dangerText, lightColors.surfaceElevated.color],
+    ['dark dangerText on surface', darkColors.dangerText, darkColors.surface],
+    ['dark dangerText on glass base', darkColors.dangerText, darkColors.surfaceElevated.color],
+  ])('%s meets AA body text (≥4.5:1)', (_label, fg, bg) => {
+    expect(contrastRatio(fg, bg)).toBeGreaterThanOrEqual(WCAG_AA_BODY);
+  });
+
+  it('danger as body text fails AA in light — the reason dangerText exists', () => {
+    expect(contrastRatio(lightColors.danger, lightColors.surfaceElevated.color)).toBeLessThan(
+      WCAG_AA_BODY,
+    );
+  });
+
   it.each([
     ['light primary on surface', lightColors.primary, lightColors.surface],
     ['dark primary on surface', darkColors.primary, darkColors.surface],

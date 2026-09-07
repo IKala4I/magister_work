@@ -68,7 +68,6 @@ jest.mock('../observability/analytics', () => ({
 
 import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
 import type { ReactElement } from 'react';
-import { Alert } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import SettingsScreen from '../../app/settings';
@@ -77,14 +76,26 @@ import { en } from '../i18n/en';
 import { isAnalyticsOptedOut } from '../privacy/state';
 import { useSyncStore } from '../state/sync';
 import { appStorage, StorageKeys } from '../storage/mmkv';
+import { DIALOG_ARM_DELAY_MS, DialogHost, useDialogStore } from '../ui/dialog';
+import { lightColors } from '../ui/tokens/colors';
 
 const initialMetrics = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
   insets: { top: 47, left: 0, right: 0, bottom: 34 },
 };
+// the in-app dialog host renders next to the screen, as the root layout mounts it (ADR-0021)
 const withSafeArea = (ui: ReactElement) => (
-  <SafeAreaProvider initialMetrics={initialMetrics}>{ui}</SafeAreaProvider>
+  <SafeAreaProvider initialMetrics={initialMetrics}>
+    {ui}
+    <DialogHost />
+  </SafeAreaProvider>
 );
+// a dialog action by label — scoped to the dialog's action row, since a site's own button may
+// share the label (Settings "Disconnect" vs the dialog's "Disconnect")
+const dialogButton = (label: string) =>
+  within(screen.getByTestId('dialog-actions')).getByRole('button', { name: label });
+/** A destructive confirm ignores presses for DIALOG_ARM_DELAY_MS after it appears. */
+const armed = () => act(() => new Promise<void>((r) => setTimeout(r, DIALOG_ARM_DELAY_MS + 20)));
 
 const connected = {
   connected: true,
@@ -99,6 +110,7 @@ const connected = {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  useDialogStore.setState({ current: null, hosts: [] });
   useSessionStore.setState({
     status: 'signed_in',
     userId: 'u1',
@@ -156,7 +168,7 @@ describe('Settings — Google Calendar section', () => {
       ok: true,
       status: { ...connected, scope: 'write', write_back: true },
     });
-    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    mockGcal.disconnect.mockResolvedValue({ ok: true, status: { ...connected, connected: false } });
     await render(withSafeArea(<SettingsScreen />));
     await act(async () => {});
     expect(screen.getByText(en['settings.gcal.connected'])).toBeTruthy();
@@ -168,13 +180,28 @@ describe('Settings — Google Calendar section', () => {
     await act(async () => {
       fireEvent.press(screen.getByText(en['settings.gcal.disconnect']));
     });
-    expect(alert).toHaveBeenCalledWith(
-      en['settings.gcal.disconnect.title'],
-      en['settings.gcal.disconnect.body'],
-      expect.any(Array),
-    );
+    // the in-app dialog, destructive tone; nothing happens until it is confirmed
+    expect(screen.getByTestId('dialog-gcal-disconnect')).toBeTruthy();
+    expect(screen.getByRole('header', { name: en['settings.gcal.disconnect.title'] })).toBeTruthy();
+    expect(screen.getByText(en['settings.gcal.disconnect.body'])).toBeTruthy();
     expect(mockGcal.disconnect).not.toHaveBeenCalled();
-    alert.mockRestore();
+    await act(async () => {
+      fireEvent.press(dialogButton(en['settings.gcal.disconnect.cancel']));
+    });
+    expect(mockGcal.disconnect).not.toHaveBeenCalled();
+    // answered: the request is gone (the card is still fading out under real timers, by design)
+    expect(useDialogStore.getState().current).toBeNull();
+    await act(async () => {
+      // the settings button, not the fading dialog's confirm (same label)
+      fireEvent.press(
+        within(screen.getByTestId('settings-scroll')).getByText(en['settings.gcal.disconnect']),
+      );
+    });
+    await armed();
+    await act(async () => {
+      fireEvent.press(dialogButton(en['settings.gcal.disconnect.confirm']));
+    });
+    expect(mockGcal.disconnect).toHaveBeenCalledTimes(1);
   });
 
   it('turning write-back off uses set_write_back (no new consent)', async () => {
@@ -282,25 +309,51 @@ describe('Settings — my data (FR-42, P10)', () => {
       reference: 'audit-9',
       completedAt: '2026-09-05T10:00:00Z',
     });
-    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
     await render(withSafeArea(<SettingsScreen />));
-    await fireEvent.press(screen.getByLabelText(en['settings.data.delete']));
-    expect(alert).toHaveBeenCalledTimes(1);
-    const first = alert.mock.calls[0]!;
-    expect(first[0]).toBe(en['settings.data.delete.confirm1.title']);
-    const cont = (first[2] as Array<{ text: string; onPress?: () => void }>).find(
-      (b) => b.text === en['settings.data.delete.confirm1.next'],
-    )!;
-    await act(async () => cont.onPress?.());
-    expect(alert).toHaveBeenCalledTimes(2);
-    expect(mockPrivacy.deleteAccount).not.toHaveBeenCalled();
-    const second = alert.mock.calls[1]!;
-    const confirm = (
-      second[2] as Array<{ text: string; style?: string; onPress?: () => void }>
-    ).find((b) => b.text === en['settings.data.delete.confirm2.confirm'])!;
-    expect(confirm.style).toBe('destructive');
     await act(async () => {
-      confirm.onPress?.();
+      fireEvent.press(screen.getByLabelText(en['settings.data.delete']));
+    });
+    // step 1: the neutral gate — "Continue" is not red, "Keep my account" is the way out
+    expect(screen.getByTestId('dialog-delete-1')).toBeTruthy();
+    expect(
+      screen.getByRole('header', { name: en['settings.data.delete.confirm1.title'] }),
+    ).toBeTruthy();
+    const next = dialogButton(en['settings.data.delete.confirm1.next']);
+    expect(
+      Object.assign(
+        {},
+        ...[within(next).getByText(en['settings.data.delete.confirm1.next']).props.style].flat(
+          Infinity,
+        ),
+      ).color,
+    ).toBe(lightColors.primary);
+    await act(async () => {
+      fireEvent.press(next);
+    });
+    // step 2: destructive — the label in dangerText; nothing deleted yet
+    expect(screen.queryByTestId('dialog-delete-1')).toBeNull();
+    expect(screen.getByTestId('dialog-delete-2')).toBeTruthy();
+    expect(
+      screen.getByRole('header', { name: en['settings.data.delete.confirm2.title'] }),
+    ).toBeTruthy();
+    expect(mockPrivacy.deleteAccount).not.toHaveBeenCalled();
+    const confirm = dialogButton(en['settings.data.delete.confirm2.confirm']);
+    // a tap inside the arming window (the double tap on "Continue") does nothing
+    await act(async () => {
+      fireEvent.press(confirm);
+    });
+    expect(mockPrivacy.deleteAccount).not.toHaveBeenCalled();
+    await armed();
+    expect(
+      Object.assign(
+        {},
+        ...[
+          within(confirm).getByText(en['settings.data.delete.confirm2.confirm']).props.style,
+        ].flat(Infinity),
+      ).color,
+    ).toBe(lightColors.dangerText);
+    await act(async () => {
+      fireEvent.press(confirm);
     });
     await act(async () => {});
     expect(mockPrivacy.deleteAccount).toHaveBeenCalledTimes(1);
@@ -308,20 +361,45 @@ describe('Settings — my data (FR-42, P10)', () => {
       pathname: '/account-deleted',
       params: { reference: 'audit-9', at: '2026-09-05T10:00:00Z' },
     });
-    alert.mockRestore();
+  });
+  it('the Android back button on either step keeps the account', async () => {
+    await render(withSafeArea(<SettingsScreen />));
+    await act(async () => {
+      fireEvent.press(screen.getByLabelText(en['settings.data.delete']));
+    });
+    await act(async () => {
+      fireEvent(screen.getByTestId('dialog-delete-1'), 'requestClose');
+    });
+    expect(screen.queryByTestId('dialog-delete-2')).toBeNull();
+    await act(async () => {
+      fireEvent.press(screen.getByLabelText(en['settings.data.delete']));
+    });
+    await act(async () => {
+      fireEvent.press(dialogButton(en['settings.data.delete.confirm1.next']));
+    });
+    await act(async () => {
+      fireEvent(screen.getByTestId('dialog-delete-2'), 'requestClose');
+    });
+    await act(async () => {});
+    expect(mockPrivacy.deleteAccount).not.toHaveBeenCalled();
+    expect(mockRouter.replace).not.toHaveBeenCalled();
   });
   it('a failed deletion changes nothing and says so', async () => {
     mockPrivacy.deleteAccount.mockResolvedValue({ ok: false, code: 'failed' });
-    const alert = jest.spyOn(Alert, 'alert').mockImplementation((_t, _b, buttons) => {
-      const go = (buttons as Array<{ text: string; onPress?: () => void }>).find((b) => b.onPress);
-      go?.onPress?.();
-    });
     await render(withSafeArea(<SettingsScreen />));
-    await fireEvent.press(screen.getByLabelText(en['settings.data.delete']));
+    await act(async () => {
+      fireEvent.press(screen.getByLabelText(en['settings.data.delete']));
+    });
+    await act(async () => {
+      fireEvent.press(dialogButton(en['settings.data.delete.confirm1.next']));
+    });
+    await armed();
+    await act(async () => {
+      fireEvent.press(dialogButton(en['settings.data.delete.confirm2.confirm']));
+    });
     await act(async () => {});
     expect(screen.getByText(en['settings.data.delete.failed'])).toBeTruthy();
     expect(mockRouter.replace).not.toHaveBeenCalled();
-    alert.mockRestore();
   });
 });
 

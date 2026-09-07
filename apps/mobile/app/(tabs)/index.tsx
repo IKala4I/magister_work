@@ -12,7 +12,7 @@
  */
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, AppState, Pressable, StyleSheet, View } from 'react-native';
+import { AppState, Pressable, StyleSheet, View } from 'react-native';
 
 import { discardPendingWipe, keepPendingWipe } from '../../src/auth/accountTransition';
 import { currentUserId } from '../../src/auth/identity';
@@ -74,6 +74,7 @@ import { MovePicker } from '../../src/ui/plan/MovePicker';
 import { SkipDiagnosticCard } from '../../src/ui/plan/SkipDiagnosticCard';
 import { Timeline } from '../../src/ui/plan/Timeline';
 import { TradeOffSheet } from '../../src/ui/plan/TradeOffSheet';
+import { confirmDialog } from '../../src/ui/dialog';
 import { Button, EmptyState, Screen, ThemedText } from '../../src/ui/primitives';
 import { useTheme } from '../../src/ui/theme';
 
@@ -355,14 +356,16 @@ export default function TodayScreen() {
               label={t('today.wipe.discard')}
               onPress={() =>
                 // destructive and not undoable: confirm first (invariant 14; adversarial #3)
-                Alert.alert(t('today.wipe.confirm.title'), t('today.wipe.confirm.body'), [
-                  { text: t('today.wipe.confirm.cancel'), style: 'cancel' },
-                  {
-                    text: t('today.wipe.confirm.discard'),
-                    style: 'destructive',
-                    onPress: () => discardPendingWipe(localDb),
-                  },
-                ])
+                void confirmDialog({
+                  title: t('today.wipe.confirm.title'),
+                  body: t('today.wipe.confirm.body'),
+                  confirmLabel: t('today.wipe.confirm.discard'),
+                  cancelLabel: t('today.wipe.confirm.cancel'),
+                  destructive: true,
+                  testID: 'dialog-wipe-discard',
+                }).then((ok) => {
+                  if (ok) discardPendingWipe(localDb);
+                })
               }
             />
           </View>

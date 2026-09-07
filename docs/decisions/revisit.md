@@ -426,3 +426,9 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   arm auto-merge once, right after `gh pr create`, never re-run `gh pr merge --auto` after a push
   (gh merges immediately when the stale state looks clean — the protection now blocks it, but the
   habit is the defect).
+
+- [2026-09-06] **File 02 §3.4 transitions exist only on the in-app dialog** (spec-conflicts L42,
+  ADR-0021): Today cards, the trade-off sheet, the undo bar, the Insights toggles and the sheet
+  presentations all switch state instantly. Reanimated is wired (babel via `babel-preset-expo`,
+  jest via the worklets mock + `setUpTests()`), so each surface can adopt `springs.*` +
+  `resolveMotion` on its own; no thesis claim depends on it — after the iPhone pass.

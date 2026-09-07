@@ -732,3 +732,16 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     атрибуції реалізовано й протестовано. Not contradicted but bounded: File 04 §3.3 "evidence
     overtakes the prior in 1.5–2 weeks" concerns a cell's evidence outweighing n₀ = 8 at ≈ 4
     outcomes a day — consistent with the simulation; the policy-level gap keeps growing slowly.
+
+61. **§3 (проєктування) — принципи взаємодії та рядок стеку «Анімації та жести» (File 02
+    §3.4; spec-conflicts L42, ADR-0021).** The draft states as built: "фізика замість оздоблення
+    (пружинні переходи ≤ 250 мс, повага до reduced-motion)" and, in the stack table, "Анімації та
+    жести — react-native-reanimated 4 + gesture-handler: ворклети в потоці інтерфейсу: фізика
+    перетягу…". The system has exactly one spring transition — the in-app dialog added
+    2026-09-06 (200 ms in / 120 ms out, reduced motion → 0 ms on the same path) — and no drag
+    physics (M10: drag-to-teach is not built). Change the text: «Принцип "фізика замість
+    оздоблення" реалізовано на одній поверхні — діалозі підтвердження (пружина ≤ 250 мс, під
+    reduced motion — миттєво тим самим шляхом); решта переходів у застосунку миттєві, що
+    зафіксовано як розбіжність зі специфікацією (L42), а не як рішення.» In the stack row keep
+    Reanimated 4 (it is wired: babel через `babel-preset-expo`, jest через мок worklets) but
+    replace "фізика перетягу" with «пружинні переходи діалогу; перетягування не реалізовано».

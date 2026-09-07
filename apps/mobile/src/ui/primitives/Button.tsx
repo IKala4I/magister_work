@@ -1,7 +1,9 @@
 /**
  * Buttons for flows (P4 onboarding/auth). Primary = filled; secondary = quiet text
- * action (skip/sign-in links — File 02 §3: skip is never red, no guilt UI). ≥44 px
- * touch targets (NFR-A1); disabled state announced via accessibilityState.
+ * action (skip/sign-in links — File 02 §3: skip is never red, no guilt UI); destructive = the
+ * same quiet text action in `dangerText` (the in-app dialog's confirm — never a filled red
+ * button, never for skip). ≥44 px touch targets (NFR-A1); disabled state announced via
+ * accessibilityState.
  */
 import { Pressable, StyleSheet } from 'react-native';
 import type { StyleProp, ViewStyle } from 'react-native';
@@ -13,7 +15,7 @@ import { ThemedText } from './ThemedText';
 export interface ButtonProps {
   label: string;
   onPress: () => void;
-  kind?: 'primary' | 'secondary';
+  kind?: 'primary' | 'secondary' | 'destructive';
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
 }
@@ -47,7 +49,9 @@ export function Button({ label, onPress, kind = 'primary', disabled = false, sty
               ? theme.scheme === 'dark'
                 ? theme.colors.surface
                 : '#FFFFFF'
-              : theme.colors.primary,
+              : kind === 'destructive'
+                ? theme.colors.dangerText
+                : theme.colors.primary,
           },
         ]}
       >

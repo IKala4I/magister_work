@@ -4,6 +4,7 @@ import { ScrollView } from 'react-native';
 
 import { createTaskAction } from '../../src/domain/taskActions';
 import { t } from '../../src/i18n';
+import { DialogHost } from '../../src/ui/dialog';
 import { Screen } from '../../src/ui/primitives';
 import { TaskForm } from '../../src/ui/task/TaskForm';
 
@@ -20,6 +21,7 @@ export default function NewTaskScreen() {
           }}
         />
       </ScrollView>
+      <DialogHost />
     </Screen>
   );
 }

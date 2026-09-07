@@ -1,0 +1,7 @@
+bundle host hits: 1
+  uses-permission: name='android.permission.SCHEDULE_EXACT_ALARM'
+  uses-permission: name='android.permission.RECEIVE_BOOT_COMPLETED'
+  uses-permission: name='android.permission.POST_NOTIFICATIONS'
+size: 121313766 B
+sha256: 7a72cd8d1c5f0a78…
+GATE OK

@@ -1,0 +1,53 @@
+  Window #0 Window{e9470c u0 ScreenDecorOverlayBottom}:
+    mHasSurface=false isReadyForDisplay()=false mWindowRemovalAllowed=false
+    isVisible=false
+  Window #1 Window{14e161 u0 ScreenDecorOverlay}:
+    mHasSurface=false isReadyForDisplay()=false mWindowRemovalAllowed=false
+    isVisible=false
+  Window #2 Window{5ad53b2 u0 ScreenDecorHwcOverlay}:
+    mHasSurface=true isReadyForDisplay()=true mWindowRemovalAllowed=false
+    isVisible=true
+  Window #3 Window{d9c46b0 u0 DisplayBackGestureHandler 0}:
+    mHasSurface=false isReadyForDisplay()=false mWindowRemovalAllowed=false
+    isVisible=false
+  Window #4 Window{9a9051d u0 Taskbar}:
+    mHasSurface=true isReadyForDisplay()=true mWindowRemovalAllowed=false
+    isVisible=true
+  Window #5 Window{5aa88a5 u0 NotificationShade}:
+    mHasSurface=false isReadyForDisplay()=false mWindowRemovalAllowed=false
+    isVisible=false
+  Window #6 Window{5f8ae5b u0 StatusBar}:
+    mHasSurface=true isReadyForDisplay()=true mWindowRemovalAllowed=false
+    isVisible=true
+  Window #7 Window{ece44cb u0 ShellDropTarget}:
+    mHasSurface=false isReadyForDisplay()=false mWindowRemovalAllowed=false
+    isVisible=false
+  Window #8 Window{ca34a12 u0 InputMethod}:
+    mHasSurface=false isReadyForDisplay()=false mWindowRemovalAllowed=false
+    isVisible=false
+  Window #9 Window{b171ace u0 com.hourwell.app/com.hourwell.app.MainActivity}:
+    mOwnerUid=10465 showForAllUsers=false package=com.hourwell.app appop=NONE
+    mHasSurface=true isReadyForDisplay()=true mWindowRemovalAllowed=false
+    isVisible=true
+  Window #10 Window{d4da8d1 u0 com.hourwell.app/com.hourwell.app.MainActivity}:
+    mOwnerUid=10465 showForAllUsers=false package=com.hourwell.app appop=NONE
+    mHasSurface=true isReadyForDisplay()=true mWindowRemovalAllowed=false
+    isVisible=true
+  Window #11 Window{5246f0a u0 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity}:
+    mHasSurface=false isReadyForDisplay()=false mWindowRemovalAllowed=false
+    isVisible=false
+  Window #12 Window{5ec8e16 u0 com.instagram.android/com.instagram.android.activity.MainTabActivity}:
+    mHasSurface=false isReadyForDisplay()=false mWindowRemovalAllowed=false
+    isVisible=false
+  Window #13 Window{1f81b00 u0 org.telegram.messenger/org.telegram.ui.LaunchActivity}:
+    mHasSurface=false isReadyForDisplay()=false mWindowRemovalAllowed=false
+    isVisible=false
+  Window #14 Window{badd53d u0 com.google.android.dialer/com.google.android.dialer.extensions.GoogleDialtactsActivity}:
+    mHasSurface=false isReadyForDisplay()=false mWindowRemovalAllowed=false
+    isVisible=false
+  Window #15 Window{5e092d5 u0 com.android.systemui.wallpapers.ImageWallpaper}:
+    mHasSurface=true isReadyForDisplay()=false mWindowRemovalAllowed=false
+    isVisible=false
+  Window #16 Window{c3d7778 u0 com.android.systemui.wallpapers.ImageWallpaper}:
+    mHasSurface=true isReadyForDisplay()=false mWindowRemovalAllowed=false
+    isVisible=false

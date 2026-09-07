@@ -1,0 +1,28 @@
+# ADR-0021: the Settings dialogs on an already-onboarded app — run after switching the OS
+# appearance / Dynamic Type (`xcrun simctl ui <udid> appearance dark`, `content_size
+# accessibility-extra-extra-extra-large`); every dialog is CANCELLED.
+appId: com.hourwell.app
+---
+- launchApp:
+    stopApp: true
+- tapOn: 'Open settings'
+- assertVisible: 'Account'
+- scrollUntilVisible:
+    element: 'Delete account and data'
+    direction: DOWN
+- tapOn: 'Delete account and data'
+- assertVisible: 'Delete your account?'
+- takeScreenshot: dialog-delete-1
+- tapOn: 'Continue'
+- assertVisible: 'This cannot be undone'
+- takeScreenshot: dialog-delete-2
+- tapOn: 'Cancel'
+- assertNotVisible: 'This cannot be undone'
+- scrollUntilVisible:
+    element: 'Sign out'
+    direction: UP
+- tapOn: 'Sign out'
+- assertVisible: 'Sign out of the trial account?'
+- takeScreenshot: dialog-sign-out
+- tapOn: 'Keep my data'
+- assertNotVisible: 'Sign out of the trial account?'

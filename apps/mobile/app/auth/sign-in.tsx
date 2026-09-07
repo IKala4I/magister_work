@@ -4,11 +4,12 @@
  * this device already holds another account's data (the account-change wipe contract).
  */
 import { useState } from 'react';
-import { Alert, StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
 
 import { getLastUserId } from '../../src/auth/identity';
 import { sendMagicLink, signInWithGoogle } from '../../src/auth/flows';
 import { t } from '../../src/i18n';
+import { confirmDialog } from '../../src/ui/dialog';
 import { Button, Screen, ThemedText } from '../../src/ui/primitives';
 import { useTheme } from '../../src/ui/theme';
 
@@ -46,10 +47,15 @@ export default function SignInScreen() {
     // (cursor contract). The caption alone is easy to miss — confirm explicitly
     // (finding m10; the deep-link path is logged in docs/decisions/revisit.md).
     if (getLastUserId() !== null) {
-      Alert.alert(t('auth.signIn.replace.title'), t('auth.signIn.replace.body'), [
-        { text: t('auth.signIn.replace.cancel'), style: 'cancel' },
-        { text: t('auth.signIn.replace.confirm'), onPress: () => void send() },
-      ]);
+      void confirmDialog({
+        title: t('auth.signIn.replace.title'),
+        body: t('auth.signIn.replace.body'),
+        confirmLabel: t('auth.signIn.replace.confirm'),
+        cancelLabel: t('auth.signIn.replace.cancel'),
+        testID: 'dialog-sign-in-replace',
+      }).then((ok) => {
+        if (ok) void send();
+      });
       return;
     }
     void send();

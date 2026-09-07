@@ -40,6 +40,46 @@
 - ✅ **UC-01 / FR-21 — every Today card paints on Android (FlashList v2 + the overflow-hidden glass panel)** (added 2026-09-05). Scroll a ≥ 10-block Today to the bottom six times after a fresh plan; every card must show its content, and no control may respond from a card that shows none (`hw-blank-cards.py` reports 0 BLANK). Why: the panel clip and cell recycling are native Android paths the simulator never runs; iOS uses a different panel (BlurView).
   **Android 2026-09-05 (build 5) — MAJOR DEFECT, data integrity:** the last card rendered as an empty panel with its content mounted (accessibility tree complete, touch live); reproduced 5/5 over adb, survives foreground cycles and a font-scale re-layout; the layout-bounds overlay shows no child boxes inside the card → React Native's `overflow: hidden` clip on the Android `GlassPanel` evaluates empty while the background still draws. The owner's two taps on blank cards became real facts (`task_completed` 567, `focus_start` 568) that the 23:55 attribution turns into rewards — facts from unseen controls are indistinguishable from behaviour on the server. Fix batch / build 6: drop the clip on Android, then FlashList 2.3.1 + `getItemType` if needed; verify with the recipe above (day-5 notes item 9; corrections #53).
   **Android ✅ 2026-09-05 (build 6, `7e5e2fd8…`):** the plain-View `GlassPanel` carries no clip (e7bb05e). Fresh account, Saturday given a window on the server, 7-block plan 5:45–11:45 PM; `hw-blank-cards-sweep.sh` six cycles of three drags to the bottom → detector → back: **0 BLANK in 24 card scans at default density and 0 in 12 at font scale 1.3** (std-dev 30–37 inside every card; build-6 notes item 5). **Caveat closed the same evening (build-6 notes item 9): a 13-block list (device + profile timezone shifted west for a full-day horizon — the minimum block is 30 min, so a Kyiv evening caps at 6) — 0 BLANK in 24 scans at default density and 0 in 12 at 1.3×, bottom reached every cycle; 72 scans over 7- and 13-block lists in total, the ≥ 10 case of the day-5 trigger covered.** Recipe gotcha: an `input swipe` that starts on the header/banner (y ≲ 490) never moves the list — start drags inside it (the script does now). FlashList stays 2.0.2.
+- ⬜ **NFR-A1 — the in-app dialog under TalkBack / VoiceOver** (added 2026-09-06, ADR-0021).
+  Open each dialog — sign out of the trial account, delete ×2, "replace this device's data?",
+  "discard unsynced changes"; disconnect calendar once a calendar is connected (device-pending
+  by circumstance: the owner connects one by hand during the iPhone pass; the OAuth client is
+  configured) — and check: focus lands on the title and it is read as a header (no separate
+  announcement — it would compete with the focus event), swipe order title → body → confirm →
+  cancel, nothing under the scrim reachable, back cancels (Android button; iOS two-finger Z via
+  the card's escape action), and on iOS a dialog opened from Settings actually appears (the
+  Modal presents from its nearest view controller — one host per native modal screen). Why: RN
+  Modal's window/presentation semantics and the focus event are native behaviour the jest render
+  only asserts as props.
+  **Android 2026-09-06 (build 7 + 8, session, structural half ✅):** every dialog is its own
+  window — the uiautomator dump holds only the dialog's nodes (title wrapper focusable with the
+  header role, `android.widget.Button` ×2 with the exact labels, no scrim node, nothing of the
+  screen beneath); back / scrim / Cancel all dismiss with Settings intact; the double tap on
+  "Continue" (two taps within 129 ms) leaves step 2 up. Injected taps are consumed by TalkBack's
+  explore-by-touch and TalkBack logs no utterances at its default level — **the spoken order and
+  the focus landing on the title stay with the owner's listening pass** (optional as before).
+  **iOS 2026-09-06 (simulator smoke, not device):** a Settings-launched dialog presents from
+  inside the sheet (`ios-sim-20260906-dialog/`, Maestro 1/1); VoiceOver, escape = iPhone pass.
+- ⬜ **NFR-A2 — every dialog at 200 % + largest display, both schemes, landscape; the spring
+  in/out and the OS reduce-motion toggle** (added 2026-09-06). The long body (sign-out) scrolls
+  inside the card with the actions visible; labels wrap on their own rows; the entrance settles
+  within 250 ms (`screenrecord` frame count) and is instant under reduced motion (Android:
+  `animator_duration_scale 0` over adb reads back as reduced motion; iOS: Settings toggle, owner).
+  Why: font scale and display size compound on Android; Reanimated's jest path simulates the UI
+  thread, it is not the UI thread.
+  **Android ✅ 2026-09-06 (build 7 + 8, session):** delete ×2, sign-out (long body) and sign-in
+  replace at light/dark × 1.0×/2.0× + 540 dpi + landscape — every dialog present, labels on
+  their own rows, Cancel dismisses (`android-20260906-dialog/`); entrance measured from
+  `screenrecord` **150 ms** (9 frames at 60 fps), reduced motion **one frame**. Exit not
+  captured (unit-pinned at 120 ms). iOS: simulator dark + accessibility-XXXL renders both erasure
+  dialogs (`dialog-delete-*-dark-xxxl.png`); device pending.
+- ⬜ **Android — the dialog scrim covers the status and navigation bars** (added 2026-09-06).
+  Under SDK 57 edge-to-edge the Modal window is full-bleed regardless of the
+  `statusBarTranslucent` / `navigationBarTranslucent` props (RN forces both); check light and
+  dark with gesture and 3-button navigation. Why: no simulator equivalent of the edge-to-edge
+  window insets on a real OEM build.
+  **Android 2026-09-06 (build 7, gesture navigation only):** the scrim covers the status bar in
+  light and dark (`shot-*-delete2.png`); 3-button navigation not exercised.
 - ⬜ **NFR-A2 — 200% font scale + reduced-motion sweep on both platforms** (added P2, extended
   P3). Re-run the 27-item sweep from `p2-manual-verification.md` plus the P3 screens (inbox,
   quick-add chips, task sheet, undo bar) with real OS settings. Simulator can't settle it: the
@@ -235,8 +275,9 @@
   "Keep it as is" is a quiet secondary button. Why: the flow crosses the real network (task op →
   re-plan) and a real keyboard/gesture path the jest render cannot exercise.
 - ⬜ **NFR-A2 — reduced motion on Insights** (added P9). With Reduce Motion on: the refresh and
-  the category switch must not animate (there are no animations by design — confirm none are
-  introduced by the platform ScrollView/Pressable defaults). Why: OS-level reduced-motion
+  the category switch must not animate (Insights ships no transitions — a divergence from File 02
+  §3.4 recorded as spec-conflicts L42, not a design choice; confirm none are introduced by the
+  platform ScrollView/Pressable defaults). Why: OS-level reduced-motion
   hooks are not represented on the simulator.
 
 ### Notifications, privacy, performance (added P10)
@@ -280,6 +321,8 @@
   - cancelled notifications is a device lifecycle path.
     **Android 2026-09-02:** same blocker as export (Settings unscrollable); deliberately last in the pass anyway.
     **Android ✅ 2026-09-05 (build 5, owner):** two confirmations → "Your account is deleted" with the reference `e1d0b2eb-…`; server: all eight user tables at 0, `auth.users` row gone, `deletion_audit` +1 with that id (`user_request`, 180 ms); device: 0 pending Hourwell alarms (tonight's ritual cancelled), empty shade; "Start over" and a cold relaunch both land on the welcome screen (day-5 notes item 17).
+    **Re-verification owed (2026-09-06, ADR-0021):** the two prompts are in-app dialogs now (the build-5 result stays as history of the OS-alert version). Repeat on a fresh throwaway account with two tasks and one plan: Android over adb (session, this branch), iPhone by the owner during the iPhone pass.
+    **Android ✅ 2026-09-06 (build 8, session over adb, fresh throwaway `d2aade77-…` with two tasks, one plan, two alarms):** in-app dialog 1 → Continue → dialog 2 → Delete everything → "Your account is deleted" with `Reference: 3192fba6-…`; server: `auth.users` row gone, all eight user tables at 0, `deletion_audit` 56 → 57 with that id (`user_request`, **113 ms**); device: alarms 2 → 0, 0 posted notifications; "Start over" and a cold relaunch (562 ms) both land on the welcome screen; a second throwaway proved the 400 ms arming (two taps within 129 ms → step 2 still up) and was then erased the same way (`96719cfd-…`, 78 ms) — `android-20260906-dialog/notes.md`. iPhone pending.
 - ⬜ **NFR-A1 — VoiceOver / TalkBack on the P10 surfaces** (P10). Settings: switches announce
   label + state; mute chips read "checkbox, Mute reminders for Admin, checked"; ritual time
   chips read as radios in a labelled group; the export/delete status line is announced

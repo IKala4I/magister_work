@@ -3,6 +3,12 @@
  * expo-localization (locale detection) is mocked to an English device; react-native-mmkv
  * is replaced via moduleNameMapper (see package.json).
  */
+// Reanimated 4 under jest: the worklets runtime is mocked per its testing guide (verified
+// 2026-09-06, docs/versions.md); `setUpTests()` runs in setupAfterEnv.ts — the in-app dialog is
+// the first animated surface (File 02 §3.4).
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+jest.mock('react-native-worklets', () => require('react-native-worklets/lib/module/mock'));
+
 jest.mock('expo-localization', () => ({
   getLocales: () => [{ languageCode: 'en' }],
   getCalendars: () => [{ timeZone: 'Europe/Kyiv' }],

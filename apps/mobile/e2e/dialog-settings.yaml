@@ -1,0 +1,65 @@
+# ADR-0021 (2026-09-06): a dialog opened from the Settings sheet must actually appear — on iOS
+# RN Modal presents from its nearest view controller, so this walks the risky case on a fresh
+# install: onboarding (the P4 walk without the quick-add — Maestro cannot dismiss the simulator
+# keyboard), then the delete gate (cancelled) and the sign-out dialog (cancelled). Every dialog
+# here is CANCELLED; nothing destructive runs.
+appId: com.hourwell.app
+---
+- launchApp:
+    stopApp: true
+    clearState: true
+- assertVisible: 'The planner that learns your best hours'
+- tapOn: 'Get started'
+- assertVisible: 'Your rhythm'
+- tapOn: '5:00–6:30'
+- scrollUntilVisible:
+    element: 'Very refreshed'
+- tapOn: 'Very refreshed'
+- scrollUntilVisible:
+    element: '20:00–21:00'
+- tapOn: '20:00–21:00'
+- scrollUntilVisible:
+    element: '5:00–8:00'
+- tapOn: '5:00–8:00'
+- scrollUntilVisible:
+    element: 'Definitely a morning type'
+- tapOn: 'Definitely a morning type'
+- scrollUntilVisible:
+    element: 'Continue'
+- tapOn: 'Continue'
+- assertVisible: 'Your hours'
+- scrollUntilVisible:
+    element: 'Continue'
+- tapOn: 'Continue'
+- assertVisible: 'What fills your days?'
+- tapOn: 'Deep work'
+- tapOn: 'Continue'
+- assertVisible: 'Add your first tasks'
+- tapOn: '(Finish setup|Skip this step)'
+- assertVisible: '(No plan yet|No working hours today)'
+- tapOn: 'Open settings'
+- assertVisible: 'Account'
+# the Settings sheet is a native modal: the dialog must present from inside it
+- scrollUntilVisible:
+    element: 'Delete account and data'
+    direction: DOWN
+- tapOn: 'Delete account and data'
+- assertVisible: 'Delete your account?'
+- assertVisible: 'Continue'
+- assertVisible: 'Keep my account'
+- takeScreenshot: dialog-delete-1
+- tapOn: 'Continue'
+- assertVisible: 'This cannot be undone'
+- assertVisible: 'Delete everything'
+- takeScreenshot: dialog-delete-2
+- tapOn: 'Cancel'
+- assertNotVisible: 'This cannot be undone'
+- scrollUntilVisible:
+    element: 'Sign out'
+    direction: UP
+- tapOn: 'Sign out'
+- assertVisible: 'Sign out of the trial account?'
+- takeScreenshot: dialog-sign-out
+- tapOn: 'Keep my data'
+- assertNotVisible: 'Sign out of the trial account?'
+- assertVisible: 'Account'

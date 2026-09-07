@@ -41,16 +41,17 @@ palettes is printed by `node -e` in the P10 session log and reproduced here:
 
 Legend: ✅ T = pinned by a test · ✅ S = checked on the iOS simulator / by reading · ⬜ D = device pass.
 
-| Screen                  | Roles & labels (4.1.2)                                                | Text scaling (1.4.4)           | Reduced motion (2.3.3)                  | Reading order (1.3.2)                               | Focus/target (2.5.8) |
-| ----------------------- | --------------------------------------------------------------------- | ------------------------------ | --------------------------------------- | --------------------------------------------------- | -------------------- |
-| Onboarding (5 steps)    | ✅ T (P4 tests) · ⬜ D                                                | ✅ T ThemedText · ⬜ D         | no animation                            | ⬜ D                                                | ✅ S · ⬜ D          |
-| Today (plan, cards)     | ✅ T composed block labels; P10 banners `summary` + label             | ✅ T · ⬜ D (200 % + 6 blocks) | ✅ T motion tokens collapse (P6) · ⬜ D | ⬜ D                                                | ✅ S · ⬜ D          |
-| Inbox / task form       | ✅ T (P3)                                                             | ✅ T · ⬜ D                    | ✅ T undo bar (P3)                      | ⬜ D                                                | ✅ S · ⬜ D          |
-| Focus                   | ✅ T (P7)                                                             | ✅ T · ⬜ D                    | ✅ T ring (P7)                          | ⬜ D                                                | ✅ S · ⬜ D          |
-| Insights                | ✅ T grid summary + text view, toggles (P9)                           | ✅ T · ⬜ D                    | no animation                            | ⬜ D                                                | ✅ S · ⬜ D          |
-| Settings (all sections) | ✅ T switches labelled, chips `checkbox`/`radio` + state, radiogroups | ✅ T · ⬜ D                    | no animation                            | ⬜ D (7 sections, 2 screens tall at 200 %)          | ✅ S · ⬜ D          |
-| Account deleted         | ✅ T `summary` + mono reference with a label                          | ✅ T · ⬜ D                    | no animation                            | ⬜ D                                                | ✅ S · ⬜ D          |
-| Local notifications     | copy through i18n; category actions labelled                          | OS-rendered                    | OS-rendered                             | ⬜ D (VoiceOver announces title + body + 2 actions) | ⬜ D                 |
+| Screen                               | Roles & labels (4.1.2)                                                                                                                              | Text scaling (1.4.4)                                             | Reduced motion (2.3.3)                                          | Reading order (1.3.2)                               | Focus/target (2.5.8)   |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------- | --------------------------------------------------- | ---------------------- |
+| Onboarding (5 steps)                 | ✅ T (P4 tests) · ⬜ D                                                                                                                              | ✅ T ThemedText · ⬜ D                                           | no animation                                                    | ⬜ D                                                | ✅ S · ⬜ D            |
+| Today (plan, cards)                  | ✅ T composed block labels; P10 banners `summary` + label                                                                                           | ✅ T · ⬜ D (200 % + 6 blocks)                                   | ✅ T motion tokens collapse (P6) · ⬜ D                         | ⬜ D                                                | ✅ S · ⬜ D            |
+| Inbox / task form                    | ✅ T (P3)                                                                                                                                           | ✅ T · ⬜ D                                                      | ✅ T undo bar (P3)                                              | ⬜ D                                                | ✅ S · ⬜ D            |
+| Focus                                | ✅ T (P7)                                                                                                                                           | ✅ T · ⬜ D                                                      | ✅ T ring (P7)                                                  | ⬜ D                                                | ✅ S · ⬜ D            |
+| Insights                             | ✅ T grid summary + text view, toggles (P9)                                                                                                         | ✅ T · ⬜ D                                                      | no animation                                                    | ⬜ D                                                | ✅ S · ⬜ D            |
+| Settings (all sections)              | ✅ T switches labelled, chips `checkbox`/`radio` + state, radiogroups                                                                               | ✅ T · ⬜ D                                                      | no animation                                                    | ⬜ D (7 sections, 2 screens tall at 200 %)          | ✅ S · ⬜ D            |
+| Account deleted                      | ✅ T `summary` + mono reference with a label                                                                                                        | ✅ T · ⬜ D                                                      | no animation                                                    | ⬜ D                                                | ✅ S · ⬜ D            |
+| Local notifications                  | copy through i18n; category actions labelled                                                                                                        | OS-rendered                                                      | OS-rendered                                                     | ⬜ D (VoiceOver announces title + body + 2 actions) | ⬜ D                   |
+| In-app dialog (ADR-0021, 2026-09-06) | ✅ T title `header` focused per request, actions `button`, scrim hidden, card `accessibilityViewIsModal` + escape action, no `Alert.alert` anywhere | ✅ T ThemedText, scrolling body, stacked wrapping actions · ⬜ D | ✅ T spring ≤ 250 ms, collapses to 0 (`dialog.test.tsx`) · ⬜ D | ⬜ D (title → body → confirm → cancel)              | ✅ T 48 px rows · ⬜ D |
 
 ## 3. The NFR-A2 sweep — protocol and status
 
@@ -73,4 +74,19 @@ Legend: ✅ T = pinned by a test · ✅ S = checked on the iOS simulator / by re
 - No screen-reader session ran in P10 (VoiceOver/TalkBack on hardware — device checklist).
 - Colour rules are pinned for the palette tokens; ad-hoc colours (`#FFFFFF` on primary) are
   covered by the same test, but a future inline colour would need a new rule.
+
+## 5. The in-app dialog (added 2026-09-06, ADR-0021)
+
+The six `Alert.alert` confirmations are now one component (`src/ui/dialog/`). Mechanical
+evidence added to `a11yAudit.test.ts`: no `Alert.alert(` anywhere in `app/`, `src/` or
+`modules/`; `dangerText`, `primary` and `textPrimary` ≥ 4.5:1 on the elevated card in both
+palettes; `danger` never a `color:` (3.76:1 as text — spec-conflicts L41). `dialog.test.tsx`
+pins roles, every way out resolving as a cancel (button, scrim, Android back, VoiceOver escape,
+native dismissal), the single slot and the per-context host registry, the title focused once per
+request, the 400 ms arming of destructive confirms, the scrolling body, and the motion in both
+states (spring settles ≤ 250 ms; a replacement never blinks; instant on the first frame under
+reduced motion). Device-conditioned: TalkBack/VoiceOver order and
+window confinement, 200 % + largest display, the OS reduce-motion toggle, edge-to-edge scrim —
+device-checklist entries of the same date.
+
 - Target sizes are asserted by reading the styles, not by measuring rendered layout.

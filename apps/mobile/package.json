@@ -16,6 +16,9 @@
     "setupFiles": [
       "<rootDir>/src/test/setup.ts"
     ],
+    "setupFilesAfterEnv": [
+      "<rootDir>/src/test/setupAfterEnv.ts"
+    ],
     "moduleNameMapper": {
       "^@hourwell/shared$": "<rootDir>/../../packages/shared/src/index.ts",
       "^@hourwell/shared/(.*)$": "<rootDir>/../../packages/shared/src/$1",
