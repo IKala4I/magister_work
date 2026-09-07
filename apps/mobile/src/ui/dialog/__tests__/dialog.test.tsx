@@ -38,8 +38,25 @@ beforeEach(() => {
   useDialogStore.setState({ current: null, hosts: [] });
 });
 
-/** A destructive confirm ignores presses for DIALOG_ARM_DELAY_MS (real timers). */
-const armed = () => act(() => new Promise<void>((r) => setTimeout(r, DIALOG_ARM_DELAY_MS + 20)));
+/**
+ * A destructive confirm ignores presses for DIALOG_ARM_DELAY_MS after its request; the host reads
+ * that window through `Date.now`. The tests pin that clock — frozen at the request, moved past the
+ * window by `armed()` — so a slow runner cannot arm the dialog before the "too early" press (the CI
+ * failure of 2026-09-06: 400 ms of real time had passed between the request and the first press).
+ */
+const clock = { now: 0, spy: null as jest.SpyInstance<number, []> | null };
+function freezeClock() {
+  clock.now = Date.now();
+  clock.spy ??= jest.spyOn(Date, 'now').mockImplementation(() => clock.now);
+}
+afterEach(() => {
+  clock.spy?.mockRestore();
+  clock.spy = null;
+});
+const armed = () =>
+  act(async () => {
+    clock.now += DIALOG_ARM_DELAY_MS + 1;
+  });
 
 describe('DialogHost — roles, labels, outcomes (NFR-A1)', () => {
   it('renders nothing until asked, then the title as a header, the body, and the actions as buttons', async () => {
@@ -47,6 +64,7 @@ describe('DialogHost — roles, labels, outcomes (NFR-A1)', () => {
     expect(screen.queryByTestId('dialog')).toBeNull();
     let answer: boolean | undefined;
     await act(async () => {
+      freezeClock();
       void confirmDialog({ ...spec, destructive: true, testID: 'dialog-t' }).then((ok) => {
         answer = ok;
       });
@@ -88,6 +106,7 @@ describe('DialogHost — roles, labels, outcomes (NFR-A1)', () => {
     expect(neutral).toBe(true);
     let destructive: boolean | undefined;
     await act(async () => {
+      freezeClock();
       void confirmDialog({ ...spec, destructive: true }).then((ok) => {
         destructive = ok;
       });
@@ -108,6 +127,7 @@ describe('DialogHost — roles, labels, outcomes (NFR-A1)', () => {
     for (const way of ['cancel', 'back', 'scrim', 'escape', 'dismiss'] as const) {
       let answer: boolean | undefined;
       await act(async () => {
+        freezeClock();
         void confirmDialog({ ...spec, destructive: true }).then((ok) => {
           answer = ok;
         });
@@ -145,6 +165,7 @@ describe('DialogHost — roles, labels, outcomes (NFR-A1)', () => {
   it('destructive labels use dangerText; a neutral confirm uses primary; the cancel is primary text too', async () => {
     await render(<DialogHost />);
     await act(async () => {
+      freezeClock();
       void confirmDialog({ ...spec, destructive: true });
     });
     const label = (name: string) => flatStyle(screen.getByText(name));
@@ -417,6 +438,7 @@ describe('DialogHost — motion (File 02 §3.4, NFR-A2)', () => {
     await render(<DialogHost />);
     let answer: boolean | undefined;
     await act(async () => {
+      freezeClock();
       void confirmDialog({ ...spec, destructive: true }).then((ok) => {
         answer = ok;
       });
@@ -425,9 +447,7 @@ describe('DialogHost — motion (File 02 §3.4, NFR-A2)', () => {
       fireEvent.press(screen.getByRole('button', { name: spec.confirmLabel }));
     });
     expect(answer).toBeUndefined();
-    await act(async () => {
-      jest.advanceTimersByTime(DIALOG_ARM_DELAY_MS + 20);
-    });
+    await armed(); // the pinned clock, not the fake timers: the window is wall-clock, not a frame count
     await act(async () => {
       fireEvent.press(screen.getByRole('button', { name: spec.confirmLabel }));
     });
