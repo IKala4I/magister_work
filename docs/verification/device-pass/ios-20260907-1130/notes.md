@@ -562,3 +562,18 @@ block_reminders && permission === 'granted'` → the reminders switch renders OF
     `shot-b1-today-after-ritual.png`). Ritual time restored to 20:00 server-side (seq 4909) for
     tomorrow. The backgrounded variant and "Adjust tasks" → Inbox are not exercised on iOS
     (the Android day-2 run covered the backgrounded body tap).
+49. **After the ritual: the schedule pass of 16:48:14** (the app pulled the 20:00 restore, seq
+    4909, at 16:47): six pending — tomorrow's nudges **08:50 / 09:35 / 10:20 / 11:05** (the
+    ritual plan's 09:00 / 09:45 / 10:30 / 11:15 blocks, the 10-minute lead), tomorrow's ritual
+    **20:00**, and **today's ritual at 20:00 again** (request FD1A-28FB re-added). The 16:50 nudge
+    was dropped (four delivered + the 20:00 ritual = five). So: (a) the cap held all day — the
+    fifth slot went to the ritual, never a sixth; (b) **a possible defect on a rare path:** the
+    ritual already fired and was answered at 16:42, yet moving the evening time back to 20:00
+    re-created today's ritual — if it fires at 20:00 that is a second ritual on one calendar
+    day, which the ledger's `ritual:<day>` id was meant to exclude (the Android day-4 note
+    observed no second one after the same helper restored 20:00; the fire-then-restore order may
+    be the difference). Read tonight from the log: a fire at 20:00 = defect; none = the ledger
+    held. The owner leaves it untapped either way. Also observed: the scheduler runs its
+    cancel-all → re-add pass on every 60 s poll (≈ 145 `UserNotificationsCore` lines per
+    minute while foreground) — by design (settle → cancel → plan → schedule after every sync),
+    cheap, cancel-first so a coincident fire is lost rather than doubled (P10 adversarial #4).

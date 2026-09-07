@@ -2,6 +2,27 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+### post-P12 — iPhone pass, day 1 (2026-09-07)
+
+- **Build 1 on the iPhone 12 / iOS 26.6** under the personal team; `apps/mobile/plugins/withoutApsEnvironment.js`
+  drops the `aps-environment` entitlement expo-notifications writes (no push; a free team cannot
+  sign it); `hw-build-gate-ios.sh` gates the .app. The dialog PR's flaky arming test pinned to a
+  frozen clock (`test(ui)`).
+- **iOS tooling found and recorded:** WebDriverAgent (personal team) driven over HTTP
+  (`hw-ios-wda.py`); the accessibility daemon as reader, settings switch and auditor
+  (`hw-ios-ax.py`: items / hold / audit); `hw-ios-coldstart.sh` (xctrace App Launch × N);
+  `hw-plan-rows.mjs` (the plans' edge-function timings). Maestro does not run on physical iPhones.
+- **Measured on the iPhone 12:** cold start p50 488 / p90 503 ms to the initial frame (0.95 s
+  after a reboot); zero hitches on a real thumb scroll; NFR-P1 server side p50 710 / p95 783 ms;
+  FR-50 five notifications in the day with the OS's own schedule as evidence; FR-26 to a killed
+  app with category actions; FR-42 export through the share sheet; the pull on the first
+  foreground after a 44-minute suspension.
+- **Defects for the fix batch:** the second erasure dialog missing under Reduce Motion (MAJOR);
+  the block action row unreachable by screen readers (MAJOR, both platforms); a live text-size
+  change not re-laid out; the "default before first read" family (shared fix proposed); the
+  calendar callback screen; a possible second ritual after moving the evening time back.
+
+
 Everything below condenses P0–P11 for release notes and the thesis; per-phase detail follows.
 
 - **Plan your day around your real energy.** Tasks are placed by learned personal completion
