@@ -332,3 +332,24 @@ collect`, 1.0 GB, scratch only; `/usr/bin/log show --archive`): locked by WDA 13
     Tooling: the WDA runner cannot initialise UI testing on a locked phone
     (`initializationForUITestingDidFailWithError`) — it must be started while unlocked; DVT
     screenshots and the log archive work regardless.
+32. **FR-50 on the lock screen, and the OS's own view of the schedule** (14:20–14:33):
+    - **Delivered locked:** the phone locked through WDA at 14:01:55 (state read back: locked,
+      Hourwell background). At 14:31 `press home` lit the lock screen (WDA's build has no
+      "lock" button; taps and swipes do not reach the lock screen — the unlock is a finger):
+      "Hourwell · 1 сповіщення · 11 хв тому" under a system notification stack
+      (`shot-b1-lockscreen-1431-clock.png`, `shot-b1-lockscreen-1431-hourwell-row.png`; the
+      full frame stays in scratch — it carries an Apple-account notification). The nudge's
+      text is hidden by the collapsed stack; its time is the OS's.
+    - **SpringBoard `UserNotificationsCore` (live capture, 14:20:00.012):** "Persistent timer
+      fired", "Load 6 pending notification dictionaries", requested 13:51:05 (the accidental
+      foreground's schedule pass) with trigger dates **14:20:00.004 (fired), 15:05, 15:20,
+      15:50, 20:00 today, 20:00 tomorrow** — four nudges + the ritual = **five today; no nudge
+      for the 17:00 block**, i.e. the ≤ 5/day planner cap seen from the OS side before any
+      delivery could prove it. The block at 14:30 → nudge 14:20 = the 10-minute lead.
+    - **The scheduler's cancel-first order in the OS log** (archive, 13:51:05.092–.126):
+      "Removing all pending notification requests" → "Save pending 0" → six "Adding notification
+      request …" — the P10 adversarial-#4 ordering, observed on hardware. "Load last local
+      notification fire date: 13:12:14 → 13:51:04" is SpringBoard's timer reference updated by
+      each schedule pass, not a delivery ("Got 0 delivered notifications" at 13:51:05.114); so
+      14:20 was the day's first delivery. The earlier passes were the 13:12 relaunch and the
+      13:51 foreground; the 12:05 nudge had been cancelled by the 12:04:42 Start.
