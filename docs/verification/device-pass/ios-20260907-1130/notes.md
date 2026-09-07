@@ -547,3 +547,18 @@ block_reminders && permission === 'granted'` → the reminders switch renders OF
     tap). The 14:20 one was captured on the lock screen (item 32); 15:05 and 15:50 arrived while
     the phone was in use (banners, unobserved); the ≤ 5 arithmetic holds so far — the 16:50
     fire and the absence of a sixth are read after 16:50.
+48. **FR-26 on the iPhone, the killed-app variant — PASS** (16:42–16:47): the ritual fired at
+    16:42:00.010 to the locked phone with the app not running (WDA `app terminate` 16:37:2x,
+    state 1); the owner's long-press expanded it — "Plan tomorrow? 11 tasks are waiting — one
+    tap plans your day." with the category actions **"Plan tomorrow" / "Adjust tasks"**
+    (`shot-b1-lockscreen-ritual-card.png`, `shot-b1-lockscreen-ritual-actions.png`; the
+    notification-category actions render on iOS — the empty-category bug of 2026-09-04 was
+    Android-only); "Plan tomorrow" cold-started the app (SpringBoard Foreground 16:46:12.37) →
+    the server holds **one plan for 2026-09-08 with trigger `evening_ritual`** (learned, service
+    594 / total 790 ms, 11 recommendations, 16:46:14.90Z) and **one `notification_response`
+    event** (`action: accept`, `kind: evening_ritual`, `variant: daily`, `scheduled_for`
+    16:42:00, `latency_ms` 253 172 — the fire-to-tap delay) → Today shows **"Tomorrow is
+    planned: 11 blocks, first at 09:00."** (`wda-today-after-ritual.xml`,
+    `shot-b1-today-after-ritual.png`). Ritual time restored to 20:00 server-side (seq 4909) for
+    tomorrow. The backgrounded variant and "Adjust tasks" → Inbox are not exercised on iOS
+    (the Android day-2 run covered the backgrounded body tap).
