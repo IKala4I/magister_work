@@ -535,3 +535,15 @@ block_reminders && permission === 'granted'` → the reminders switch renders OF
     the right one throughout. The iPhone consent itself is the open item: a retry with the
     Pixel's Google account, watched by the session (WDA on the SafariViewService is possible),
     would show why the callback never returned.
+47. **FR-50 today, from the OS's record** (archive to 16:1x + the live captures): "Persistent
+    timer fired" for com.hourwell.app at **14:20:00, 15:05:00, 15:50:00, 16:42:00** — four
+    deliveries; the 15:20 nudge (the block moved to 15:30) was in the 13:51 schedule but not
+    in the one written after the reboot's first launch (15:12: two already delivered, five still
+    queued → the planner kept 15:50, 16:50 and the ritual, dropping 15:20); 16:50 is pending as
+    the day's fifth. The ritual was moved server-side to 16:42 (`hw-set-ritual-time.mjs`, seq
+    4885; pulled by the device at 16:35, scheduler pass at 16:36; app terminated 16:37:2x; locked
+    16:37:38) and **fired to a killed app on the locked phone at 16:42:00.010** ("current trigger
+    date 16:42:00"; tomorrow's ritual inherited 16:42 and is restored to 20:00 after the owner's
+    tap). The 14:20 one was captured on the lock screen (item 32); 15:05 and 15:50 arrived while
+    the phone was in use (banners, unobserved); the ≤ 5 arithmetic holds so far — the 16:50
+    fire and the absence of a sixth are read after 16:50.
