@@ -465,3 +465,60 @@ remoted` has no terminal for the password in this session, so the sudo-free rout
     "Today rendered" timestamp — the app emits no such line; the scheduler pass is the closest
     JS-side event the OS log carries. Earlier attempt at "SpringBoard: Process launched" lines
     found none in the archive's window; the per-process first line is the robust anchor.
+41. **VoiceOver, the owner's ear (16:2x, ≈ 3 min):** the dialogs announce their title on open
+    and read title → body → buttons with nothing beneath; the two-finger Z cancels; the
+    replacement dialog's title is announced on its own; a card summary is followed by the next
+    time label, never "Start" — item 35 confirmed by ear; a switch is read as on/off; the
+    English strings in the Ukrainian voice are understandable, "a bit odd". No defect beyond
+    item 35. NFR-A1's iOS rows are therefore covered by the daemon (order, strings, traits)
+    plus this listen (announcements, gestures, voice).
+42. **Google Calendar on the iPhone did not connect; the Pixel did.** Server (`gcal_sync_state`):
+    the iPhone's account `7f088974` holds a row with a calendar id but `connected_at` /
+    `confirmed_at` / `last_synced_at` NULL and no push channel — the consent (SafariViewService
+    open 16:03–16:05, the "«Hourwell» wants to use google.com" system alert accepted) never
+    returned a confirmation to the app: first attempt "Access blocked" (the OAuth client is in
+    Testing and the phone's Google account is not a test user), the retry with the Pixel's
+    account is not on the server either. The Pixel's fresh build-8 session (`9327f910`, created
+    16:17:19) connected at 16:17:50 with a channel and one imported event (2026-09-18), last
+    synced 16:25:02. So the two observations that follow are Android's, and the iOS
+    calendar-disconnect dialog (site 2) stays pending on an iPhone consent that completes.
+43. **Finding, MINOR (Android, callback screen):** `app/gcal-callback.tsx` shows "Google
+    Calendar connected. Importing your meetings…" for both its `working` and `ok` states and
+    never leaves on its own; "Back to settings" is the only exit. The owner waited ≈ 5 min while
+    the import had finished ("Meetings synced 4 min ago" in Settings). Fix batch: distinct copy
+    for `ok`, and `router.replace('/settings')` after the confirm resolves.
+44. **Finding (both platforms, systemic) — a default or empty state renders before the first
+    real read.** Reported by the owner on the Pixel: Settings shows "Connect Google Calendar"
+    for a moment on every open, then flips to connected. Cause: `settings.tsx` holds
+    `useState<GcalStatus | null>(null)` and fetches `gcalStatus()` in an effect; the render
+    treats `null` as "not connected". The same shape, audited across the app (16:3x):
+    - `useLiveRows` (src/db/useLiveRows.ts) reads in an effect by design, so every caller's
+      FIRST render has `rows = []`: **Inbox** (`tasks.length === 0` → the empty-inbox state for a
+      frame), **Focus** (`active[0] ?? null` → "Nothing running" for a frame even with a session
+      running), **the task sheet** (`rows[0] === undefined` → the "not found" state for a frame
+      on every open), **Insights** (belief rows → "assumed" before the label rows land; the
+      document itself is seeded from a cache, so no flash there), **Today** (the plan rows use
+      `useLiveRowsState.ready` since the 2026-09-02 fix; the recommendation / task / session /
+      busy rows still start empty for the same frame).
+    - Native and network tri-states held as `null`: Settings `permission` (`remindersOn =
+block_reminders && permission === 'granted'` → the reminders switch renders OFF for the
+      frame before the permission read), `exactness`, `gcal`; Today's `permission` /
+      `exactness` (the nudge card's condition).
+    - Safe by construction: the profile (`useCurrentProfile` reads synchronously in render and
+      uses the rows hook only as a change subscription), hence the onboarding redirect; the
+      Insights document (cache-seeded).
+      **Shared fix, two mechanisms, not per-site patches:** (a) `useLiveRows` /
+      `useLiveRowsState` take their FIRST read synchronously in the initial state (the sync
+      expo-sqlite driver allows it — the profile hook already does) and re-read synchronously
+      when the inputs change, keeping `ready` for the trigger; one file, covers Inbox, Focus, the
+      task sheet, Insights and Today's secondary rows. (b) One `useLastKnown(key, fetcher)` for
+      the tri-states: seed from the last value persisted in MMKV, refresh in the effect, and a
+      render rule "unknown renders the neutral form, never the negative branch" — three sites
+      (gcal, permission, exactness) plus Today's card. Both pinned by jest ("the first render
+      carries rows", "null never renders the negative branch"). Fix batch.
+45. **Site 2, the calendar-disconnect dialog, on the Pixel 7a over adb** (16:40,
+    `android-gcal-disconnect/`): Settings "Connected · Disconnect · Meetings synced 4 min ago" →
+    Disconnect → its own window holds only the dialog's nodes — "Disconnect Google Calendar?"
+    (title), "Imported meetings are removed from this device and Hourwell …" (body),
+    "Disconnect" / "Keep connected" stacked → Keep connected → Settings intact, still
+    connected, dialog gone. The iOS instance waits for a completed iPhone consent.

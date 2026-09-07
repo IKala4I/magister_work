@@ -1,0 +1,35 @@
+  Window #0 Window{34a0d91 u0 ScreenDecorOverlayBottom}:
+    isVisible=false
+  Window #1 Window{53d9e46 u0 ScreenDecorOverlay}:
+    isVisible=false
+  Window #2 Window{9ada4d4 u0 ScreenDecorHwcOverlay}:
+    mHasSurface=true isReadyForDisplay()=true mWindowRemovalAllowed=false
+    isVisible=true
+  Window #3 Window{84be81a u0 DisplayBackGestureHandler 0}:
+    isVisible=false
+  Window #4 Window{e0c42d3 u0 Taskbar}:
+    mHasSurface=true isReadyForDisplay()=true mWindowRemovalAllowed=false
+    isVisible=true
+  Window #5 Window{3fecd56 u0 NotificationShade}:
+    isVisible=false
+  Window #6 Window{da85ba5 u0 StatusBar}:
+    mHasSurface=true isReadyForDisplay()=true mWindowRemovalAllowed=false
+    isVisible=true
+  Window #7 Window{5d94ca7 u0 ShellDropTarget}:
+    isVisible=false
+  Window #8 Window{efee0a u0 InputMethod}:
+    isVisible=false
+  Window #9 Window{82f818d u0 com.hourwell.app/com.hourwell.app.MainActivity}:
+    mOwnerUid=10465 showForAllUsers=false package=com.hourwell.app appop=NONE
+    mHasSurface=true isReadyForDisplay()=true mWindowRemovalAllowed=false
+    isVisible=true
+  Window #10 Window{b6c82db u0 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity}:
+    isVisible=false
+  Window #11 Window{4f0ab82 u0 org.telegram.messenger/org.telegram.messenger.DefaultIcon}:
+    isVisible=false
+  Window #12 Window{24f9fc3 u0 com.android.systemui.wallpapers.ImageWallpaper}:
+    mHasSurface=true isReadyForDisplay()=false mWindowRemovalAllowed=false
+    isVisible=false
+  Window #13 Window{851f605 u0 com.android.systemui.wallpapers.ImageWallpaper}:
+    mHasSurface=true isReadyForDisplay()=false mWindowRemovalAllowed=false
+    isVisible=false
