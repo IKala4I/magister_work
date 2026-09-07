@@ -35,15 +35,14 @@ unlocks (WDA cannot unlock this phone), the VoiceOver listen, the calendar conse
 long-press.
 
 **Verified on the iPhone 12 (checklist "iOS 2026-09-07" paragraphs):** onboarding with the real
-keyboard, the first plan, NFR-P1 server side (p50 710 / p95 783 ms), the day loop (Start, Finish
-
-- rating, Skip, the wheel-picker Move, the 6 s undo), Insights (heatmap, text alternative, a
-  belief label), the export through the share sheet into Files, the three dialogs' VoiceOver
-  order + a clean audit, cold start (p50 488 / p90 503 ms; 0.95 s after a reboot), zero hitches
-  on a real thumb scroll, the pull on the first foreground after a 44-min suspension, FR-50 (five
-  in the day, the OS's own schedule as evidence, the 14:20 nudge captured on the lock screen),
-  FR-26 to a killed app with the category actions ("Plan tomorrow" cold-started the app → one
-  `evening_ritual` plan for the 8th + one `notification_response` fact).
+keyboard, the first plan, NFR-P1 server side (p50 710 / p95 783 ms), the day loop (Start, Finish with a
+rating, Skip, the wheel-picker Move, the 6 s undo), Insights (heatmap, text alternative, a
+belief label), the export through the share sheet into Files, the three dialogs' VoiceOver
+order and a clean audit, cold start (p50 488 / p90 503 ms; 0.95 s after a reboot), zero hitches
+on a real thumb scroll, the pull on the first foreground after a 44-min suspension, FR-50 (five
+in the day, the OS's own schedule as evidence, the 14:20 nudge captured on the lock screen),
+FR-26 to a killed app with the category actions ("Plan tomorrow" cold-started the app → one
+`evening_ritual` plan for the 8th + one `notification_response` fact).
 
 **Findings (fix batch → build 2):** MAJOR — under Reduce Motion (the system switch) the second
 erasure dialog never appears (notes 24, 36; mechanism hypothesis: the Modal is unmounted and

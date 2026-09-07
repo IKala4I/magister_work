@@ -2,7 +2,7 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
-### post-P12 — iPhone pass, day 1 (2026-09-07)
+## Post-P12 — iPhone pass, day 1: build 1, the iOS drivers, six findings (2026-09-07, post-p12/iphone-pass)
 
 - **Build 1 on the iPhone 12 / iOS 26.6** under the personal team; `apps/mobile/plugins/withoutApsEnvironment.js`
   drops the `aps-environment` entitlement expo-notifications writes (no push; a free team cannot
