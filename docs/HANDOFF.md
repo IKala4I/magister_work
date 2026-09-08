@@ -2,8 +2,8 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-08 (evening) — **iPhone pass, day 2 closed on branch `post-p12/iphone-pass`;
-> build 2 on the phone; PR open with auto-merge.** Read first:
+> Last update: 2026-09-08 (night) — **the iPhone pass is CLOSED** (days 1–2; PR #57 merged
+> `a3b0a14`; the close-out docs PR from `post-p12/iphone-pass-close`). Read first:
 > `docs/verification/device-pass/ios-20260908-1215/notes.md` (items 50–68 + the fix-batch table
 > with the build-2 results), then the "iOS 2026-09-08" paragraphs and the "Fix-batch rows only
 > hardware can settle" section in `docs/verification/device-checklist.md`.
@@ -15,16 +15,18 @@
 > records. **Build 2 = `36b297c` on the phone** (the stale-session fix is not in it — no device
 > check needs it before main).
 >
-> **⛔ Owner items (in order, one per turn):** (1) restore the brightness (my blind slider write
-> landed on Display & Brightness — notes item 68) and, at the very end, Auto-Lock; (2) push the
-> migration `20260908140000_persist_plan_facts_beat_supersede.sql` (`supabase db push`, as for
-> P10/P11); (3) 2-minute VoiceOver listen on Today: a card's rotor must list Start / Done / Skip /
-> Move… (or "I did it"), a double-tap runs it, the summary ends with the state; (4) 1-minute
-> Larger Text check through the Settings app with Hourwell in the background (the path that
-> clipped build 1) — Inbox rows and the Today header must be laid out, not clipped; (5) the
-> erasure with the arming test: `! docs/verification/hw-ios-erase-check.sh <out-dir>` with
-> Settings open on "Delete account and data" and a WDA session alive (the session sets it up);
-> then the session reads `deletion_audit` +1 and the tables at 0.
+> **Owner items done 2026-09-08 evening:** brightness restored; migration pushed and verified on
+> the hosted project; the rotor listen ✅; the Larger Text path ✅ (notes item 69); the erasure
+> ✅ with reference `87494f9c-…`, the arming test not deliverable by XCUITest (item 70). **Still
+> ⛔:** Auto-Lock back to the usual value. The phone is free; build 2 stays installed on a
+> welcome screen (no account).
+>
+> **Next session (fresh):** the thesis-text support items (corrections rollup; the three reward /
+> data defects of this pass belong in the evaluation chapter's "what the hardware pass found"
+> — each has a data consequence: duplicate lapses / double streaks, lost lapse tuples after a
+> re-plan, a stale session paid as a completion); the Android TalkBack listen (F2 by ear) when
+> the Pixel is at hand; optional: the Pixel re-check of F6/F7 (the calendar callback and the
+> first-frame flash) on a build from main.
 
 ## What happened this session (2026-09-08 — iPhone pass, day 2)
 
@@ -61,10 +63,8 @@ Today too, not only on the sheet.
 
 ## Exact next actions (this session continues; or a fresh one after `/clear`)
 
-1. ~~Fix batch F1–F8~~ done; ~~build 2 + re-checks~~ done (notes items 65–68: F3 ✅, F1 ✅,
-   F2 state ✅, F5 layout ✅ via the daemon / Settings path owner; F4 needs a day with budget).
-   The owner items above come next; then the pass closes with a docs commit flipping the
-   remaining rows (rotor listen, Larger Text, erasure) and the PR merges.
+1. ~~Fix batch F1–F8~~, ~~build 2 + re-checks~~, ~~owner steps 2–4~~ — all done (notes items
+   65–70). The close-out docs PR merges on its own; nothing else is pending on the phone.
 2. ~~**Build 2**~~ (see above; the exact command that worked: `SENTRY_DISABLE_AUTO_UPLOAD=true npx expo run:ios --device 00008101-0015081602F1003A --configuration Release --no-bundler` with the WDA runner and the live syslog STOPPED — both hold the CoreDevice connection xcodebuild needs — and the phone unlocked; a wedged RSD (0xE8000003) is cleared by `pymobiledevice3 diagnostics restart` + the owner's first unlock) (`npx expo run:ios --device 00008101-0015081602F1003A --configuration Release
 --no-bundler` after `expo prebuild`; `hw-build-gate-ios.sh`), install over build 1 (same
    account, same data), re-check each row of the table on the phone with the same drivers;

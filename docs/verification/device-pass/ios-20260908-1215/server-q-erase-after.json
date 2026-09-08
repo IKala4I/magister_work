@@ -1,0 +1,57 @@
+{
+  "at": "2026-09-08T15:17:58.779Z",
+  "audit": [
+    {
+      "n": 59
+    }
+  ],
+  "last_audit": [
+    {
+      "row": {
+        "completed_at": "2026-08-30T19:24:06.394+00:00",
+        "id": "a90aa2ec-75cc-4435-9658-dee9399e8124",
+        "reason": "user_request",
+        "requested_at": "2026-08-30T19:24:06.303219+00:00",
+        "user_hash": "55cd35da8bbc604f028dcbff6ce4c168535937c0332bff1f1cdb75b34177cba7"
+      }
+    }
+  ],
+  "rows": [
+    {
+      "n": 0,
+      "t": "tasks"
+    },
+    {
+      "n": 0,
+      "t": "events"
+    },
+    {
+      "n": 0,
+      "t": "plans"
+    },
+    {
+      "n": 0,
+      "t": "recommendations"
+    },
+    {
+      "n": 0,
+      "t": "feedback_rewards"
+    },
+    {
+      "n": 0,
+      "t": "profiles"
+    },
+    {
+      "n": 0,
+      "t": "belief_labels"
+    },
+    {
+      "n": 0,
+      "t": "gcal_sync_state"
+    },
+    {
+      "n": 0,
+      "t": "auth_users"
+    }
+  ]
+}

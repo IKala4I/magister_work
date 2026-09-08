@@ -289,6 +289,47 @@ items` on Today (`ax-b2-today.json`): every card's spoken summary now ends with 
     tools; jest pins it (Settings, Inbox, Focus, the task sheet). Daemon settings reset to
     the device defaults afterwards (`settings show`: all False, DYNAMIC_TYPE 0.2727).
 
+69. **Owner steps 2–3 on build 2 (18:0x): the rotor listen — PASS; the Settings-app Larger Text
+    path — PASS.** VoiceOver (the owner's ear): the rotor lists a card's actions (Start / Done /
+    Skip / Move…; "I did it" on a lapsed card), a double-tap runs them, and the card's summary
+    ends with its state — F2 closed on iOS by ear (TalkBack on the Pixel still owed). Larger
+    Text driven by the session through the real Settings app with guards (Settings killed
+    and relaunched at its root; `com.apple.settings.accessibility` → `DISPLAY_AND_TEXT` →
+    `LARGER_TEXT` each found by identifier before the tap; the page held exactly one slider,
+    read back 50 % before and **83 %** after the write — the earlier blind write had landed on
+    the brightness slider of the page the owner had open, item 68): back in Hourwell (on the
+    Inbox tab, put there first) the rows **re-measured live** — title StaticText 24 → 31 pt,
+    the Add button 67 → 74 pt, nothing clipped (`shot-b2-realsettings-larger-text-inbox.png`,
+    `wda-b2-realsettings-larger-text-inbox.xml` vs `wda-b2-inbox-1x.xml`); the Settings sheet
+    renders "Up to date" and "Connect Google Calendar" as full strings (WDA found them by
+    exact name; `…-sheet.png`) where build 1 showed "Svnc no" / "Connect Gooale Ca" (item 36).
+    The tab stayed on Inbox, so the navigator did not re-mount here either; the correct layout
+    on build 2 comes from something other than the `fontScale` key — not established, and
+    not needed for the row: the user-facing outcome holds. Slider restored to 50 % (read
+    back), Hourwell back at 1× (title 24, Add 67). The accessibility sizes beyond the slider
+    (the switch that did not take on day 1) remain unexercised; 83 % ≈ the largest
+    non-accessibility size.
+
+70. **FR-42 on the iPhone — the erasure PASS; the double-tap arming test void on iOS with this
+    driver.** Owner-run `hw-ios-erase-check.sh` (18:16–18:17, the classifier refuses the
+    session's own destructive taps): Settings → "Delete account and data" → dialog 1 → Continue
+    → dialog 2 found at 18:17:15.888 → the W3C double tap (two touches 120 ms apart) was SENT at
+    18:17:15.919 but XCUITest executed it in **2 497 ms** — the server's audit row says the
+    erasure was requested at 18:17:17.87 local, i.e. the first touch landed ≈ 1.9 s after the
+    dialog appeared, past the 400 ms arming window, and legitimately confirmed; the second
+    touch hit nothing. So the arming test has no iOS device evidence either way: the tool
+    cannot deliver two touches inside 400 ms of the dialog's appearance (Android's adb pair at
+    129 ms and the jest case stand; the timer is the same code on both platforms). The
+    erasure itself: `deletion_audit` 58 → 59, reference `87494f9c-2860-4287-a9ea-b7c613d83c37`
+    (`reason: user_request`, requested 15:17:17.871Z, completed 15:17:18.022Z — 151 ms), every
+    table for `7f088974-…` at 0 (tasks, events, plans, recommendations, feedback_rewards,
+    profiles, belief_labels, gcal_sync_state, auth.users; `server-q-erase-before/after.json`);
+    the phone shows "Your account is deleted / Everything Hourwell held about you was erased
+    on 8 September 2026 at 18:17. / Reference: 87494f9c-… / Start over"
+    (`shot-b2-account-deleted-1817.png`); a cold relaunch (WDA terminate + launch, 18:18:36)
+    opens the welcome screen ("Get started", "I already have an account"). The build-2 throwaway
+    is gone; the pass is closed. Helpers stopped; the owner restores Auto-Lock.
+
 ## Fix batch (consolidated from days 1–2; build 2 re-checks each on the phone)
 
 | #   | Severity | Finding                                                                                                   | Fix                                                                                                                                                                                                | Re-check                                                                 |
