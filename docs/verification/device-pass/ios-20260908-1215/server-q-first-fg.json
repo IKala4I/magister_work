@@ -1,0 +1,186 @@
+{
+  "at": "2026-09-08T09:25:13.546Z",
+  "events_today": [
+    {
+      "client_ts": "2026-09-08 09:22:20.311+00",
+      "is_experiment": true,
+      "payload": {
+        "hours_after_slot_end": 18.872308611111112,
+        "observed_at": "2026-09-08T09:22:20.311Z",
+        "skip_streak": 1
+      },
+      "server_ts": "2026-09-08 09:22:22.017914+00",
+      "slot_end": "2026-09-07 14:30:00+00",
+      "slot_start": "2026-09-07 14:00:00+00",
+      "type": "lapse_observed"
+    },
+    {
+      "client_ts": "2026-09-08 09:22:20.311+00",
+      "is_experiment": false,
+      "payload": {
+        "hours_after_slot_end": 2.872308611111111,
+        "observed_at": "2026-09-08T09:22:20.311Z",
+        "skip_streak": 1
+      },
+      "server_ts": "2026-09-08 09:22:22.017914+00",
+      "slot_end": "2026-09-08 06:30:00+00",
+      "slot_start": "2026-09-08 06:00:00+00",
+      "type": "lapse_observed"
+    },
+    {
+      "client_ts": "2026-09-08 09:22:20.311+00",
+      "is_experiment": false,
+      "payload": {
+        "hours_after_slot_end": 2.122308611111111,
+        "observed_at": "2026-09-08T09:22:20.311Z",
+        "skip_streak": 2
+      },
+      "server_ts": "2026-09-08 09:22:22.017914+00",
+      "slot_end": "2026-09-08 07:15:00+00",
+      "slot_start": "2026-09-08 06:45:00+00",
+      "type": "lapse_observed"
+    },
+    {
+      "client_ts": "2026-09-08 09:22:20.311+00",
+      "is_experiment": false,
+      "payload": {
+        "hours_after_slot_end": 1.3723086111111111,
+        "observed_at": "2026-09-08T09:22:20.311Z",
+        "skip_streak": 2
+      },
+      "server_ts": "2026-09-08 09:22:22.017914+00",
+      "slot_end": "2026-09-08 08:00:00+00",
+      "slot_start": "2026-09-08 07:30:00+00",
+      "type": "lapse_observed"
+    },
+    {
+      "client_ts": "2026-09-08 09:22:20.311+00",
+      "is_experiment": false,
+      "payload": {
+        "hours_after_slot_end": 0.6223086111111111,
+        "observed_at": "2026-09-08T09:22:20.311Z",
+        "skip_streak": 1
+      },
+      "server_ts": "2026-09-08 09:22:22.017914+00",
+      "slot_end": "2026-09-08 08:45:00+00",
+      "slot_start": "2026-09-08 08:15:00+00",
+      "type": "lapse_observed"
+    },
+    {
+      "client_ts": "2026-09-08 09:24:11.735+00",
+      "is_experiment": false,
+      "payload": {
+        "hours_after_slot_end": 2.9032597222222223,
+        "observed_at": "2026-09-08T09:24:11.735Z",
+        "skip_streak": 2
+      },
+      "server_ts": "2026-09-08 09:24:12.609492+00",
+      "slot_end": "2026-09-08 06:30:00+00",
+      "slot_start": "2026-09-08 06:00:00+00",
+      "type": "lapse_observed"
+    },
+    {
+      "client_ts": "2026-09-08 09:24:11.735+00",
+      "is_experiment": false,
+      "payload": {
+        "hours_after_slot_end": 2.1532597222222223,
+        "observed_at": "2026-09-08T09:24:11.735Z",
+        "skip_streak": 3
+      },
+      "server_ts": "2026-09-08 09:24:12.609492+00",
+      "slot_end": "2026-09-08 07:15:00+00",
+      "slot_start": "2026-09-08 06:45:00+00",
+      "type": "lapse_observed"
+    },
+    {
+      "client_ts": "2026-09-08 09:24:11.735+00",
+      "is_experiment": false,
+      "payload": {
+        "hours_after_slot_end": 1.4032597222222223,
+        "observed_at": "2026-09-08T09:24:11.735Z",
+        "skip_streak": 3
+      },
+      "server_ts": "2026-09-08 09:24:12.609492+00",
+      "slot_end": "2026-09-08 08:00:00+00",
+      "slot_start": "2026-09-08 07:30:00+00",
+      "type": "lapse_observed"
+    },
+    {
+      "client_ts": "2026-09-08 09:24:11.735+00",
+      "is_experiment": false,
+      "payload": {
+        "hours_after_slot_end": 0.6532597222222222,
+        "observed_at": "2026-09-08T09:24:11.735Z",
+        "skip_streak": 2
+      },
+      "server_ts": "2026-09-08 09:24:12.609492+00",
+      "slot_end": "2026-09-08 08:45:00+00",
+      "slot_start": "2026-09-08 08:15:00+00",
+      "type": "lapse_observed"
+    }
+  ],
+  "plans_today": [
+    {
+      "last": null,
+      "n": 0
+    }
+  ],
+  "sync_ops_tail": [
+    {
+      "applied_at": "2026-09-08 09:24:12.609492+00",
+      "op_type": "event_append",
+      "outcome": "applied"
+    },
+    {
+      "applied_at": "2026-09-08 09:24:12.609492+00",
+      "op_type": "task_upsert",
+      "outcome": "applied"
+    },
+    {
+      "applied_at": "2026-09-08 09:24:12.609492+00",
+      "op_type": "event_append",
+      "outcome": "applied"
+    },
+    {
+      "applied_at": "2026-09-08 09:24:12.609492+00",
+      "op_type": "task_upsert",
+      "outcome": "applied"
+    },
+    {
+      "applied_at": "2026-09-08 09:24:12.609492+00",
+      "op_type": "task_upsert",
+      "outcome": "applied"
+    },
+    {
+      "applied_at": "2026-09-08 09:24:12.609492+00",
+      "op_type": "event_append",
+      "outcome": "applied"
+    },
+    {
+      "applied_at": "2026-09-08 09:24:12.609492+00",
+      "op_type": "task_upsert",
+      "outcome": "applied"
+    },
+    {
+      "applied_at": "2026-09-08 09:24:12.609492+00",
+      "op_type": "event_append",
+      "outcome": "applied"
+    }
+  ],
+  "rewards_eps": [
+    {
+      "attributed_at": "2026-09-07 21:00:03.474+00",
+      "delivered_at": "2026-09-07 21:00:03.474+00",
+      "kind": "outcome",
+      "reason": "lapsed",
+      "source": "daily"
+    }
+  ],
+  "rewards_after": [],
+  "rec_status_0908": [
+    {
+      "n": 11,
+      "status": "shown"
+    }
+  ]
+}

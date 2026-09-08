@@ -1,0 +1,330 @@
+{
+  "at": "2026-09-08T09:07:57.306Z",
+  "recs_0907_latest_plan": [
+    {
+      "attributed_at": "2026-09-07 09:08:44.047+00",
+      "id": "32abf56e-d965-42e8-99c6-45673d55d1d0",
+      "is_experiment": false,
+      "slot_end": "2026-09-07 09:45:00+00",
+      "slot_start": "2026-09-07 09:15:00+00",
+      "status": "completed",
+      "updated_at": "2026-09-08 00:30:23.23813+00"
+    },
+    {
+      "attributed_at": "2026-09-07 09:09:57.332+00",
+      "id": "b453ca13-1a44-4df0-81d1-d3c7f2190b19",
+      "is_experiment": false,
+      "slot_end": "2026-09-07 10:30:00+00",
+      "slot_start": "2026-09-07 10:00:00+00",
+      "status": "rejected",
+      "updated_at": "2026-09-08 00:30:23.23813+00"
+    },
+    {
+      "attributed_at": "2026-09-07 21:00:03.474+00",
+      "id": "7ede6def-5930-4223-b759-17cb61f4f920",
+      "is_experiment": false,
+      "slot_end": "2026-09-07 12:00:00+00",
+      "slot_start": "2026-09-07 11:30:00+00",
+      "status": "lapsed",
+      "updated_at": "2026-09-08 00:30:23.23813+00"
+    },
+    {
+      "attributed_at": "2026-09-07 21:00:03.474+00",
+      "id": "bbd040d2-4de0-45f3-af25-c2286229fc98",
+      "is_experiment": false,
+      "slot_end": "2026-09-07 12:45:00+00",
+      "slot_start": "2026-09-07 12:15:00+00",
+      "status": "lapsed",
+      "updated_at": "2026-09-08 00:30:23.23813+00"
+    },
+    {
+      "attributed_at": "2026-09-07 21:00:03.474+00",
+      "id": "73e09736-b873-4c7f-a898-49a08eebbc6b",
+      "is_experiment": false,
+      "slot_end": "2026-09-07 13:00:00+00",
+      "slot_start": "2026-09-07 12:30:00+00",
+      "status": "lapsed",
+      "updated_at": "2026-09-08 00:30:23.23813+00"
+    },
+    {
+      "attributed_at": "2026-09-07 21:00:03.474+00",
+      "id": "fca459c4-0fca-43d0-881a-33284343a7a0",
+      "is_experiment": false,
+      "slot_end": "2026-09-07 13:30:00+00",
+      "slot_start": "2026-09-07 13:00:00+00",
+      "status": "lapsed",
+      "updated_at": "2026-09-08 00:30:23.23813+00"
+    },
+    {
+      "attributed_at": "2026-09-07 21:00:03.474+00",
+      "id": "f8918618-6209-472f-8a67-4e6962babc73",
+      "is_experiment": true,
+      "slot_end": "2026-09-07 14:30:00+00",
+      "slot_start": "2026-09-07 14:00:00+00",
+      "status": "lapsed",
+      "updated_at": "2026-09-07 21:00:03.925+00"
+    }
+  ],
+  "recs_0908": [
+    {
+      "attributed_at": null,
+      "id": "61b32c37-44a3-4097-b191-6590f8885d14",
+      "is_experiment": false,
+      "slot_end": "2026-09-08 06:30:00+00",
+      "slot_start": "2026-09-08 06:00:00+00",
+      "status": "shown"
+    },
+    {
+      "attributed_at": null,
+      "id": "8f1550cf-5d73-48db-8854-7e179e691462",
+      "is_experiment": false,
+      "slot_end": "2026-09-08 07:15:00+00",
+      "slot_start": "2026-09-08 06:45:00+00",
+      "status": "shown"
+    },
+    {
+      "attributed_at": null,
+      "id": "2f0dda31-0b37-493b-80b2-027d5366c52f",
+      "is_experiment": false,
+      "slot_end": "2026-09-08 08:00:00+00",
+      "slot_start": "2026-09-08 07:30:00+00",
+      "status": "shown"
+    },
+    {
+      "attributed_at": null,
+      "id": "79d1c1ba-5729-49c0-aa83-eeea6d332761",
+      "is_experiment": false,
+      "slot_end": "2026-09-08 08:45:00+00",
+      "slot_start": "2026-09-08 08:15:00+00",
+      "status": "shown"
+    },
+    {
+      "attributed_at": null,
+      "id": "3a21e7d3-0fc9-4126-8b26-c9b7c4e6da46",
+      "is_experiment": false,
+      "slot_end": "2026-09-08 09:30:00+00",
+      "slot_start": "2026-09-08 09:00:00+00",
+      "status": "shown"
+    },
+    {
+      "attributed_at": null,
+      "id": "18797b22-59df-47ed-a9d9-8e1778f82193",
+      "is_experiment": false,
+      "slot_end": "2026-09-08 10:30:00+00",
+      "slot_start": "2026-09-08 10:00:00+00",
+      "status": "shown"
+    },
+    {
+      "attributed_at": null,
+      "id": "c113ed8b-fa40-415f-9775-84b8eb2b53ca",
+      "is_experiment": false,
+      "slot_end": "2026-09-08 11:15:00+00",
+      "slot_start": "2026-09-08 10:45:00+00",
+      "status": "shown"
+    },
+    {
+      "attributed_at": null,
+      "id": "3f48c5f3-407d-4679-ab37-9ad55a0c2619",
+      "is_experiment": false,
+      "slot_end": "2026-09-08 12:15:00+00",
+      "slot_start": "2026-09-08 11:45:00+00",
+      "status": "shown"
+    },
+    {
+      "attributed_at": null,
+      "id": "6defe3cb-1a9a-49ea-8b7b-56917d1cb5b6",
+      "is_experiment": false,
+      "slot_end": "2026-09-08 13:15:00+00",
+      "slot_start": "2026-09-08 12:30:00+00",
+      "status": "shown"
+    },
+    {
+      "attributed_at": null,
+      "id": "4449216e-e9f3-4e47-86e9-885579f14754",
+      "is_experiment": false,
+      "slot_end": "2026-09-08 14:00:00+00",
+      "slot_start": "2026-09-08 13:30:00+00",
+      "status": "shown"
+    },
+    {
+      "attributed_at": null,
+      "id": "d969dec6-ee3b-41d4-aca1-f8e0d4d073ae",
+      "is_experiment": true,
+      "slot_end": "2026-09-08 14:45:00+00",
+      "slot_start": "2026-09-08 14:15:00+00",
+      "status": "shown"
+    }
+  ],
+  "rec_status_counts": [
+    {
+      "n": 1,
+      "plan_date": "2026-09-07",
+      "status": "completed"
+    },
+    {
+      "n": 73,
+      "plan_date": "2026-09-07",
+      "status": "expired"
+    },
+    {
+      "n": 5,
+      "plan_date": "2026-09-07",
+      "status": "lapsed"
+    },
+    {
+      "n": 1,
+      "plan_date": "2026-09-07",
+      "status": "rejected"
+    },
+    {
+      "n": 11,
+      "plan_date": "2026-09-08",
+      "status": "shown"
+    }
+  ],
+  "rewards": [
+    {
+      "attributed_at": "2026-09-07 09:08:44.047+00",
+      "delivered_at": "2026-09-07 09:08:44.047+00",
+      "excluded": false,
+      "excluded_reason": null,
+      "kind": "outcome",
+      "reason": "completed",
+      "reward": 1,
+      "slot_start": "2026-09-07 09:15:00+00",
+      "source": "instant"
+    },
+    {
+      "attributed_at": "2026-09-07 09:09:57.332+00",
+      "delivered_at": "2026-09-07 09:09:57.332+00",
+      "excluded": false,
+      "excluded_reason": null,
+      "kind": "outcome",
+      "reason": "skipped",
+      "reward": 0,
+      "slot_start": "2026-09-07 10:00:00+00",
+      "source": "instant"
+    },
+    {
+      "attributed_at": "2026-09-07 09:12:27.554+00",
+      "delivered_at": "2026-09-07 09:12:27.554+00",
+      "excluded": false,
+      "excluded_reason": null,
+      "kind": "override_out",
+      "reason": "override_out",
+      "reward": 0.1,
+      "slot_start": "2026-09-07 12:30:00+00",
+      "source": "instant"
+    },
+    {
+      "attributed_at": "2026-09-07 09:12:27.554+00",
+      "delivered_at": "2026-09-07 09:12:27.554+00",
+      "excluded": false,
+      "excluded_reason": null,
+      "kind": "override_in",
+      "reason": "override_in",
+      "reward": 0.7,
+      "slot_start": "2026-09-07 12:30:00+00",
+      "source": "instant"
+    },
+    {
+      "attributed_at": "2026-09-07 21:00:03.474+00",
+      "delivered_at": "2026-09-07 21:00:03.474+00",
+      "excluded": false,
+      "excluded_reason": null,
+      "kind": "outcome",
+      "reason": "lapsed",
+      "reward": 0,
+      "slot_start": "2026-09-07 11:30:00+00",
+      "source": "daily"
+    },
+    {
+      "attributed_at": "2026-09-07 21:00:03.474+00",
+      "delivered_at": "2026-09-07 21:00:03.474+00",
+      "excluded": false,
+      "excluded_reason": null,
+      "kind": "outcome",
+      "reason": "lapsed",
+      "reward": 0,
+      "slot_start": "2026-09-07 12:15:00+00",
+      "source": "daily"
+    },
+    {
+      "attributed_at": "2026-09-07 21:00:03.474+00",
+      "delivered_at": "2026-09-07 21:00:03.474+00",
+      "excluded": false,
+      "excluded_reason": null,
+      "kind": "outcome",
+      "reason": "lapsed",
+      "reward": 0,
+      "slot_start": "2026-09-07 12:30:00+00",
+      "source": "daily"
+    },
+    {
+      "attributed_at": "2026-09-07 21:00:03.474+00",
+      "delivered_at": "2026-09-07 21:00:03.474+00",
+      "excluded": false,
+      "excluded_reason": null,
+      "kind": "outcome",
+      "reason": "lapsed",
+      "reward": 0,
+      "slot_start": "2026-09-07 13:00:00+00",
+      "source": "daily"
+    },
+    {
+      "attributed_at": "2026-09-07 21:00:03.474+00",
+      "delivered_at": "2026-09-07 21:00:03.474+00",
+      "excluded": false,
+      "excluded_reason": null,
+      "kind": "outcome",
+      "reason": "lapsed",
+      "reward": 0,
+      "slot_start": "2026-09-07 14:00:00+00",
+      "source": "daily"
+    }
+  ],
+  "sync_ops_tail": [
+    {
+      "applied_at": "2026-09-07 13:47:13.59433+00",
+      "op_type": "task_upsert",
+      "outcome": "applied"
+    },
+    {
+      "applied_at": "2026-09-07 13:47:13.59433+00",
+      "op_type": "task_upsert",
+      "outcome": "applied"
+    },
+    {
+      "applied_at": "2026-09-07 13:47:13.59433+00",
+      "op_type": "task_upsert",
+      "outcome": "applied"
+    },
+    {
+      "applied_at": "2026-09-07 13:47:13.59433+00",
+      "op_type": "task_upsert",
+      "outcome": "applied"
+    },
+    {
+      "applied_at": "2026-09-07 13:47:13.59433+00",
+      "op_type": "task_upsert",
+      "outcome": "applied"
+    }
+  ],
+  "settings": [
+    {
+      "server_seq": 4909,
+      "settings": {
+        "notifications": {
+          "block_reminders": true,
+          "evening_ritual": true,
+          "evening_ritual_time": "20:00",
+          "lead_minutes": 10,
+          "muted_categories": []
+        }
+      },
+      "updated_at": "2026-09-07 13:47:17.064919+00",
+      "version": 4
+    }
+  ],
+  "lease": []
+}

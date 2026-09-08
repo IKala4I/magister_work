@@ -1,0 +1,12 @@
+2026-09-08 12:45:00.029923 SpringBoard{UserNotificationsCore}[35] <NOTICE>: [com.hourwell.app] Persistent timer fired at 2026-09-08 12:45:00.029 +0300
+2026-09-08 12:45:00.034306 SpringBoard{UserNotificationsCore}[35] <NOTICE>: [com.hourwell.app] Deliver local notification 960A-ECAC at 2026-09-08 12:45:00.034 +0300
+2026-09-08 12:45:00.076511 donotdisturbd{DoNotDisturbServer}[132] <NOTICE>: Breakthrough is NOT allowed with reason: mode configuration type for configuration <DNDMutableConfiguration: 0xd53116ae0; suppressionType: delay delivery;
+2026-09-08 12:45:00.076543 donotdisturbd{DoNotDisturbServer}[132] <NOTICE>: Breakthrough is NOT allowed for global settings with event details: <DNDMutableClientEventDetails: 0xd52e37280; identifier: 'ritual:2026-09-08'; bundleIde
+2026-09-08 12:45:00.076728 donotdisturbd{DoNotDisturbServer}[132] <INFO>: Notifying PowerLog of Focus interruption suppression event: bundleIdentifier=com.hourwell.app suppression=2
+2026-09-08 12:45:00.081517 SpringBoard{SpringBoard}[35] <NOTICE>: <private> adding bulletin 960A-ECAC for feed 19515 in section com.hourwell.app playLightsAndSirens: YES
+2026-09-08 12:45:00.081780 SpringBoard{BulletinBoard}[35] <NOTICE>: Gateway BBObserverGatewayLocalName received DID NOT play lights and sirens for bulletin 7C1242C8-B47A-4D86-A3CD-AC59C896D3B9 in section com.hourwell.app
+2026-09-08 12:45:00.082344 SpringBoard{BulletinBoard}[35] <NOTICE>: Gateway enumerator received from BBObserverGatewayLocalName DID NOT play lights and sirens for 7C1242C8-B47A-4D86-A3CD-AC59C896D3B9 in section com.hourwell.app cu
+2026-09-08 12:45:00.105252 SpringBoard{BulletinBoard}[35] <NOTICE>: Gateway AccessoryBulletinObserver received DID NOT play lights and sirens for bulletin 7C1242C8-B47A-4D86-A3CD-AC59C896D3B9 in section com.hourwell.app
+2026-09-08 12:45:00.105689 SpringBoard{BulletinBoard}[35] <NOTICE>: Gateway enumerator received from AccessoryBulletinObserver DID NOT play lights and sirens for 7C1242C8-B47A-4D86-A3CD-AC59C896D3B9 in section com.hourwell.app cur
+2026-09-08 12:38:07.456293 donotdisturbd{DoNotDisturbServer}[132] <NOTICE>: Inserted new assertion into store; assertion=<DNDModeAssertion: 0xd53223570; UUID: 4
+2026-09-08 12:47:44.463362 donotdisturbd{DoNotDisturbServer}[132] <NOTICE>: Assertion invalidated; invalidation=<DNDModeAssertionInvalidation: 0xd52e09d40; asse

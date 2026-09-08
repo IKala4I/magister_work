@@ -142,6 +142,7 @@
   path with the app genuinely suspended/jetsammed. Simulator can't settle it: the simulator
   does not enforce real iOS suspension, background-refresh throttling, or memory eviction.
   **iOS 2026-09-07 (partial):** a 44-minute lock/suspension (13:51 → 14:35) and a reboot (15:05) — the foreground scan ran with nothing to attribute (all remaining blocks were in the future). The overnight instance (blocks at 15:15–17:00 untouched, first open on the 8th) is the row's real test — tomorrow morning.
+  **iOS 2026-09-08 ✅ (scan) / DEFECT (pull):** the app was frozen 17:32 → 12:22 (never killed, `memorystatus` in the archive), the phone locked all night; the day's first foreground (the owner's unlock swipe returned to the app) ran the scan at 12:22:20 — five `lapse_observed` facts, the 7th's 17:00 experiment block **18.9 h** after its end and today's four ended blocks (0.6–2.9 h), the cards "Not done — back in your Inbox", the daily authority's tuple for the 17:00 block not duplicated. **MAJOR:** the same sync's pull re-fetched the rows the nightly propensity backfill had bumped and reverted the four local `lapsed` to `shown`; the next foreground (12:24) lapsed them again — duplicate facts, streaks double-counted, the third-skip diagnostic on a task that missed twice (day-2 notes items 54–55; fix batch: a status lattice on pull + scan idempotency). A clean cycle afterwards lapsed exactly one block once (item 56).
 
 - ⬜ **UC-03 triggers on a real day boundary** (added P6). Leave the app in the background across
   05:59 → 06:00 local and across midnight; foreground it: a new plan must be requested exactly
@@ -151,6 +152,7 @@
   **Android ✅ 2026-09-04 (build 3, `new_day`):** no plan for the 4th overnight (the 3 Sep ritual left untouched) → the day's first foreground that could read the session issued exactly one `plan_requested` with `trigger = new_day` (plans row 08:41:01 EEST, learned, 11 blocks); nothing while backgrounded, nothing from the killed-app ritual tap afterwards. Caveat → NFR-R1 below: the first foreground after the offline start fell inside auth-js's refresh-failure cache and planned nothing (fixed 68ca0eb; re-check on build 4). **Non-working days (ADR-0019, 2026-09-04):** the same trigger on a Saturday persists an empty plan and dedups the day; after the rule ships it must answer `no_working_window` without a row — unverified on hardware by choice.
   **Android ✅ 2026-09-05 (build 6, a real Saturday, fresh account with Mon–Fri defaults):** first open → Today "No working hours today — Hourwell plans your working days.", **0 `plans` rows** after the first open, a relaunch and a foreground (the client answered locally; no request reached the function; budget untouched); `dumpsys alarm` lists only the Sunday review (`ritual:2026-09-06`), no Saturday daily ritual; a Saturday window added on the server flipped the copy to "No plan yet" on the pull with no request, and "Plan my day" then asked the server (a 0-block plan with 15 min of window left, 7 blocks once the window was extended). The in-app "Plan tomorrow?" card stayed hidden with the ritual due and Sunday without a window, and appeared once Sunday got one (build-6 notes items 1–3, 5, 7). Not exercised on the device: the function's own `no_working_window` (Deno-tested) and a stale ritual accept (§5, jest).
   **iOS 2026-09-07:** set up — the phone stays untouched overnight with the 8th's plan already made by the ritual (`evening_ritual`, 11 blocks); the first foreground on the 8th is read tomorrow.
+  **iOS 2026-09-08 ✅ (the accepted-ritual variant):** first foreground of the 8th at 12:22 (the owner's) → Today "Tuesday, 8 September" with the ritual's 11-block plan, **zero plan requests** all morning (`plans` for the 8th = the ritual's one; the driver's later cycles requested nothing either) — with an accepted evening plan `hasPlanForToday` decides and `new_day` must not fire (ADR-0014 §3); the four blocks that had ended were lapsed, not re-planned. The `new_day` request itself was observed on Android (2026-09-04); on iOS this pass exercised the other branch (day-2 notes item 55).
 - ⬜ **NFR-R1 — Today offline** (added P6). Airplane mode after a plan exists: the plan still
   renders from SQLite; "Re-plan" shows the offline/error notice without clearing the plan. Why:
   simulator network loss is not real radio loss.
@@ -164,6 +166,7 @@
   minutes (the row lives in SQLite; the display re-derives from `lastResumedAt`). The simulator
   never suspends JS the way iOS does under lock/Low-Power mode.
   **Android ✅ 2026-09-02 (Pixel 7a):** the 11:58 session outlived a 2 h lock and a cold start (164.5 focused minutes = wall time, then the designed 2 h abandon rule closed it); a second session survived `am force-stop` + relaunch within the cap (Focus still running). Day-2 notes 19.
+  **iOS 2026-09-08 ✅ (iPhone 12):** the 13:00 block started at 12:54 (WDA), the phone locked 12:54:37 → unlocked ≈ 13:04: Focus read "10:35" / "10 minutes focused of 30 planned" — wall time across the locked minutes; then `app terminate` + `app launch`: the app opened on Today and the Focus tab showed the session still running, "11 minutes focused of 30 planned"; no `focus_end` on the server (day-2 notes item 60, `ios-20260908-1215/shot-b1-focus-after-*.png`).
 - ⬜ **File 05 §1 — lazy lapse scan on foreground after a real background stint** (added P7).
   Leave a block to expire while the app is in the background for > 30 min, foreground: the block
   must read "Not done — back in your Inbox" and the Inbox must list the task; then confirm the
@@ -171,12 +174,14 @@
   are instantaneous and never involve OS-level suspension.
   **Android ✅ 2026-09-02 (server half):** after a 103-min stint the first foreground logged `lapse_observed` for both ended blocks (0.71 h / 1.46 h after their ends); the "Not done" row was not observable because the same foreground re-planned (client defect, fix batch F1). Re-check the UI text on the rebuilt APK.
   **iOS 2026-09-07:** see Invariant 7 above — overnight.
+  **iOS 2026-09-08:** see Invariant 7 above — the UI text "Not done — back in your Inbox" + "I did it" observed 2 s after the foreground (`ios-20260908-1215/shot-b1-first-foreground-122221.png`), the `lapse_observed` rows on the server with `hours_after_slot_end`; the pull-revert defect is the same row's MAJOR.
 - ⬜ **NFR-A1 — VoiceOver/TalkBack on the block action row and the rating chips** (added P7).
   Each action must announce "Skip write report" style labels; the rating chips must be
   reachable in order and announce "Rate your energy: High"; the progress bar must announce its
   value. Screen readers are not exercised on the simulator.
   **Android 2026-09-05 (build 5, owner), action row ✅:** "Start references fix, button", "Done …", "Skip …", "Move… …"; rating chips untested (need a completed block).
   **iOS 2026-09-07 — DEFECT, MAJOR (both platforms by construction):** the card is one labelled `accessible` container (`ConfidenceBlock.tsx`) with no custom actions, so VoiceOver steps from the card summary to the next gutter time and **"Start / Done / Skip / Move…" are never reachable**; confirmed by the daemon's traversal and by the owner's ear. The rating chips read as "How was your energy?: Okay, Button" and are reachable. Never exercised by a screen reader on Android either (uiautomator lists the buttons; the TalkBack listen was skipped). Fix batch: custom actions on the card. Notes item 35.
+  **iOS 2026-09-08 MINOR:** a lapsed card's spoken summary still reads "…, Confidence 52 percent" with no "Not done" state (`ios-20260908-1215/wda-today-1229.xml`); fold into the same fix (day-2 notes item 58).
 - ⬜ **NFR-A2 — 200 % font scale on the Today card with actions and on the Focus tab**
   (added P7). Four action buttons and the status caption must wrap, never clip or overlap the
   next block; the timer digits (JetBrains Mono) must not overflow the panel. The P2 sweep ran on
@@ -315,6 +320,8 @@
   **Android 2026-09-02, scheduling half:** after every plan exactly 4 block alarms + the 20:00 ritual are pending (cap 5); delivery times being read from `dumpsys notification`; the phone is on USB power all day, so the Doze case needs an unplugged owner run.
   **Android 2026-09-05, delivery times of the 2 Sep reminders read from the owner's screenshots (build 3, inexact windows):** the 14:05 alarm posted 14:06:21–14:07:00 (+1–2 min), the 13:20 alarm 13:22:21–13:23:21 (+2–3 min), the 12:35 alarm before 13:18 (`android-20260902-1030/owner-blocks-1418.png`, `-1428.png`; day-5 notes item 3). Exact-alarm points on builds 4–5 are in the FR-50 exact-alarm entry below.
   **iOS 2026-09-07:** permission granted from the Today card (the iOS alert accepted through WDA); the OS's own schedule after the 13:51 pass: 14:20, 15:05, 15:20, 15:50, 20:00 (+ tomorrow's ritual) — **five today, no nudge for the 17:00 block** (SpringBoard `UserNotificationsCore`, notes item 32); fires by the OS record: **14:20 (captured on the lock screen, `shot-b1-lockscreen-1431-*.png`), 15:05, 15:50, 16:42 (the ritual, moved server-side)**; the 15:20 was dropped by the schedule pass after the reboot's first launch (two delivered + five queued → the planner kept 15:50, 16:50, the ritual); the day's fifth (16:50) and the absence of a sixth are read after 16:50 (notes items 32, 47). Focus modes not exercised (tomorrow).
+  **iOS 2026-09-08 ✅ (cap + ledger reset):** from the OS's record, the 7th ended with five fires (14:20, 15:05, 15:50, 16:42, 20:00 — the last a defect of FR-26, below) and no sixth; the 8th's four nudges fired to the frozen app on the locked phone at 08:50 / 09:35 / 10:20 / 11:05 (lock-screen stack at 12:21, `ios-20260908-1215/shot-b1-lockscreen-1221-stack-row.png`); the first schedule pass of the day kept only the two rituals — four delivered + the ritual = five, no afternoon nudge — so yesterday's deliveries did not count against today (day-2 notes items 52, 57). Focus modes: the 12:45 ritual under Do Not Disturb, below.
+  **iOS 2026-09-08 ✅ (Focus mode):** the ritual moved to 12:45 fired while Do Not Disturb was on (assertion 12:38:07 → 12:47:44): `donotdisturbd` "Breakthrough is NOT allowed … 'ritual:2026-09-08'", suppression level 2, both presentation gateways "DID NOT play lights and sirens"; after Focus ended the lock screen listed "Hourwell · 1 сповіщення · 4 хв тому" (`ios-20260908-1215/oslog-ritual-under-dnd-1245.txt`, `shot-b1-lockscreen-1249-ritual-after-dnd.png`). Deferred presentation, nothing lost, no sixth (day-2 notes item 59).
 - ✅ **FR-50 — Android exact-alarm semantics of the DATE trigger** (P10). On API 31+ confirm a
   reminder lands within a minute of `slot_start − 10 min` without `SCHEDULE_EXACT_ALARM`; if the
   OEM defers it by more, record the drift for the thesis (ADR-0014 Consequences). Why: inexact
@@ -334,6 +341,7 @@
   **Android 2026-09-05 (build 5, on-demand ritual at 10:00 via `hw-set-ritual-time.mjs`) — PASS:** posted +471 ms with both actions to a dead process; "Adjust tasks" as the FIRST response from a killed app → Inbox in 945 ms, one `adjust` fact, no plan, the notification gone from the shade (fix 7c8f67c: dismiss after action; the accept path shares it). Still untested by choice: the Sunday plain tap → Insights and the backgrounded accept (day-5 notes items 7–8).
   **Android 2026-09-05 (build 6) — ADR-0019 on the ritual paths:** no daily ritual alarm on the eve of a day off (the Sunday review kept), the in-app "Plan tomorrow?" card hidden until tomorrow has a window (the adversarial pass's MAJOR, fixed b5c7ad6) — build-6 notes items 3 and 7. A ritual tap on such a day (§5) remains unit-tested only.
   **iOS 2026-09-07 ✅ (killed variant):** ritual moved server-side to 16:42, app terminated and phone locked; fired at 16:42:00.010 to the locked phone; the long-press showed "Plan tomorrow? 11 tasks are waiting — one tap plans your day." with the category actions **"Plan tomorrow" / "Adjust tasks"** (`shot-b1-lockscreen-ritual-*.png` — the categories render on iOS); "Plan tomorrow" cold-started the app → one `evening_ritual` plan for the 8th (learned, 11 recommendations), one `notification_response` event (`accept`, `latency_ms` 253 172), Today "Tomorrow is planned: 11 blocks, first at 09:00." (notes item 48). Backgrounded variant and "Adjust tasks" not exercised on iOS.
+  **iOS 2026-09-08 — DEFECT (second ritual on one day):** after the 16:42 ritual had fired and been answered, restoring the evening time to 20:00 re-added `ritual:2026-09-07` and it **fired again at 20:00:00.007** to the locked phone (archive: request FD1A-28FB, requested 16:48:14); nobody tapped it. Fix batch: a ritual delivered or answered on the day is spent (day-2 notes item 51).
 - ⬜ **FR-42 — export on device** (P10). Settings → Export → the share sheet offers Files/AirDrop
   (iOS) or the share targets (Android); the saved JSON opens; it contains the tasks, events, the
   48 Beta cells and no calendar `title`. Why: `expo-sharing` + the cache-directory file are
@@ -474,6 +482,25 @@ never substituted. Command: runbook `docs/runbooks/oracle-vm.md` §7.
 - ⬜ **Store screenshots captured on hardware** (added P12; **optional** since 2026-08-31 —
   the pack stays prepared-but-unsubmitted, metadata §7). Capture only if wanted for a
   thesis appendix; nothing gates on it.
+
+## Pass status (2026-09-08 — iPhone day 2)
+
+**Day 2 on the same build and account** — evidence under `device-pass/ios-20260908-1215/`
+(notes items 50–63, continuing day 1's numbering). Read from the phone's log archive and the
+server before the phone was touched: the app frozen all night, never killed; the ritual fired a
+**second time at 20:00** (FR-26 defect, item 51); this morning's four nudges fired to the frozen
+app; the daily authority attributed the 7th at 00:00:03; the nightly training backfilled
+propensities on 79 rows and left the 12 exploration-slice rows exact. On the device: the day's
+first foreground (the owner's unlock swipe, recorded as such) showed the ritual plan with zero
+plan requests (UC-03, accepted-ritual branch) and lapsed five blocks (invariant 7, up to 18.9 h
+late); **MAJOR** — the same sync's pull reverted the four local lapses to `shown` and the next
+foreground lapsed them again (duplicate facts, double streaks, a phantom third-skip diagnostic;
+item 55); a clean cycle afterwards lapsed one block once; the reminder ledger reset at the day
+boundary (four delivered + the ritual = five, no afternoon nudge); FR-30 across a 10-minute lock
+and a kill; a ritual under Do Not Disturb delivered silently and listed after Focus ended.
+Deferred to the end of the pass: the arming test + erasure (item 63), the calendar consent (test
+user), the client-side NFR-P1 export, the two-device rows (⛔ 6). **Fix batch F1–F8** (day-2
+notes, last section) → build 2 → re-check on this account.
 
 ## Pass status (2026-09-07 — iPhone day 1)
 

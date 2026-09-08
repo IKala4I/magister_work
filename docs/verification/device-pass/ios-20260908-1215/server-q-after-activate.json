@@ -1,0 +1,25 @@
+{
+  "at": "2026-09-08T09:40:46.166Z",
+  "events_since_0930Z": [
+    {
+      "client_ts": "2026-09-08 09:31:06.133+00",
+      "payload": {
+        "hours_after_slot_end": 0.018370277777777777,
+        "observed_at": "2026-09-08T09:31:06.133Z",
+        "skip_streak": 1
+      },
+      "slot_start": "2026-09-08 09:00:00+00",
+      "type": "lapse_observed"
+    }
+  ],
+  "lapse_count": [
+    {
+      "n": 14
+    }
+  ],
+  "plans_today": [
+    {
+      "n": 0
+    }
+  ]
+}

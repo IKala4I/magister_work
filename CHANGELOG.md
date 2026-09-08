@@ -2,6 +2,26 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — iPhone pass, day 2: the overnight from the archive, the day boundary, two more MAJORs (2026-09-08, post-p12/iphone-pass)
+
+- **Read from the phone's log archive and the server before the phone was touched:** the app
+  frozen all night (never killed); the ritual **fired a second time at 20:00** (FR-26 defect —
+  the ledger trusts the OS's delivered list, and an answered notification leaves it); the
+  morning's four nudges fired to the frozen app; the daily authority attributed the previous
+  day at 00:00:03; the nightly training backfilled propensities on 79 rows and left the 12
+  exploration-slice rows exact (invariant 9 on live rows).
+- **On the iPhone 12:** the day's first foreground (the owner's unlock swipe — recorded as such)
+  showed the ritual plan with zero plan requests (UC-03, accepted-ritual branch) and lapsed
+  five blocks, one 18.9 h late (invariant 7). **MAJOR:** the same sync's pull re-fetched the
+  backfilled rows and reverted the four local `lapsed` to `shown`; the next foreground lapsed
+  them again — duplicate facts, double-counted streaks, a third-skip diagnostic on a task that
+  missed twice ("facts beat plans" not enforced on the client's pull). A clean cycle lapsed
+  one block once. The reminder ledger reset at the day boundary; FR-30 across a 10-minute lock
+  and a kill; a ritual under Do Not Disturb delivered silently and listed after Focus ended.
+- **Fix batch F1–F8 consolidated** (`device-pass/ios-20260908-1215/notes.md`, last section);
+  the arming test + erasure deferred to the end of the pass (auto-mode blocks hosted deletes;
+  build 2 re-checks on this account).
+
 ## Post-P12 — iPhone pass, day 1: build 1, the iOS drivers, six findings (2026-09-07, post-p12/iphone-pass)
 
 - **Build 1 on the iPhone 12 / iOS 26.6** under the personal team; `apps/mobile/plugins/withoutApsEnvironment.js`

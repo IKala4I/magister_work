@@ -1,0 +1,40 @@
+{
+  "at": "2026-09-08T09:55:04.489Z",
+  "events_since_0950Z": [
+    {
+      "client_ts": "2026-09-08 09:54:19.882+00",
+      "payload": {
+        "planned_minutes": 30,
+        "session_id": "87082543-c968-4bdb-af08-e8181560a007",
+        "slot_start": "2026-09-08T10:00:00.000Z",
+        "started_at": "2026-09-08T09:54:19.882Z"
+      },
+      "server_ts": "2026-09-08 09:54:23.014626+00",
+      "type": "focus_start"
+    }
+  ],
+  "rec_1300": [
+    {
+      "attributed_at": null,
+      "status": "accepted",
+      "updated_at": "2026-09-08 09:54:23.014626+00"
+    }
+  ],
+  "ops_tail": [
+    {
+      "applied_at": "2026-09-08 09:54:23.014626+00",
+      "op_type": "recommendation_status",
+      "outcome": "applied"
+    },
+    {
+      "applied_at": "2026-09-08 09:54:23.014626+00",
+      "op_type": "event_append",
+      "outcome": "applied"
+    },
+    {
+      "applied_at": "2026-09-08 09:31:06.779659+00",
+      "op_type": "event_append",
+      "outcome": "applied"
+    }
+  ]
+}

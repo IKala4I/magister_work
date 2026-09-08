@@ -1,0 +1,65 @@
+{
+  "at": "2026-09-08T09:09:14.961Z",
+  "lapses": [
+    {
+      "client_ts": "2026-09-07 12:12:32.968+00",
+      "payload": {
+        "hours_after_slot_end": 0.20915777777777778,
+        "observed_at": "2026-09-07T12:12:32.968Z",
+        "skip_streak": 1
+      },
+      "recommendation_id": "7ede6def-5930-4223-b759-17cb61f4f920",
+      "server_ts": "2026-09-07 12:12:35.839113+00",
+      "slot_end": "2026-09-07 12:00:00+00",
+      "slot_start": "2026-09-07 11:30:00+00"
+    },
+    {
+      "client_ts": "2026-09-07 13:03:45.709+00",
+      "payload": {
+        "hours_after_slot_end": 0.06269694444444444,
+        "observed_at": "2026-09-07T13:03:45.709Z",
+        "skip_streak": 1
+      },
+      "recommendation_id": "73e09736-b873-4c7f-a898-49a08eebbc6b",
+      "server_ts": "2026-09-07 13:03:46.248278+00",
+      "slot_end": "2026-09-07 13:00:00+00",
+      "slot_start": "2026-09-07 12:30:00+00"
+    },
+    {
+      "client_ts": "2026-09-07 13:03:45.709+00",
+      "payload": {
+        "hours_after_slot_end": 0.31269694444444446,
+        "observed_at": "2026-09-07T13:03:45.709Z",
+        "skip_streak": 1
+      },
+      "recommendation_id": "bbd040d2-4de0-45f3-af25-c2286229fc98",
+      "server_ts": "2026-09-07 13:03:46.248278+00",
+      "slot_end": "2026-09-07 12:45:00+00",
+      "slot_start": "2026-09-07 12:15:00+00"
+    },
+    {
+      "client_ts": "2026-09-07 13:36:27.164+00",
+      "payload": {
+        "hours_after_slot_end": 0.10754555555555556,
+        "observed_at": "2026-09-07T13:36:27.164Z",
+        "skip_streak": 1
+      },
+      "recommendation_id": "fca459c4-0fca-43d0-881a-33284343a7a0",
+      "server_ts": "2026-09-07 13:36:28.084148+00",
+      "slot_end": "2026-09-07 13:30:00+00",
+      "slot_start": "2026-09-07 13:00:00+00"
+    }
+  ],
+  "rewards_per_rec": [
+    {
+      "kinds": "outcome:lapsed:daily override_out:override_out:instant override_in:override_in:instant",
+      "n": 3,
+      "recommendation_id": "73e09736-b873-4c7f-a898-49a08eebbc6b"
+    },
+    {
+      "kinds": "outcome:lapsed:daily",
+      "n": 1,
+      "recommendation_id": "f8918618-6209-472f-8a67-4e6962babc73"
+    }
+  ]
+}

@@ -1,0 +1,219 @@
+{
+  "at": "2026-09-08T09:06:58.351Z",
+  "user": [
+    {
+      "created_at": "2026-09-07 08:33:25.354323+00",
+      "id": "7f088974-101e-4521-9f00-e84b39a67c68"
+    }
+  ],
+  "columns": [
+    {
+      "cols": "id,user_id,op_id,type,task_id,recommendation_id,payload,context,client_ts,server_ts,local_day",
+      "table_name": "events"
+    },
+    {
+      "cols": "id,user_id,recommendation_id,kind,reward,reason,category,features,excluded,excluded_reason,attributed_at,corrected_at,delivered_at,source",
+      "table_name": "feedback_rewards"
+    },
+    {
+      "cols": "id,user_id,plan_date,horizon,engine,model_version,arm,solver_status,telemetry,generated_at,server_seq",
+      "table_name": "plans"
+    },
+    {
+      "cols": "user_id,timezone,locale,working_hours,sleep_window,rmeq_score,chronotype_class,survey_skipped,top_categories,onboarding_completed_at,research_cohort,settings,version,updated_at,server_seq,eu_eea_resident",
+      "table_name": "profiles"
+    },
+    {
+      "cols": "id,user_id,plan_id,task_id,chunk_index,slot_start,slot_end,context_bucket,features,q_hat,confidence,rationale_key,rationale_params,is_experiment,engine,model_version,status,attributed_at,version,created_at,updated_at,server_seq,propensity,conflict_flag,gcal_event_id,gcal_synced_slot_start",
+      "table_name": "recommendations"
+    },
+    {
+      "cols": "user_id,token,expires_at",
+      "table_name": "sync_leases"
+    },
+    {
+      "cols": "user_id,op_id,op_type,entity_id,outcome,applied_at",
+      "table_name": "sync_ops"
+    }
+  ],
+  "plans": [
+    {
+      "engine": "learned",
+      "generated_at": "2026-09-07 08:49:54.309+00",
+      "id": "e92cf8f5-563a-46c1-8051-d79d4269db16",
+      "plan_date": "2026-09-07",
+      "recs": 8,
+      "solver_status": "OPTIMAL",
+      "trigger": "first_open"
+    },
+    {
+      "engine": "learned",
+      "generated_at": "2026-09-07 08:59:08.656+00",
+      "id": "c6c2a0a7-eeb7-479a-996f-ca2bd91a9a0f",
+      "plan_date": "2026-09-07",
+      "recs": 7,
+      "solver_status": "OPTIMAL",
+      "trigger": "manual"
+    },
+    {
+      "engine": "learned",
+      "generated_at": "2026-09-07 08:59:28.361+00",
+      "id": "64a1c8b4-f9ae-4787-b359-ccf0142347fa",
+      "plan_date": "2026-09-07",
+      "recs": 8,
+      "solver_status": "OPTIMAL",
+      "trigger": "manual"
+    },
+    {
+      "engine": "learned",
+      "generated_at": "2026-09-07 08:59:47.465+00",
+      "id": "377eb70a-44cf-4ab9-93cf-da6a9ceafbdc",
+      "plan_date": "2026-09-07",
+      "recs": 8,
+      "solver_status": "OPTIMAL",
+      "trigger": "manual"
+    },
+    {
+      "engine": "learned",
+      "generated_at": "2026-09-07 09:00:10.458+00",
+      "id": "fbc5b8ba-ad00-406f-b8f4-ad15d5318f09",
+      "plan_date": "2026-09-07",
+      "recs": 7,
+      "solver_status": "OPTIMAL",
+      "trigger": "manual"
+    },
+    {
+      "engine": "learned",
+      "generated_at": "2026-09-07 09:00:30.305+00",
+      "id": "8c20d11a-47e3-4253-9dfa-b24ecd325b3a",
+      "plan_date": "2026-09-07",
+      "recs": 7,
+      "solver_status": "OPTIMAL",
+      "trigger": "manual"
+    },
+    {
+      "engine": "learned",
+      "generated_at": "2026-09-07 09:00:49.396+00",
+      "id": "1c0bd3dc-c741-41ab-aa04-8b123c877ed9",
+      "plan_date": "2026-09-07",
+      "recs": 7,
+      "solver_status": "OPTIMAL",
+      "trigger": "manual"
+    },
+    {
+      "engine": "learned",
+      "generated_at": "2026-09-07 09:01:09.028+00",
+      "id": "45aa0add-ab04-4d5a-856e-51a8be7a358a",
+      "plan_date": "2026-09-07",
+      "recs": 7,
+      "solver_status": "OPTIMAL",
+      "trigger": "manual"
+    },
+    {
+      "engine": "learned",
+      "generated_at": "2026-09-07 09:01:28.793+00",
+      "id": "60a584b7-6cf3-4861-ba53-4334b49f717b",
+      "plan_date": "2026-09-07",
+      "recs": 7,
+      "solver_status": "OPTIMAL",
+      "trigger": "manual"
+    },
+    {
+      "engine": "learned",
+      "generated_at": "2026-09-07 09:01:47.754+00",
+      "id": "faa68ecd-f5e1-46b1-8020-ac5417c9fa44",
+      "plan_date": "2026-09-07",
+      "recs": 7,
+      "solver_status": "OPTIMAL",
+      "trigger": "manual"
+    },
+    {
+      "engine": "learned",
+      "generated_at": "2026-09-07 09:02:16.704+00",
+      "id": "e51fbf03-7e6f-4707-a0ce-264a5a30e573",
+      "plan_date": "2026-09-07",
+      "recs": 7,
+      "solver_status": "OPTIMAL",
+      "trigger": "manual"
+    },
+    {
+      "engine": "learned",
+      "generated_at": "2026-09-07 13:46:14.904+00",
+      "id": "6096d6a2-1df3-47bf-95f3-1884eeb72331",
+      "plan_date": "2026-09-08",
+      "recs": 11,
+      "solver_status": "OPTIMAL",
+      "trigger": "evening_ritual"
+    }
+  ],
+  "events_since_1400Z": [],
+  "event_counts": [
+    {
+      "n": 1,
+      "type": "belief_label"
+    },
+    {
+      "n": 1,
+      "type": "block_moved"
+    },
+    {
+      "n": 1,
+      "type": "block_skipped"
+    },
+    {
+      "n": 1,
+      "type": "focus_end"
+    },
+    {
+      "n": 1,
+      "type": "focus_start"
+    },
+    {
+      "n": 4,
+      "type": "lapse_observed"
+    },
+    {
+      "n": 1,
+      "type": "notification_response"
+    },
+    {
+      "n": 91,
+      "type": "recommendation_shown"
+    },
+    {
+      "n": 1,
+      "type": "session_rated"
+    },
+    {
+      "n": 3,
+      "type": "task_created"
+    }
+  ],
+  "responses": [
+    {
+      "client_ts": "2026-09-07 13:46:13.172+00",
+      "payload": {
+        "action": "accept",
+        "kind": "evening_ritual",
+        "latency_ms": 253172,
+        "scheduled_for": "2026-09-07T13:42:00.000Z",
+        "variant": "daily"
+      },
+      "server_ts": "2026-09-07 13:46:14.068655+00"
+    }
+  ],
+  "profile": [
+    {
+      "onboarding_completed_at": "2026-09-07 08:49:52.22+00",
+      "timezone": "Europe/Kiev",
+      "updated_at": "2026-09-07 13:47:17.064919+00",
+      "working_hours": {
+        "fri": [540, 1080],
+        "mon": [540, 1080],
+        "thu": [540, 1080],
+        "tue": [540, 1080],
+        "wed": [540, 1080]
+      }
+    }
+  ]
+}

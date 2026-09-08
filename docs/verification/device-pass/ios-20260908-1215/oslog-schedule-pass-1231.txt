@@ -1,0 +1,21 @@
+2026-09-08 12:31:06.158469 Hourwell{UserNotifications}[751] <NOTICE>: [com.hourwell.app] Removing all pending notification requests
+2026-09-08 12:31:06.159664 SpringBoard{UserNotificationsServer}[35] <NOTICE>: [com.hourwell.app] Removing all pending notification requests
+2026-09-08 12:31:06.204068 Hourwell{UserNotifications}[751] <NOTICE>: [com.hourwell.app] Adding notification request 960A-ECAC to destinations: Default, contentDate: (null)
+2026-09-08 12:31:06.204754 SpringBoard{UserNotificationsServer}[35] <NOTICE>: [com.hourwell.app] Adding notification request 960A-ECAC to destinations: Default, contentDate: (null)
+2026-09-08 12:31:06.207000 SpringBoard{UserNotificationsCore}[35] <NOTICE>: [com.hourwell.app] Notification 960A-ECAC requested at 2026-09-08 12:31:06.205 +0300 has a trigger date 2026-09-08 20:00:00.001 +0300
+2026-09-08 12:31:06.208936 Hourwell{UserNotifications}[751] <NOTICE>: [com.hourwell.app] Adding notification request C452-A069 to destinations: Default, contentDate: (null)
+2026-09-08 12:31:06.209343 SpringBoard{UserNotificationsServer}[35] <NOTICE>: [com.hourwell.app] Adding notification request C452-A069 to destinations: Default, contentDate: (null)
+2026-09-08 12:31:06.213233 SpringBoard{UserNotificationsCore}[35] <NOTICE>: [com.hourwell.app] Notification 960A-ECAC requested at 2026-09-08 12:31:06.205 +0300 has a trigger date 2026-09-08 20:00:00.001 +0300
+2026-09-08 12:31:06.213256 SpringBoard{UserNotificationsCore}[35] <NOTICE>: [com.hourwell.app] Notification C452-A069 requested at 2026-09-08 12:31:06.209 +0300 has a trigger date 2026-09-09 20:00:00.001 +0300
+2026-09-08 12:31:07.187343 Hourwell{UserNotifications}[751] <NOTICE>: [com.hourwell.app] Removing all pending notification requests
+2026-09-08 12:31:07.189737 SpringBoard{UserNotificationsServer}[35] <NOTICE>: [com.hourwell.app] Removing all pending notification requests
+2026-09-08 12:31:07.217620 Hourwell{UserNotifications}[751] <NOTICE>: [com.hourwell.app] Adding notification request 960A-ECAC to destinations: Default, contentDate: (null)
+2026-09-08 12:31:07.218980 SpringBoard{UserNotificationsServer}[35] <NOTICE>: [com.hourwell.app] Adding notification request 960A-ECAC to destinations: Default, contentDate: (null)
+2026-09-08 12:31:07.224190 SpringBoard{UserNotificationsCore}[35] <NOTICE>: [com.hourwell.app] Notification 960A-ECAC requested at 2026-09-08 12:31:07.220 +0300 has a trigger date 2026-09-08 20:00:00.002 +0300
+2026-09-08 12:31:07.228174 Hourwell{UserNotifications}[751] <NOTICE>: [com.hourwell.app] Adding notification request C452-A069 to destinations: Default, contentDate: (null)
+2026-09-08 12:31:07.228607 SpringBoard{UserNotificationsServer}[35] <NOTICE>: [com.hourwell.app] Adding notification request C452-A069 to destinations: Default, contentDate: (null)
+2026-09-08 12:31:07.233892 SpringBoard{UserNotificationsCore}[35] <NOTICE>: [com.hourwell.app] Notification 960A-ECAC requested at 2026-09-08 12:31:07.220 +0300 has a trigger date 2026-09-08 20:00:00.002 +0300
+2026-09-08 12:31:07.233905 SpringBoard{UserNotificationsCore}[35] <NOTICE>: [com.hourwell.app] Notification C452-A069 requested at 2026-09-08 12:31:07.229 +0300 has a trigger date 2026-09-09 20:00:00.002 +0300
+2026-09-08 12:33:19.237203 SpringBoard{UserNotificationsCore}[35] <NOTICE>: [com.hourwell.app] Notification 960A-ECAC requested at 2026-09-08 12:33:19.233 +0300 has a trigger date 2026-09-08 12:45:00.002 +0300
+2026-09-08 12:33:19.246738 SpringBoard{UserNotificationsCore}[35] <NOTICE>: [com.hourwell.app] Notification 960A-ECAC requested at 2026-09-08 12:33:19.233 +0300 has a trigger date 2026-09-08 12:45:00.002 +0300
+2026-09-08 12:33:19.246754 SpringBoard{UserNotificationsCore}[35] <NOTICE>: [com.hourwell.app] Notification C452-A069 requested at 2026-09-08 12:33:19.241 +0300 has a trigger date 2026-09-09 12:45:00.002 +0300

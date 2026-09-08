@@ -2,13 +2,62 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-07 (evening) — **iPhone pass, day 1, on branch `post-p12/iphone-pass`**
-> (build 1 = main `4d67a78` on the owner's iPhone 12 / iOS 26.6; slice 1 + the owner's batch done;
-> the phone sits untouched overnight for the lapse scan and the day boundary). Read first:
-> `docs/verification/device-pass/ios-20260907-1130/notes.md` (items 1–49; the tool triage is at
-> the top), then the "iOS 2026-09-07" paragraphs in `docs/verification/device-checklist.md`.
-> Before that (2026-09-06): the in-app dialog (PR #56, merged 2026-09-07 after its flaky arming
-> test was pinned).
+> Last update: 2026-09-08 (afternoon) — **iPhone pass, day 2, on branch `post-p12/iphone-pass`**
+> (build 1 = main `4d67a78` on the owner's iPhone 12 / iOS 26.6; the device slices of day 2 are
+> done; **next is the fix batch F1–F8 → build 2 → re-check on the same account**). Read first:
+> `docs/verification/device-pass/ios-20260908-1215/notes.md` (items 50–63 + the fix-batch table
+> at the end), then day 1's `../ios-20260907-1130/notes.md` items 22–24, 35–36, 43–44, 49 (the
+> findings the batch fixes), then the "iOS 2026-09-08" paragraphs in
+> `docs/verification/device-checklist.md`.
+
+## What happened this session (2026-09-08 — iPhone pass, day 2)
+
+Phone untouched by the owner overnight; the USB link had dropped at 17:33 the evening before
+(replugged 12:15). **Read before the phone was touched:** the app frozen all night (never
+killed); the phone's keybag unlocked three times (21:38, 21:53, 12:00) without the app running;
+the **ritual fired a second time at 20:00** (FR-26 defect confirmed — item 51, refined by item
+62: the ledger trusts the OS's delivered list, and an answered notification leaves it); the
+morning's four nudges fired 08:50–11:05 to the frozen app; the daily authority attributed the
+7th at 00:00:03 local; the nightly training promoted `als/1` and backfilled propensities on 79
+rows (the 12 slice rows exact, invariant 9 held) — bumping `server_seq`, which set up the day's
+MAJOR.
+
+**On the device:** the day's first foreground was the owner's (the unlock swipe returned to
+Hourwell; recorded as such, reads taken as they are): Today = the ritual's plan, **zero plan
+requests** (UC-03, accepted-ritual branch), five lapses (the 7th's 17:00 experiment block 18.9 h
+late + today's four). **MAJOR (item 55):** the same sync's pull re-fetched the backfilled rows
+and reverted the four local `lapsed` to `shown`; the next `active` transition lapsed them again —
+duplicate facts, double-counted streaks, the third-skip diagnostic on a task that missed twice.
+Mechanism from the code (`pull.ts` upserts status unless an unacked `recommendation_status` op
+protects the id; the lapse path pushes only the fact; the server keeps `shown` until the daily
+job). A clean cycle lapsed one block once. Reminder ledger reset at the day boundary (four
+delivered + ritual = five; no afternoon nudge). FR-30 across a 10-min lock and a kill — PASS.
+A ritual under Do Not Disturb — delivered silently, listed after Focus ended. Erasure + arming
+test deferred to the end of the pass (auto-mode blocks hosted deletes; the account is needed for
+build 2's re-checks).
+
+**Tooling (day 2):** `syslog collect` + `log show` on the locked phone is the overnight tool;
+`dvt screenshot` of a dark screen is black (a screenshot loop around the owner's tap-to-wake
+catches the lock screen); WDA drags scroll only when they START inside the list and last
+≈ 0.25 s (longer = a press; the footer is outside the list); the block action row is not in
+today's XCUITest trees (coordinates); zsh needs `W=(python3 …)` arrays; `scroll-to` stalls on
+Today too, not only on the sheet.
+
+## Exact next actions (this session continues; or a fresh one after `/clear`)
+
+1. **Fix batch F1–F8** (table at the end of the day-2 notes): jest first per item; `pnpm`
+   gates; explainer (`docs/thesis/pojasnennia.uk.md`) in the same commit; ADR-0021 amendment
+   (dialog), spec-conflicts / corrections rows where a spec or the draft says otherwise
+   (invariant 2 on the client; the ritual ledger); revisit line for F8.
+2. **Build 2** (`npx expo run:ios --device 00008101-0015081602F1003A --configuration Release
+--no-bundler` after `expo prebuild`; `hw-build-gate-ios.sh`), install over build 1 (same
+   account, same data), re-check each row of the table on the phone with the same drivers;
+   flip the checklist rows; day-2 notes items 64+.
+3. Then, on the same account: the arming test (`wda-doubletap.py` — owner-run if the
+   classifier blocks) → the erasure → `deletion_audit` +1 → welcome after a cold relaunch.
+4. Phase report, PR `post-p12/iphone-pass` → main (auto-merge once after `gh pr create`).
+5. Optional owner items: the calendar consent retry on the iPhone with the Pixel's Google
+   account (then the disconnect dialog, site 2); the client-side NFR-P1 PostHog export.
 
 ## What happened this session (2026-09-07 — iPhone pass, day 1)
 
@@ -62,7 +111,7 @@ from `auth.sessions` user agents), hence the iOS disconnect dialog (its Android 
 FR-30; Focus modes; the erasure with the double-tap arming test; the client-side NFR-P1
 (PostHog export, owner); the two-device rows (⛔ 6).
 
-## Exact next actions (tomorrow morning, 2026-09-08)
+## Exact next actions as written on 2026-09-07 (superseded above)
 
 1. **Before the owner touches the phone:** read tonight's 20:00 from the live capture
    (`scratchpad/syslog-hourwell-5.log` if the session survived; else `pymobiledevice3 syslog
