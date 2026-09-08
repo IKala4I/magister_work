@@ -28,6 +28,25 @@ export interface PullReport {
 
 /** Only the FINAL displacement moves the task (adversarial #4): pending may still be worked. */
 const DISPLACED = new Set(['displaced']);
+/**
+ * Statuses the device derives from its OWN facts before the server has read them — a completion
+ * is confirmed by the instant attribution within seconds, a lapse only by the 23:55 job. A pulled
+ * row that still carries a provisional server status must not lower them: on the iPhone pass
+ * (2026-09-08, day-2 notes item 55) the nightly propensity backfill bumped every row's
+ * `server_seq`, the first pull of the day re-fetched them as `shown` over the scan's `lapsed`,
+ * and the next foreground lapsed the same blocks again — duplicate facts, double streaks, a
+ * third-skip diagnostic on a task that had missed twice. Facts beat plans (invariant 2), on the
+ * client too. A terminal server status (completed / lapsed / expired / displaced) still lands:
+ * that is the server's reading of the facts.
+ */
+const LOCAL_FACT_STATUSES: ReadonlySet<string> = new Set(['completed', 'lapsed']);
+const SERVER_PROVISIONAL_STATUSES: ReadonlySet<string> = new Set([
+  'shown',
+  'accepted',
+  'pinned',
+  'moved',
+  'rejected',
+]);
 
 const date = (v: unknown): Date | null => {
   if (typeof v !== 'string') return null;
@@ -143,7 +162,12 @@ function applyRecommendation(
   if (id === null || row.user_id !== userId) return;
   const existing = tx.select().from(recommendations).where(eq(recommendations.id, id)).get() as
     typeof recommendations.$inferSelect | undefined;
-  const status = (str(row.status) ?? 'shown') as typeof recommendations.$inferSelect.status;
+  const serverStatus = (str(row.status) ?? 'shown') as typeof recommendations.$inferSelect.status;
+  const keepLocal =
+    existing !== undefined &&
+    LOCAL_FACT_STATUSES.has(existing.status) &&
+    SERVER_PROVISIONAL_STATUSES.has(serverStatus);
+  const status = keepLocal ? existing.status : serverStatus;
   const values = {
     id,
     userId,
@@ -162,12 +186,12 @@ function applyRecommendation(
     engine: str(row.engine) as 'learned' | 'heuristic' | null,
     modelVersion: str(row.model_version),
     status,
-    attributedAt: date(row.attributed_at),
+    attributedAt: keepLocal ? existing.attributedAt : date(row.attributed_at),
     propensity: num(row.propensity),
     conflictFlag: row.conflict_flag === true,
     version: num(row.version) ?? 1,
     createdAt: dateReq(row.created_at, existing?.createdAt ?? now),
-    updatedAt: dateReq(row.updated_at, now),
+    updatedAt: keepLocal ? existing.updatedAt : dateReq(row.updated_at, now),
     serverSeq: num(row.server_seq),
   };
   if (existing) tx.update(recommendations).set(values).where(eq(recommendations.id, id)).run();

@@ -13,7 +13,7 @@
 import { randomUUID } from 'expo-crypto';
 import { and, desc, eq, inArray, lt } from 'drizzle-orm';
 
-import { focusSessions, recommendations, tasks } from './schema';
+import { events, focusSessions, recommendations, tasks } from './schema';
 import type { RecommendationRow } from './plans';
 import { taskOpPayload } from './tasks';
 import type { TaskRow } from './tasks';
@@ -506,6 +506,18 @@ export function lapseScan(db: LocalDb, input: { userId: string; now?: Date }): L
         .where(eq(focusSessions.taskId, rec.taskId))
         .all() as FocusSessionRow[];
       if (sessions.some((s) => s.state !== 'abandoned')) continue;
+      // a lapse already logged for this placement is a fact on record: a row that came back as
+      // open (a pulled provisional server status — iPhone pass 2026-09-08 item 55) is repaired
+      // to `lapsed` without a second fact, a second streak step or a second Inbox return
+      const logged = tx
+        .select()
+        .from(events)
+        .where(and(eq(events.recommendationId, rec.id), eq(events.type, 'lapse_observed')))
+        .get();
+      if (logged !== undefined) {
+        setRecStatus(tx, rec.id, 'lapsed', now);
+        continue;
+      }
       const next = deferTask(tx, task, now);
       setRecStatus(tx, rec.id, 'lapsed', now);
       appendEvent(tx, {
