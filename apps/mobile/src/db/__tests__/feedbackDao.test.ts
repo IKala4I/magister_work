@@ -479,6 +479,10 @@ describe('lazy lapse scan (File 05 §1; invariant 7)', () => {
     const closed = abandonStaleSessions(db, { userId: USER, now: T('2026-09-02T18:01:00+03:00') });
     expect(closed.map((x) => x.id)).toEqual([s.id]);
     expect(closed[0]!.state).toBe('abandoned');
+    // the fact says the app's rule closed it — the server gives a stale session no credit
+    // (iPhone pass 2026-09-08 item 65); a user's "Stop for now" carries no reason
+    const ends = eventsOf(db, 'focus_end');
+    expect(ends[ends.length - 1]!.payload).toMatchObject({ outcome: 'abandoned', reason: 'stale' });
     close();
   });
 

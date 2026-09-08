@@ -262,7 +262,18 @@ export function resumeFocusSession(
  */
 export function endFocusSession(
   db: LocalDb,
-  input: { sessionId: string; outcome: 'finished' | 'abandoned'; now?: Date },
+  input: {
+    sessionId: string;
+    outcome: 'finished' | 'abandoned';
+    /**
+     * Why an abandoned session ended: `stale` = the app's own 2 h rule closed it (nobody was
+     * there — the phone sat locked, the elapsed time is wall time, not attention). The server
+     * gives a stale session no credit (iPhone pass 2026-09-08 item 65: a 285-minute "session"
+     * on a 30-minute block was rewarded as a completion). Omitted for a user's "Stop for now".
+     */
+    reason?: 'stale';
+    now?: Date;
+  },
 ): FocusSessionRow {
   const now = input.now ?? new Date();
   return db.transaction((tx) => {
@@ -287,6 +298,7 @@ export function endFocusSession(
       payload: {
         session_id: s.id,
         outcome: input.outcome,
+        ...(input.reason === undefined ? {} : { reason: input.reason }),
         started_at: s.startedAt.toISOString(),
         ended_at: now.toISOString(),
         focused_ms: focusedMs,
@@ -461,7 +473,9 @@ export function abandonStaleSessions(
   for (const s of open) {
     const capMs = s.plannedMinutes * 2 * 60_000 + STALE_SESSION_EXTRA_MS;
     if (now.getTime() - s.startedAt.getTime() > capMs) {
-      closed.push(endFocusSession(db, { sessionId: s.id, outcome: 'abandoned', now }));
+      closed.push(
+        endFocusSession(db, { sessionId: s.id, outcome: 'abandoned', reason: 'stale', now }),
+      );
     }
   }
   return closed;
