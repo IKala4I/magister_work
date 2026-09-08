@@ -281,3 +281,21 @@ recorded in revisit.md ("Pre-plan sync cost").
   question in enrollment; `erase_user` RPC must also revoke the Google token.
 - Revisit lines closed by this ADR: task-push bridge, facts bridge, cursor-wipe confirm,
   transactional persist, map+write serialisation.
+
+## Addendum 2026-09-08 (iPhone pass, day 2) — the pull never lowers a fact-derived local status
+
+§5 said "rows upsert by primary key; an entity with an unacked local op is skipped". That
+protected client-writable statuses (`accepted | pinned | moved | rejected`, pushed as
+`recommendation_status` ops) and nothing else: a `completed` set by the device's own
+completion, and a `lapsed` set by the lazy scan, are the server's to derive from the facts —
+a completion within seconds (instant attribution), a lapse only at the 23:55 job. In that
+window any server-side touch of the row re-sends its provisional `shown`, and the device obeyed.
+Observed on the iPhone 12 (day-2 notes item 55): the nightly propensity backfill had bumped
+every row's `server_seq`; the first pull of the day reverted four fresh lapses; the next
+foreground lapsed them again — duplicate facts, double-counted streaks, a third-skip diagnostic
+on a task that had missed twice. Rule added to `applyRecommendation`: a local fact-derived
+status (`completed`, `lapsed`) is never lowered by a pulled provisional status; a terminal
+server status (`completed`, `lapsed`, `expired`, `displaced*`) still lands (mirrors
+`mergeTask`'s monotone task statuses). `lapseScan` is idempotent over the fact: a placement
+with a `lapse_observed` already logged is repaired to `lapsed` without a second fact, streak
+step or Inbox return. Tests: `pull.test.ts`, `feedbackDao.test.ts`.

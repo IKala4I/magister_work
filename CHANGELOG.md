@@ -2,6 +2,28 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — iPhone pass fix batch → build 2 (2026-09-08, post-p12/iphone-pass)
+
+- **Sync — facts beat plans on the client (MAJOR).** A pulled recommendation row that still
+  carries a provisional server status never lowers a local `completed` / `lapsed`; the lazy
+  lapse scan never logs the same lapse twice (repairs the status, no second fact / streak
+  step / Inbox return). Trigger on the phone: the nightly propensity backfill bumped every
+  row's `server_seq`, the first pull of the day reverted four fresh lapses, the next
+  foreground lapsed them again (ADR-0012 addendum).
+- **Notifications — a ritual that fired is spent for its day.** The ledger hands delivered
+  ids to the planner; `ritual:<day>` is never re-added after it fired, wherever the evening
+  time moves (ADR-0014 addendum).
+- **Dialog — reduced motion keeps the Modal mounted for 120 ms on exit**, so the erasure's
+  second step presents on iOS (ADR-0021 amendment).
+- **Accessibility — block cards offer their actions as custom accessibility actions and speak
+  their state**; a live Dynamic Type change re-mounts the navigator (iOS re-layout).
+- **First read — `useLiveRows` reads synchronously on the first render and on input changes;
+  `useLastKnown` seeds the calendar / permission / exact-alarm tri-states from MMKV and
+  renders a neutral form while unknown.** The calendar consent landing distinguishes its
+  states and returns to Settings by itself.
+- Records: explainer section, ADR-0012 / ADR-0014 addenda, ADR-0021 amendment, revisit lines
+  (the backfill's `server_seq` bump; nudges spent on unseen blocks), traceability rows.
+
 ## Post-P12 — iPhone pass, day 2: the overnight from the archive, the day boundary, two more MAJORs (2026-09-08, post-p12/iphone-pass)
 
 - **Read from the phone's log archive and the server before the phone was touched:** the app

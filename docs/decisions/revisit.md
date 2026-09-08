@@ -432,3 +432,15 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   presentations all switch state instantly. Reanimated is wired (babel via `babel-preset-expo`,
   jest via the worklets mock + `setUpTests()`), so each surface can adopt `springs.*` +
   `resolveMotion` on its own; no thesis claim depends on it — after the iPhone pass.
+- (2026-09-08, iPhone pass day 2) **The nightly propensity backfill bumps `server_seq` on every
+  row it touches** (79 of the account's 91 in one statement at 03:30), so the first pull of the
+  day re-fetches a day's plan rows. Harmless since the client's pull keeps fact-derived
+  statuses (F3), and cheap — but a training-side write to a synced table is a smell. Option: a
+  `WHEN` clause on `tg_set_server_seq` / `tg_touch_updated_at` that skips propensity-only
+  updates. Decide with the next training change; not a thesis matter.
+- (2026-09-08, iPhone pass day 2) **The ≤ 5/day cap can spend the day's nudges on blocks that
+  lapsed unseen** (the ritual plan's 09:00–11:15 nudges fired to a frozen app; at the noon open
+  four were delivered, the ritual is the fifth, the afternoon blocks the user could still do get
+  none). By design (ADR-0014: per delivery). A "nudges for blocks already lapsed at the first
+  open do not count" rule would change the cap's meaning — revisit only if a real user reports
+  the silence.

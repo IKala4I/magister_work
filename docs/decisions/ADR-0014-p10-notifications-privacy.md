@@ -175,3 +175,17 @@ anonymous_retention`). Raw events: the 24-month window starts at **study end** a
 - Revisit: FR-51 smart lead time (flag); e-mail confirmation (owner); two-device ritual
   (a ritual accepted on one device plans tomorrow for both — fine); Android exact-alarm
   semantics for the DATE trigger on API 31+ (device pass).
+
+## Addendum 2026-09-08 (iPhone pass, day 2) — a ritual that fired is spent for its day
+
+§2's ledger settled every past request into a per-day COUNT and the planner reserved the
+ritual's slot against that count. The `ritual:<day>` identifier was meant to make the ritual
+one per calendar day, but nothing consulted it: on 2026-09-07 the ritual fired at 16:42 (moved
+server-side), was answered, and when the evening time went back to 20:00 the day's count (4)
+still had room — the same identifier was re-added and fired again at 20:00 (day-2 notes items
+51, 62). On 2026-09-08 the same restore added nothing only because the count was already 5.
+Change: `settleLedger` also returns the delivered identifiers; `planNotifications` takes
+`deliveredIds` and drops a ritual whose `ritual:<day>` already fired (`dropped.spent`),
+whatever the budget and wherever the evening time is moved afterwards. Block reminders keep
+their id across a Move, so a block moved AFTER its reminder fired may be reminded again at the
+new time — counted by the cap as before. Tests: `plan.test.ts`, `ledger.test.ts`.
