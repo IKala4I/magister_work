@@ -111,7 +111,9 @@ const connected = {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  for (const name of ['gcal', 'permission', 'exactness']) forgetLastKnown(name);
+  forgetLastKnown('gcal', 'u1');
+  forgetLastKnown('permission');
+  forgetLastKnown('exactness');
   useDialogStore.setState({ current: null, hosts: [] });
   useSessionStore.setState({
     status: 'signed_in',
@@ -226,13 +228,17 @@ describe('Settings — Google Calendar section', () => {
 
   it('the first frame shows the LAST-KNOWN calendar state while the status read is pending; nothing known renders the checking row, never "Connect" (hardware pass 2026-09-07 item 44)', async () => {
     // a returning user whose calendar was connected at the last read
-    writeLastKnown('gcal', {
-      connected: true,
-      scope: 'read',
-      write_back: false,
-      last_synced_at: null,
-      connected_at: '2026-09-07T13:17:50.000Z',
-    });
+    writeLastKnown(
+      'gcal',
+      {
+        connected: true,
+        scope: 'read',
+        write_back: false,
+        last_synced_at: null,
+        connected_at: '2026-09-07T13:17:50.000Z',
+      },
+      'u1',
+    );
     mockGcal.status.mockImplementation(() => new Promise(() => undefined)); // never resolves
     await render(withSafeArea(<SettingsScreen />));
     expect(screen.getByText(en['settings.gcal.connected'])).toBeTruthy();
@@ -240,7 +246,7 @@ describe('Settings — Google Calendar section', () => {
     expect(screen.queryByText(en['settings.gcal.checking'])).toBeNull();
     await screen.unmount();
     // a first-ever open: nothing known yet
-    forgetLastKnown('gcal');
+    forgetLastKnown('gcal', 'u1');
     let resolve: (r: unknown) => void = () => undefined;
     mockGcal.status.mockImplementation(() => new Promise((r) => (resolve = r)));
     await render(withSafeArea(<SettingsScreen />));
@@ -253,7 +259,7 @@ describe('Settings — Google Calendar section', () => {
       }),
     );
     expect(screen.getByText(en['settings.gcal.connect'])).toBeTruthy();
-    expect(readLastKnown<{ connected: boolean }>('gcal')?.connected).toBe(false);
+    expect(readLastKnown<{ connected: boolean }>('gcal', 'u1')?.connected).toBe(false);
   });
 
   it('surfaces the not-configured state calmly (the Google gate)', async () => {

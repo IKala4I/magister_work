@@ -11,7 +11,6 @@ import { t } from '../i18n';
 import { track } from '../observability/analytics';
 
 import { resetLedger } from './ledger';
-import { forgetLastKnown } from '../storage/lastKnown';
 
 /** Android channel ids (importance DEFAULT: a reminder, not an alarm — no guilt UI). */
 export const CHANNEL_REMINDERS = 'reminders';
@@ -89,7 +88,9 @@ async function registerChannels(): Promise<void> {
 /** Sign-out / account switch / erasure: nothing pending, nothing remembered (ledger + OS). */
 export async function clearAllNotifications(): Promise<void> {
   resetLedger();
-  for (const name of ['gcal', 'permission', 'exactness']) forgetLastKnown(name);
+  // (the account's last-known calendar reading is forgotten by the caller, which knows the
+  // account — this module must not pull the auth/db stack in; the OS permission and the
+  // exact-alarm state are device facts and stay known across accounts)
   try {
     await Notifications.cancelAllScheduledNotificationsAsync();
     await Notifications.dismissAllNotificationsAsync();

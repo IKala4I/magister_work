@@ -189,6 +189,7 @@ async function pass(now: Date): Promise<void> {
     capped: plan.dropped.capped,
     muted: plan.dropped.muted,
     past: plan.dropped.past,
+    spent: plan.dropped.spent,
     reason: plan.reason,
     exact: exactAlarmState(),
   });

@@ -205,11 +205,19 @@ function CalendarSection() {
   const signedIn = useSessionStore((s) => s.status === 'signed_in');
   // seeded from the last persisted reading — `null` only before the first ever read, and it
   // renders the neutral row, never "Connect" over a connected calendar (hardware pass item 44)
-  const [gcal, setGcalState] = useState<GcalStatus | null>(() => readLastKnown<GcalStatus>('gcal'));
-  const setGcal = useCallback((status: GcalStatus) => {
-    writeLastKnown('gcal', status);
-    setGcalState(status);
-  }, []);
+  const userId = useSessionStore((s) => s.userId);
+  const [gcal, setGcalState] = useState<GcalStatus | null>(() =>
+    readLastKnown<GcalStatus>('gcal', userId),
+  );
+  const setGcal = useCallback(
+    (status: GcalStatus) => {
+      // account-scoped, and only for the account the fetch was started for
+      if (useSessionStore.getState().userId !== userId) return;
+      writeLastKnown('gcal', status, userId);
+      setGcalState(status);
+    },
+    [userId],
+  );
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<MessageKey | null>(null);
 
@@ -359,9 +367,9 @@ function NotificationsSection() {
       sub.remove();
     };
   }, [setPermission]);
-  // unknown (first ever open, before the read) renders the setting itself — never OFF over a
-  // granted permission (hardware pass 2026-09-07 item 44)
-  const remindersOn = settings.block_reminders && (permission === 'granted' || permission === null);
+  // `permission` is seeded from the last reading, so `null` is only the first ever open on this
+  // device — where the OS state is `undetermined` and OFF is the honest value
+  const remindersOn = settings.block_reminders && permission === 'granted';
   const toggleReminders = async (value: boolean) => {
     if (!value) {
       updateNotificationSettingsAction({ block_reminders: false });

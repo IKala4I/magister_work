@@ -13,7 +13,7 @@
  */
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { AccessibilityInfo, StyleSheet, View } from 'react-native';
 
 import { t } from '../src/i18n';
 import { gcalConfirm } from '../src/sync/gcal';
@@ -39,6 +39,14 @@ export default function GcalCallbackScreen() {
       alive = false;
     };
   }, [status, confirm]);
+
+  useEffect(() => {
+    if (outcome === 'working') return;
+    // `accessibilityLiveRegion` is Android-only; VoiceOver needs the announcement
+    AccessibilityInfo.announceForAccessibility(
+      outcome === 'ok' ? t('gcal.callback.ok') : t('gcal.callback.failed'),
+    );
+  }, [outcome]);
 
   useEffect(() => {
     if (outcome !== 'ok') return undefined;

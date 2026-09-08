@@ -36,8 +36,10 @@ const DISPLACED = new Set(['displaced']);
  * `server_seq`, the first pull of the day re-fetched them as `shown` over the scan's `lapsed`,
  * and the next foreground lapsed the same blocks again — duplicate facts, double streaks, a
  * third-skip diagnostic on a task that had missed twice. Facts beat plans (invariant 2), on the
- * client too. A terminal server status (completed / lapsed / expired / displaced) still lands:
- * that is the server's reading of the facts.
+ * client too. A terminal server status (completed / lapsed / displaced) still lands: that is the
+ * server's reading of the facts. `expired` lands as well — it is a supersede by a newer plan, not
+ * a reading; since the 2026-09-08 `persist_plan` change a superseding plan never expires a row
+ * that carries a fact or whose slot has ended, so an `expired` row has nothing to attribute.
  */
 const LOCAL_FACT_STATUSES: ReadonlySet<string> = new Set(['completed', 'lapsed']);
 const SERVER_PROVISIONAL_STATUSES: ReadonlySet<string> = new Set([
@@ -174,8 +176,10 @@ function applyRecommendation(
     planId: str(row.plan_id) ?? existing?.planId ?? '',
     taskId: str(row.task_id) ?? existing?.taskId ?? '',
     chunkIndex: num(row.chunk_index) ?? 0,
-    slotStart: dateReq(row.slot_start, existing?.slotStart ?? now),
-    slotEnd: dateReq(row.slot_end, existing?.slotEnd ?? now),
+    // with the local status kept, keep the slot it was lapsed/completed in (a server `moved`
+    // over a local `lapsed` must not read "Not done" on a slot still ahead)
+    slotStart: keepLocal ? existing.slotStart : dateReq(row.slot_start, existing?.slotStart ?? now),
+    slotEnd: keepLocal ? existing.slotEnd : dateReq(row.slot_end, existing?.slotEnd ?? now),
     contextBucket: str(row.context_bucket) ?? existing?.contextBucket ?? '',
     features: Array.isArray(row.features) ? row.features : (existing?.features ?? null),
     qHat: num(row.q_hat),

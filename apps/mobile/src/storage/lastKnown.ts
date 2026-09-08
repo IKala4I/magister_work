@@ -3,12 +3,13 @@
  * granted?") is `null` until its first asynchronous read. Rendering `null` as the NEGATIVE
  * branch shows a wrong state for a frame on every open — Settings flashed "Connect Google
  * Calendar" over a connected calendar, the reminders switch flashed OFF, on both platforms
- * (hardware pass 2026-09-07 item 44). This hook seeds the state from the value last persisted
- * in MMKV, refreshes it, and persists the fresh value; callers render `null` (nothing known
- * yet, first ever open) as the NEUTRAL form — never the negative branch.
+ * (hardware pass 2026-09-07 item 44). The screen seeds its state from the value last persisted
+ * in MMKV (`readLastKnown` in the state initialiser), refreshes it and persists the fresh value
+ * (`writeLastKnown`); `null` (nothing known yet, first ever open) renders the NEUTRAL form —
+ * never the negative branch. Account data (the calendar status) is keyed by the account
+ * (`scope`), so a status fetched for one account never seeds another's first frame; device
+ * facts (the OS permission, exact alarms) are unscoped and stay known across accounts.
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
-
 import { appStorage, StorageKeys } from './mmkv';
 
 export interface LastKnownStore {
@@ -17,12 +18,18 @@ export interface LastKnownStore {
   delete(key: string): void;
 }
 
-function keyOf(name: string): string {
-  return `${StorageKeys.lastKnownPrefix}${name}`;
+function keyOf(name: string, scope: string | null): string {
+  return scope === null
+    ? `${StorageKeys.lastKnownPrefix}${name}`
+    : `${StorageKeys.lastKnownPrefix}${scope}.${name}`;
 }
 
-export function readLastKnown<T>(name: string, store: LastKnownStore = appStorage): T | null {
-  const raw = store.getString(keyOf(name));
+export function readLastKnown<T>(
+  name: string,
+  scope: string | null = null,
+  store: LastKnownStore = appStorage,
+): T | null {
+  const raw = store.getString(keyOf(name, scope));
   if (raw === undefined) return null;
   try {
     return JSON.parse(raw) as T;
@@ -34,43 +41,27 @@ export function readLastKnown<T>(name: string, store: LastKnownStore = appStorag
 export function writeLastKnown<T>(
   name: string,
   value: T,
+  scope: string | null = null,
   store: LastKnownStore = appStorage,
 ): void {
-  store.set(keyOf(name), JSON.stringify(value));
+  store.set(keyOf(name, scope), JSON.stringify(value));
 }
 
-/** Sign-out / erasure: the next account starts from "nothing known". */
-export function forgetLastKnown(name: string, store: LastKnownStore = appStorage): void {
-  store.delete(keyOf(name));
+/** Erasure hygiene for a scoped reading (an account's calendar status). */
+export function forgetLastKnown(
+  name: string,
+  scope: string | null = null,
+  store: LastKnownStore = appStorage,
+): void {
+  store.delete(keyOf(name, scope));
 }
 
 /**
- * `[value, refresh]` — `value` is the last persisted reading until the fetch resolves, then
- * the fresh one; `refresh()` re-runs the fetch (the caller wires it to AppState / focus).
- * A fetch that resolves `null` leaves the last-known value in place.
+ * Sign-out / erasure / account switch: forget the leaving account's readings without pulling
+ * the auth stack into the caller — the account is the one MMKV holds as the last signed-in user
+ * (`StorageKeys.lastUserId`), still the leaving one at that point of the flows.
  */
-export function useLastKnown<T>(
-  name: string,
-  fetch: () => Promise<T | null> | T | null,
-  store: LastKnownStore = appStorage,
-): [T | null, () => void] {
-  const [value, setValue] = useState<T | null>(() => readLastKnown<T>(name, store));
-  const fetchRef = useRef(fetch);
-  fetchRef.current = fetch;
-  const alive = useRef(true);
-  const refresh = useCallback(() => {
-    void Promise.resolve(fetchRef.current()).then((fresh) => {
-      if (fresh === null || !alive.current) return;
-      writeLastKnown(name, fresh, store);
-      setValue(fresh);
-    });
-  }, [name, store]);
-  useEffect(() => {
-    alive.current = true;
-    refresh();
-    return () => {
-      alive.current = false;
-    };
-  }, [refresh]);
-  return [value, refresh];
+export function forgetLastKnownOfLastUser(name: string, store: LastKnownStore = appStorage): void {
+  const last = store.getString(StorageKeys.lastUserId);
+  if (last !== undefined) forgetLastKnown(name, last, store);
 }

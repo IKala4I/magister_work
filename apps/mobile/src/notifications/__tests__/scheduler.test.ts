@@ -222,6 +222,7 @@ describe('runNotificationScheduler', () => {
       capped: 3,
       muted: 1,
       past: 0,
+      spent: 0,
       reason: 'ok',
       exact: 'not_applicable', // jest runs as iOS: no exact-alarm switch there
     });

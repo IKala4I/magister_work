@@ -27,16 +27,16 @@ type SyncQuery<T> = { all(): T[] };
 export interface LiveRows<T> {
   rows: T[];
   /**
-   * True only when `rows` were read for the current tables + deps. False on the first render
-   * (rows = []) and for the render after a deps change (rows = the previous inputs' read).
+   * Kept for callers that gate a decision on it (the UC-03 trigger): since the first read is
+   * synchronous it is true on every render — `rows` are always for the current inputs.
    */
   ready: boolean;
 }
 
 interface ReadState<T> {
   rows: T[];
-  /** The tables + deps the rows were read for; null before the first read. */
-  readFor: readonly unknown[] | null;
+  /** The tables + deps the rows were read for. */
+  readFor: readonly unknown[];
 }
 
 function sameInputs(a: readonly unknown[], b: readonly unknown[]): boolean {
@@ -58,22 +58,22 @@ export function useLiveRowsState<T>(
     readFor: inputs,
   }));
   // inputs changed since the last read: re-read in this render (the effect below persists it)
-  const current: ReadState<T> =
-    state.readFor !== null && sameInputs(state.readFor, inputs)
-      ? state
-      : { rows: buildRef.current().all(), readFor: inputs };
+  const current: ReadState<T> = sameInputs(state.readFor, inputs)
+    ? state
+    : { rows: buildRef.current().all(), readFor: inputs };
 
   useEffect(() => {
     let alive = true;
     const refresh = () => {
       if (alive) setState({ rows: buildRef.current().all(), readFor: inputs });
     };
-    // the initial state (or the in-render re-read) already holds this read; refresh only when
-    // the stored state is for other inputs
-    if (state.readFor === null || !sameInputs(state.readFor, inputs)) refresh();
     const subscription = addDatabaseChangeListener(({ tableName }) => {
       if (tables.includes(tableName)) refresh();
     });
+    // the render read predates this subscription by a frame; a write landing in that gap (a
+    // pull's promise continuation) would be neither in the rows nor observed — read once more
+    // now that the listener is attached (adversarial pass 2026-09-08 #8; one statement)
+    refresh();
     return () => {
       alive = false;
       subscription.remove();

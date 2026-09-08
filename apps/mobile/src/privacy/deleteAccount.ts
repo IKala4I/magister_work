@@ -16,6 +16,7 @@ import { resetSyncCursor } from '../sync/cursor';
 import { gcalStatus } from '../sync/gcal';
 import { clearInsightsCache } from '../sync/insights';
 import { invokeFunction } from '../sync/invoke';
+import { forgetLastKnownOfLastUser } from '../storage/lastKnown';
 
 export type DeleteResult =
   | { ok: true; reference: string; completedAt: string }
@@ -51,6 +52,7 @@ export async function deleteAccount(deps: DeleteDeps): Promise<DeleteResult> {
 
 /** Everything this install remembers about the account (the server side is already gone). */
 export async function forgetLocalState(): Promise<void> {
+  forgetLastKnownOfLastUser('gcal'); // the account's last-known calendar reading (account data)
   await clearAllNotifications();
   wipeLocalMirror(db as unknown as LocalDb);
   resetSyncCursor();
