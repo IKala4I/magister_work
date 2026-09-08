@@ -173,3 +173,20 @@ correction`, `delivered_at = NULL`) and re-sent with `correction = true` → the
   cron tick, and `RECSYS_URL`/`HOURWELL_SERVICE_KEY` for the functions (HANDOFF).
 - λ_f retune (revisit, P5): needs observed q̂ scales — no live feedback exists yet; deferred to
   the first data review (P11), recorded in revisit.md.
+
+## Addendum 2026-09-08 (iPhone pass, build 2) — a stale-abandoned session earns no credit
+
+The client's 2 h rule (`abandonStaleSessions`) closes a session nobody came back to with
+`outcome: abandoned`, and FR-30 makes a session's elapsed time wall time (a locked phone
+counts — the display must survive a lock). Row 2 ("in-window session credit ≥ 50 % →
+completed") read that wall time as focus: on the iPhone 12 a session started at 12:54 on a
+30-minute block, left behind a lock and a reboot, was closed by the rule at 17:39 with
+285 "focused" minutes and rewarded as a completion (r = 1, instant) while the device's own scan
+had lapsed the block (day-2 notes item 65). A guessed reward on an ambiguous session
+(invariant 3). Change: the fact says why it ended — `focus_end.reason = 'stale'` when the app's
+rule closed it (a user's "Stop for now" carries no reason) — and the reward mapping gives a
+stale session no credit: no instant outcome; the 23:55 authority lapses the row (r = 0) unless
+another fact says otherwise. Rows 2–3 are unchanged for explicit stops. Tests: `rewards_test.ts`
+("a stale-abandoned session … earns no credit"), `feedbackDao.test.ts` (the fact carries the
+reason). The Android day-2 session (164.5 wall-clock minutes, 2026-09-02) had the same shape;
+its tuple was never checked.

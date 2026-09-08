@@ -2,21 +2,29 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-08 (late afternoon) — **iPhone pass, day 2, on branch `post-p12/iphone-pass`**
-> (build 1 = main `4d67a78` on the owner's iPhone 12 / iOS 26.6; the device slices of day 2 are
-> done; **the fix batch F1–F8 is committed with its adversarial pass; build 2 is the next step**,
-> blocked on the phone being unlocked for Xcode's device preparation). Read first:
-> `docs/verification/device-pass/ios-20260908-1215/notes.md` (items 50–64 + the fix-batch table),
-> then the "iOS 2026-09-08" paragraphs and the new "Fix-batch rows only hardware can settle"
-> section in `docs/verification/device-checklist.md`.
+> Last update: 2026-09-08 (evening) — **iPhone pass, day 2 closed on branch `post-p12/iphone-pass`;
+> build 2 on the phone; PR open with auto-merge.** Read first:
+> `docs/verification/device-pass/ios-20260908-1215/notes.md` (items 50–68 + the fix-batch table
+> with the build-2 results), then the "iOS 2026-09-08" paragraphs and the "Fix-batch rows only
+> hardware can settle" section in `docs/verification/device-checklist.md`.
 >
-> **Commits on the branch since day 1:** `8d07c00` day-2 records → `1ed0be0` F3 (pull lattice +
-> idempotent scan) → `33f8f81` F4 (ritual spent per id) → `607d782` F1 (dialog exit grace) →
-> `415635a` F2/F5/F6/F7 (card actions + state, first read, last-known, font-scale re-mount,
-> callback) → `5308199` records → then the adversarial-pass follow-ups (client), the
-> `persist_plan` migration (`20260908140000_persist_plan_facts_beat_supersede.sql`, pgTAP 7/7
-> linked) and their records. **⛔ NEW owner item: push the migration** (`supabase db push`, as
-> for P10/P11) — until then the hosted `persist_plan` still expires rows with facts.
+> **Commits on the branch since day 1:** `8d07c00` day-2 records → `1ed0be0` F3 → `33f8f81` F4 →
+> `607d782` F1 → `415635a` F2/F5/F6/F7 → `5308199` records → `36b297c` adversarial follow-ups →
+> `aaef65e` `persist_plan` migration (pgTAP 7/7 linked) → `1afd4b8` records → the stale-session
+> reward fix (client fact `reason: 'stale'` + the mapping gives it no credit) → the build-2
+> records. **Build 2 = `36b297c` on the phone** (the stale-session fix is not in it — no device
+> check needs it before main).
+>
+> **⛔ Owner items (in order, one per turn):** (1) restore the brightness (my blind slider write
+> landed on Display & Brightness — notes item 68) and, at the very end, Auto-Lock; (2) push the
+> migration `20260908140000_persist_plan_facts_beat_supersede.sql` (`supabase db push`, as for
+> P10/P11); (3) 2-minute VoiceOver listen on Today: a card's rotor must list Start / Done / Skip /
+> Move… (or "I did it"), a double-tap runs it, the summary ends with the state; (4) 1-minute
+> Larger Text check through the Settings app with Hourwell in the background (the path that
+> clipped build 1) — Inbox rows and the Today header must be laid out, not clipped; (5) the
+> erasure with the arming test: `! docs/verification/hw-ios-erase-check.sh <out-dir>` with
+> Settings open on "Delete account and data" and a WDA session alive (the session sets it up);
+> then the session reads `deletion_audit` +1 and the tables at 0.
 
 ## What happened this session (2026-09-08 — iPhone pass, day 2)
 
@@ -53,9 +61,11 @@ Today too, not only on the sheet.
 
 ## Exact next actions (this session continues; or a fresh one after `/clear`)
 
-1. ~~Fix batch F1–F8~~ done (commits above; adversarial pass 0 MAJOR / 5 MINOR / 11 notes, all
-   addressed — notes item 64). Owner: ⛔ push the `persist_plan` migration.
-2. **Build 2** (`npx expo run:ios --device 00008101-0015081602F1003A --configuration Release
+1. ~~Fix batch F1–F8~~ done; ~~build 2 + re-checks~~ done (notes items 65–68: F3 ✅, F1 ✅,
+   F2 state ✅, F5 layout ✅ via the daemon / Settings path owner; F4 needs a day with budget).
+   The owner items above come next; then the pass closes with a docs commit flipping the
+   remaining rows (rotor listen, Larger Text, erasure) and the PR merges.
+2. ~~**Build 2**~~ (see above; the exact command that worked: `SENTRY_DISABLE_AUTO_UPLOAD=true npx expo run:ios --device 00008101-0015081602F1003A --configuration Release --no-bundler` with the WDA runner and the live syslog STOPPED — both hold the CoreDevice connection xcodebuild needs — and the phone unlocked; a wedged RSD (0xE8000003) is cleared by `pymobiledevice3 diagnostics restart` + the owner's first unlock) (`npx expo run:ios --device 00008101-0015081602F1003A --configuration Release
 --no-bundler` after `expo prebuild`; `hw-build-gate-ios.sh`), install over build 1 (same
    account, same data), re-check each row of the table on the phone with the same drivers;
    flip the checklist rows; day-2 notes items 64+.

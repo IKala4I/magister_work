@@ -1,0 +1,77 @@
+{
+  "at": "2026-09-08T14:44:14.906Z",
+  "events": [],
+  "lapse_count": [
+    {
+      "n": 19
+    }
+  ],
+  "recs_0908": [
+    {
+      "id": "61b32c37-44a3-4097-b191-6590f8885d14",
+      "server_seq": 4984,
+      "slot_start": "2026-09-08 06:00:00+00",
+      "status": "shown"
+    },
+    {
+      "id": "8f1550cf-5d73-48db-8854-7e179e691462",
+      "server_seq": 4985,
+      "slot_start": "2026-09-08 06:45:00+00",
+      "status": "shown"
+    },
+    {
+      "id": "2f0dda31-0b37-493b-80b2-027d5366c52f",
+      "server_seq": 4986,
+      "slot_start": "2026-09-08 07:30:00+00",
+      "status": "shown"
+    },
+    {
+      "id": "79d1c1ba-5729-49c0-aa83-eeea6d332761",
+      "server_seq": 4987,
+      "slot_start": "2026-09-08 08:15:00+00",
+      "status": "shown"
+    },
+    {
+      "id": "3a21e7d3-0fc9-4126-8b26-c9b7c4e6da46",
+      "server_seq": 4988,
+      "slot_start": "2026-09-08 09:00:00+00",
+      "status": "shown"
+    },
+    {
+      "id": "18797b22-59df-47ed-a9d9-8e1778f82193",
+      "server_seq": 5039,
+      "slot_start": "2026-09-08 10:00:00+00",
+      "status": "completed"
+    },
+    {
+      "id": "c113ed8b-fa40-415f-9775-84b8eb2b53ca",
+      "server_seq": 4990,
+      "slot_start": "2026-09-08 10:45:00+00",
+      "status": "shown"
+    },
+    {
+      "id": "3f48c5f3-407d-4679-ab37-9ad55a0c2619",
+      "server_seq": 4991,
+      "slot_start": "2026-09-08 11:45:00+00",
+      "status": "shown"
+    },
+    {
+      "id": "6defe3cb-1a9a-49ea-8b7b-56917d1cb5b6",
+      "server_seq": 4992,
+      "slot_start": "2026-09-08 12:30:00+00",
+      "status": "shown"
+    },
+    {
+      "id": "4449216e-e9f3-4e47-86e9-885579f14754",
+      "server_seq": 5040,
+      "slot_start": "2026-09-08 13:30:00+00",
+      "status": "shown"
+    },
+    {
+      "id": "d969dec6-ee3b-41d4-aca1-f8e0d4d073ae",
+      "server_seq": 4898,
+      "slot_start": "2026-09-08 14:15:00+00",
+      "status": "shown"
+    }
+  ]
+}

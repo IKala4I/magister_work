@@ -21,6 +21,14 @@
   `useLastKnown` seeds the calendar / permission / exact-alarm tri-states from MMKV and
   renders a neutral form while unknown.** The calendar consent landing distinguishes its
   states and returns to Settings by itself.
+- **Build 2 on the iPhone 12 (2026-09-08 17:40, gate clean):** F3 re-checked — a server-side
+  row bump re-pulled as `shown` left the local `lapsed` in place and the next scan added no
+  duplicate; F1 — the second erasure dialog present under the daemon's Reduce Motion hold; F2 —
+  every card's spoken summary carries its state; F5 — a live change to the maximum text size
+  re-measures the Inbox and the Settings sheet without a relaunch. Found on the way: **the 2 h
+  stale-session rule was rewarded as a completion** (285 wall-clock "focused" minutes on a
+  30-minute block, r = 1) — the fact now says `reason: 'stale'` and the reward mapping gives it
+  no credit (ADR-0010 addendum; Deno + jest).
 - **Adversarial pass (fresh-context subagent): 0 MAJOR, 5 MINOR, 11 notes — all addressed.**
   Server: `persist_plan`'s supersede no longer expires rows that carry facts or whose slot has
   ended (a lapse followed by a same-day re-plan lost its r = 0 tuple; migration

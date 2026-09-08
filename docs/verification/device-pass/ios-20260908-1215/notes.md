@@ -230,15 +230,74 @@ freezing pid 751 [Hourwell] … froze 1641 pages` at 17:32:23, the same pid aliv
     hardware can settle (custom actions by ear, a late replacement under Reduce Motion, the
     re-mount's resets, the spent ritual with budget left).
 
+65. **Build 2 on the phone (17:40), and a reward defect it surfaced at once.** Build 2 = the
+    batch + the adversarial follow-ups (tree `36b297c`), `SENTRY_DISABLE_AUTO_UPLOAD=1 npx expo
+run:ios --device … --configuration Release --no-bundler`, gate clean (`build-gate-2.txt`:
+    host hits 1, entitlements without `aps-environment`, bundle sha `30242ba2…` ≠ build 1's
+    `a07ce9ac…`). Xcode's device destination refused the build until the phone was unlocked
+    ("may need to be unlocked to recover from previously reported preparation errors") and
+    CoreDevice's RSD allocation was wedged (0xE8000003) — resolved as on day 1 by a phone
+    reboot (`pymobiledevice3 diagnostics restart`) + the owner's first unlock; Auto-Lock set
+    to Never for the rest of the pass (owner restores). The install's own launch was the
+    first foreground on build 2 (17:39:26): five `lapse_observed`, exactly once each, for the
+    blocks that had ended (13:00 → 16:30) — and a **`focus_end` with `outcome: abandoned` for
+    the 12:54 session, closed by the client's 2 h stale rule with 285 wall-clock "focused"
+    minutes, which the instant attribution rewarded as a completion (r = 1, `reason:
+completed`, `server-q-focusend.json`)** while the device's own scan had lapsed the block;
+    the pull then landed `completed` over the local `lapsed` (a terminal server status wins —
+    correctly, given the server's reading). A guessed reward on an ambiguous session
+    (invariant 3): FR-30 makes a session's elapsed time wall time on purpose (the display
+    survives a lock), so `focused_ms` is no evidence when the app's own rule ended the session.
+    Fix in this branch: the fact says why it ended (`focus_end.reason = 'stale'`; a user's
+    "Stop for now" carries none) and the reward mapping gives a stale session no credit —
+    no instant outcome, the 23:55 authority lapses the row (ADR-0010 addendum; Deno
+    `rewards_test.ts` + `feedbackDao.test.ts`). The Android day-2 session (164.5 wall-clock
+    minutes) had the same shape and its tuple was never checked. Build 2 still carries the
+    old client (the reason lands in build 3 / main); the old r = 1 tuple stays in this
+    throwaway's data.
+66. **F3 re-checked on build 2 — PASS.** The 16:30 block (`4449216e`, lapsed on the device at
+    17:39) was touched server-side at 17:42:11 (a propensity write, `server_seq` 5040 — the
+    backfill's shape); the 60 s poll pulled the row: the device kept **`lapsed`** with the new
+    `server_seq` 5040 (`hourwell-b2-2.db`), and the next foreground cycle (WDA home →
+    activate 17:45) added **no** lapse for it — the only new fact was the 17:15 experiment
+    block, which had genuinely ended at 17:45 (`server-q-recheck-3.json`: 20 lapse rows =
+    19 + 1; the task's streak unchanged at 2). On build 1 the same pull reverted four rows
+    (item 55).
+67. **F1 re-checked on build 2 — PASS.** Under the accessibility daemon's `REDUCE_MOTION` hold
+    (read back True): Settings → Delete account and data → Continue → **dialog 2 present at
+    +1.5 s and +5.5 s** ("Delete everything" visible, `shot-b2-rm-dialog2.png`) → Cancel →
+    Settings intact. Build 1 lost the dialog on the same path (items 24, 36). The real system
+    switch and a late replacement (> 120 ms) stay in the checklist's hardware rows.
+68. **F2 (state), F5 (re-layout) on build 2; F4, F6 not device-checkable today.** `hw-ios-ax.py
+items` on Today (`ax-b2-today.json`): every card's spoken summary now ends with its state
+    ("…, Confidence 52 percent, Not done — back in your Inbox"; "…, Completed") — the
+    item-58 half; the custom actions are not exposed by the daemon's listing nor by XCUITest,
+    so their presence is the owner's rotor listen (checklist row). F5 through the daemon's
+    `DYNAMIC_TYPE = 1.0` hold while the app ran: the Inbox re-measured (titles wrap, rows
+    grow, nothing clipped — `shot-b2-dt-live-inbox.png`, `wda-b2-dt-live-inbox.xml`), the
+    Settings sheet too (`shot-b2-dt-live-settings-sheet.png`; build 1 clipped both, item 22)
+    — **but the navigator did not re-mount**: the Inbox tab and an open task form survived
+    the change, so under the inspector override `fontScale` did not change and the correct
+    layout came from somewhere else in build 2 (not established). The user-facing path — the
+    Larger Text slider in the Settings app, which clipped build 1 live (item 36) — was not
+    re-verified: driving the Settings app blind landed on the brightness slider of the page
+    the owner had left open (Display & Brightness; brightness raised — owner restores), so
+    the Settings-app check is the owner's 1-minute step. F4 (the spent ritual) cannot be
+    re-checked today: the day's ledger is at the cap (4 nudges + the 12:45 ritual), so no
+    ritual could be re-added by count either — the jest evidence stands, the device row waits
+    for a day with budget left. F6 (the first read) is not observable frame-by-frame with these
+    tools; jest pins it (Settings, Inbox, Focus, the task sheet). Daemon settings reset to
+    the device defaults afterwards (`settings show`: all False, DYNAMIC_TYPE 0.2727).
+
 ## Fix batch (consolidated from days 1–2; build 2 re-checks each on the phone)
 
 | #   | Severity | Finding                                                                                                   | Fix                                                                                                                                                                                                | Re-check                                                                 |
 | --- | -------- | --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| F1  | MAJOR    | Reduce Motion: the second erasure dialog never appears (items 24, 36)                                     | keep the Modal mounted across an immediate replacement; jest "resolve → request in the same tick under reduced motion"                                                                             | REDUCE_MOTION hold + Continue → dialog 2 present                         |
-| F2  | MAJOR    | Block action row unreachable by a screen reader; lapsed state not spoken (items 35, 41, 58)               | custom actions Start / Done / Skip / Move… on the card + state in the summary; jest pins the actions                                                                                               | `hw-ios-ax.py items` lists the actions; owner's ear                      |
-| F3  | MAJOR    | Pull reverts a local `lapsed` to `shown` → duplicate lapse facts, double streaks, phantom diagnostic (55) | status lattice in `applyRecommendation` (fact-derived local statuses never lowered by a pulled row) + `lapseScan` idempotency (a rec with a local `lapse_observed` is never lapsed twice); jest ×3 | fresh server-side bump (a propensity write) + scan → one fact, streak +1 |
-| F4  | MAJOR    | A ritual delivered and answered is re-added when the evening time moves later (items 49, 51, 62)          | persist `ritual-spent:<day>` on delivery/answer (MMKV, written with the `notification_response`), consulted before re-adding; jest "fired + answered, time moved later → no second request"        | move 12:xx → fire → tap → restore 20:00 → no re-add in the OS log        |
-| F5  | major    | Live text-size change re-renders without re-layout (items 22, 23, 36)                                     | re-mount the root on `fontScale` change                                                                                                                                                            | DYNAMIC_TYPE hold while running → layout correct without a relaunch      |
+| F1  | MAJOR    | Reduce Motion: the second erasure dialog never appears (items 24, 36)                                     | keep the Modal mounted across an immediate replacement; jest "resolve → request in the same tick under reduced motion"                                                                             | ✅ build 2 (item 67)                                                     |
+| F2  | MAJOR    | Block action row unreachable by a screen reader; lapsed state not spoken (items 35, 41, 58)               | custom actions Start / Done / Skip / Move… on the card + state in the summary; jest pins the actions                                                                                               | state ✅ build 2 (item 68); actions: owner's rotor listen ⬜             |
+| F3  | MAJOR    | Pull reverts a local `lapsed` to `shown` → duplicate lapse facts, double streaks, phantom diagnostic (55) | status lattice in `applyRecommendation` (fact-derived local statuses never lowered by a pulled row) + `lapseScan` idempotency (a rec with a local `lapse_observed` is never lapsed twice); jest ×3 | ✅ build 2 (item 66)                                                     |
+| F4  | MAJOR    | A ritual delivered and answered is re-added when the evening time moves later (items 49, 51, 62)          | persist `ritual-spent:<day>` on delivery/answer (MMKV, written with the `notification_response`), consulted before re-adding; jest "fired + answered, time moved later → no second request"        | ⬜ needs a day with budget left (item 68); jest ✅                       |
+| F5  | major    | Live text-size change re-renders without re-layout (items 22, 23, 36)                                     | re-mount the root on `fontScale` change                                                                                                                                                            | daemon hold ✅ layout, re-mount not observed; Settings-app path ⬜ owner |
 | F6  | systemic | Default/empty state before the first read: Settings calendar/permission, Inbox, Focus, task sheet (44)    | synchronous first read in `useLiveRows` (+ `ready`), `useLastKnown` for the tri-states; jest "first render carries rows", "null never renders the negative branch"                                 | Settings open → no "Connect Google Calendar" flash (Pixel); Inbox/Focus  |
 | F7  | MINOR    | Android calendar callback screen never leaves on its own (43)                                             | distinct `ok` copy + `router.replace('/settings')` after confirm                                                                                                                                   | Pixel consent                                                            |
 | F8  | note     | The nightly propensity backfill bumps `server_seq` on every touched row (54)                              | optional: trigger `WHEN` skips propensity-only updates — decide in the batch; F3 is the fix                                                                                                        | —                                                                        |

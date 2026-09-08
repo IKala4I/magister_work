@@ -1,0 +1,98 @@
+[
+  {
+    "platform_identifier": "D5020000808CAA10010000000400000000000000",
+    "estimated_uid": "04000000-0000-0000-D502-000000000000",
+    "caption": "Today",
+    "spoken_description": "Today"
+  },
+  {
+    "platform_identifier": "D502000000398816010000000500000000000000",
+    "estimated_uid": "05000000-0000-0000-D502-000000000000",
+    "caption": "Open settings, Button",
+    "spoken_description": "Open settings, Button"
+  },
+  {
+    "platform_identifier": "D50200000061810B010000000600000000000000",
+    "estimated_uid": "06000000-0000-0000-D502-000000000000",
+    "caption": "Re-plan, Button",
+    "spoken_description": "Re-plan, Button"
+  },
+  {
+    "platform_identifier": "D502000020B5AA10010000000700000000000000",
+    "estimated_uid": "07000000-0000-0000-D502-000000000000",
+    "caption": "Tuesday, 8 September",
+    "spoken_description": "Tuesday, 8 September"
+  },
+  {
+    "platform_identifier": "D50200000076810B010000000800000000000000",
+    "estimated_uid": "08000000-0000-0000-D502-000000000000",
+    "caption": "b6 task 05 admin, 09:00 to 09:30, Confidence 52 percent, Not done — back in your Inbox",
+    "spoken_description": "b6 task 05 admin, 09:00 to 09:30, Confidence 52 percent, Not done — back in your Inbox"
+  },
+  {
+    "platform_identifier": "D502000070B5AA10010000000900000000000000",
+    "estimated_uid": "09000000-0000-0000-D502-000000000000",
+    "caption": "09:00",
+    "spoken_description": "09:00"
+  },
+  {
+    "platform_identifier": "D5020000007C810B010000000A00000000000000",
+    "estimated_uid": "0A000000-0000-0000-D502-000000000000",
+    "caption": "b6 task 07 learning, 09:45 to 10:15, Confidence 44 percent, Not done — back in your Inbox",
+    "spoken_description": "b6 task 07 learning, 09:45 to 10:15, Confidence 44 percent, Not done — back in your Inbox"
+  },
+  {
+    "platform_identifier": "D5020000C0B5AA10010000000B00000000000000",
+    "estimated_uid": "0B000000-0000-0000-D502-000000000000",
+    "caption": "09:45",
+    "spoken_description": "09:45"
+  },
+  {
+    "platform_identifier": "D502000000038816010000000C00000000000000",
+    "estimated_uid": "0C000000-0000-0000-D502-000000000000",
+    "caption": "b6 task 03 learning, 10:30 to 11:00, Confidence 44 percent, Not done — back in your Inbox",
+    "spoken_description": "b6 task 03 learning, 10:30 to 11:00, Confidence 44 percent, Not done — back in your Inbox"
+  },
+  {
+    "platform_identifier": "D502000010B6AA10010000000D00000000000000",
+    "estimated_uid": "0D000000-0000-0000-D502-000000000000",
+    "caption": "10:30",
+    "spoken_description": "10:30"
+  },
+  {
+    "platform_identifier": "D502000000098816010000000E00000000000000",
+    "estimated_uid": "0E000000-0000-0000-D502-000000000000",
+    "caption": "b6 task 09 admin, 11:15 to 11:45, Confidence 52 percent, Not done — back in your Inbox",
+    "spoken_description": "b6 task 09 admin, 11:15 to 11:45, Confidence 52 percent, Not done — back in your Inbox"
+  },
+  {
+    "platform_identifier": "D502000060B6AA10010000000F00000000000000",
+    "estimated_uid": "0F000000-0000-0000-D502-000000000000",
+    "caption": "11:15",
+    "spoken_description": "11:15"
+  },
+  {
+    "platform_identifier": "D502000000278E16010000001000000000000000",
+    "estimated_uid": "10000000-0000-0000-D502-000000000000",
+    "caption": "b6 task 01 admin, 12:00 to 12:30, Confidence 66 percent, Not done — back in your Inbox",
+    "spoken_description": "b6 task 01 admin, 12:00 to 12:30, Confidence 66 percent, Not done — back in your Inbox"
+  },
+  {
+    "platform_identifier": "D5020000B0B6AA10010000001100000000000000",
+    "estimated_uid": "11000000-0000-0000-D502-000000000000",
+    "caption": "12:00",
+    "spoken_description": "12:00"
+  },
+  {
+    "platform_identifier": "D5020000002D8E16010000001200000000000000",
+    "estimated_uid": "12000000-0000-0000-D502-000000000000",
+    "caption": "b6 task 02 deep, 13:00 to 13:30, Confidence 71 percent, Completed",
+    "spoken_description": "b6 task 02 deep, 13:00 to 13:30, Confidence 71 percent, Completed"
+  },
+  {
+    "platform_identifier": "D502000000B7AA10010000001300000000000000",
+    "estimated_uid": "13000000-0000-0000-D502-000000000000",
+    "caption": "13:00",
+    "spoken_description": "13:00"
+  }
+]

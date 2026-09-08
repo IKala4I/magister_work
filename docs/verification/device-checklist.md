@@ -65,6 +65,7 @@
   **iOS 2026-09-06 (simulator smoke, not device):** a Settings-launched dialog presents from
   inside the sheet (`ios-sim-20260906-dialog/`, Maestro 1/1); VoiceOver, escape = iPhone pass.
   **iOS 2026-09-07 (iPhone 12):** the accessibility daemon's traversal (`hw-ios-ax.py items`, the strings VoiceOver speaks) on all three dialogs = title as Header → body → confirm → cancel, **nothing beneath reachable**; the replacement dialog opened with the focus on its title; on-device audit 0 issues; the owner's VoiceOver listen: titles announced on open, the two-finger Z cancels, the replacement's title announced. **Reduce Motion defect:** with the system switch on, the second erasure dialog never appears after Continue (notes items 24, 36 — MAJOR, fix batch).
+  **iOS 2026-09-08 build 2 ✅ (Reduce Motion, daemon hold):** Continue → the second erasure dialog present at +1.5 s and +5.5 s, Cancel leaves Settings intact (`ios-20260908-1215/shot-b2-rm-dialog2.png`, notes item 67). The system switch and a late replacement (> 120 ms) stay in the fix-batch hardware rows.
 - ⬜ **NFR-A2 — every dialog at 200 % + largest display, both schemes, landscape; the spring
   in/out and the OS reduce-motion toggle** (added 2026-09-06). The long body (sign-out) scrolls
   inside the card with the actions visible; labels wrap on their own rows; the entrance settles
@@ -93,6 +94,7 @@
   its reduced-motion setting behave differently and have never been exercised.
   **Android 2026-09-02** (font 2.0, density 540, animation scales 0 over adb; screenshots in `device-pass/android-20260902-1030/a11y-maxscale/`): every screen usable; two defects — the Today time gutter wraps "12:00 PM" mid-token (fixed 64 px) and the heatmap weekday header wraps mid-word; the timeline viewport shrinks to about a third of the screen (scrolls, actions reachable). The p10 flow itself never passed its date assertion on any device (a YAML-quoting bug in the regex, fixed in the batch — day-2 finding 14), so the evidence is adb screenshots + tree dumps. **Build 3, 2026-09-03 (`android-20260903-1020/a11y-maxscale-build3/`):** both defects fixed (gutter on one line, header no mid-word wrap), placeholder visible; residuals at 2.0 — "Insight…" tab label truncates (a11y name is the full word), the block time range breaks inside "PM", "Mo"/"We" ellipsize in the heatmap header, the legend row sits under the tab bar — cosmetic, listed for the next batch (day-3 notes item 10). iOS pending.
   **iOS 2026-09-07 (iPhone 12):** Dynamic Type held at the maximum (the app caps at 200 %) and set through the real Settings app: **a text-size change while the app runs re-renders text without re-laying out** — clipped headers, overlapping card text, Inbox rows stuck at their 1× height (74 px vs 116 px at a fresh launch); **a fresh launch at 2× lays out correctly** on every tab (notes items 22, 23, 36; fix batch: re-mount on font-scale change). Reduce Motion + Reduce Transparency + Increase Contrast, relaunched: every screen renders as at the defaults (item 25). The Maestro flow does not run on physical iPhones; the sweep was WDA + DVT screenshots.
+  **iOS 2026-09-08 build 2 (daemon hold) ✅ layout / ⬜ Settings path:** a live change to the maximum through the accessibility daemon re-measured the Inbox, the Settings sheet and an open task form without a relaunch — but the navigator did not re-mount (the tab and the form survived), so the inspector override does not change `fontScale`; the user-facing Larger Text slider (which clipped build 1 live) is the owner's 1-minute check (notes item 68).
 - ⬜ **NFR-A1 — VoiceOver (iOS) and TalkBack (Android) pass on all shipped screens** (added
   P2/P3; grows each UI phase). Navigate every screen by screen reader alone: task rows (single
   a11y element incl. ", due <date>"), ambiguity chips, undo within its 6 s window. Simulator
@@ -143,6 +145,7 @@
   does not enforce real iOS suspension, background-refresh throttling, or memory eviction.
   **iOS 2026-09-07 (partial):** a 44-minute lock/suspension (13:51 → 14:35) and a reboot (15:05) — the foreground scan ran with nothing to attribute (all remaining blocks were in the future). The overnight instance (blocks at 15:15–17:00 untouched, first open on the 8th) is the row's real test — tomorrow morning.
   **iOS 2026-09-08 ✅ (scan) / DEFECT (pull):** the app was frozen 17:32 → 12:22 (never killed, `memorystatus` in the archive), the phone locked all night; the day's first foreground (the owner's unlock swipe returned to the app) ran the scan at 12:22:20 — five `lapse_observed` facts, the 7th's 17:00 experiment block **18.9 h** after its end and today's four ended blocks (0.6–2.9 h), the cards "Not done — back in your Inbox", the daily authority's tuple for the 17:00 block not duplicated. **MAJOR:** the same sync's pull re-fetched the rows the nightly propensity backfill had bumped and reverted the four local `lapsed` to `shown`; the next foreground (12:24) lapsed them again — duplicate facts, streaks double-counted, the third-skip diagnostic on a task that missed twice (day-2 notes items 54–55; fix batch: a status lattice on pull + scan idempotency). A clean cycle afterwards lapsed exactly one block once (item 56).
+  **iOS 2026-09-08 build 2 ✅ (pull):** a server-side row touch re-pulled as `shown` left the local `lapsed` in place (new `server_seq`, status kept) and the next foreground added no duplicate fact; the only new lapse was a block that had genuinely ended (day-2 notes item 66). The 2 h stale-session rule was found to earn a completion reward the same afternoon — fixed on the branch, device re-check with the next build (item 65).
 
 - ⬜ **UC-03 triggers on a real day boundary** (added P6). Leave the app in the background across
   05:59 → 06:00 local and across midnight; foreground it: a new plan must be requested exactly
@@ -182,6 +185,7 @@
   **Android 2026-09-05 (build 5, owner), action row ✅:** "Start references fix, button", "Done …", "Skip …", "Move… …"; rating chips untested (need a completed block).
   **iOS 2026-09-07 — DEFECT, MAJOR (both platforms by construction):** the card is one labelled `accessible` container (`ConfidenceBlock.tsx`) with no custom actions, so VoiceOver steps from the card summary to the next gutter time and **"Start / Done / Skip / Move…" are never reachable**; confirmed by the daemon's traversal and by the owner's ear. The rating chips read as "How was your energy?: Okay, Button" and are reachable. Never exercised by a screen reader on Android either (uiautomator lists the buttons; the TalkBack listen was skipped). Fix batch: custom actions on the card. Notes item 35.
   **iOS 2026-09-08 MINOR:** a lapsed card's spoken summary still reads "…, Confidence 52 percent" with no "Not done" state (`ios-20260908-1215/wda-today-1229.xml`); fold into the same fix (day-2 notes item 58).
+  **iOS 2026-09-08 build 2 ✅ (state):** every card's spoken summary ends with its state ("…, Not done — back in your Inbox", "…, Completed"; `ios-20260908-1215/ax-b2-today.json`). The custom actions are not visible to the daemon or XCUITest — the owner's rotor listen (fix-batch rows).
 - ⬜ **NFR-A2 — 200 % font scale on the Today card with actions and on the Focus tab**
   (added P7). Four action buttons and the status caption must wrap, never clip or overlap the
   next block; the timer digits (JetBrains Mono) must not overflow the panel. The P2 sweep ran on
@@ -520,9 +524,14 @@ foreground lapsed them again (duplicate facts, double streaks, a phantom third-s
 item 55); a clean cycle afterwards lapsed one block once; the reminder ledger reset at the day
 boundary (four delivered + the ritual = five, no afternoon nudge); FR-30 across a 10-minute lock
 and a kill; a ritual under Do Not Disturb delivered silently and listed after Focus ended.
-Deferred to the end of the pass: the arming test + erasure (item 63), the calendar consent (test
-user), the client-side NFR-P1 export, the two-device rows (⛔ 6). **Fix batch F1–F8** (day-2
-notes, last section) → build 2 → re-check on this account.
+**Fix batch F1–F8 → build 2 (17:40), re-checked on this account:** F3 (pull) ✅, F1 (Reduce
+Motion, daemon) ✅, F2 (state) ✅, F5 (daemon hold) layout ✅ / Settings path ⬜ owner, F4 ⬜
+(needs a day with budget), F6/F7 jest-only; a third reward defect found on the way (the 2 h
+stale session rewarded as a completion) — fixed on the branch, re-check next build (notes
+items 65–68). Deferred to the end of the pass: the arming test + erasure (item 63; owner-run
+`hw-ios-erase-check.sh`), the rotor listen for the card's custom actions, the calendar consent
+(test user), the client-side NFR-P1 export, the two-device rows (⛔ 6). Owner restores
+Auto-Lock (set to Never for the pass) and the brightness (notes item 68).
 
 ## Pass status (2026-09-07 — iPhone day 1)
 
