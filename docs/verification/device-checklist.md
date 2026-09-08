@@ -80,6 +80,7 @@
   captured (unit-pinned at 120 ms). iOS: simulator dark + accessibility-XXXL renders both erasure
   dialogs (`dialog-delete-*-dark-xxxl.png`); device pending.
   **iOS 2026-09-07:** at the held maximum text size both erasure dialogs keep title + body wrapped and both actions on screen (`shot-b1-dt-max-delete2.png`); dark scheme only (the phone's); no landscape; the entrance under Reduce Motion could not be timed (no screen recording) and under Reduce Motion the second dialog is missing (MAJOR, notes item 24).
+  **iOS 2026-09-08 build 2 ✅ (erasure) / arming not device-testable:** owner-run `hw-ios-erase-check.sh` — dialogs 1 and 2, the erasure with `deletion_audit` 58 → 59, reference `87494f9c-…` (151 ms), nine tables at 0, the account-deleted screen with the reference, the welcome screen after a cold relaunch (day-2 notes item 70). The double tap could not be delivered inside the 400 ms window by XCUITest (2.5 s action latency): no iOS evidence for the arming either way; Android's 129 ms pair and jest stand.
 - ⬜ **Android — the dialog scrim covers the status and navigation bars** (added 2026-09-06).
   Under SDK 57 edge-to-edge the Modal window is full-bleed regardless of the
   `statusBarTranslucent` / `navigationBarTranslucent` props (RN forces both); check light and
@@ -531,10 +532,12 @@ Motion, daemon) ✅, F2 (state by the daemon, actions by the owner's ear) ✅, F
 paths (the re-mount itself never observed — notes item 69), F4 ⬜ (needs a day with budget),
 F6/F7 jest-only; a third reward defect found on the way (the 2 h
 stale session rewarded as a completion) — fixed on the branch, re-check next build (notes
-items 65–68). Deferred to the end of the pass: the arming test + erasure (item 63; owner-run
-`hw-ios-erase-check.sh`), the calendar consent (test user), the client-side NFR-P1 export,
-the two-device rows (⛔ 6). Brightness restored by the owner; Auto-Lock (Never for the pass)
-still to restore.
+items 65–68). **The pass closed 2026-09-08 18:18** with the erasure of the throwaway (item 70; the arming
+test not deliverable by XCUITest). Still open on iOS, by circumstance not limitation: the
+calendar consent (test user) and its disconnect dialog, the client-side NFR-P1 export, the
+two-device rows (⛔ 6), the spent-ritual row (a day with budget left), a late replacement under
+Reduce Motion; on Android: the TalkBack listen for the card's actions. Brightness restored by
+the owner; Auto-Lock (Never for the pass) still to restore.
 
 ## Pass status (2026-09-07 — iPhone day 1)
 

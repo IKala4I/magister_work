@@ -310,6 +310,26 @@ items` on Today (`ax-b2-today.json`): every card's spoken summary now ends with 
     (the switch that did not take on day 1) remain unexercised; 83 % ≈ the largest
     non-accessibility size.
 
+70. **FR-42 on the iPhone — the erasure PASS; the double-tap arming test void on iOS with this
+    driver.** Owner-run `hw-ios-erase-check.sh` (18:16–18:17, the classifier refuses the
+    session's own destructive taps): Settings → "Delete account and data" → dialog 1 → Continue
+    → dialog 2 found at 18:17:15.888 → the W3C double tap (two touches 120 ms apart) was SENT at
+    18:17:15.919 but XCUITest executed it in **2 497 ms** — the server's audit row says the
+    erasure was requested at 18:17:17.87 local, i.e. the first touch landed ≈ 1.9 s after the
+    dialog appeared, past the 400 ms arming window, and legitimately confirmed; the second
+    touch hit nothing. So the arming test has no iOS device evidence either way: the tool
+    cannot deliver two touches inside 400 ms of the dialog's appearance (Android's adb pair at
+    129 ms and the jest case stand; the timer is the same code on both platforms). The
+    erasure itself: `deletion_audit` 58 → 59, reference `87494f9c-2860-4287-a9ea-b7c613d83c37`
+    (`reason: user_request`, requested 15:17:17.871Z, completed 15:17:18.022Z — 151 ms), every
+    table for `7f088974-…` at 0 (tasks, events, plans, recommendations, feedback_rewards,
+    profiles, belief_labels, gcal_sync_state, auth.users; `server-q-erase-before/after.json`);
+    the phone shows "Your account is deleted / Everything Hourwell held about you was erased
+    on 8 September 2026 at 18:17. / Reference: 87494f9c-… / Start over"
+    (`shot-b2-account-deleted-1817.png`); a cold relaunch (WDA terminate + launch, 18:18:36)
+    opens the welcome screen ("Get started", "I already have an account"). The build-2 throwaway
+    is gone; the pass is closed. Helpers stopped; the owner restores Auto-Lock.
+
 ## Fix batch (consolidated from days 1–2; build 2 re-checks each on the phone)
 
 | #   | Severity | Finding                                                                                                   | Fix                                                                                                                                                                                                | Re-check                                                                 |

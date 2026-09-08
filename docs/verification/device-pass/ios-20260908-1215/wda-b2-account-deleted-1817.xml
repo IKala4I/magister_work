@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<XCUIElementTypeApplication type="XCUIElementTypeApplication" name="Hourwell" label="Hourwell" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="" processId="725" bundleId="com.hourwell.app">
+  <XCUIElementTypeWindow type="XCUIElementTypeWindow" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits=""/>
+                                <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Your account is deleted" name="Your account is deleted" label="Your account is deleted" enabled="true" visible="true" accessible="false" x="20" y="40" width="350" height="30" index="1" traits="StaticText">
+                                  <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Your account is deleted" name="Your account is deleted" label="Your account is deleted" enabled="true" visible="true" accessible="true" x="20" y="40" width="350" height="30" index="0" traits="StaticText"/>
+                                </XCUIElementTypeStaticText>
+                                <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Everything Hourwell held about you was erased on 8 September 2026 at 18:17." name="Everything Hourwell held about you was erased on 8 September 2026 at 18:17." label="Everything Hourwell held about you was erased on 8 September 2026 at 18:17." enabled="true" visible="true" accessible="false" x="20" y="86" width="350" height="48" index="2" traits="StaticText">
+                                  <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Everything Hourwell held about you was erased on 8 September 2026 at 18:17." name="Everything Hourwell held about you was erased on 8 September 2026 at 18:17." label="Everything Hourwell held about you was erased on 8 September 2026 at 18:17." enabled="true" visible="true" accessible="true" x="20" y="86" width="350" height="48" index="0" traits="StaticText"/>
+                                </XCUIElementTypeStaticText>
+                                <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Reference: 87494f9c-2860-4287-a9ea-b7c613d83c37" name="Reference: 87494f9c-2860-4287-a9ea-b7c613d83c37" label="Reference: 87494f9c-2860-4287-a9ea-b7c613d83c37" enabled="true" visible="true" accessible="false" x="20" y="150" width="350" height="48" index="3" traits="StaticText">
+                                  <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Reference: 87494f9c-2860-4287-a9ea-b7c613d83c37" name="Reference: 87494f9c-2860-4287-a9ea-b7c613d83c37" label="Reference: 87494f9c-2860-4287-a9ea-b7c613d83c37" enabled="true" visible="true" accessible="true" x="20" y="150" width="350" height="48" index="0" traits="StaticText"/>
+                                </XCUIElementTypeStaticText>
+                                <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Keep this reference if you ever need to prove the erasure." name="Keep this reference if you ever need to prove the erasure." label="Keep this reference if you ever need to prove the erasure." enabled="true" visible="true" accessible="false" x="20" y="214" width="350" height="36" index="4" traits="StaticText">
+                                  <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Keep this reference if you ever need to prove the erasure." name="Keep this reference if you ever need to prove the erasure." label="Keep this reference if you ever need to prove the erasure." enabled="true" visible="true" accessible="true" x="20" y="214" width="350" height="36" index="0" traits="StaticText"/>
+                                </XCUIElementTypeStaticText>
+                                <XCUIElementTypeButton type="XCUIElementTypeButton" name="Start over" label="Start over" enabled="true" visible="true" accessible="true" x="20" y="266" width="350" height="48" index="5" traits="Button"/>
+                              </XCUIElementTypeOther>
+                            </XCUIElementTypeOther>
+                          </XCUIElementTypeOther>
+                        </XCUIElementTypeOther>
+                      </XCUIElementTypeOther>
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="1" traits="">
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="0" traits=""/>
+                      </XCUIElementTypeOther>
+                    </XCUIElementTypeOther>
+                  </XCUIElementTypeOther>
+                </XCUIElementTypeOther>
+              </XCUIElementTypeOther>
+            </XCUIElementTypeOther>
+          </XCUIElementTypeOther>
+        </XCUIElementTypeOther>
+      </XCUIElementTypeOther>
+    </XCUIElementTypeOther>
+  </XCUIElementTypeWindow>
+</XCUIElementTypeApplication>

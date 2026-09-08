@@ -31,6 +31,10 @@
   stale-session rule was rewarded as a completion** (285 wall-clock "focused" minutes on a
   30-minute block, r = 1) — the fact now says `reason: 'stale'` and the reward mapping gives it
   no credit (ADR-0010 addendum; Deno + jest).
+- **Pass closed (18:18):** FR-42 erasure of the throwaway on the iPhone through the two dialogs
+  (audit 58 → 59, reference `87494f9c-…`, 151 ms, nine tables at 0, the welcome screen after a
+  cold relaunch); the double-tap arming test is not deliverable by XCUITest (2.5 s action
+  latency) — Android's measurement and jest stand.
 - **Adversarial pass (fresh-context subagent): 0 MAJOR, 5 MINOR, 11 notes — all addressed.**
   Server: `persist_plan`'s supersede no longer expires rows that carry facts or whose slot has
   ended (a lapse followed by a same-day re-plan lost its r = 0 tuple; migration

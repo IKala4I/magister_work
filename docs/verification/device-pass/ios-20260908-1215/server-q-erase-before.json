@@ -1,0 +1,46 @@
+{
+  "at": "2026-09-08T15:14:34.334Z",
+  "audit": [
+    {
+      "n": 58
+    }
+  ],
+  "rows": [
+    {
+      "n": 13,
+      "t": "tasks"
+    },
+    {
+      "n": 123,
+      "t": "events"
+    },
+    {
+      "n": 12,
+      "t": "plans"
+    },
+    {
+      "n": 91,
+      "t": "recommendations"
+    },
+    {
+      "n": 10,
+      "t": "feedback_rewards"
+    },
+    {
+      "n": 1,
+      "t": "profiles"
+    },
+    {
+      "n": 1,
+      "t": "belief_labels"
+    },
+    {
+      "n": 1,
+      "t": "gcal_sync_state"
+    },
+    {
+      "n": 1,
+      "t": "auth_users"
+    }
+  ]
+}
