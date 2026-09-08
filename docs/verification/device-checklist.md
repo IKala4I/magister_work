@@ -25,7 +25,8 @@
   pressure makes simulator frame rates meaningless.
   **Android (Pixel 7a) ✅ 2026-09-02:** 8-block Today, 59 swipes in 20 s, 1733 frames, 0 janky (legacy 0.40 %), frame time p50 5 / p90 7 / p95 8 / p99 10 ms (`device-pass/android-20260902-1030/gfxinfo-today-scroll.txt`).
   **iOS 2026-09-07:** see the P6 row below — zero hitches on a real thumb scroll of a **7-block** Today.
-  **What has actually been measured (corrected 2026-09-08):** frame statistics exist for an **8-block** list on the Pixel 7a (`gfxinfo`) and a **7-block** list on the iPhone 12 (xctrace hitches) — nothing at 10+ blocks. The 13-block Pixel list of 2026-09-05 was the blank-card detector sweep (`hw-blank-cards-sweep.sh`), which records no frame times. The row is therefore ✅ at 7–8 blocks and ⬜ at the ≥ 10-block scale it names; `post-p12/motion` (ADR-0022) measures a 13-block list on both phones, the same list before and after the cell wrapper lands.
+  **Android 13-block list ✅ 2026-09-08 (ADR-0022 pass):** the same 13-block plan scrolled with 30 injected drags on the build of main and on the motion build — 1825 / 1824 frames, 1 janky each (0.05 %), p50 5 / p90 7 / p95 8 / p99 10 ms on both (`android-20260908-motion/notes.md` items 5–6). The ≥ 10-block condition is now met on Android; iOS 13-block pending.
+  **What has actually been measured (corrected 2026-09-08, before the pass above):** frame statistics exist for an **8-block** list on the Pixel 7a (`gfxinfo`) and a **7-block** list on the iPhone 12 (xctrace hitches) — nothing at 10+ blocks. The 13-block Pixel list of 2026-09-05 was the blank-card detector sweep (`hw-blank-cards-sweep.sh`), which records no frame times. The row is therefore ✅ at 7–8 blocks and ⬜ at the ≥ 10-block scale it names; `post-p12/motion` (ADR-0022) measures a 13-block list on both phones, the same list before and after the cell wrapper lands.
 
 - ⬜ **NFR-P1 — plan end-to-end ≤ 2.5 s p95 warm, measured from the device** (added P6). On
   hardware with the HF Space warm: trigger ten manual re-plans on a 5–8-task inbox, read the
@@ -72,7 +73,12 @@
   in/out and the OS reduce-motion toggle** (added 2026-09-06). The long body (sign-out) scrolls
   inside the card with the actions visible; labels wrap on their own rows; the entrance settles
   within 250 ms (`screenrecord` frame count) and is instant under reduced motion (Android:
-  `animator_duration_scale 0` over adb reads back as reduced motion; iOS: Settings toggle, owner).
+  `transition_animation_scale 0` over adb is what React Native reads back as reduced motion —
+  the 2026-09-06 dialog run used `animator_duration_scale 0`, which RN never consults, so that
+  row's device reading is void; re-checked 2026-09-08 under the right switch with a whole-screen
+  crop: a 4-frame appearance vs 6–7 at full motion, too coarse to settle a small fading card —
+  the dialog's reduced motion stays "code path pinned in jest; device reading inconclusive"
+  (android-20260908-motion item 16); iOS: Settings toggle, owner).
   Why: font scale and display size compound on Android; Reanimated's jest path simulates the UI
   thread, it is not the UI thread.
   **Android ✅ 2026-09-06 (build 7 + 8, session):** delete ×2, sign-out (long body) and sign-in
@@ -122,6 +128,66 @@
   on heuristic rows) → deferred summary. Why: composed labels and `accessible` grouping are not
   verifiable without a real screen reader.
   **iOS 2026-09-07 ✅ (order):** "Today" → "Open settings, Button" → "Re-plan, Button" → the date → each card as one element ("b6 task 06 deep, 12:15 to 12:45, Confidence 44 percent"; the ε-slice block "…, Experiment, Confidence 41 percent") → its gutter time → the footer → the tab bar with "Selected" (`ax-today.json`); confirmed by ear. The action row inside the card is NOT reached (next section).
+
+## Plan-surface transitions (added 2026-09-08 with ADR-0022 — File 02 §3.4, NFR-A2, UC-07)
+
+- ⬜ **S1 — Done / Skip / I did it: the rows below settle instead of jumping, ≤ 250 ms.**
+  Record the screen (`screenrecord` / QuickTime USB) while tapping each of the three on a
+  13-block Today; `hw-motion-frames.py` on the list crop → one run of changed frames after
+  the tap, ≤ 15 frames at 60 fps (the 200 ms spring + one tick). Why: whether Reanimated's
+  `layout` spring fires at all on FlashList's absolute-positioned recycled cells on Fabric is a
+  native-renderer question; the simulator's frame pacing says nothing about it.
+  **Android ✅ 2026-09-08 (Pixel 7a, motion build `f5fdbe2`, 13-block list):** Done 11 frames /
+  183 ms, Skip 10 / 167, I did it 14 / 233 — one run each, 0 BLANK after every one, order intact
+  (`device-pass/android-20260908-motion/notes.md` items 7, 8, 15). iOS pending.
+- ⬜ **S2 — Move: the block travels to an on-screen slot; an off-screen slot scrolls the list
+  and the card settles on arrival, ≤ 250 ms each.** Move one block to a visible slot and one to
+  a slot below the fold; the on-screen move shows one run (the travel + the rows making room);
+  the off-screen move shows the scroll then one settle on the arrived card; no double motion.
+  Then the owner's eyes: does the move read as _that block going there_ (the one judgement no
+  tool makes). Why: the cell-key retention across a reorder and the mount-vs-rebind order after
+  `scrollToIndex` are FlashList internals whose behaviour on device is the claim.
+  **Android ✅ 2026-09-08:** on-screen move 12 frames / 200 ms (the cell travelled two rows);
+  off-screen move 19 frames / 317 ms (scroll + arrival settle, one window; the moved card at
+  30 % of the viewport, "Moved"); a same-slot move: caption only, no travel; 0 BLANK, order
+  correct (items 9, 10, 13). The owner's-eyes judgement is still open on both phones.
+- ⬜ **Reduced motion: every one of the five interactions changes the screen in ONE frame.**
+  Android: `settings put global transition_animation_scale 0` — the switch React Native reads
+  (`AccessibilityInfoModule.kt`: `TRANSITION_ANIMATION_SCALE`, with a content observer; the
+  animator scale is never consulted — corrected 2026-09-08); iOS: `hw-ios-ax.py hold
+REDUCE_MOTION`. Same recordings, same tool → each run is 1 frame.
+  **Android ✅ 2026-09-08:** Done 1 frame, Skip 1 frame, on-screen move two single frames a
+  tick apart (panel, then the reorder), off-screen move the same with an instant jump — no
+  spring anywhere (item 12). iOS pending. Why: the OS switch must reach `AccessibilityInfo` on each platform and the duration-0
+  collapse must register _no_ transition (not a fast one) — a code path only the OS setting
+  exercises.
+- ⬜ **No card unpainted after any transition (the blank-card class).** After each of the five
+  interactions and after the arrival settle: `hw-blank-cards.py` (Android) / a card-rect
+  std-dev on `dvt screenshot` (iOS) → 0 BLANK; a uiautomator / accessibility dump with every
+  block at its expected order. Why: the 2026-09-05 defect was a mounted-but-unpainted card with
+  live controls; a transformed view returning to rest is a new paint path on the same renderer.
+  **Android ✅ 2026-09-08:** 0 BLANK in every after-scan (4–7 cards each) across all fifteen
+  recorded interactions, every card's std-dev 25–39; the block order in document order matched
+  the expected order every time (items 7–15). iOS pending.
+- ⬜ **No cell off its slot after an interrupted transition.** A swipe inside the 350 ms window
+  after Done; a second Done inside the window; a scroll during the arrival settle → no card
+  stuck between slots, 0 BLANK, order intact. Why: a `layout` transition interrupted by a
+  recycle is the "flying cells" failure the window exists to prevent, and only the device
+  recycles.
+  **Android ✅ 2026-09-08:** Done + a fling 90 ms later → one 783 ms window of change, then 6
+  cards in order with contiguous, non-overlapping bounds; two Dones 200 ms apart → both facts,
+  one 233 ms window, order intact (item 14). iOS pending.
+- ⬜ **NFR-P2 with an `Animated.View` per cell — the 13-block list, before and after, both
+  phones.** Android: `hw-scroll-frames.sh` (gfxinfo, the same 30-swipe series) on the baseline
+  build of main and on the motion build over the same list; pass = janky count and p99 no
+  worse. iOS: xctrace Animation Hitches across a 20 s thumb scroll on each build; pass = the
+  `hitches` table stays empty. Why: the cell renderer is now an animated component on every
+  row; the cost is native and per-frame.
+  **Android ✅ 2026-09-08 (13-block list, the same plan under both builds, 30 injected drags):**
+  main `fdff809` 1825 frames / 1 janky (0.05 %) / p50 5 · p90 7 · p95 8 · p99 10 ms; motion
+  `f5fdbe2` 1824 frames / 1 janky (0.05 %) / p50 5 · p90 7 · p95 8 · p99 10 ms — equal (items
+  5, 6; `gfxinfo-13blocks-{main,motion}.txt` in the session scratch, the summary blocks in the
+  notes). iOS pending.
 
 ## Behaviour the simulator under-tests
 

@@ -427,6 +427,14 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   (gh merges immediately when the stale state looks clean — the protection now blocks it, but the
   habit is the defect).
 
+- [2026-09-08] **Android reduced-motion evidence must use `transition_animation_scale`** —
+  React Native's `AccessibilityInfoModule.kt` reads `Settings.Global.TRANSITION_ANIMATION_SCALE`
+  (content observer on that URI) and never the animator scale. The dialog pass's reduced-motion
+  row (android-20260906-dialog item 71) flipped `animator_duration_scale 0` and so never exercised
+  the app's reduce-motion path; its "one frame" reading is unexplained. Re-checked 2026-09-08
+  under the right switch (motion pass item 16): inconclusive for the dialog with a whole-screen
+  crop (4 vs 6–7 frames). The dialog's device row is reworded; nothing in the thesis depends on
+  it (the code path is pinned in jest). Next dialog pass: the card-rect crop + the right switch.
 - [2026-09-06] **File 02 §3.4 transitions exist only on the in-app dialog** (spec-conflicts L42,
   ADR-0021): Today cards, the trade-off sheet, the undo bar, the Insights toggles and the sheet
   presentations all switch state instantly. Reanimated is wired (babel via `babel-preset-expo`,
