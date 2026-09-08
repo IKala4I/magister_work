@@ -2,6 +2,27 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — motion: two transitions on the Today timeline (2026-09-08, post-p12/motion)
+
+- **S1 — Done / Skip / I did it: the list settles instead of jumping.** The tap opens a
+  350 ms window in which every timeline cell carries a `springs.standard` layout spring
+  (200 ms), so the rows below the shrinking card close the gap under the thumb instead of
+  teleporting; caption and action row still switch instantly. Outside the window the cell
+  has no transition — a recycle during scroll animates nothing (NFR-P2).
+- **S2 — Move: the block travels to its slot, or the list scrolls to it.** A move keeps the
+  row id; FlashList v2 keeps the cell for an unchanged stable id across a reorder, so the same
+  layout spring animates the real travel. When the new slot is off screen the list scrolls to
+  it (instant under reduced motion) and the card (re)bound there plays a transform-only
+  arrival settle (`springs.emphasized`, 250 ms) once.
+- **Dropped, recorded:** the plan-applied entrance (decoration — the banner already says it).
+- **The rule** (ADR-0022): a transition on a control-bearing surface never passes through an
+  invisible or non-interactive state — transforms only, never opacity; rest assigned on
+  rebind; no `entering` / `exiting`. Reduced motion collapses every duration to 0 through the
+  same `resolveMotion` path as the dialog — one listener per screen.
+- New: `src/ui/motion.ts` (`layoutTransitionFor`, `useSettle`, the two windows); Timeline's
+  module-scope `TimelineCell` + `CellLayoutContext`, the `moved` prop and the scroll; the
+  card's `settleAt`. 23 new jest cases (motion, timeline, today, card).
+
 ## Post-P12 — iPhone pass fix batch → build 2 (2026-09-08, post-p12/iphone-pass)
 
 - **Sync — facts beat plans on the client (MAJOR).** A pulled recommendation row that still

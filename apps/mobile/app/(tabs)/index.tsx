@@ -11,7 +11,7 @@
  * carries `infeasible.options` and this device has not answered it yet (ADR-0013 §6).
  */
 import { useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState, Pressable, StyleSheet, View } from 'react-native';
 
 import { discardPendingWipe, keepPendingWipe } from '../../src/auth/accountTransition';
@@ -73,11 +73,14 @@ import type { ExactAlarmState } from '../../modules/exact-alarm';
 import { type BlockAction, BlockActions } from '../../src/ui/plan/BlockActions';
 import { MovePicker } from '../../src/ui/plan/MovePicker';
 import { SkipDiagnosticCard } from '../../src/ui/plan/SkipDiagnosticCard';
-import { Timeline } from '../../src/ui/plan/Timeline';
+import { type MovedBlock, Timeline } from '../../src/ui/plan/Timeline';
 import { TradeOffSheet } from '../../src/ui/plan/TradeOffSheet';
 import { confirmDialog } from '../../src/ui/dialog';
+import { LAYOUT_SETTLE_MS } from '../../src/ui/motion';
 import { Button, EmptyState, Screen, ThemedText } from '../../src/ui/primitives';
 import { useTheme } from '../../src/ui/theme';
+import { resolveMotion } from '../../src/ui/tokens/motion';
+import { useReducedMotion } from '../../src/ui/useReducedMotion';
 
 const localDb = db as unknown as LocalDb;
 const PLAN_TABLES = ['plans'] as const;
@@ -233,6 +236,31 @@ export default function TodayScreen() {
   const [diagnosticResult, setDiagnosticResult] = useState<string | null>(null);
   const diagnostic = diagnosticTask ?? lapse.diagnosticTask;
 
+  // Motion (ADR-0022): resolved once per screen — one reduce-motion listener, not one per card.
+  // A tap that changes the rows (done / skip / did it / the move confirm) opens the cell-layout
+  // window for LAYOUT_SETTLE_MS: the write, the SQLite change event and the re-render land
+  // inside it, so the rows settle instead of jumping; a timer closes it. A move also names the
+  // block so the timeline can scroll to its new slot when that slot is off screen.
+  const reduceMotion = useReducedMotion();
+  const motion = useMemo(() => resolveMotion(reduceMotion), [reduceMotion]);
+  const [settleUntil, setSettleUntil] = useState(0);
+  const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const openSettleWindow = useCallback(() => {
+    setSettleUntil(Date.now() + LAYOUT_SETTLE_MS);
+    if (settleTimer.current !== null) clearTimeout(settleTimer.current);
+    settleTimer.current = setTimeout(() => {
+      settleTimer.current = null;
+      setSettleUntil(0);
+    }, LAYOUT_SETTLE_MS);
+  }, []);
+  useEffect(
+    () => () => {
+      if (settleTimer.current !== null) clearTimeout(settleTimer.current);
+    },
+    [],
+  );
+  const [moved, setMoved] = useState<MovedBlock | null>(null);
+
   const onAction = useCallback(
     (action: BlockAction, rec: RecommendationRow) => {
       switch (action) {
@@ -241,22 +269,25 @@ export default function TodayScreen() {
           router.navigate('/(tabs)/focus');
           break;
         case 'done':
+          openSettleWindow();
           doneBlockAction(rec);
           break;
         case 'skip': {
+          openSettleWindow();
           const r = skipBlockAction(rec);
           if (r.diagnosticDue) setDiagnosticTask(r.task);
           break;
         }
         case 'move':
-          setMoving(rec);
+          setMoving(rec); // the window opens at the confirm — that is the write
           break;
         case 'did_it':
+          openSettleWindow();
           correctLapseAction(rec);
           break;
       }
     },
-    [router],
+    [router, openSettleWindow],
   );
 
   const unplaced = unplacedOf(plan);
@@ -550,7 +581,9 @@ export default function TodayScreen() {
           recommendation={moving}
           title={titles.get(moving.taskId) ?? t('task.notFound')}
           onConfirm={(toStart) => {
-            moveBlockAction(moving, toStart);
+            openSettleWindow();
+            const row = moveBlockAction(moving, toStart);
+            setMoved({ id: row.id, at: Date.now(), slotStart: row.slotStart.getTime() });
             setMoving(null);
           }}
           onCancel={() => setMoving(null)}
@@ -565,6 +598,9 @@ export default function TodayScreen() {
           activeRecommendationId={activeSession?.recommendationId ?? null}
           onBlockAction={onAction}
           busyElsewhere={activeSession !== null}
+          motion={motion}
+          layoutSettling={settleUntil > 0}
+          moved={moved}
           renderActions={(rec, title) => (
             <BlockActions
               recommendation={rec}

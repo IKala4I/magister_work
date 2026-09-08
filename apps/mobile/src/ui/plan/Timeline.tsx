@@ -6,16 +6,37 @@
  * thin spacer whose height is proportional to the gap, capped, so the day's shape still reads.
  * From P8 the imported busy intervals (FR-03/UC-09) are interleaved as muted rows — the
  * meetings the plan routed around, in the same reading order.
+ *
+ * Motion (ADR-0022, File 02 §3.4): two transitions and nothing else. S1 — after Done / Skip /
+ * I did it the rows below the shrinking card settle into the gap on a cell `layout` spring
+ * (`springs.standard`) that is registered only while `layoutSettling` is true (the tap opens a
+ * LAYOUT_SETTLE_MS window on the screen). S2 — a moved block keeps its row id, and FlashList v2
+ * keeps a cell's render key for an unchanged stable id across a reorder, so the same spring
+ * animates the real travel; when the destination is off screen the list scrolls to it
+ * (`scrollToIndex`, instant under reduced motion) and the card (re)bound there plays an arrival
+ * settle (`RecommendationCard` `settleAt`). Outside the window the `layout` prop is `undefined`,
+ * so a recycle during scroll registers no transition — the 60 fps rows (NFR-P2) are untouched.
  */
-import { FlashList } from '@shopify/flash-list';
-import type { ReactNode } from 'react';
+import { FlashList, type FlashListRef } from '@shopify/flash-list';
+import {
+  type ComponentProps,
+  createContext,
+  type ReactNode,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { StyleSheet, View } from 'react-native';
+import Animated, { type LinearTransition } from 'react-native-reanimated';
 
 import type { CalendarEventRow } from '../../db/calendar';
 import type { RecommendationRow } from '../../db/plans';
 import { t } from '../../i18n';
+import { layoutTransitionFor } from '../motion';
 import { ThemedText } from '../primitives';
 import { useTheme } from '../theme';
+import { type MotionConfig, resolveMotion } from '../tokens/motion';
 import { useFontScale } from '../useFontScale';
 
 import type { BlockAction } from './BlockActions';
@@ -34,7 +55,47 @@ export interface TimelineProps {
   /** The action row's handler, offered on each card as custom accessibility actions. */
   onBlockAction?: (action: BlockAction, rec: RecommendationRow) => void;
   busyElsewhere?: boolean;
+  /**
+   * Motion resolved once per screen (`resolveMotion(useReducedMotion())`); the default is the
+   * still configuration, so a read-only render registers no transition.
+   */
+  motion?: MotionConfig;
+  /** While true the cell `layout` spring is registered (the S1/S2 window, ADR-0022). */
+  layoutSettling?: boolean;
+  /**
+   * The block just confirmed as moved (S2): once the rows carry its new slot, the list scrolls
+   * to it if the slot is off screen and the card (re)bound there settles; on screen the cell
+   * travels on the layout spring and nothing else plays.
+   */
+  moved?: MovedBlock | null;
 }
+
+export interface MovedBlock {
+  id: string;
+  /** `Date.now()` at the confirm — a new stamp per move, even to the same slot. */
+  at: number;
+  /** The slot the write produced (the DAO snaps into the future), as epoch ms. */
+  slotStart: number;
+}
+
+/** Where the moved block lands in the viewport after `scrollToIndex` (0 = top, 1 = bottom). */
+export const MOVED_VIEW_POSITION = 0.3;
+
+/** The cell `layout` transition of the moment — `undefined` outside the settle window. */
+export const CellLayoutContext = createContext<LinearTransition | undefined>(undefined);
+
+/**
+ * One module-scope cell renderer: FlashList hands it `ref`, `onLayout`, `style`
+ * (`position: absolute; top`) and `index`; the `layout` prop comes from context, so changing it
+ * re-renders the cells without a new component identity. A component created inside Timeline's
+ * render would remount every cell on every render — the kind of bug the simulator flatters.
+ */
+export function TimelineCell(props: ComponentProps<typeof Animated.View>) {
+  const layout = useContext(CellLayoutContext);
+  return <Animated.View {...props} layout={layout} />;
+}
+
+const STILL = resolveMotion(true);
 
 type Row =
   | { kind: 'block'; key: string; rec: RecommendationRow; chunkCount: number; gapMinutes: number }
@@ -111,90 +172,148 @@ export function Timeline({
   renderActions,
   onBlockAction,
   busyElsewhere = false,
+  motion = STILL,
+  layoutSettling = false,
+  moved = null,
 }: TimelineProps) {
   const theme = useTheme();
   const gutterStyle = { minWidth: gutterWidthFor(useFontScale()) };
   const rows = buildRows(recommendations, now, busy);
+  const listRef = useRef<FlashListRef<Row>>(null);
+  const cellLayout = layoutSettling ? layoutTransitionFor(motion.springs.standard) : undefined;
+
+  // S2: the moved block's row once the rows reflect the write (the slot the DAO produced)
+  const movedIndex =
+    moved === null
+      ? -1
+      : rows.findIndex(
+          (row) =>
+            row.kind === 'block' &&
+            row.rec.id === moved.id &&
+            row.rec.slotStart.getTime() === moved.slotStart,
+        );
+  const handledMoveAt = useRef(0);
+  const movePending = moved !== null && movedIndex >= 0 && handledMoveAt.current !== moved.at;
+  if (movePending) {
+    // FlashList's documented one-shot for layout animations (no recycling on the next render),
+    // armed on the render that reorders the rows: it is consumed by the first commit after the
+    // call, and the screen re-renders once (the picker closing) before the change event lands.
+    listRef.current?.prepareForLayoutAnimationRender();
+  }
+  // the arrival stamp: set when the scroll lands, so the card bound to the moved id settles then
+  const [arrival, setArrival] = useState<{ id: string; at: number } | null>(null);
+  const reduceMotion = motion.reduceMotion;
+  useEffect(() => {
+    if (!movePending || moved === null) return;
+    handledMoveAt.current = moved.at;
+    const list = listRef.current;
+    if (list === null) return;
+    const { startIndex, endIndex } = list.computeVisibleIndices();
+    if (movedIndex >= startIndex && movedIndex <= endIndex) return; // on screen: the cell travelled
+    const id = moved.id;
+    let live = true;
+    void list
+      .scrollToIndex({
+        index: movedIndex,
+        animated: !reduceMotion,
+        viewPosition: MOVED_VIEW_POSITION,
+      })
+      .then(() => {
+        if (live) setArrival({ id, at: Date.now() });
+      });
+    return () => {
+      live = false;
+    };
+  }, [movePending, moved, movedIndex, reduceMotion]);
+
   return (
-    <FlashList
-      data={rows}
-      keyExtractor={(row) => row.key}
-      contentContainerStyle={styles.list}
-      renderItem={({ item }) => {
-        if (item.kind === 'now') {
-          return (
-            <View
-              style={styles.nowRow}
-              accessibilityRole="text"
-              accessibilityLabel={t('today.now')}
-            >
-              <ThemedText variant="caption" style={{ color: theme.colors.primary }}>
-                {t('today.now')}
-              </ThemedText>
-              <View style={[styles.nowLine, { backgroundColor: theme.colors.primary }]} />
-            </View>
-          );
-        }
-        if (item.kind === 'busy') {
-          const title = item.event.title ?? t('today.busy.untitled');
+    <CellLayoutContext.Provider value={cellLayout}>
+      <FlashList
+        ref={listRef}
+        data={rows}
+        keyExtractor={(row) => row.key}
+        contentContainerStyle={styles.list}
+        CellRendererComponent={TimelineCell}
+        renderItem={({ item }) => {
+          if (item.kind === 'now') {
+            return (
+              <View
+                style={styles.nowRow}
+                accessibilityRole="text"
+                accessibilityLabel={t('today.now')}
+              >
+                <ThemedText variant="caption" style={{ color: theme.colors.primary }}>
+                  {t('today.now')}
+                </ThemedText>
+                <View style={[styles.nowLine, { backgroundColor: theme.colors.primary }]} />
+              </View>
+            );
+          }
+          if (item.kind === 'busy') {
+            const title = item.event.title ?? t('today.busy.untitled');
+            return (
+              <View
+                style={{ marginTop: Math.min(item.gapMinutes * GAP_PX_PER_MINUTE, GAP_MAX_PX) }}
+              >
+                <View
+                  style={styles.row}
+                  accessibilityRole="text"
+                  accessibilityLabel={t('today.busy.a11y', {
+                    title,
+                    start: formatClock(item.event.startAt),
+                    end: formatClock(item.event.endAt),
+                  })}
+                >
+                  <View style={[styles.gutter, gutterStyle]} testID={`timeline-gutter-${item.key}`}>
+                    <ThemedText variant="caption" tone="secondary" mono numberOfLines={1}>
+                      {formatClock(item.event.startAt)}
+                    </ThemedText>
+                  </View>
+                  <View style={[styles.busyCard, { borderColor: theme.colors.textSecondary }]}>
+                    <ThemedText tone="secondary" numberOfLines={2}>
+                      {title}
+                    </ThemedText>
+                    <ThemedText variant="caption" tone="secondary" mono>
+                      {t('today.block.time', {
+                        start: formatClock(item.event.startAt),
+                        end: formatClock(item.event.endAt),
+                      })}
+                    </ThemedText>
+                  </View>
+                </View>
+              </View>
+            );
+          }
           return (
             <View style={{ marginTop: Math.min(item.gapMinutes * GAP_PX_PER_MINUTE, GAP_MAX_PX) }}>
-              <View
-                style={styles.row}
-                accessibilityRole="text"
-                accessibilityLabel={t('today.busy.a11y', {
-                  title,
-                  start: formatClock(item.event.startAt),
-                  end: formatClock(item.event.endAt),
-                })}
-              >
+              <View style={styles.row}>
                 <View style={[styles.gutter, gutterStyle]} testID={`timeline-gutter-${item.key}`}>
                   <ThemedText variant="caption" tone="secondary" mono numberOfLines={1}>
-                    {formatClock(item.event.startAt)}
+                    {formatClock(item.rec.slotStart)}
                   </ThemedText>
                 </View>
-                <View style={[styles.busyCard, { borderColor: theme.colors.textSecondary }]}>
-                  <ThemedText tone="secondary" numberOfLines={2}>
-                    {title}
-                  </ThemedText>
-                  <ThemedText variant="caption" tone="secondary" mono>
-                    {t('today.block.time', {
-                      start: formatClock(item.event.startAt),
-                      end: formatClock(item.event.endAt),
-                    })}
-                  </ThemedText>
+                <View style={styles.card}>
+                  <RecommendationCard
+                    recommendation={item.rec}
+                    title={titles.get(item.rec.taskId) ?? t('task.notFound')}
+                    chunkCount={item.chunkCount}
+                    active={item.rec.id === activeRecommendationId}
+                    actions={renderActions?.(
+                      item.rec,
+                      titles.get(item.rec.taskId) ?? t('task.notFound'),
+                    )}
+                    onAction={onBlockAction}
+                    busyElsewhere={busyElsewhere}
+                    settleAt={arrival !== null && arrival.id === item.rec.id ? arrival.at : 0}
+                    settleSpring={motion.springs.emphasized}
+                  />
                 </View>
               </View>
             </View>
           );
-        }
-        return (
-          <View style={{ marginTop: Math.min(item.gapMinutes * GAP_PX_PER_MINUTE, GAP_MAX_PX) }}>
-            <View style={styles.row}>
-              <View style={[styles.gutter, gutterStyle]} testID={`timeline-gutter-${item.key}`}>
-                <ThemedText variant="caption" tone="secondary" mono numberOfLines={1}>
-                  {formatClock(item.rec.slotStart)}
-                </ThemedText>
-              </View>
-              <View style={styles.card}>
-                <RecommendationCard
-                  recommendation={item.rec}
-                  title={titles.get(item.rec.taskId) ?? t('task.notFound')}
-                  chunkCount={item.chunkCount}
-                  active={item.rec.id === activeRecommendationId}
-                  actions={renderActions?.(
-                    item.rec,
-                    titles.get(item.rec.taskId) ?? t('task.notFound'),
-                  )}
-                  onAction={onBlockAction}
-                  busyElsewhere={busyElsewhere}
-                />
-              </View>
-            </View>
-          </View>
-        );
-      }}
-    />
+        }}
+      />
+    </CellLayoutContext.Provider>
   );
 }
 

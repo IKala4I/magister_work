@@ -88,6 +88,36 @@ new transition on a surface with live controls.
   by a timer; `movedId/movedAt` set in the move confirm; `prepareForLayoutAnimationRender()`
   (FlashList's documented one-shot, reset after the next render) before the move write.
 
+### Implementation notes (2026-09-08, the session that built it — technical, not re-opened)
+
+Four details differ from the mechanism as drafted above; each is a consequence of something
+read in the installed packages, not a change of decision.
+
+1. **The one-shot is armed by Timeline on the reordering render, not by the screen before the
+   write.** FlashList clears `animationOptimizationsEnabled` in the commit effect of _every_
+   list render (`RecyclerView.js`: `commitLayout` → `ViewHolderCollection` `onCommitEffect`),
+   and the screen re-renders once (the picker closing) before the SQLite change event lands —
+   armed before the write, the flag would be spent on a render that reorders nothing. Timeline
+   calls `prepareForLayoutAnimationRender()` during the render whose rows first carry the
+   moved slot, so it is consumed by exactly the commit that moves the cells.
+2. **The move opens the layout window at the confirm, not at the "Move…" tap.** The tap opens a
+   prompt; the write is the confirm, and a picker held open for longer than 350 ms would
+   otherwise close the window before the rows change. Done / Skip / I did it open it on the tap
+   (the tap is the write).
+3. **The arrival settle is triggered by the scroll landing, not by the tap.** The card bound to
+   the moved id may mount while the scroll runs; a tap-stamped trigger would then be stale and
+   the settle silently skipped. Timeline stamps `arrival = { id, at: Date.now() }` when
+   `scrollToIndex` resolves and hands it to the card as `settleAt`; `SETTLE_TRIGGER_WINDOW_MS`
+   still guards a later rebind (the same block scrolled back into a cell a minute later sits at
+   rest). A travelled cell never receives a stamp (on screen → no scroll → no arrival).
+4. **The screen hands the timeline the slot the write produced** (`moveBlockAction` returns the
+   row; the DAO snaps a past start to the next quarter hour), and the timeline recognises the
+   move by id **and** slot. A stale row — a sync pull carrying the old slot inside the window —
+   is never mistaken for the move (pinned in `timeline.test.tsx`).
+
+Constants as shipped: `LAYOUT_SETTLE_MS` 350, `SETTLE_TRIGGER_WINDOW_MS` 400, arrival pose
+8 px below / scale 0.97, `MOVED_VIEW_POSITION` 0.3.
+
 ### The rule (goes into the card's header comment too)
 
 **A transition on a control-bearing surface never passes through an invisible or
