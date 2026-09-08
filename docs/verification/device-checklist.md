@@ -489,21 +489,23 @@ never substituted. Command: runbook `docs/runbooks/oracle-vm.md` §7.
 
 ## Fix-batch rows only hardware can settle (added 2026-09-08 with the batch)
 
-- ⬜ **NFR-A1 — the block card's custom actions, by ear.** VoiceOver: swipe to a card, the rotor
+- ✅ iOS **NFR-A1 — the block card's custom actions, by ear.** VoiceOver: swipe to a card, the rotor
   (or swipe up/down) lists "Start / Done / Skip / Move…" ("I did it" on a lapsed card), a
   double-tap runs the same handler as the button; the summary ends with the state ("Not done —
   back in your Inbox"). TalkBack: the actions menu (Pixel). Why hardware: XCUITest and the
   uiautomator dump list buttons regardless; only a screen reader exercises the container's
   actions. Structural half: `hw-ios-ax.py items` on build 2.
+  **iOS 2026-09-08 build 2 ✅ (owner's ear):** the rotor lists Start / Done / Skip / Move… ("I did it" on a lapsed card), a double-tap runs them, the summary ends with the state (day-2 notes item 69). TalkBack on the Pixel ⬜.
 - ⬜ **FR-42 / NFR-A2 — Reduce Motion with a LATE replacement.** The 120 ms grace covers the
   erasure's next-tick step 2; a failure dialog arriving after a network call (> 120 ms) still
   unmounts and mounts. Provoke it (airplane mode + a confirm that ends in a failure dialog) under
   Reduce Motion; expected: the failure dialog presents. If it does not, the grace must become
   "until the next request or a longer timeout".
-- ⬜ **NFR-A2 — the font-scale re-mount and what it resets.** Change the text size while a task
+- ✅ iOS (layout) **NFR-A2 — the font-scale re-mount and what it resets.** Change the text size while a task
   form is open / the Move picker is up / a skip diagnostic is on Today; expected: correct
   layout after the change, the form and picker gone (same as an app kill), the diagnostic not
   re-raised until the next miss (adversarial pass #14, accepted).
+  **iOS 2026-09-08 build 2:** the layout re-measures live both under the daemon hold (Inbox, the Settings sheet, an open task form) and through the Settings app's Larger Text slider at 83 % (Inbox rows 24 → 31 pt, no clipping; the sheet's strings whole) — but **no re-mount was observed**: the tab and an open task form survived, so the `fontScale` key never changed on either path and the reset half of this row did not happen. Why build 2 re-lays out where build 1 clipped is not established (notes items 68–69). Revisit: drop the key or find the real cause; the outcome holds.
 - ⬜ **FR-26 — the spent ritual across a real evening-time change with budget left.** A day with
   fewer than four deliveries: move the ritual earlier (server), let it fire, move it back to
   20:00 — the OS log must show no re-add of `ritual:<day>` (day 2 could not: the count was
@@ -525,13 +527,14 @@ item 55); a clean cycle afterwards lapsed one block once; the reminder ledger re
 boundary (four delivered + the ritual = five, no afternoon nudge); FR-30 across a 10-minute lock
 and a kill; a ritual under Do Not Disturb delivered silently and listed after Focus ended.
 **Fix batch F1–F8 → build 2 (17:40), re-checked on this account:** F3 (pull) ✅, F1 (Reduce
-Motion, daemon) ✅, F2 (state) ✅, F5 (daemon hold) layout ✅ / Settings path ⬜ owner, F4 ⬜
-(needs a day with budget), F6/F7 jest-only; a third reward defect found on the way (the 2 h
+Motion, daemon) ✅, F2 (state by the daemon, actions by the owner's ear) ✅, F5 layout ✅ on both
+paths (the re-mount itself never observed — notes item 69), F4 ⬜ (needs a day with budget),
+F6/F7 jest-only; a third reward defect found on the way (the 2 h
 stale session rewarded as a completion) — fixed on the branch, re-check next build (notes
 items 65–68). Deferred to the end of the pass: the arming test + erasure (item 63; owner-run
-`hw-ios-erase-check.sh`), the rotor listen for the card's custom actions, the calendar consent
-(test user), the client-side NFR-P1 export, the two-device rows (⛔ 6). Owner restores
-Auto-Lock (set to Never for the pass) and the brightness (notes item 68).
+`hw-ios-erase-check.sh`), the calendar consent (test user), the client-side NFR-P1 export,
+the two-device rows (⛔ 6). Brightness restored by the owner; Auto-Lock (Never for the pass)
+still to restore.
 
 ## Pass status (2026-09-07 — iPhone day 1)
 

@@ -15,16 +15,13 @@
 > records. **Build 2 = `36b297c` on the phone** (the stale-session fix is not in it — no device
 > check needs it before main).
 >
-> **⛔ Owner items (in order, one per turn):** (1) restore the brightness (my blind slider write
-> landed on Display & Brightness — notes item 68) and, at the very end, Auto-Lock; (2) push the
-> migration `20260908140000_persist_plan_facts_beat_supersede.sql` (`supabase db push`, as for
-> P10/P11); (3) 2-minute VoiceOver listen on Today: a card's rotor must list Start / Done / Skip /
-> Move… (or "I did it"), a double-tap runs it, the summary ends with the state; (4) 1-minute
-> Larger Text check through the Settings app with Hourwell in the background (the path that
-> clipped build 1) — Inbox rows and the Today header must be laid out, not clipped; (5) the
+> **Owner items done 2026-09-08 evening:** brightness restored; migration pushed and verified on
+> the hosted project (`persist_plan` body carries both conditions); the rotor listen ✅; the
+> Larger Text path driven by the session with guards ✅ (notes item 69). **Still ⛔:** (1) the
 > erasure with the arming test: `! docs/verification/hw-ios-erase-check.sh <out-dir>` with
 > Settings open on "Delete account and data" and a WDA session alive (the session sets it up);
-> then the session reads `deletion_audit` +1 and the tables at 0.
+> then the session reads `deletion_audit` +1 and the tables at 0 — recorded in a small close-out
+> docs PR if #57 has merged by then; (2) Auto-Lock back to the usual value at the very end.
 
 ## What happened this session (2026-09-08 — iPhone pass, day 2)
 

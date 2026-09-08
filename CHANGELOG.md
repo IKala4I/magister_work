@@ -25,7 +25,9 @@
   row bump re-pulled as `shown` left the local `lapsed` in place and the next scan added no
   duplicate; F1 — the second erasure dialog present under the daemon's Reduce Motion hold; F2 —
   every card's spoken summary carries its state; F5 — a live change to the maximum text size
-  re-measures the Inbox and the Settings sheet without a relaunch. Found on the way: **the 2 h
+  re-measures the Inbox and the Settings sheet without a relaunch — also through the Settings
+  app's Larger Text slider (83 %), the path that clipped build 1; the card's custom actions
+  confirmed by the owner's VoiceOver rotor. Found on the way: **the 2 h
   stale-session rule was rewarded as a completion** (285 wall-clock "focused" minutes on a
   30-minute block, r = 1) — the fact now says `reason: 'stale'` and the reward mapping gives it
   no credit (ADR-0010 addendum; Deno + jest).

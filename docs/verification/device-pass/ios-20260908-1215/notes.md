@@ -289,6 +289,27 @@ items` on Today (`ax-b2-today.json`): every card's spoken summary now ends with 
     tools; jest pins it (Settings, Inbox, Focus, the task sheet). Daemon settings reset to
     the device defaults afterwards (`settings show`: all False, DYNAMIC_TYPE 0.2727).
 
+69. **Owner steps 2–3 on build 2 (18:0x): the rotor listen — PASS; the Settings-app Larger Text
+    path — PASS.** VoiceOver (the owner's ear): the rotor lists a card's actions (Start / Done /
+    Skip / Move…; "I did it" on a lapsed card), a double-tap runs them, and the card's summary
+    ends with its state — F2 closed on iOS by ear (TalkBack on the Pixel still owed). Larger
+    Text driven by the session through the real Settings app with guards (Settings killed
+    and relaunched at its root; `com.apple.settings.accessibility` → `DISPLAY_AND_TEXT` →
+    `LARGER_TEXT` each found by identifier before the tap; the page held exactly one slider,
+    read back 50 % before and **83 %** after the write — the earlier blind write had landed on
+    the brightness slider of the page the owner had open, item 68): back in Hourwell (on the
+    Inbox tab, put there first) the rows **re-measured live** — title StaticText 24 → 31 pt,
+    the Add button 67 → 74 pt, nothing clipped (`shot-b2-realsettings-larger-text-inbox.png`,
+    `wda-b2-realsettings-larger-text-inbox.xml` vs `wda-b2-inbox-1x.xml`); the Settings sheet
+    renders "Up to date" and "Connect Google Calendar" as full strings (WDA found them by
+    exact name; `…-sheet.png`) where build 1 showed "Svnc no" / "Connect Gooale Ca" (item 36).
+    The tab stayed on Inbox, so the navigator did not re-mount here either; the correct layout
+    on build 2 comes from something other than the `fontScale` key — not established, and
+    not needed for the row: the user-facing outcome holds. Slider restored to 50 % (read
+    back), Hourwell back at 1× (title 24, Add 67). The accessibility sizes beyond the slider
+    (the switch that did not take on day 1) remain unexercised; 83 % ≈ the largest
+    non-accessibility size.
+
 ## Fix batch (consolidated from days 1–2; build 2 re-checks each on the phone)
 
 | #   | Severity | Finding                                                                                                   | Fix                                                                                                                                                                                                | Re-check                                                                 |
