@@ -6,6 +6,10 @@
  * that landed on another person's phone is refused there and purged). Cold and warm starts
  * both land here; the in-app flow (src/sync/gcal.ts) confirms itself when the browser session
  * returns, so a second confirm from this route finds the token already consumed — harmless.
+ * Once the confirm lands the screen says so and returns to Settings by itself after
+ * `GCAL_CALLBACK_LEAVE_MS`; before, it showed the "connected" copy for both the working and the
+ * done state and never left (the owner waited five minutes on the Pixel — hardware pass
+ * 2026-09-07 item 43). A failure stays until "Back to settings".
  */
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -14,6 +18,9 @@ import { StyleSheet, View } from 'react-native';
 import { t } from '../src/i18n';
 import { gcalConfirm } from '../src/sync/gcal';
 import { Button, Screen, ThemedText } from '../src/ui/primitives';
+
+/** How long the "connected" line is shown before the screen returns to Settings on its own. */
+export const GCAL_CALLBACK_LEAVE_MS = 1500;
 
 export default function GcalCallbackScreen() {
   const router = useRouter();
@@ -33,11 +40,24 @@ export default function GcalCallbackScreen() {
     };
   }, [status, confirm]);
 
+  useEffect(() => {
+    if (outcome !== 'ok') return undefined;
+    const timer = setTimeout(() => router.replace('/settings'), GCAL_CALLBACK_LEAVE_MS);
+    return () => clearTimeout(timer);
+  }, [outcome, router]);
+
+  const copy =
+    outcome === 'failed'
+      ? t('gcal.callback.failed')
+      : outcome === 'working'
+        ? t('gcal.callback.working')
+        : t('gcal.callback.ok');
+
   return (
     <Screen topInset>
       <View style={styles.centered}>
-        <ThemedText style={styles.spaced}>
-          {outcome === 'failed' ? t('gcal.callback.failed') : t('gcal.callback.ok')}
+        <ThemedText style={styles.spaced} accessibilityLiveRegion="polite">
+          {copy}
         </ThemedText>
         <Button
           label={t('gcal.callback.back')}

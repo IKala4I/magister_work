@@ -34,6 +34,8 @@ export const StorageKeys = {
    * (src/sync/planRequestDay.ts). Durable so a cold start cannot re-request (hardware pass).
    */
   lastPlanRequestDay: 'plan.lastRequestedDay',
+  /** `useLastKnown` values (src/storage/lastKnown.ts): the last reading of a tri-state, by name. */
+  lastKnownPrefix: 'lastKnown.',
   /** Privacy opt-outs (P10, ADR-0014 §12): '1' when the user switched the SDK off. */
   analyticsOptOut: 'privacy.analyticsOptOut',
   crashReportsOptOut: 'privacy.crashOptOut',

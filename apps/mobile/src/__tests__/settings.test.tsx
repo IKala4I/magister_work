@@ -73,6 +73,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import SettingsScreen from '../../app/settings';
 import { useSessionStore } from '../auth/session';
 import { en } from '../i18n/en';
+import { forgetLastKnown, readLastKnown, writeLastKnown } from '../storage/lastKnown';
 import { isAnalyticsOptedOut } from '../privacy/state';
 import { useSyncStore } from '../state/sync';
 import { appStorage, StorageKeys } from '../storage/mmkv';
@@ -110,6 +111,7 @@ const connected = {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  for (const name of ['gcal', 'permission', 'exactness']) forgetLastKnown(name);
   useDialogStore.setState({ current: null, hosts: [] });
   useSessionStore.setState({
     status: 'signed_in',
@@ -220,6 +222,38 @@ describe('Settings — Google Calendar section', () => {
     });
     expect(mockGcal.setWriteBack).toHaveBeenCalledWith(false);
     expect(mockGcal.connect).not.toHaveBeenCalled();
+  });
+
+  it('the first frame shows the LAST-KNOWN calendar state while the status read is pending; nothing known renders the checking row, never "Connect" (hardware pass 2026-09-07 item 44)', async () => {
+    // a returning user whose calendar was connected at the last read
+    writeLastKnown('gcal', {
+      connected: true,
+      scope: 'read',
+      write_back: false,
+      last_synced_at: null,
+      connected_at: '2026-09-07T13:17:50.000Z',
+    });
+    mockGcal.status.mockImplementation(() => new Promise(() => undefined)); // never resolves
+    await render(withSafeArea(<SettingsScreen />));
+    expect(screen.getByText(en['settings.gcal.connected'])).toBeTruthy();
+    expect(screen.queryByText(en['settings.gcal.connect'])).toBeNull();
+    expect(screen.queryByText(en['settings.gcal.checking'])).toBeNull();
+    await screen.unmount();
+    // a first-ever open: nothing known yet
+    forgetLastKnown('gcal');
+    let resolve: (r: unknown) => void = () => undefined;
+    mockGcal.status.mockImplementation(() => new Promise((r) => (resolve = r)));
+    await render(withSafeArea(<SettingsScreen />));
+    expect(screen.getByText(en['settings.gcal.checking'])).toBeTruthy();
+    expect(screen.queryByText(en['settings.gcal.connect'])).toBeNull();
+    await act(async () =>
+      resolve({
+        ok: true,
+        status: { connected: false, scope: null, write_back: false, last_synced_at: null },
+      }),
+    );
+    expect(screen.getByText(en['settings.gcal.connect'])).toBeTruthy();
+    expect(readLastKnown<{ connected: boolean }>('gcal')?.connected).toBe(false);
   });
 
   it('surfaces the not-configured state calmly (the Google gate)', async () => {

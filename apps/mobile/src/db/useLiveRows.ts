@@ -9,12 +9,15 @@
  * This hook subscribes directly and builds a FRESH query per refresh, so every read is a
  * clean prepared statement and a failure would throw where tests can see it.
  *
- * The first read happens in an effect, so the FIRST render carries no rows yet — and after the
- * builder inputs change (user, plan day) the next render still carries the PREVIOUS inputs'
- * rows until the effect re-reads. Callers that must not mistake either for "empty" (the UC-03
- * trigger: an empty plan read looks like "never planned" — hardware pass 2026-09-02 finding
- * #15) use `useLiveRowsState`, whose `ready` is true only when the rows were read for the
- * CURRENT inputs; `useLiveRows` keeps the plain-rows signature.
+ * The FIRST read is synchronous, in the initial state (the expo-sqlite driver is synchronous —
+ * the profile hook has always read this way), and a change of the builder inputs (user, plan
+ * day) re-reads synchronously in the same render: no render ever carries an empty or stale
+ * row set that a screen could mistake for "nothing here". Before this, every caller's first
+ * frame rendered its empty state — the Inbox empty, Focus "Nothing running" with a session
+ * live, the task sheet "not found", Settings' calendar row unconnected — for one frame on every
+ * open (hardware pass 2026-09-07 item 44, seen by the owner on both platforms). `ready` stays
+ * for callers that gate a decision on it (the UC-03 trigger, hardware pass 2026-09-02 #15): it
+ * is now true from the first render on.
  */
 import { addDatabaseChangeListener } from 'expo-sqlite';
 import { useEffect, useRef, useState } from 'react';
@@ -49,14 +52,25 @@ export function useLiveRowsState<T>(
   const buildRef = useRef(buildQuery);
   buildRef.current = buildQuery;
   const inputs: readonly unknown[] = [...tables, ...deps];
-  const [state, setState] = useState<ReadState<T>>(() => ({ rows: [], readFor: null }));
+  // the first read, synchronously, so the first render already carries the rows
+  const [state, setState] = useState<ReadState<T>>(() => ({
+    rows: buildQuery().all(),
+    readFor: inputs,
+  }));
+  // inputs changed since the last read: re-read in this render (the effect below persists it)
+  const current: ReadState<T> =
+    state.readFor !== null && sameInputs(state.readFor, inputs)
+      ? state
+      : { rows: buildRef.current().all(), readFor: inputs };
 
   useEffect(() => {
     let alive = true;
     const refresh = () => {
       if (alive) setState({ rows: buildRef.current().all(), readFor: inputs });
     };
-    refresh();
+    // the initial state (or the in-render re-read) already holds this read; refresh only when
+    // the stored state is for other inputs
+    if (state.readFor === null || !sameInputs(state.readFor, inputs)) refresh();
     const subscription = addDatabaseChangeListener(({ tableName }) => {
       if (tables.includes(tableName)) refresh();
     });
@@ -69,10 +83,7 @@ export function useLiveRowsState<T>(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, inputs);
 
-  return {
-    rows: state.rows,
-    ready: state.readFor !== null && sameInputs(state.readFor, inputs),
-  };
+  return { rows: current.rows, ready: true };
 }
 
 export function useLiveRows<T>(

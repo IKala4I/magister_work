@@ -18,6 +18,7 @@ import { ThemedText } from '../primitives';
 import { useTheme } from '../theme';
 import { useFontScale } from '../useFontScale';
 
+import type { BlockAction } from './BlockActions';
 import { formatClock, RecommendationCard } from './RecommendationCard';
 
 export interface TimelineProps {
@@ -30,6 +31,9 @@ export interface TimelineProps {
   activeRecommendationId?: string | null;
   /** Renders the P7 action row for a block; omitted on read-only renders. */
   renderActions?: (rec: RecommendationRow, title: string) => ReactNode;
+  /** The action row's handler, offered on each card as custom accessibility actions. */
+  onBlockAction?: (action: BlockAction, rec: RecommendationRow) => void;
+  busyElsewhere?: boolean;
 }
 
 type Row =
@@ -105,6 +109,8 @@ export function Timeline({
   busy = [],
   activeRecommendationId = null,
   renderActions,
+  onBlockAction,
+  busyElsewhere = false,
 }: TimelineProps) {
   const theme = useTheme();
   const gutterStyle = { minWidth: gutterWidthFor(useFontScale()) };
@@ -180,6 +186,8 @@ export function Timeline({
                     item.rec,
                     titles.get(item.rec.taskId) ?? t('task.notFound'),
                   )}
+                  onAction={onBlockAction}
+                  busyElsewhere={busyElsewhere}
                 />
               </View>
             </View>

@@ -10,6 +10,7 @@ import type { RecommendationRow } from '../../db/plans';
 import { rationaleSentence } from '../../domain/rationale';
 import { t } from '../../i18n';
 import { ConfidenceBlock, ThemedText } from '../primitives';
+import { type BlockAction, actionLabel, actionsFor } from './BlockActions';
 
 export function formatClock(date: Date): string {
   return date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
@@ -24,6 +25,14 @@ export interface RecommendationCardProps {
   active?: boolean;
   /** Action row (P7 BlockActions); omitted on read-only renders. */
   actions?: ReactNode;
+  /**
+   * The same handler the action row calls — offered to screen readers as custom actions on the
+   * card, because the labelled card is a leaf for VoiceOver/TalkBack and the row's buttons are
+   * unreachable (hardware pass 2026-09-07 item 35). Omitted on read-only renders.
+   */
+  onAction?: (action: BlockAction, recommendation: RecommendationRow) => void;
+  /** Another block's session is running — Start is not offered. */
+  busyElsewhere?: boolean;
 }
 
 /**
@@ -67,10 +76,18 @@ export function RecommendationCard({
   chunkCount = 1,
   active = false,
   actions,
+  onAction,
+  busyElsewhere = false,
 }: RecommendationCardProps) {
   const start = formatClock(r.slotStart);
   const end = formatClock(r.slotEnd);
   const captionKey = statusCaptionKey(r.status, active);
+  const a11yActions =
+    onAction === undefined
+      ? undefined
+      : actionsFor(r.status, active)
+          .filter((action) => !(action === 'start' && busyElsewhere))
+          .map((action) => ({ name: action, label: actionLabel(action) }));
   const rationale = rationaleSentence(
     r.rationaleKey ?? 'best_available',
     r.rationaleParams as Record<string, unknown> | null,
@@ -80,6 +97,11 @@ export function RecommendationCard({
       confidence={r.confidence}
       isExperiment={r.isExperiment}
       contentLabel={t('today.block.a11y', { title, start, end })}
+      stateLabel={captionKey ? t(captionKey) : undefined}
+      accessibilityActions={a11yActions}
+      onAccessibilityAction={
+        onAction === undefined ? undefined : (name) => onAction(name as BlockAction, r)
+      }
     >
       <View style={styles.header}>
         <ThemedText variant="body" style={styles.title}>

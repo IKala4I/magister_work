@@ -15,6 +15,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AppState, Pressable, StyleSheet, View } from 'react-native';
 
 import { discardPendingWipe, keepPendingWipe } from '../../src/auth/accountTransition';
+import { readLastKnown, writeLastKnown } from '../../src/storage/lastKnown';
 import { currentUserId } from '../../src/auth/identity';
 import { useSessionStore } from '../../src/auth/session';
 import { busyEventsQuery, type CalendarEventRow } from '../../src/db/calendar';
@@ -148,16 +149,26 @@ export default function TodayScreen() {
   );
   const profile = useCurrentProfile();
   const notifySettings = notificationSettingsOf(profile?.settings ?? null);
-  const [permission, setPermission] = useState<PermissionState | null>(null);
+  const [permission, setPermissionState] = useState<PermissionState | null>(() =>
+    readLastKnown<PermissionState>('permission'),
+  );
   const [promptDismissed, setPromptDismissed] = useState(() => isRemindersPromptDismissed());
   // FR-50 on Android 12+ (build 6): the exact-alarm app-op, re-read on every foreground — the
   // user flips it on the system screen the card opens
-  const [exactness, setExactness] = useState<ExactAlarmState | null>(null);
+  const [exactness, setExactnessState] = useState<ExactAlarmState | null>(() =>
+    readLastKnown<ExactAlarmState>('exactness'),
+  );
   const [exactDismissed, setExactDismissed] = useState(() => isExactAlarmPromptDismissed());
+  const setPermission = useCallback((p: PermissionState) => {
+    writeLastKnown('permission', p);
+    setPermissionState(p);
+  }, []);
   useEffect(() => {
     let alive = true;
     const refresh = () => {
-      setExactness(reminderExactness());
+      const e = reminderExactness();
+      writeLastKnown('exactness', e);
+      setExactnessState(e);
       void reminderPermissionState().then((p) => {
         if (alive) setPermission(p);
       });
@@ -171,7 +182,7 @@ export default function TodayScreen() {
       alive = false;
       sub.remove();
     };
-  }, []);
+  }, [setPermission]);
   // Display follows the 06:00 plan day: before 06:00 the previous plan day's plan stays on
   // screen (an evening plan for the calendar day takes over at 06:00 — P10 adversarial #3)
   const plan = planDay !== todayDay ? (previousRows[0] ?? todayRows[0]) : todayRows[0];
@@ -552,6 +563,8 @@ export default function TodayScreen() {
           now={now}
           busy={busy}
           activeRecommendationId={activeSession?.recommendationId ?? null}
+          onBlockAction={onAction}
+          busyElsewhere={activeSession !== null}
           renderActions={(rec, title) => (
             <BlockActions
               recommendation={rec}
