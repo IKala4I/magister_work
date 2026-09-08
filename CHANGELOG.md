@@ -22,6 +22,16 @@
 - New: `src/ui/motion.ts` (`layoutTransitionFor`, `useSettle`, the two windows); Timeline's
   module-scope `TimelineCell` + `CellLayoutContext`, the `moved` prop and the scroll; the
   card's `settleAt`. 23 new jest cases (motion, timeline, today, card).
+- **Verified on both phones (Pixel 7a 2026-09-08, iPhone 12 2026-09-09):** the transitions
+  fire on Fabric with FlashList's absolute cells — Pixel 11 / 10 / 14 / 12 / 19 frames for
+  Done / Skip / I did it / on-screen move / off-screen move (incl. the scroll), one frame each
+  under reduced motion, 0 BLANK and correct order after every interaction, NFR-P2 equal before
+  and after on the same 13-block list; iPhone hitch-free through every interaction, 8 = 8
+  hitches on a 16-block scroll series. Two findings recorded: React Native reads
+  `transition_animation_scale` for reduce motion on Android (the dialog pass used the animator
+  scale); the Experiment card's action row wraps on the iPhone 12. Tools: `hw-motion-frames.py`,
+  `hw-motion-drive.py`, `hw-scroll-frames.sh`, `hw-ios-hitches.sh`, `hw-ios-paint.py`,
+  `hw-ios-motion-drive.py`, `hw-set-profile-timezone.mjs`.
 
 ## Post-P12 — iPhone pass fix batch → build 2 (2026-09-08, post-p12/iphone-pass)
 

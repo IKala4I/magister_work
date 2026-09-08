@@ -1,8 +1,9 @@
 # ADR-0022 — Transitions on the plan surface (closing spec-conflicts L42)
 
 - **Date:** 2026-09-08 (draft, written before the implementation; accepted with the phase PR)
-- **Status:** proposed — the plan agreed with the owner on 2026-09-08 evening; a fresh
-  session executes it (`docs/HANDOFF.md`)
+- **Status:** accepted 2026-09-09 — built, pinned in jest, verified on the Pixel 7a
+  (2026-09-08) and the iPhone 12 (2026-09-09); the plan was agreed with the owner on 2026-09-08
+  evening (`docs/HANDOFF.md`)
 - **Phase:** post-P12, branch `post-p12/motion`
 - **Spec anchors:** File 02 §3.4 ("physics, not flourish: spring-based transitions ≤ 250 ms;
   reduced-motion honored"), NFR-A2, NFR-P2, UC-07 (move), FR-23 (skip/lapse never an error
@@ -193,6 +194,38 @@ reaching the helper (the daemon hold is the tool); and the owner's eyes on wheth
 reads as _that block going there_. **Fallback if the cell transition does not fire on hardware:**
 a custom layout worklet gated by a shared value (Reanimated "custom layout transitions"), same
 tokens, same collapse — decided on the phone, not in advance.
+
+## Hardware results (2026-09-08 Pixel 7a · 2026-09-09 iPhone 12)
+
+Evidence: `docs/verification/device-pass/android-20260908-motion/notes.md` (17 items) and
+`ios-20260909-motion/notes.md` (12 items); the checklist rows carry the numbers.
+
+- **NFR-P2, the same list on the build of main and the motion build.** Pixel, 13 blocks, 30
+  injected drags: 1825 / 1824 frames, 1 janky each, p50 5 · p90 7 · p95 8 · p99 10 ms on both.
+  iPhone, 16 blocks, 20 WDA drags under Animation Hitches: 847 / 807 frames, 8 hitches each,
+  lifetime max 83.8 / 67.0 ms (p90 33.6 → 48.5 ms: one vsync of latency, no missed deadline).
+  An `Animated.View` per cell costs nothing measurable.
+- **The transitions fire on Fabric with FlashList's absolute cells** (the first device eye):
+  Pixel — Done 11 frames (183 ms), Skip 10 (167), I did it 14 (233), on-screen move 12 (200),
+  off-screen move 19 (317: the scroll and the arrival settle in one window), same-slot move
+  caption only; iPhone — 15 frames at one vsync after Done and Skip, 43 across the off-screen
+  scroll + settle, no hitch within 1.5 s of any tap (the five hitches of that trace sit at the
+  WDA scans between interactions). No fallback worklet was needed.
+- **Reduced motion.** Pixel: one frame per interaction — under `transition_animation_scale 0`,
+  the switch React Native reads (the animator scale the dialog pass used is never consulted;
+  revisit.md). iPhone: held by the accessibility daemon, verified by a second client — captions,
+  order and paint correct on Done / Skip / both moves; iOS has no frame counter.
+- **No invisible state.** 0 BLANK in every after-scan on both phones (Android 15 recorded
+  interactions, iOS 10); the block order as expected every time; two interrupt tests on the
+  Pixel (a fling 90 ms after Done; two Dones 200 ms apart) left no cell off its slot and logged
+  every intended fact.
+- **Not established here:** per-transition frame counts on iOS (no `screenrecord`; the
+  optional QuickTime recording was not made); "I did it" on iOS (no lapsed block without clock
+  control — the same S1 window as Done); the owner's-eyes judgement on whether the move reads as
+  _that block going there_ (open on both phones).
+- **Findings beside the claim:** the Experiment card's action row wraps on the iPhone 12
+  (revisit.md 2026-09-09); the dialog pass's reduced-motion evidence was on the wrong Android
+  switch (revisit.md, the checklist row reworded).
 
 ## Consequences (records, same commits as the code)
 
