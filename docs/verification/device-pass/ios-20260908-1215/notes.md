@@ -212,6 +212,24 @@ freezing pid 751 [Hourwell] … froze 1641 pages` at 17:32:23, the same pid aliv
     "Delete everything") → the erasure with the reference on screen → `deletion_audit` +1,
     tables at 0 → welcome after a cold relaunch.
 
+64. **The fix batch, its adversarial pass, and one server finding it produced.** F1–F7
+    implemented with jest per item (commits 1ed0be0, 33f8f81, 607d782, 415635a; records
+    5308199); a fresh-context adversarial subagent on the diff returned **0 MAJOR / 5 MINOR /
+    11 notes** — all addressed in the follow-up commit. The finding that matters is server-side
+    and pre-existing: `persist_plan` expired every still-`shown` row of a superseded plan, the
+    reward mapping skips `expired` forever, and lapses are attributed only at 23:55 — so a
+    lapse followed by a manual re-plan the same day never became a tuple (an upward reward
+    bias). Migration `20260908140000_persist_plan_facts_beat_supersede.sql` keeps ended slots
+    and rows with facts (pgTAP 7/7 linked, rolled back; ⛔ owner push). Client follow-ups:
+    the live-rows hook re-reads once after subscribing (a one-frame gap between the render read
+    and the listener); the unused `useLastKnown` hook removed and the calendar reading
+    account-scoped (a sign-out race could have seeded the next account); the reminders switch
+    never asserts ON while unknown (a first-ever open is `undetermined` → OFF is honest); a
+    pulled `moved` over a local `lapsed` keeps the local slot; VoiceOver hears the callback
+    outcome; `spent` reaches `notifications_planned`. Four checklist rows added for what only
+    hardware can settle (custom actions by ear, a late replacement under Reduce Motion, the
+    re-mount's resets, the spent ritual with budget left).
+
 ## Fix batch (consolidated from days 1–2; build 2 re-checks each on the phone)
 
 | #   | Severity | Finding                                                                                                   | Fix                                                                                                                                                                                                | Re-check                                                                 |

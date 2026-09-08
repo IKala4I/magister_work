@@ -2,13 +2,21 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-08 (afternoon) — **iPhone pass, day 2, on branch `post-p12/iphone-pass`**
+> Last update: 2026-09-08 (late afternoon) — **iPhone pass, day 2, on branch `post-p12/iphone-pass`**
 > (build 1 = main `4d67a78` on the owner's iPhone 12 / iOS 26.6; the device slices of day 2 are
-> done; **next is the fix batch F1–F8 → build 2 → re-check on the same account**). Read first:
-> `docs/verification/device-pass/ios-20260908-1215/notes.md` (items 50–63 + the fix-batch table
-> at the end), then day 1's `../ios-20260907-1130/notes.md` items 22–24, 35–36, 43–44, 49 (the
-> findings the batch fixes), then the "iOS 2026-09-08" paragraphs in
-> `docs/verification/device-checklist.md`.
+> done; **the fix batch F1–F8 is committed with its adversarial pass; build 2 is the next step**,
+> blocked on the phone being unlocked for Xcode's device preparation). Read first:
+> `docs/verification/device-pass/ios-20260908-1215/notes.md` (items 50–64 + the fix-batch table),
+> then the "iOS 2026-09-08" paragraphs and the new "Fix-batch rows only hardware can settle"
+> section in `docs/verification/device-checklist.md`.
+>
+> **Commits on the branch since day 1:** `8d07c00` day-2 records → `1ed0be0` F3 (pull lattice +
+> idempotent scan) → `33f8f81` F4 (ritual spent per id) → `607d782` F1 (dialog exit grace) →
+> `415635a` F2/F5/F6/F7 (card actions + state, first read, last-known, font-scale re-mount,
+> callback) → `5308199` records → then the adversarial-pass follow-ups (client), the
+> `persist_plan` migration (`20260908140000_persist_plan_facts_beat_supersede.sql`, pgTAP 7/7
+> linked) and their records. **⛔ NEW owner item: push the migration** (`supabase db push`, as
+> for P10/P11) — until then the hosted `persist_plan` still expires rows with facts.
 
 ## What happened this session (2026-09-08 — iPhone pass, day 2)
 
@@ -45,10 +53,8 @@ Today too, not only on the sheet.
 
 ## Exact next actions (this session continues; or a fresh one after `/clear`)
 
-1. **Fix batch F1–F8** (table at the end of the day-2 notes): jest first per item; `pnpm`
-   gates; explainer (`docs/thesis/pojasnennia.uk.md`) in the same commit; ADR-0021 amendment
-   (dialog), spec-conflicts / corrections rows where a spec or the draft says otherwise
-   (invariant 2 on the client; the ritual ledger); revisit line for F8.
+1. ~~Fix batch F1–F8~~ done (commits above; adversarial pass 0 MAJOR / 5 MINOR / 11 notes, all
+   addressed — notes item 64). Owner: ⛔ push the `persist_plan` migration.
 2. **Build 2** (`npx expo run:ios --device 00008101-0015081602F1003A --configuration Release
 --no-bundler` after `expo prebuild`; `hw-build-gate-ios.sh`), install over build 1 (same
    account, same data), re-check each row of the table on the phone with the same drivers;

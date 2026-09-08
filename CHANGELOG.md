@@ -21,6 +21,14 @@
   `useLastKnown` seeds the calendar / permission / exact-alarm tri-states from MMKV and
   renders a neutral form while unknown.** The calendar consent landing distinguishes its
   states and returns to Settings by itself.
+- **Adversarial pass (fresh-context subagent): 0 MAJOR, 5 MINOR, 11 notes — all addressed.**
+  Server: `persist_plan`'s supersede no longer expires rows that carry facts or whose slot has
+  ended (a lapse followed by a same-day re-plan lost its r = 0 tuple; migration
+  `20260908140000_…`, pgTAP 7/7 linked, ⛔ owner push). Client: the live-rows hook re-reads once
+  after subscribing (a one-frame gap); the unused `useLastKnown` hook dropped, readings
+  account-scoped (`gcal`) so a sign-out race cannot seed the next account; the reminders switch
+  never asserts ON while the permission is unknown; a pulled `moved` over a local `lapsed`
+  keeps the local slot; VoiceOver hears the callback outcome; `spent` reaches analytics.
 - Records: explainer section, ADR-0012 / ADR-0014 addenda, ADR-0021 amendment, revisit lines
   (the backfill's `server_seq` bump; nudges spent on unseen blocks), traceability rows.
 
