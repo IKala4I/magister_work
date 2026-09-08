@@ -1,0 +1,189 @@
+# ADR-0022 — Transitions on the plan surface (closing spec-conflicts L42)
+
+- **Date:** 2026-09-08 (draft, written before the implementation; accepted with the phase PR)
+- **Status:** proposed — the plan agreed with the owner on 2026-09-08 evening; a fresh
+  session executes it (`docs/HANDOFF.md`)
+- **Phase:** post-P12, branch `post-p12/motion`
+- **Spec anchors:** File 02 §3.4 ("physics, not flourish: spring-based transitions ≤ 250 ms;
+  reduced-motion honored"), NFR-A2, NFR-P2, UC-07 (move), FR-23 (skip/lapse never an error
+  state), invariant 2 (facts beat plans), invariant 14; ADR-0021 (the dialog's motion path);
+  spec-conflicts L42; revisit.md 2026-09-06; thesis-corrections #61.
+
+## Context
+
+The shipped app has one spring transition (the in-app dialog, ADR-0021). Every other state
+change is a jump cut. File 02 §3.4 promises springs everywhere a state changes; the absence is
+recorded as a divergence (L42), never as a decision. The owner asked for **few, well-chosen
+transitions** — "a planner selling calm precision should feel settled, not busy" — chosen by
+one test applied to every interaction: **does the motion tell the user what changed and where
+it went?** Motion that only says "something happened" is decoration and stays out.
+
+Constraints from the hardware passes: the `springs.*` tokens (≤ 250 ms) and reduced motion
+collapsing every duration to 0 **through the same code path** (`resolveMotion(useReducedMotion())`,
+as `DialogHost` does); Reanimated 4 on the UI thread only; drag-to-teach stays out (M10,
+ADR-0008 §7); the 60 fps rows must not regress; and the blank-card defect (a paint assumption
+that held on the simulator and failed on the Pixel — `e7bb05e`, corrections #53) applies to every
+new transition on a surface with live controls.
+
+### The inventory (2026-09-08)
+
+| Interaction (what the screen does today)                                                                                    | Does motion tell what changed / where?                                                                                                                                                                                                | Verdict              |
+| --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
+| **Move…** confirmed: the block vanishes from one slot and appears at another (same row id); off-screen → it just disappears | **Yes — identity.** "The block you moved is this one, there." The eye needs continuity or a scroll to the destination.                                                                                                                | **Ship — S2**        |
+| **Done / Skip / I did it**: action row gone, caption in, the card shrinks, every row below jumps ~50 px under the thumb     | **Yes — consequence.** The jump hides what moved; a settle shows the gap closing. The next block's buttons no longer teleport under the thumb (any tap there is a fact — invariant 2; a plausible mis-tap path, not an observed one). | **Ship — S1**        |
+| **Plan applied / Re-plan**: banner, then the whole list replaced at once                                                    | **No.** A uniform settle of every card says only "something changed", which the banner already says — not what, not where.                                                                                                            | Dropped (decoration) |
+| Task returns to the Inbox (skip/lapse → `tasks.status = inbox`)                                                             | No. The user is on Today; the card already says "back in your Inbox" in words. The Inbox insertion is unseen or decorative.                                                                                                           | Leave                |
+| Inbox delete → undo bar; undo → row returns                                                                                 | Marginal; a convention, the words carry the affordance. Next candidate after this phase, not now.                                                                                                                                     | Leave                |
+| Move picker / trade-off sheet / diagnostic card appearing                                                                   | No; prompts, instant is fine (S1's window incidentally settles the list under them after a tap).                                                                                                                                      | Leave                |
+| Planning banner, notices, fallback line, Now marker                                                                         | No; status text.                                                                                                                                                                                                                      | Leave                |
+| Tab switches, sheets, onboarding                                                                                            | Native navigator motion; not ours.                                                                                                                                                                                                    | Leave                |
+| Insights toggles, Focus timer                                                                                               | Decoration.                                                                                                                                                                                                                           | Leave                |
+| Drag-to-teach physics                                                                                                       | Out by decision (M10).                                                                                                                                                                                                                | Leave                |
+
+## Decision
+
+**Two transitions, both on the Today timeline, nothing else.**
+
+- **S2 — Move: the block travels to its slot, or the list scrolls to it.** A move keeps the row
+  identity (`setRecStatus(tx, rec.id, 'moved', …)`, `src/db/feedback.ts`), and FlashList v2
+  keeps a cell's render key for an unchanged stable id across a reorder (`RenderStackManager.sync`,
+  first pass `hasOptimizedKey(stableId)`). So a `layout` spring on the **cell container**
+  animates the real travel (`springs.standard`, 200 ms) together with the rows that make room.
+  Destination not rendered → `scrollToIndex({ index, animated: !reduceMotion, viewPosition: 0.3 })`
+  once the rows update, and the freshly mounted card plays an **arrival settle**
+  (`springs.emphasized`, 250 ms, dampingRatio 0.85 — the token's own stated purpose, "block
+  placement"). The settle plays only when the card is (re)bound to the moved id inside the
+  trigger window — i.e. never when the cell travelled (no double motion).
+- **S1 — Done / Skip / I did it: the list settles instead of jumping.** The same cell `layout`
+  spring, registered only for a short window opened by the tap. Caption and action row still
+  switch instantly — words carry the state; screen readers get it from the label.
+- **Dropped: the plan-applied entrance.** Fails the test (above). Recorded so it is not re-proposed.
+
+### Mechanism
+
+- `src/ui/motion.ts` (new; `tokens/motion.ts` stays pure data):
+  - `layoutTransitionFor(spring)` → `undefined` when `spring.duration <= 0`, else
+    `LinearTransition.springify().duration(d).dampingRatio(r)` (duration-based spring; Reanimated
+    docs: duration wins over physics props). The reduced-motion collapse arrives through
+    `resolveMotion` exactly as in the dialog — "no transition registered" is the duration-0
+    outcome of one helper, not a second branch per site.
+  - `useSettle({ key, playedAt, spring })` → `{ transform: [{ translateY }, { scale }] }`. On a
+    `key` change (FlashList rebinding a recycled cell to another block) the shared value is
+    **reset to rest synchronously**; when `playedAt` is newer than the last play for this key
+    and within `SETTLE_TRIGGER_WINDOW_MS` (400) the value starts at 0 and springs to 1;
+    duration 0 → assigned 1. Nothing waits on completion.
+  - `LAYOUT_SETTLE_MS = 350`: the tap opens the cell-layout window (covers write → SQLite change
+    event → re-render, plus the 200 ms spring).
+- `Timeline.tsx`: `CellRendererComponent` is **one module-scope component** rendering
+  `<Animated.View {...props} layout={useContext(CellLayoutContext)} />`; Timeline provides
+  `layoutSettling ? layoutTransitionFor(motion.springs.standard) : undefined`. (A component
+  created per render would remount every cell — the kind of bug the simulator flatters.)
+  Outside the window the prop is `undefined`, so a recycle during scroll registers no transition
+  — this protects the 60 fps rows. Timeline owns the FlashList ref and the `scrollToIndex`
+  effect keyed on `[rows, movedId, movedAt]`; busy rows and the Now row get no settle.
+- `RecommendationCard.tsx`: the `ConfidenceBlock` wrapped in an `Animated.View` styled by
+  `useSettle`; the accessibility tree is unchanged (the `accessible` leaf stays the block's View).
+- `app/(tabs)/index.tsx`: `resolveMotion(useReducedMotion())` once per screen (one listener,
+  not one per card); `settleUntil` opened by `onAction` for `done | skip | did_it | move`, closed
+  by a timer; `movedId/movedAt` set in the move confirm; `prepareForLayoutAnimationRender()`
+  (FlashList's documented one-shot, reset after the next render) before the move write.
+
+### The rule (goes into the card's header comment too)
+
+**A transition on a control-bearing surface never passes through an invisible or
+non-interactive state.** The blank-card defect was a card mounted but not painted whose
+Start/Done became facts. Therefore: transforms only — **never opacity**; rest values assigned
+synchronously on rebind; no `entering` / `exiting` (they hold the view at progress 0 and
+misfire under recycling); nothing a dropped completion callback could leave half-way invisible.
+
+### Facts verified 2026-09-08
+
+- FlashList 2.0.2 (installed package + ctx7 `/shopify/flash-list`): cells are
+  `position:absolute; top` via `CellRendererComponent` (the fixture wraps it in `Animated.View`
+  with `layout=`); `prepareForLayoutAnimationRender()` sets a one-shot flag
+  (`useRecyclerViewController.js:459`, reset in `RecyclerView.js:343`); a cell leaving the
+  engaged range is recycled — a permanent `layout` prop would animate those jumps.
+- Reanimated 4.5.1 (ctx7 `/websites/swmansion_react-native-reanimated`):
+  `LinearTransition.springify().duration().dampingRatio()`; the `layout` prop may be set to
+  `undefined` dynamically ("disable it by setting it to undefined"). Jest: worklets mock +
+  `setUpTests()` already wired (`src/test/setup.ts`, `setupAfterEnv.ts`); `getAnimatedStyle`
+  with 17 ms fake-timer frames is the assertion pattern (`dialog.test.tsx` "motion" block).
+
+### Baseline correction (NFR-P2)
+
+The recorded 60 fps evidence is an **8-block** Today on the Pixel 7a (`gfxinfo`, 2026-09-02:
+1733 frames, 0 janky, p99 10 ms) and a **7-block** Today on the iPhone 12 (xctrace Animation
+Hitches, 2026-09-07: 0 hitches). The **13-block** Pixel list of 2026-09-05 was the blank-card
+detector sweep, with no frame statistics. "60 fps held with 13 blocks on both devices" was an
+overstatement; the checklist rows now say what was measured on which list. This phase measures
+a 13-block list on both phones **before and after** on the same list, and the rows carry those
+numbers.
+
+## Verification protocol (both phones attached; the owner present)
+
+Order: Pixel baseline → Pixel motion build → iPhone baseline → iPhone motion build (the Pixel
+builds are adb-driven end to end; the iPhone needs the cable, the unlock and the trust).
+
+1. **Pixel, build of main (baseline):** onboarding + 25 quick-add tasks over adb; the day-5
+   13-block recipe (`device-pass/android-20260905-1725-build6/notes.md` item 9: device zone →
+   `America/Los_Angeles` via `settings put global auto_time_zone 0` + `cmd alarm set-timezone`,
+   the profile `timezone` → the same zone on the server, a working window on the server for the
+   day, `am kill` → `am start -W`); Re-plan → 13 blocks; `dumpsys gfxinfo com.hourwell.app reset`
+   → the day-2 swipe series starting inside the list (y > 490) → `dumpsys gfxinfo … framestats`
+   → `gfxinfo-13blocks-main.txt`. Plan requests count toward the 30/24 h limit — three or four,
+   not a loop.
+2. **Pixel, motion build:** `expo prebuild --clean` + `assembleRelease`, `hw-build-gate.sh`,
+   `adb install -r` (plan kept) → the same swipes on the same list → `gfxinfo-13blocks-motion.txt`.
+   Pass = janky count and p99 no worse than step 1 on the same list. Then the transitions:
+   `screenrecord` while driving Move (to an off-screen slot and to an on-screen one), Done, Skip,
+   I did it; `hw-motion-frames.py` (new shared tool: per-frame change in the list region →
+   transition length in frames) → each ≤ 15 frames at 60 fps; `animator_duration_scale 0`
+   (RN reports reduce-motion) → each one frame. After every transition `hw-blank-cards.py`
+   (0 BLANK) and a uiautomator dump with every block at its expected order. Interrupt test: a
+   swipe inside the 350 ms window → no cell stuck off its slot, 0 BLANK.
+3. **iPhone, build of main then build 3** (the day-2 command: `SENTRY_DISABLE_AUTO_UPLOAD=true
+npx expo run:ios --device 00008101-0015081602F1003A --configuration Release --no-bundler`
+   with the WDA runner and the live syslog stopped, phone unlocked): WDA onboarding + tasks
+   (`hw-ios-wda.py type`); for 13 blocks try the **profile-zone-only** variant first (the server
+   grid runs in the profile zone; the client sends the device-local date) — if the plan comes
+   back under 10 blocks, the device zone flip in Settings is an owner step; `xctrace --template
+'Animation Hitches'` attached across a 20 s thumb scroll on each build → the `hitches` table;
+   then the same five interactions on build 3 with the trace attached (hitch-free is the frame
+   evidence; iOS has no `screenrecord` — timing only from an owner-started QuickTime USB
+   recording, analysed with the same tool); `hw-ios-ax.py items` + `dvt screenshot` after each
+   → every card in the tree painted (crop each card rect, std-dev > 3); `hw-ios-ax.py hold
+REDUCE_MOTION` → the same five, instant.
+
+**Device eyes (what no simulator settles):** whether the cell `layout` spring fires at all on
+Fabric with FlashList's absolute-positioned recycled cells; whether a recycle inside the window
+flies; the arrival settle on a freshly mounted cell after `scrollToIndex` (mount-vs-rebind
+order); paint after a transformed card returns to rest on the Pixel's renderer (the blank-card
+class); the 60 fps rows with an `Animated.View` per cell; iOS `AccessibilityInfo` reduce-motion
+reaching the helper (the daemon hold is the tool); and the owner's eyes on whether the move
+reads as _that block going there_. **Fallback if the cell transition does not fire on hardware:**
+a custom layout worklet gated by a shared value (Reanimated "custom layout transitions"), same
+tokens, same collapse — decided on the phone, not in advance.
+
+## Consequences (records, same commits as the code)
+
+- File 02 §3.4 amendment line (evidence + record): the plan surface conforms on two
+  interactions; drag physics still out. spec-conflicts L42 → closure paragraph. revisit.md
+  2026-09-06 row → DONE. thesis-corrections #61 → amended (the principle realised on the dialog
+  and two plan interactions; still no drag physics) + rollup line.
+- device-checklist: rows for the two transitions (timing, reduced motion one frame, no card
+  unpainted after any transition, no cell off its slot after an interrupted one), the NFR-P2
+  rows restated with list sizes and the before/after numbers.
+- traceability rows (NFR-A2 / File 02 §3.4 / UC-07 → file:line → test → PASS), CHANGELOG
+  "Post-P12 — motion", versions.md (FlashList `CellRendererComponent` +
+  `prepareForLayoutAnimationRender`, Reanimated layout springs — verified 2026-09-08), the
+  Ukrainian explainer section, HANDOFF.
+- Tests: `layoutTransitionFor` (undefined at 0; token duration/ratio otherwise); `useSettle`
+  through a probe (plays on a fresh trigger and settles under 250 ms; **a key change resets to
+  rest on the same frame**; a stale trigger never plays; at rest on the first frame under
+  reduced motion; no `opacity` key); Timeline (context undefined outside the window, a
+  transition inside; the moved index found; `animated: false` under reduced motion); Today
+  (the window opens on done/skip/did_it/move and closes after `LAYOUT_SETTLE_MS`; move sets
+  `movedId`); `a11yAudit` unchanged.
+- Adversarial pass (fresh-context subagent): recycling, reduced motion toggled mid-transition,
+  a sync pull inside the window, 200 % font, a move to the same slot, a plan with 0 blocks, a
+  cold start with a persisted plan, the Now row crossing a moved block.

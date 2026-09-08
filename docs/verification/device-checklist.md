@@ -23,8 +23,9 @@
   exists). Profile frame pacing on both devices with a realistic day (10+ blocks, glass
   blocks, Skia ring visible). Simulator can't settle it: desktop GPU + no thermal or memory
   pressure makes simulator frame rates meaningless.
-  **Android (Pixel 7a) ✅ 2026-09-02:** 8-block Today, 59 swipes in 20 s, 1733 frames, 0 janky (legacy 0.40 %), frame time p50 5 / p90 7 / p95 8 / p99 10 ms (`device-pass/android-20260902-1030/gfxinfo-today-scroll.txt`); a ≥ 10-block morning re-run is still owed. iOS pending.
-  **iOS 2026-09-07:** see the P6 row below — zero hitches on a real thumb scroll.
+  **Android (Pixel 7a) ✅ 2026-09-02:** 8-block Today, 59 swipes in 20 s, 1733 frames, 0 janky (legacy 0.40 %), frame time p50 5 / p90 7 / p95 8 / p99 10 ms (`device-pass/android-20260902-1030/gfxinfo-today-scroll.txt`).
+  **iOS 2026-09-07:** see the P6 row below — zero hitches on a real thumb scroll of a **7-block** Today.
+  **What has actually been measured (corrected 2026-09-08):** frame statistics exist for an **8-block** list on the Pixel 7a (`gfxinfo`) and a **7-block** list on the iPhone 12 (xctrace hitches) — nothing at 10+ blocks. The 13-block Pixel list of 2026-09-05 was the blank-card detector sweep (`hw-blank-cards-sweep.sh`), which records no frame times. The row is therefore ✅ at 7–8 blocks and ⬜ at the ≥ 10-block scale it names; `post-p12/motion` (ADR-0022) measures a 13-block list on both phones, the same list before and after the cell wrapper lands.
 
 - ⬜ **NFR-P1 — plan end-to-end ≤ 2.5 s p95 warm, measured from the device** (added P6). On
   hardware with the HF Space warm: trigger ten manual re-plans on a 5–8-task inbox, read the
@@ -38,6 +39,7 @@
   Perf Monitor open on a mid-range Android and an iPhone. Why: FlashList recycling and blur
   (`expo-blur` on iOS) cost nothing on an M-series Mac.
   **iOS 2026-09-07 (iPhone 12, 7-block Today, the owner's thumb, 20 s, xctrace Animation Hitches attached):** **`hitches` table empty — 0 hitches**; 841 frames committed, frame lifetime p50 33.5 / p90 50.2 / max 52.8 ms (2–3 vsyncs of pipeline latency, none late); GPU 2.92 ms p50 / 4.17 max per frame; 32–58 committed frames per active second (the finger's reversals, not late frames). Notes item 39.
+  **Scale note (2026-09-08):** this is a 7-block list, not the 12-block one the row asks for; Android's figure is an 8-block list. See the NFR-P2 row in Performance for the corrected statement and the 13-block plan (ADR-0022).
 
 ## Accessibility
 
