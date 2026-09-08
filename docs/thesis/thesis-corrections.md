@@ -745,3 +745,201 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     зафіксовано як розбіжність зі специфікацією (L42), а не як рішення.» In the stack row keep
     Reanimated 4 (it is wired: babel через `babel-preset-expo`, jest через мок worklets) but
     replace "фізика перетягу" with «пружинні переходи діалогу; перетягування не реалізовано».
+
+62. **§verification (the hardware pass) / §5 discussion / §6 conclusions — one section for the
+    device pass, written as an argument, not a list of incidents (Pixel 7a, 1–5 September 2026,
+    builds 1–6; iPhone 12, 7–8 September 2026, builds 1–2; notes under
+    `docs/verification/device-pass/`).** Items #50–#53 stay as the per-finding evidence pointers;
+    this item supplies the section that carries them. The wording below is draft-ready English; the
+    numbers are the notes' numbers, and every paragraph cites the day and item they come from.
+    **Where the evidence differs from the owner's spine (2026-09-08), before the text:** (i) the
+    "rewards lost after a same-day re-plan" defect was not observed on the phone — it was found by
+    the fresh-context review of the fix for the pull-revert defect (iOS day-2 item 64); the phone had
+    recorded its mechanism four days earlier (Android day-5 item 14: every row of the superseded
+    plan went `expired`, lapsed ones included) and nobody read the reward consequence then — state
+    it as a pass product, not a device observation; (ii) "the learned engine never ran on Android at
+    all" holds for the first evening and night (all 30 requests) and ends at 11:37 on the second
+    day, when the first learned plan on hardware followed the rollout — say "until the second
+    morning"; (iii) the spine omits the cold-start re-plan defect (Android day-2 items 15/21: every
+    cold start with a persisted plan issued a new request that replaced the day's blocks; the 30
+    zero-block rows of day 1 had the same cause and locked the account out of planning for a day)
+    — it is the largest data-budget defect of the pass and thesis-critical by UC-03, but it belongs
+    to the "never exercised" category below, not to the structural classes; and (iv) two iOS
+    MAJORs the spine does not name — the ritual firing twice on one day and the block action row
+    unreachable by a screen reader — are the concrete examples for the OS-scheduling and
+    screen-reader classes and enter the text through the class table.
+
+    **Text for the draft (§verification, new subsection "What device verification established"):**
+
+    Before the pass, the system carried 583 client tests and 191 edge-function tests, with the
+    Python and pgTAP suites beside them, a Release build exercised on the iOS simulator, and a set
+    of live smokes that drove the hosted backend from the development machine. All of that
+    evidence shares one property: it supplies its own inputs. A fixture chooses the timezone, the
+    clock, the calendar day, the network, the lifetime of the process and the way a control is
+    touched. A phone supplies those things itself, and it supplies them the way a participant's
+    phone would. The hardware pass was therefore not a larger test run. It was the first time the
+    system met inputs it had not chosen, and the findings are the inputs it had not anticipated.
+
+    The pass ran on a Pixel 7a (Android 17) for five days, 1–5 September 2026, over six builds, and
+    on an iPhone 12 (iOS 26.6) for two days, 7–8 September, over two builds. Six findings carry the
+    argument; each is stated with its consequence for the data, because that is where the harm
+    lay.
+
+    _The learned engine had never served the phone._ On the first evening all thirty plan
+    requests from the device fell back to the heuristic, while the same evening's smoke from the
+    development machine reported the learned path healthy, fifteen of fifteen. The phone reports
+    its zone as `Europe/Kiev`, the legacy IANA name Android supplies for Ukraine; the development
+    machine sends `Europe/Kyiv`; the service's image resolved only the current name, rejected the
+    request, and the edge function fell back exactly as designed. In a study, every participant
+    on a Ukrainian Android phone would have been served the baseline arm while the logs recorded
+    a healthy service; the only visible sign was a fallback banner, which the first reading
+    dismissed as one transient failure. Fixed the next morning; the first learned plan on
+    hardware followed at 11:37 (Android day 2, item 4; #50).
+
+    _Blank cards with live controls._ On the fifth day the last card of the Today list painted as
+    an empty panel while its content stayed mounted: the accessibility tree listed the title, the
+    time and the status with correct bounds, and the buttons still took touches. Two taps on blank
+    cards became a `task_completed` and a `focus_start` fact within thirteen seconds. Because the
+    client is a fact logger whose facts outrank plans, and because the nightly attribution turns
+    those facts into rewards with no plausibility check, this is a data-integrity defect in a
+    rendering defect's clothes: nothing downstream can tell that the control was never seen. The
+    clip came from the Android panel's `overflow: hidden` in the native compositor; the iOS panel
+    is a different implementation, which is why the simulator never showed it. Fixed in build 6,
+    with 0 blank cards in 72 scans over 7- and 13-block lists (Android day 5, item 9; build-6
+    notes items 5 and 9; #53).
+
+    _Three reward defects on iOS, none visible in the logs._ First, the morning after an
+    untouched night, the first foreground correctly lapsed the four blocks the user had missed,
+    and the same sync's pull reverted them to `shown`: the nightly training had bumped every row's
+    version while backfilling propensities, and the server still held the pre-lapse status,
+    which it keeps until its own daily job. The next foreground lapsed the same blocks again —
+    duplicate facts, skip streaks of three on tasks missed twice, and the third-skip diagnostic
+    shown for a phantom (iOS day 2, item 55). Second, a focus session left running across a lock
+    was closed by the client's two-hour stale rule with 285 wall-clock minutes of "focus" on a
+    thirty-minute block, and the instant attribution paid it as a completion, reward one, while
+    the device's own scan had lapsed the block: a guessed reward on an ambiguous session, the
+    case invariant 3 exists to exclude (iOS day 2, item 65). Third, a lapse followed by a
+    same-day re-plan never became a reward tuple at all, because superseding a plan expired its
+    still-open rows and the mapping skips expired rows forever — an upward bias on every re-plan
+    day; this one was found by the review of the fix for the first, and its mechanism had been
+    recorded on the Android phone four days earlier without anyone reading the consequence (iOS
+    day 2, item 64; Android day 5, item 14). All three change the learning signal silently; none
+    raises an error; none is reachable by a fixture that supplies its own night.
+
+    _The Friday ritual._ On Friday evening the notification promised "6 tasks are waiting — one
+    tap plans your day"; the accept produced a plan for Saturday with zero blocks, because the
+    profile declares working hours for weekdays only, consumed one of the thirty daily plan
+    requests, and left Today reading "No plan yet" over "No room today for 15 tasks", both untrue.
+    Every fixture in the suites plans a weekday and no script crosses a week boundary; the defect
+    needed a real Friday. The rule that followed (no request, no row, no ritual for a day without a
+    working window) was then verified on a real Saturday: no request reached the server, the
+    alarm list held the Sunday review only (Android day 4, item 23; build-6 notes items 1–3; #52).
+
+    _Latency, seen from the phone._ Server-side timing had placed the plan request inside its
+    budget; the phone's own timer did not. On the reference device the request measured
+    3.7–4.1 s at p95 against a function that measured 1.3 s, because a third of what the user
+    waits for happens before the function is called — a pre-plan sync push whenever facts are
+    pending, which in real use is the common case. Decomposed, of the 3.9 s p95 sum, 2.6 s is
+    server-side work that scales with nothing on the user's side; the phone and the network act
+    only on the remaining third. The requirement was therefore re-derived from the decomposition
+    for a 2022 low-end phone on a weak link (≤ 6.0 s p95) instead of kept at the pre-deployment
+    guess of 2.5 s. The device also supplied the instance class the clean sweep never generated:
+    on its own inbox — interchangeable tasks under two deadlines — the solver stalled proving
+    optimality at its cap in 12 of 15 requests, and the stopping rule was changed on that
+    evidence (Android days 3–4; ADR-0018; #51).
+
+    _Three platform behaviours with no trace off hardware._ The ritual notification on Android
+    carried no action buttons: the Android module rejects an empty notification category, the
+    app registered the block category first with no actions, the exception was swallowed and the
+    ritual's category was never stored — while iOS accepts an empty category, so the simulator
+    always showed the buttons. Reminders arrived 26 to 60 minutes late and one was never shown,
+    because the exact-alarm permission was neither declared nor granted and Android 13+ denies
+    it to a fresh install. And the first open of a day with the radios off read as signed out —
+    "Sign in to plan your day" — because the access token had expired while the app was dead
+    overnight and the auth client cached the refresh failure; the first online foreground did not
+    plan either. None of the three is an error in the app's own logs (Android day 4, items 3–4,
+    6, 8).
+
+    _Which classes of defect are structurally invisible without a device, and why._ The findings
+    sort into six classes. In each, the input that exposed the defect is one that no fixture,
+    simulator or development-machine smoke supplies, because the thing that supplies it is the
+    phone's operating system, its hardware, its calendar or its user.
+
+    | Class                                  | Why no suite or simulator supplies it                                                                                                                                                                                                  | What it exposed here                                                                                                                                                                      |
+    | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+    | OS scheduling                          | Alarm exactness, inexact windows, standby buckets, the OS's delivered-notification list and the per-day cap are decided by the OS's power management, not by the app; a simulator has no battery to protect and no lock screen to keep | inexact alarms (+26 min ritual, one nudge never shown); the ritual fired twice on one day because an answered notification leaves the OS's delivered list; the ≤ 5/day cap on a real day  |
+    | Real background restriction            | Freezing, jetsam and process revival happen only under a real memory and power budget; a token expires only after real hours with the process dead                                                                                     | offline first open read as signed out; a session closed by the 2 h stale rule and paid as a completion; the lazy lapse scan after a 44-min suspension and after a frozen night            |
+    | Screen readers                         | The automated trees (XCUITest, uiautomator) list controls by identifier and say nothing about whether a reader can reach them; only a reader, and a person listening, can                                                              | the block action row unreachable by VoiceOver and TalkBack — a screen-reader user could plan but not start, finish, skip or move a block; the settings gear announced as a link           |
+    | Rendering under the real compositor    | The simulator draws with the Mac's GPU and, for the Android surface, does not draw at all; clip paths, live text-size changes and presentation during a dismissal are decided by the platform's own view system                        | blank cards with live controls; a live text-size change re-rendering text without re-laying out; the second erasure dialog dropped by UIKit under Reduce Motion                           |
+    | Device-supplied identifiers and inputs | The timezone name, the keyboard, the system language, what "airplane mode" disconnects — the OS supplies them, and the development machine supplies different ones                                                                     | `Europe/Kiev` versus `Europe/Kyiv`; the keyboard covering the onboarding button; autocorrect capitalising a task; airplane mode leaving Wi-Fi on                                          |
+    | Multi-day and week-boundary behaviour  | A fixture chooses its day and its clock; only a run that spans real nights meets the day boundary, the nightly server job, the ledger reset and the weekend                                                                            | the Friday ritual planning an unplannable Saturday; the nightly backfill interleaving with the morning's pull; the reminder ledger resetting at midnight; the daily authority at 00:00:03 |
+
+    Not every finding belongs to those classes, and the thesis should say so. The cold-start
+    re-plan, the unscrollable Settings screen, the reminders that were never dismissed, the
+    200 % gutter wrap and the "default before the first read" flash were all reachable on a
+    simulator in principle; nobody had cold-started the app with a persisted plan, scrolled the
+    Settings screen on a small display, or watched the shade across an afternoon. The pass found
+    them because it ran the whole product for days, on real stakes, with a person looking — not
+    because of the silicon. The claim the thesis makes is about the six classes; the count of
+    findings is evidence for the practice, not for the claim.
+
+    _What the pass established positively._ The device-conditioned requirements moved from
+    "verified on a simulator" to measured: cold start p90 1.07 s on the Pixel 7a right after a
+    reboot (0.55 s warm) and 0.50 s on the iPhone 12 (0.95 s after a reboot); a real thumb scroll
+    with zero hitches on the iPhone and zero janky frames on the Pixel; exact reminders within
+    half a second of their alarm on a plugged and on an unplugged phone; the daily cap holding on
+    real days on both platforms, the fifth slot going to the ritual; a ritual delivered to a
+    killed app on Android and to a frozen app on a locked iPhone, with the category actions on the
+    lock screen; a ritual under Do Not Disturb deferred, not lost; a focus session surviving a
+    lock, a kill and a reboot; erasure through the in-app dialogs in 78–180 ms server-side with
+    every user table at zero and the pending alarms cancelled; and, after the nightly training
+    had touched 79 rows, the 12 exploration-slice rows left with their exact propensities —
+    invariant 9 observed on live data.
+
+    _Cost, attendance and yield._ The pass took seven calendar days of session time (five on
+    Android, two on iOS), eight Android builds (six in the pass, two for the dialog's hardware check on 6 September) and two iOS builds, and nineteen pull requests (#37–#52, #56–#58), ten of which changed code. The owner's hands were needed for an estimated one and a
+    half to two hours on Android and one to one and a half hours on iOS, reconstructed from the
+    notes' timestamps: the on-screen keyboard slice on the first evening, two screenshots of the
+    notification shade and one tap on the ritual on the second, a screenshot and three decisions
+    on the fourth evening, the blank-card report and the afternoon block (move picker, TalkBack,
+    erasure) on the fifth; on iOS the developer-profile trust, the calendar consent, a thumb
+    scroll, three minutes of VoiceOver, the ritual long-press, the unlocks, Do Not Disturb from
+    the lock screen, the rotor listen and the erasure script. The rest was the session's: builds,
+    drivers, measurement series, fix batches and reading records after the fact. Per day of
+    effort the pass yields fewer serious defects than a code-reading adversarial review — the
+    phase reviews found between one and seven MAJOR defects each at under a day of effort; the
+    pass found fourteen MAJOR-class defects in seven days, about two a day. But the two sets are
+    disjoint: the reviewers had read the notification setup, the pull path and the reward
+    mapping and passed them, and none of the fourteen would have been found by another reading,
+    because each needed an input the reader had no reason to assume. The honest description of
+    where the findings came from is a handful of moments, each the first time a real condition
+    occurred: the first plan request answered by the server (day 2, 10:47), the first cold-start
+    loop with a persisted plan (day 2, 08:49–08:54 UTC), the first afternoon with reminders in
+    the shade (day 2), the first morning after an untouched night (day 4, 08:27–08:53, three
+    defects in half an hour), the first tap on a Friday ritual (day 4, 22:13–22:18, three
+    defects in five minutes), the first long list scrolled by a person (day 5, 10:09), the first
+    accessibility switch flipped while the app ran (iOS day 1, 12:49–13:03), the first
+    screen-reader traversal (iOS day 1, 14:44), the first foreground after a night with a server
+    job (iOS day 2, 12:22), and the first build installed over a running session (iOS day 2,
+    17:39). Ten moments, under three hours of clock time between them, produced the fourteen; the
+    remaining days were measurement, fixes, builds and waiting for the calendar. That is the
+    shape a device pass should be planned around: not more days, but the first occurrence of
+    each real condition, with a person present for the ones a driver cannot make.
+
+    _Sentence for the conclusions:_ "The automated evidence — 583 client tests, 191 edge-function
+    tests, the Python and pgTAP suites, simulator sweeps and live smokes — was necessary and was
+    blind to six classes of defect, because each depends on an input only a phone's operating
+    system, hardware, calendar or user supplies; the seven-day device pass found fourteen
+    serious defects in those classes, including four that corrupted the learning signal without
+    raising an error, and none of them was reachable by another reading of the code."
+
+    _What remains unverified on hardware, and should be listed as such:_ the magic-link and
+    Google-consent rows and the two-device sync (they need the mailbox and the OAuth client in
+    production, ⛔ 6); the spent-ritual rule on a day with reminder budget left; a late dialog
+    replacement under Reduce Motion; TalkBack's reading of the card's custom actions on Android;
+    the double-tap arming test on iOS, which XCUITest cannot deliver inside the 400 ms window
+    (Android's measurement and the unit test stand); and the whole of the 2022 low-end Android
+    class, for which the NFR-P1 figure is a derivation from the Pixel 7a, not a measurement.
+    Cross-refs: #11 (the simulator caveat this section closes), #50–#53, #60 (i), ADR-0018,
+    ADR-0019, `docs/verification/device-checklist.md` "Pass status" paragraphs, the explainer's
+    defence passage of 2026-09-08.

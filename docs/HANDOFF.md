@@ -21,12 +21,13 @@
 > ⛔:** Auto-Lock back to the usual value. The phone is free; build 2 stays installed on a
 > welcome screen (no account).
 >
-> **Next session (fresh):** the thesis-text support items (corrections rollup; the three reward /
-> data defects of this pass belong in the evaluation chapter's "what the hardware pass found"
-> — each has a data consequence: duplicate lapses / double streaks, lost lapse tuples after a
-> re-plan, a stale session paid as a completion); the Android TalkBack listen (F2 by ear) when
-> the Pixel is at hand; optional: the Pixel re-check of F6/F7 (the calendar callback and the
-> first-frame flash) on a build from main.
+> **Next session (fresh):** ~~the thesis-text support items~~ — **done 2026-09-08 (night):
+> corrections #62 is the hardware-pass section as one argument (six structurally invisible
+> classes, the honest "never exercised" category, cost and yield, the conclusions sentence;
+> the three iOS reward defects live there), the explainer carries the matching Ukrainian
+> defence passage, the rollup indexes #61–#62.** Still open: the Android TalkBack listen (F2
+> by ear) when the Pixel is at hand; optional: the Pixel re-check of F6/F7 (the calendar
+> callback and the first-frame flash) on a build from main.
 
 ## What happened this session (2026-09-08 — iPhone pass, day 2)
 
