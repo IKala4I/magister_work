@@ -38,6 +38,11 @@ const LABELS: Record<
   did_it: 'block.action.didIt',
 };
 
+/** The visible label of an action (shared with the card's custom accessibility actions). */
+export function actionLabel(action: BlockAction): string {
+  return t(LABELS[action]);
+}
+
 export function actionsFor(status: RecommendationRow['status'], active: boolean): BlockAction[] {
   if (active) return [];
   switch (status) {
@@ -66,7 +71,7 @@ export function BlockActions({
   return (
     <View style={styles.row}>
       {actions.map((action) => {
-        const label = t(LABELS[action]);
+        const label = actionLabel(action);
         const primary = action === 'start' || action === 'did_it';
         const disabled = action === 'start' && busyElsewhere;
         return (

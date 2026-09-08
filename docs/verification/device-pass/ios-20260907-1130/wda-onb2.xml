@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<XCUIElementTypeApplication type="XCUIElementTypeApplication" name="Hourwell" label="Hourwell" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="" processId="865" bundleId="com.hourwell.app">
+  <XCUIElementTypeWindow type="XCUIElementTypeWindow" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                                          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                                            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                                              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits=""/>
+                                              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="20" y="63" width="350" height="747" index="1" traits="">
+                                                <XCUIElementTypeScrollView type="XCUIElementTypeScrollView" enabled="true" visible="true" accessible="false" x="20" y="63" width="350" height="747" index="0" traits="">
+                                                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="20" y="63" width="350" height="890" index="0" traits="">
+                                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="20" y="63" width="350" height="890" index="0" traits="">
+                                                      <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Step 2 of 4" name="Step 2 of 4" label="Step 2 of 4" enabled="true" visible="true" accessible="false" x="20" y="63" width="350" height="18" index="0" traits="StaticText">
+                                                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Step 2 of 4" name="Step 2 of 4" label="Step 2 of 4" enabled="true" visible="true" accessible="true" x="20" y="63" width="350" height="18" index="0" traits="StaticText"/>
+                                                      </XCUIElementTypeStaticText>
+                                                      <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Your hours" name="Your hours" label="Your hours" enabled="true" visible="true" accessible="false" x="20" y="91" width="350" height="30" index="1" traits="StaticText">
+                                                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Your hours" name="Your hours" label="Your hours" enabled="true" visible="true" accessible="true" x="20" y="91" width="350" height="30" index="0" traits="StaticText"/>
+                                                      </XCUIElementTypeStaticText>
+                                                      <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="When should Hourwell plan your work? Adjust anything — weekends too." name="When should Hourwell plan your work? Adjust anything — weekends too." label="When should Hourwell plan your work? Adjust anything — weekends too." enabled="true" visible="true" accessible="false" x="20" y="131" width="350" height="48" index="2" traits="StaticText">
+                                                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="When should Hourwell plan your work? Adjust anything — weekends too." name="When should Hourwell plan your work? Adjust anything — weekends too." label="When should Hourwell plan your work? Adjust anything — weekends too." enabled="true" visible="true" accessible="true" x="20" y="131" width="350" height="48" index="0" traits="StaticText"/>
+                                                      </XCUIElementTypeStaticText>
+                                                      <XCUIElementTypeOther type="XCUIElementTypeOther" name="Monday: working 9:00 to 18:00" label="Monday: working 9:00 to 18:00" enabled="true" visible="true" accessible="true" x="20" y="197" width="350" height="80" index="3" traits=""/>
+                                                      <XCUIElementTypeOther type="XCUIElementTypeOther" name="Tuesday: working 9:00 to 18:00" label="Tuesday: working 9:00 to 18:00" enabled="true" visible="true" accessible="true" x="20" y="287" width="350" height="80" index="4" traits=""/>
+                                                      <XCUIElementTypeOther type="XCUIElementTypeOther" name="Wednesday: working 9:00 to 18:00" label="Wednesday: working 9:00 to 18:00" enabled="true" visible="true" accessible="true" x="20" y="377" width="350" height="80" index="5" traits=""/>
+                                                      <XCUIElementTypeOther type="XCUIElementTypeOther" name="Thursday: working 9:00 to 18:00" label="Thursday: working 9:00 to 18:00" enabled="true" visible="true" accessible="true" x="20" y="467" width="350" height="80" index="6" traits=""/>
+                                                      <XCUIElementTypeOther type="XCUIElementTypeOther" name="Friday: working 9:00 to 18:00" label="Friday: working 9:00 to 18:00" enabled="true" visible="true" accessible="true" x="20" y="557" width="350" height="80" index="7" traits=""/>
+                                                      <XCUIElementTypeOther type="XCUIElementTypeOther" name="Saturday: day off" label="Saturday: day off" enabled="true" visible="true" accessible="true" x="20" y="647" width="350" height="48" index="8" traits=""/>
+                                                      <XCUIElementTypeOther type="XCUIElementTypeOther" name="Sunday: day off" label="Sunday: day off" enabled="true" visible="true" accessible="true" x="20" y="705" width="350" height="48" index="9" traits=""/>
+                                                      <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Sleep window" name="Sleep window" label="Sleep window" enabled="true" visible="true" accessible="false" x="20" y="779" width="350" height="26" index="10" traits="StaticText">
+                                                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Sleep window" name="Sleep window" label="Sleep window" enabled="true" visible="true" accessible="true" x="20" y="779" width="350" height="26" index="0" traits="StaticText"/>
+                                                      </XCUIElementTypeStaticText>
+                                                      <XCUIElementTypeOther type="XCUIElementTypeOther" name="Sleep from 23:00 to 7:00" label="Sleep from 23:00 to 7:00" enabled="true" visible="false" accessible="true" x="20" y="815" width="350" height="48" index="11" traits=""/>
+                                                      <XCUIElementTypeButton type="XCUIElementTypeButton" name="Continue" label="Continue" enabled="true" visible="false" accessible="true" x="20" y="873" width="350" height="48" index="12" traits="Button"/>
+                                                    </XCUIElementTypeOther>
+                                                  </XCUIElementTypeOther>
+                                                  <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Horizontal scroll bar, 1 page" label="Horizontal scroll bar, 1 page" enabled="true" visible="true" accessible="false" x="33" y="777" width="324" height="30" index="1" traits="Adjustable">
+                                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="23" y="804" width="341" height="3" index="0" traits=""/>
+                                                  </XCUIElementTypeOther>
+                                                  <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Horizontal scroll bar, 1 page" label="Horizontal scroll bar, 1 page" enabled="true" visible="true" accessible="false" x="33" y="777" width="324" height="30" index="2" traits="Adjustable">
+                                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="23" y="804" width="341" height="3" index="0" traits=""/>
+                                                  </XCUIElementTypeOther>
+                                                </XCUIElementTypeScrollView>
+                                              </XCUIElementTypeOther>
+                                            </XCUIElementTypeOther>
+                                          </XCUIElementTypeOther>
+                                        </XCUIElementTypeOther>
+                                      </XCUIElementTypeOther>
+                                    </XCUIElementTypeOther>
+                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="1" traits="">
+                                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="0" traits=""/>
+                                    </XCUIElementTypeOther>
+                                  </XCUIElementTypeOther>
+                                </XCUIElementTypeOther>
+                              </XCUIElementTypeOther>
+                            </XCUIElementTypeOther>
+                          </XCUIElementTypeOther>
+                        </XCUIElementTypeOther>
+                      </XCUIElementTypeOther>
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="1" traits="">
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="0" traits=""/>
+                      </XCUIElementTypeOther>
+                    </XCUIElementTypeOther>
+                  </XCUIElementTypeOther>
+                </XCUIElementTypeOther>
+              </XCUIElementTypeOther>
+            </XCUIElementTypeOther>
+          </XCUIElementTypeOther>
+        </XCUIElementTypeOther>
+      </XCUIElementTypeOther>
+    </XCUIElementTypeOther>
+  </XCUIElementTypeWindow>
+</XCUIElementTypeApplication>

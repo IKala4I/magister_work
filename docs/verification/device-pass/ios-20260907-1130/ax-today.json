@@ -1,0 +1,140 @@
+[
+  {
+    "platform_identifier": "940300005068FA26010000003900000000000000",
+    "estimated_uid": "39000000-0000-0000-9403-000000000000",
+    "caption": "Today",
+    "spoken_description": "Today"
+  },
+  {
+    "platform_identifier": "94030000001BBB26010000003500000000000000",
+    "estimated_uid": "35000000-0000-0000-9403-000000000000",
+    "caption": "Open settings, Button",
+    "spoken_description": "Open settings, Button"
+  },
+  {
+    "platform_identifier": "94030000009E4E24010000002500000000000000",
+    "estimated_uid": "25000000-0000-0000-9403-000000000000",
+    "caption": "Re-plan, Button",
+    "spoken_description": "Re-plan, Button"
+  },
+  {
+    "platform_identifier": "94030000C066FA26010000002A00000000000000",
+    "estimated_uid": "2A000000-0000-0000-9403-000000000000",
+    "caption": "Monday, 7 September",
+    "spoken_description": "Monday, 7 September"
+  },
+  {
+    "platform_identifier": "9403000000B64E24010000003F00000000000000",
+    "estimated_uid": "3F000000-0000-0000-9403-000000000000",
+    "caption": "b6 task 06 deep, 12:15 to 12:45, Confidence 44 percent",
+    "spoken_description": "b6 task 06 deep, 12:15 to 12:45, Confidence 44 percent"
+  },
+  {
+    "platform_identifier": "94030000A068FA26010000005300000000000000",
+    "estimated_uid": "53000000-0000-0000-9403-000000000000",
+    "caption": "12:15",
+    "spoken_description": "12:15"
+  },
+  {
+    "platform_identifier": "9403000000BC4E24010000004200000000000000",
+    "estimated_uid": "42000000-0000-0000-9403-000000000000",
+    "caption": "Reply to the supervisor, 13:00 to 13:30, Confidence 44 percent",
+    "spoken_description": "Reply to the supervisor, 13:00 to 13:30, Confidence 44 percent"
+  },
+  {
+    "platform_identifier": "94030000F068FA26010000005400000000000000",
+    "estimated_uid": "54000000-0000-0000-9403-000000000000",
+    "caption": "13:00",
+    "spoken_description": "13:00"
+  },
+  {
+    "platform_identifier": "940300000043B726010000004500000000000000",
+    "estimated_uid": "45000000-0000-0000-9403-000000000000",
+    "caption": "b6 task 03 learning, 14:30 to 15:00, Confidence 44 percent",
+    "spoken_description": "b6 task 03 learning, 14:30 to 15:00, Confidence 44 percent"
+  },
+  {
+    "platform_identifier": "940300004069FA26010000005500000000000000",
+    "estimated_uid": "55000000-0000-0000-9403-000000000000",
+    "caption": "14:30",
+    "spoken_description": "14:30"
+  },
+  {
+    "platform_identifier": "940300000049B726010000004800000000000000",
+    "estimated_uid": "48000000-0000-0000-9403-000000000000",
+    "caption": "b6 task 04 physical, 15:15 to 15:45, Confidence 44 percent",
+    "spoken_description": "b6 task 04 physical, 15:15 to 15:45, Confidence 44 percent"
+  },
+  {
+    "platform_identifier": "940300009069FA26010000005600000000000000",
+    "estimated_uid": "56000000-0000-0000-9403-000000000000",
+    "caption": "15:15",
+    "spoken_description": "15:15"
+  },
+  {
+    "platform_identifier": "94030000004FB726010000004B00000000000000",
+    "estimated_uid": "4B000000-0000-0000-9403-000000000000",
+    "caption": "b6 task 02 deep, 15:30 to 16:00, Confidence 44 percent",
+    "spoken_description": "b6 task 02 deep, 15:30 to 16:00, Confidence 44 percent"
+  },
+  {
+    "platform_identifier": "94030000E069FA26010000005700000000000000",
+    "estimated_uid": "57000000-0000-0000-9403-000000000000",
+    "caption": "15:30",
+    "spoken_description": "15:30"
+  },
+  {
+    "platform_identifier": "940300000046C226010000004E00000000000000",
+    "estimated_uid": "4E000000-0000-0000-9403-000000000000",
+    "caption": "b6 task 08 physical, 16:00 to 16:30, Confidence 44 percent",
+    "spoken_description": "b6 task 08 physical, 16:00 to 16:30, Confidence 44 percent"
+  },
+  {
+    "platform_identifier": "94030000306AFA26010000005800000000000000",
+    "estimated_uid": "58000000-0000-0000-9403-000000000000",
+    "caption": "16:00",
+    "spoken_description": "16:00"
+  },
+  {
+    "platform_identifier": "940300000061C226010000005100000000000000",
+    "estimated_uid": "51000000-0000-0000-9403-000000000000",
+    "caption": "b6 task 07 learning, 17:00 to 17:30, Experiment, Confidence 41 percent",
+    "spoken_description": "b6 task 07 learning, 17:00 to 17:30, Experiment, Confidence 41 percent"
+  },
+  {
+    "platform_identifier": "94030000806AFA26010000005900000000000000",
+    "estimated_uid": "59000000-0000-0000-9403-000000000000",
+    "caption": "17:00",
+    "spoken_description": "17:00"
+  },
+  {
+    "platform_identifier": "940300001067FA26010000002C00000000000000",
+    "estimated_uid": "2C000000-0000-0000-9403-000000000000",
+    "caption": "No room today for 5 tasks — they stay in your Inbox.",
+    "spoken_description": "No room today for 5 tasks — they stay in your Inbox."
+  },
+  {
+    "platform_identifier": "940300000021BB26010000001800000000000000",
+    "estimated_uid": "18000000-0000-0000-9403-000000000000",
+    "caption": "Today, tab, 1 of 4, Button, Selected",
+    "spoken_description": "Today, tab, 1 of 4, Button, Selected"
+  },
+  {
+    "platform_identifier": "940300000024BB26010000001A00000000000000",
+    "estimated_uid": "1A000000-0000-0000-9403-000000000000",
+    "caption": "Inbox, tab, 2 of 4, Button",
+    "spoken_description": "Inbox, tab, 2 of 4, Button"
+  },
+  {
+    "platform_identifier": "940300000027BB26010000001B00000000000000",
+    "estimated_uid": "1B000000-0000-0000-9403-000000000000",
+    "caption": "Focus, tab, 3 of 4, Button",
+    "spoken_description": "Focus, tab, 3 of 4, Button"
+  },
+  {
+    "platform_identifier": "94030000002ABB26010000001C00000000000000",
+    "estimated_uid": "1C000000-0000-0000-9403-000000000000",
+    "caption": "Insights, tab, 4 of 4, Button",
+    "spoken_description": "Insights, tab, 4 of 4, Button"
+  }
+]

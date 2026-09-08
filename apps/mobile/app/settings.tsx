@@ -53,6 +53,7 @@ import {
 } from '../src/state/appearance';
 import { useSyncStore, type SyncUiStatus } from '../src/state/sync';
 import { syncNow } from '../src/sync/engine';
+import { readLastKnown, writeLastKnown } from '../src/storage/lastKnown';
 import { gcalConnect, gcalDisconnect, gcalSetWriteBack, gcalStatus } from '../src/sync/gcal';
 import type { GcalStatus } from '../src/sync/types';
 import { confirmDialog, DialogHost } from '../src/ui/dialog';
@@ -202,7 +203,21 @@ function SyncSection() {
 
 function CalendarSection() {
   const signedIn = useSessionStore((s) => s.status === 'signed_in');
-  const [gcal, setGcal] = useState<GcalStatus | null>(null);
+  // seeded from the last persisted reading — `null` only before the first ever read, and it
+  // renders the neutral row, never "Connect" over a connected calendar (hardware pass item 44)
+  const userId = useSessionStore((s) => s.userId);
+  const [gcal, setGcalState] = useState<GcalStatus | null>(() =>
+    readLastKnown<GcalStatus>('gcal', userId),
+  );
+  const setGcal = useCallback(
+    (status: GcalStatus) => {
+      // account-scoped, and only for the account the fetch was started for
+      if (useSessionStore.getState().userId !== userId) return;
+      writeLastKnown('gcal', status, userId);
+      setGcalState(status);
+    },
+    [userId],
+  );
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<MessageKey | null>(null);
 
@@ -210,7 +225,7 @@ function CalendarSection() {
     const r = await gcalStatus();
     if (r.ok) setGcal(r.status);
     else if (r.code === 'not_configured') setMessage('settings.gcal.notConfigured');
-  }, []);
+  }, [setGcal]);
 
   useEffect(() => {
     if (signedIn) void refresh();
@@ -295,6 +310,10 @@ function CalendarSection() {
             }
           />
         </>
+      ) : gcal === null ? (
+        <ThemedText variant="caption" tone="secondary" accessibilityLiveRegion="polite">
+          {t('settings.gcal.checking')}
+        </ThemedText>
       ) : (
         <Button
           label={t('settings.gcal.connect')}
@@ -318,12 +337,22 @@ function NotificationsSection() {
   const theme = useTheme();
   const profile = useCurrentProfile();
   const settings = notificationSettingsOf(profile?.settings ?? null);
-  const [permission, setPermission] = useState<PermissionState | null>(null);
-  const [exactness, setExactness] = useState<ExactAlarmState | null>(null);
+  const [permission, setPermissionState] = useState<PermissionState | null>(() =>
+    readLastKnown<PermissionState>('permission'),
+  );
+  const [exactness, setExactnessState] = useState<ExactAlarmState | null>(() =>
+    readLastKnown<ExactAlarmState>('exactness'),
+  );
+  const setPermission = useCallback((p: PermissionState) => {
+    writeLastKnown('permission', p);
+    setPermissionState(p);
+  }, []);
   useEffect(() => {
     let alive = true;
     const refresh = () => {
-      setExactness(reminderExactness()); // FR-50 on Android 12+ (build 6)
+      const e = reminderExactness(); // FR-50 on Android 12+ (build 6)
+      writeLastKnown('exactness', e);
+      setExactnessState(e);
       void reminderPermissionState().then((p) => {
         if (alive) setPermission(p);
       });
@@ -337,7 +366,9 @@ function NotificationsSection() {
       alive = false;
       sub.remove();
     };
-  }, []);
+  }, [setPermission]);
+  // `permission` is seeded from the last reading, so `null` is only the first ever open on this
+  // device — where the OS state is `undetermined` and OFF is the honest value
   const remindersOn = settings.block_reminders && permission === 'granted';
   const toggleReminders = async (value: boolean) => {
     if (!value) {

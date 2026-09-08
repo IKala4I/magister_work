@@ -1,0 +1,37 @@
+{
+  "focus_end": [
+    {
+      "client_ts": "2026-09-08 14:39:26.483+00",
+      "payload": {
+        "ended_at": "2026-09-08T14:39:26.483Z",
+        "est_minutes": 30,
+        "focused_ms": 17106601,
+        "outcome": "abandoned",
+        "planned_minutes": 30,
+        "session_id": "87082543-c968-4bdb-af08-e8181560a007",
+        "started_at": "2026-09-08T09:54:19.882Z"
+      }
+    }
+  ],
+  "rewards_1300": [
+    {
+      "attributed_at": "2026-09-08 14:39:28.309+00",
+      "excluded": false,
+      "excluded_reason": null,
+      "kind": "outcome",
+      "reason": "completed",
+      "reward": 1,
+      "source": "instant"
+    }
+  ],
+  "lapse_1300": [
+    {
+      "client_ts": "2026-09-08 14:39:26.483+00",
+      "payload": {
+        "hours_after_slot_end": 4.157356388888889,
+        "observed_at": "2026-09-08T14:39:26.483Z",
+        "skip_streak": 2
+      }
+    }
+  ]
+}

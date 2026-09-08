@@ -77,7 +77,7 @@ export interface Fact {
   context?: Record<string, unknown>;
 }
 // payload shapes (client → server, categorical/numeric only — NFR-S3):
-//   focus_end      { outcome: 'finished'|'abandoned', started_at, ended_at, focused_ms, planned_minutes, est_minutes, session_id }
+//   focus_end      { outcome: 'finished'|'abandoned', reason?: 'stale', started_at, ended_at, focused_ms, planned_minutes, est_minutes, session_id }
 //   task_completed { done_at, source: 'block'|'inbox'|'focus' }
 //   block_skipped  { at }
 //   block_moved    { from_start, from_end, to_start, to_end, distance_minutes }
@@ -224,6 +224,14 @@ function observe(rec: RewardRec, facts: readonly Fact[], timezone: string | null
     }
     if (f.type === 'focus_end' && f.recommendation_id === rec.id) {
       consider(f);
+      if (f.payload.reason === 'stale') {
+        // the app's own 2 h rule closed a session nobody came back to: the elapsed time is wall
+        // time (a locked phone counts — FR-30), not attention, so it is no evidence of focus. On
+        // the iPhone 12 a 285-minute "session" on a 30-minute block was credited as a completion
+        // (2026-09-08 item 65). Facts beat plans: without credit the row is skipped or, at 23:55,
+        // lapsed — never guessed (invariant 3).
+        continue;
+      }
       const started = ms(f.payload.started_at);
       const focused = num(f.payload.focused_ms) ?? 0;
       const planned = num(f.payload.planned_minutes);

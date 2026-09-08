@@ -18,11 +18,13 @@
   the device class the requirement names (thesis-corrections item 11) — threshold met,
   condition not.
   **Android (Pixel 7a) ✅ 2026-09-01:** p90 1582 ms right after a reboot (1091–1754), 552 ms with warm OS caches — day-1 notes. **Build 3 ✅ 2026-09-03:** p90 1072 ms right after a reboot (705–1202, n = 20), 551 ms warm (day 2) — day-3 notes item 12. iOS pending.
+  **iOS 2026-09-07 (iPhone 12, A14/2020, iOS 26.6, build 1):** xctrace App Launch — the probe right after a reboot and the first unlock put the initial frame at 0.95 s (process creation 413 ms + system frameworks 417 ms + runtime/UIKit/didFinishLaunching ≈ 115 ms); 20 back-to-back launches (n = 19 exported) initial-frame → foreground-active **p50 488 / p90 503 / max 611 ms**; the JavaScript side's first own event (the reminder scheduler's pass) at p50 277 ms after the process's first log line, ≈ 0.7 s from creation. The 2020 iPhone is faster than the 2022 Pixel 7a in both conditions (`device-pass/ios-20260907-1130/notes.md` items 38, 40, `hw-ios-coldstart.sh`).
 - ⬜ **NFR-P2 — 60 fps timeline scroll** (obligation lands at P6 when the Today timeline
   exists). Profile frame pacing on both devices with a realistic day (10+ blocks, glass
   blocks, Skia ring visible). Simulator can't settle it: desktop GPU + no thermal or memory
   pressure makes simulator frame rates meaningless.
   **Android (Pixel 7a) ✅ 2026-09-02:** 8-block Today, 59 swipes in 20 s, 1733 frames, 0 janky (legacy 0.40 %), frame time p50 5 / p90 7 / p95 8 / p99 10 ms (`device-pass/android-20260902-1030/gfxinfo-today-scroll.txt`); a ≥ 10-block morning re-run is still owed. iOS pending.
+  **iOS 2026-09-07:** see the P6 row below — zero hitches on a real thumb scroll.
 
 - ⬜ **NFR-P1 — plan end-to-end ≤ 2.5 s p95 warm, measured from the device** (added P6). On
   hardware with the HF Space warm: trigger ten manual re-plans on a 5–8-task inbox, read the
@@ -31,9 +33,11 @@
   function on the fallback path only (`docs/verification/p6-manual-verification.md`); TLS
   handshakes, radio wake-up and the JS bridge on a handset are not represented.
   **Android 2026-09-02, server side of the device series:** 10 manual re-plans on a 14-task day — edge-function total p50 1662 / p95 1908 ms, service p50 1475 / p95 1735 ms, 9 learned + 1 `fallback:timeout` (1908 ms against the 1900 ms budget: the 1.5 s CP-SAT cap leaves 0.4 s of headroom on a FEASIBLE day). The client-measured `duration_ms` lives in PostHog (HANDOFF ⛔ 5b) — not yet a device number. **Client side read 2026-09-03 (owner's PostHog export):** manual series `duration_ms` p50 3271 / p95 3836 ms (all triggers p95 4857) = function 1662/1908 + a 1.0–1.5 s pre-plan sync push whenever ops are pending + ≈ 0.5 s transport/mirror — **not met as the spec phrased it**; decomposition in the day-3 notes item 1. The proof stall behind the 1.0 s solver slice is reproduced and fixed (ADR-0018, PR #39): **after the rollout** the same inbox gives 0/10 fallbacks, function p50 1091 / p95 1342 ms, solve p50 400 / max 665 ms (day-3 notes item 8); the client-side after numbers come from tomorrow's PostHog export, and NFR-P1 is restated as a measured requirement — **owner decision 2026-09-03: ≤ 4.5 s p95 device end-to-end (warm), ≤ 1.5 s p95 server-side, 1.9 s fallback bound; measured figures reported alongside** (thesis-corrections #51). **Client side of the 3 Sep series (read 2026-09-04 from the owner's export, 21/21 paired):** before ADR-0018 p50 3534 / p95 4581 / max 4844 ms (function 1679 / 1839; 1/10 fallback); after ADR-0018 p50 3043 / p95 3683 / max 3922 ms (function 1100 / 1302; 0/10); client − function p50 1.9–2.0 s, of which the pre-plan sync 1158 / 1540 ms (17 of 21 requests carried one). Against the decided figure — **before: not met (4.58 s p95); after: met (3.68 s device, 1.30 s server)**. Post-L1 client figure: the build-4 series ran 10:51–10:53 (server side function p50 1057 / p95 1282, 10/10 learned) — client side from the 4 Sep export. **Weak-phone figure derived 2026-09-04 (day-4 notes, "NFR-P1 — deriving a figure"):** server 2.6 + network 1.4–1.9 + device 0.5–1.2 s p95 → 4.5 s (mid-range 2022 on weak LTE) to 5.7 s (low-end 2022 on a 3G-grade link); **DECIDED (owner, 2026-09-04): NFR-P1 = ≤ 6.0 s p95 tap → plan received, warm, on a 2022 low-end Android over a weak link; the Pixel 7a reference 3.7 s p95 reported alongside; server ≤ 1.5 s; two caveats (SQLite mirror after the timer; backlog-carrying pre-plan sync). Two-thirds of the reference p95 is server-side and independent of the user's phone and network.** **Shape measured 2026-09-02 evening** (45-request sweep, day-2 notes): reliable below ≈ 0.6 s of solver time (any inbox on ≤ 4.5 h; ≤ 12 tasks on 9 h), a coin flip once the first rung runs to its 1.0 s slice (14–16+ tasks on 9 h; the device's deadline-bearing 14-task instances 12/15).
+  **iOS 2026-09-07, server side of the device series (`hw-plan-rows.mjs`):** ten manual re-plans on a 12-task inbox, all learned — edge-function total **p50 710 / p95 783 / max 783 ms**, service p50 503 / p95 567 ms. The client-side `plan_requested.duration_ms` is the owner's PostHog export (pending). Notes item 8.
 - ⬜ **NFR-P2 — 60 fps timeline scrolling** (added P6). Scroll a 12-block Today timeline with the
   Perf Monitor open on a mid-range Android and an iPhone. Why: FlashList recycling and blur
   (`expo-blur` on iOS) cost nothing on an M-series Mac.
+  **iOS 2026-09-07 (iPhone 12, 7-block Today, the owner's thumb, 20 s, xctrace Animation Hitches attached):** **`hitches` table empty — 0 hitches**; 841 frames committed, frame lifetime p50 33.5 / p90 50.2 / max 52.8 ms (2–3 vsyncs of pipeline latency, none late); GPU 2.92 ms p50 / 4.17 max per frame; 32–58 committed frames per active second (the finger's reversals, not late frames). Notes item 39.
 
 ## Accessibility
 
@@ -60,6 +64,8 @@
   the focus landing on the title stay with the owner's listening pass** (optional as before).
   **iOS 2026-09-06 (simulator smoke, not device):** a Settings-launched dialog presents from
   inside the sheet (`ios-sim-20260906-dialog/`, Maestro 1/1); VoiceOver, escape = iPhone pass.
+  **iOS 2026-09-07 (iPhone 12):** the accessibility daemon's traversal (`hw-ios-ax.py items`, the strings VoiceOver speaks) on all three dialogs = title as Header → body → confirm → cancel, **nothing beneath reachable**; the replacement dialog opened with the focus on its title; on-device audit 0 issues; the owner's VoiceOver listen: titles announced on open, the two-finger Z cancels, the replacement's title announced. **Reduce Motion defect:** with the system switch on, the second erasure dialog never appears after Continue (notes items 24, 36 — MAJOR, fix batch).
+  **iOS 2026-09-08 build 2 ✅ (Reduce Motion, daemon hold):** Continue → the second erasure dialog present at +1.5 s and +5.5 s, Cancel leaves Settings intact (`ios-20260908-1215/shot-b2-rm-dialog2.png`, notes item 67). The system switch and a late replacement (> 120 ms) stay in the fix-batch hardware rows.
 - ⬜ **NFR-A2 — every dialog at 200 % + largest display, both schemes, landscape; the spring
   in/out and the OS reduce-motion toggle** (added 2026-09-06). The long body (sign-out) scrolls
   inside the card with the actions visible; labels wrap on their own rows; the entrance settles
@@ -73,6 +79,7 @@
   `screenrecord` **150 ms** (9 frames at 60 fps), reduced motion **one frame**. Exit not
   captured (unit-pinned at 120 ms). iOS: simulator dark + accessibility-XXXL renders both erasure
   dialogs (`dialog-delete-*-dark-xxxl.png`); device pending.
+  **iOS 2026-09-07:** at the held maximum text size both erasure dialogs keep title + body wrapped and both actions on screen (`shot-b1-dt-max-delete2.png`); dark scheme only (the phone's); no landscape; the entrance under Reduce Motion could not be timed (no screen recording) and under Reduce Motion the second dialog is missing (MAJOR, notes item 24).
 - ⬜ **Android — the dialog scrim covers the status and navigation bars** (added 2026-09-06).
   Under SDK 57 edge-to-edge the Modal window is full-bleed regardless of the
   `statusBarTranslucent` / `navigationBarTranslucent` props (RN forces both); check light and
@@ -86,6 +93,8 @@
   sweep ran on the iOS simulator only; Android font scaling (up to 200% + display size) and
   its reduced-motion setting behave differently and have never been exercised.
   **Android 2026-09-02** (font 2.0, density 540, animation scales 0 over adb; screenshots in `device-pass/android-20260902-1030/a11y-maxscale/`): every screen usable; two defects — the Today time gutter wraps "12:00 PM" mid-token (fixed 64 px) and the heatmap weekday header wraps mid-word; the timeline viewport shrinks to about a third of the screen (scrolls, actions reachable). The p10 flow itself never passed its date assertion on any device (a YAML-quoting bug in the regex, fixed in the batch — day-2 finding 14), so the evidence is adb screenshots + tree dumps. **Build 3, 2026-09-03 (`android-20260903-1020/a11y-maxscale-build3/`):** both defects fixed (gutter on one line, header no mid-word wrap), placeholder visible; residuals at 2.0 — "Insight…" tab label truncates (a11y name is the full word), the block time range breaks inside "PM", "Mo"/"We" ellipsize in the heatmap header, the legend row sits under the tab bar — cosmetic, listed for the next batch (day-3 notes item 10). iOS pending.
+  **iOS 2026-09-07 (iPhone 12):** Dynamic Type held at the maximum (the app caps at 200 %) and set through the real Settings app: **a text-size change while the app runs re-renders text without re-laying out** — clipped headers, overlapping card text, Inbox rows stuck at their 1× height (74 px vs 116 px at a fresh launch); **a fresh launch at 2× lays out correctly** on every tab (notes items 22, 23, 36; fix batch: re-mount on font-scale change). Reduce Motion + Reduce Transparency + Increase Contrast, relaunched: every screen renders as at the defaults (item 25). The Maestro flow does not run on physical iPhones; the sweep was WDA + DVT screenshots.
+  **iOS 2026-09-08 build 2 (daemon hold) ✅ layout / ⬜ Settings path:** a live change to the maximum through the accessibility daemon re-measured the Inbox, the Settings sheet and an open task form without a relaunch — but the navigator did not re-mount (the tab and the form survived), so the inspector override does not change `fontScale`; the user-facing Larger Text slider (which clipped build 1 live) is the owner's 1-minute check (notes item 68).
 - ⬜ **NFR-A1 — VoiceOver (iOS) and TalkBack (Android) pass on all shipped screens** (added
   P2/P3; grows each UI phase). Navigate every screen by screen reader alone: task rows (single
   a11y element incl. ", due <date>"), ambiguity chips, undo within its 6 s window. Simulator
@@ -95,6 +104,7 @@
   **Android 2026-09-05 (build 6):** the gear (`Open settings`) and the Inbox `New task` button dump as `android.widget.Button` (build-3 dumps: `android.view.View`, the class TalkBack read as "link") — `role="button"` on both (57aa541). The spoken word: listen skipped by the owner (2026-09-05 evening, the dump suffices); the heatmap label rough edges stay in revisit.
 
   **Android 2026-09-05 (build 5), owner listening pass:** tabs, Today cards + action row, Inbox rows + quick-add, the heatmap summary and Settings all announce as designed; one role defect — the Settings gear says "link" (expo-router `Link asChild` injects `role`, overriding `accessibilityRole`; fix: `role="button"`), two rough edges on the heatmap label (day-5 notes item 16). Rating chips not exercised (no completed block).
+  **iOS 2026-09-07:** structural pass on Today, Insights, Settings and the dialogs from the accessibility daemon (`ax-*.json`: spoken strings, roles, states, in order) plus the owner's 3-minute VoiceOver listen (announcements, gestures, the Ukrainian voice on English strings — understandable). One MAJOR: the block action row is unreachable (the row below). Notes items 34, 35, 41.
 
 - ⬜ **FR-22 / NFR-A2 — Today timeline at 200 % font scale and with reduced motion** (added P6).
   Set the OS text size to maximum and Reduce Motion on; open Today with ≥ 6 blocks incl. one
@@ -102,11 +112,13 @@
   marker readable, the time gutter intact. Why: the row-list timeline was designed for this but
   only exercised at 1× in jest; the simulator's Dynamic Type differs from device rendering.
   **Android 2026-09-02:** no overlap, Now marker readable, experiment block + two-line rationale wrap; the time gutter breaks the clock mid-token (defect, fix batch); the list viewport is small under the two-line date header.
+  **iOS 2026-09-07:** at a fresh launch at 2× the date header wraps, "Re-plan" drops below it, the cards stack title / time / rationale / status, the Experiment block and the footer wrap, nothing clipped (`shot-b1-dt-max-relaunch-wda.png`; the viewport shows one card under the two-line header, as on Android); **after a live size change the same screen clips and overlaps** (notes item 22 — the systemic re-layout defect). Reduce Motion: Today renders as at the defaults.
 - ⬜ **NFR-A1 — VoiceOver / TalkBack reading order on Today** (added P6). Swipe through: header
   → Plan/Re-plan button → planning banner (progressbar) → fallback notice (if any) → each block
   as ONE element announcing "title, start to end, Experiment, Confidence N percent" (no percent
   on heuristic rows) → deferred summary. Why: composed labels and `accessible` grouping are not
   verifiable without a real screen reader.
+  **iOS 2026-09-07 ✅ (order):** "Today" → "Open settings, Button" → "Re-plan, Button" → the date → each card as one element ("b6 task 06 deep, 12:15 to 12:45, Confidence 44 percent"; the ε-slice block "…, Experiment, Confidence 41 percent") → its gutter time → the footer → the tab bar with "Selected" (`ax-today.json`); confirmed by ear. The action row inside the card is NOT reached (next section).
 
 ## Behaviour the simulator under-tests
 
@@ -117,6 +129,7 @@
   Simulator can't settle it: development happens with the Mac hardware keyboard, which bypasses
   autocorrect, suggestion bars, and IME composition.
   **Android ✅ 2026-09-01/02:** real Gboard with autocorrect; Ukrainian input keeps the whole string as the title and shows no chips (documented limitation); the autocorrect-acceptance chip refresh (day-1 #8) is still attended; placeholder clip defect (day-1 #7) in the fix batch.
+  **iOS 2026-09-07 ✅:** three tasks typed through the real iOS keyboard into the onboarding quick-add ("… 45 min", "… 30 min", "… 20 min" → durations parsed 45 / 30 / 20, category Admin); the Inbox quick-add renders its example hint (notes items 4, 15). At 200 % the Inbox hint and the Add button clip after a live size change (item 22).
 - ⬜ **Glass/blur recommendation blocks — Android fallback path** (obligation lands at P6,
   File 02 §3). Verify the blur (or its documented fallback) renders correctly and doesn't tank
   frame rate on the Android device. Simulator can't settle it: blur cost and fallback selection
@@ -130,6 +143,9 @@
   at P7). Background the app for hours/overnight, re-foreground, verify the scan-and-attribute
   path with the app genuinely suspended/jetsammed. Simulator can't settle it: the simulator
   does not enforce real iOS suspension, background-refresh throttling, or memory eviction.
+  **iOS 2026-09-07 (partial):** a 44-minute lock/suspension (13:51 → 14:35) and a reboot (15:05) — the foreground scan ran with nothing to attribute (all remaining blocks were in the future). The overnight instance (blocks at 15:15–17:00 untouched, first open on the 8th) is the row's real test — tomorrow morning.
+  **iOS 2026-09-08 ✅ (scan) / DEFECT (pull):** the app was frozen 17:32 → 12:22 (never killed, `memorystatus` in the archive), the phone locked all night; the day's first foreground (the owner's unlock swipe returned to the app) ran the scan at 12:22:20 — five `lapse_observed` facts, the 7th's 17:00 experiment block **18.9 h** after its end and today's four ended blocks (0.6–2.9 h), the cards "Not done — back in your Inbox", the daily authority's tuple for the 17:00 block not duplicated. **MAJOR:** the same sync's pull re-fetched the rows the nightly propensity backfill had bumped and reverted the four local `lapsed` to `shown`; the next foreground (12:24) lapsed them again — duplicate facts, streaks double-counted, the third-skip diagnostic on a task that missed twice (day-2 notes items 54–55; fix batch: a status lattice on pull + scan idempotency). A clean cycle afterwards lapsed exactly one block once (item 56).
+  **iOS 2026-09-08 build 2 ✅ (pull):** a server-side row touch re-pulled as `shown` left the local `lapsed` in place (new `server_seq`, status kept) and the next foreground added no duplicate fact; the only new lapse was a block that had genuinely ended (day-2 notes item 66). The 2 h stale-session rule was found to earn a completion reward the same afternoon — fixed on the branch, device re-check with the next build (item 65).
 
 - ⬜ **UC-03 triggers on a real day boundary** (added P6). Leave the app in the background across
   05:59 → 06:00 local and across midnight; foreground it: a new plan must be requested exactly
@@ -138,6 +154,8 @@
   **Android 2026-09-02 — DEFECT:** every cold start re-requests with `first_open` although today's plan is persisted (`useLiveRows` starts empty, so the trigger decides before the first read; the session dedup is ephemeral) — 4 extra plans in 5 minutes, the day-1 30 rows had the same cause. The overnight `new_day` check is still owed; fix batch.
   **Android ✅ 2026-09-04 (build 3, `new_day`):** no plan for the 4th overnight (the 3 Sep ritual left untouched) → the day's first foreground that could read the session issued exactly one `plan_requested` with `trigger = new_day` (plans row 08:41:01 EEST, learned, 11 blocks); nothing while backgrounded, nothing from the killed-app ritual tap afterwards. Caveat → NFR-R1 below: the first foreground after the offline start fell inside auth-js's refresh-failure cache and planned nothing (fixed 68ca0eb; re-check on build 4). **Non-working days (ADR-0019, 2026-09-04):** the same trigger on a Saturday persists an empty plan and dedups the day; after the rule ships it must answer `no_working_window` without a row — unverified on hardware by choice.
   **Android ✅ 2026-09-05 (build 6, a real Saturday, fresh account with Mon–Fri defaults):** first open → Today "No working hours today — Hourwell plans your working days.", **0 `plans` rows** after the first open, a relaunch and a foreground (the client answered locally; no request reached the function; budget untouched); `dumpsys alarm` lists only the Sunday review (`ritual:2026-09-06`), no Saturday daily ritual; a Saturday window added on the server flipped the copy to "No plan yet" on the pull with no request, and "Plan my day" then asked the server (a 0-block plan with 15 min of window left, 7 blocks once the window was extended). The in-app "Plan tomorrow?" card stayed hidden with the ritual due and Sunday without a window, and appeared once Sunday got one (build-6 notes items 1–3, 5, 7). Not exercised on the device: the function's own `no_working_window` (Deno-tested) and a stale ritual accept (§5, jest).
+  **iOS 2026-09-07:** set up — the phone stays untouched overnight with the 8th's plan already made by the ritual (`evening_ritual`, 11 blocks); the first foreground on the 8th is read tomorrow.
+  **iOS 2026-09-08 ✅ (the accepted-ritual variant):** first foreground of the 8th at 12:22 (the owner's) → Today "Tuesday, 8 September" with the ritual's 11-block plan, **zero plan requests** all morning (`plans` for the 8th = the ritual's one; the driver's later cycles requested nothing either) — with an accepted evening plan `hasPlanForToday` decides and `new_day` must not fire (ADR-0014 §3); the four blocks that had ended were lapsed, not re-planned. The `new_day` request itself was observed on Android (2026-09-04); on iOS this pass exercised the other branch (day-2 notes item 55).
 - ⬜ **NFR-R1 — Today offline** (added P6). Airplane mode after a plan exists: the plan still
   renders from SQLite; "Re-plan" shows the offline/error notice without clearing the plan. Why:
   simulator network loss is not real radio loss.
@@ -151,21 +169,28 @@
   minutes (the row lives in SQLite; the display re-derives from `lastResumedAt`). The simulator
   never suspends JS the way iOS does under lock/Low-Power mode.
   **Android ✅ 2026-09-02 (Pixel 7a):** the 11:58 session outlived a 2 h lock and a cold start (164.5 focused minutes = wall time, then the designed 2 h abandon rule closed it); a second session survived `am force-stop` + relaunch within the cap (Focus still running). Day-2 notes 19.
+  **iOS 2026-09-08 ✅ (iPhone 12):** the 13:00 block started at 12:54 (WDA), the phone locked 12:54:37 → unlocked ≈ 13:04: Focus read "10:35" / "10 minutes focused of 30 planned" — wall time across the locked minutes; then `app terminate` + `app launch`: the app opened on Today and the Focus tab showed the session still running, "11 minutes focused of 30 planned"; no `focus_end` on the server (day-2 notes item 60, `ios-20260908-1215/shot-b1-focus-after-*.png`).
 - ⬜ **File 05 §1 — lazy lapse scan on foreground after a real background stint** (added P7).
   Leave a block to expire while the app is in the background for > 30 min, foreground: the block
   must read "Not done — back in your Inbox" and the Inbox must list the task; then confirm the
   `lapse_observed` row reached the server (Table Editor). The simulator's AppState transitions
   are instantaneous and never involve OS-level suspension.
   **Android ✅ 2026-09-02 (server half):** after a 103-min stint the first foreground logged `lapse_observed` for both ended blocks (0.71 h / 1.46 h after their ends); the "Not done" row was not observable because the same foreground re-planned (client defect, fix batch F1). Re-check the UI text on the rebuilt APK.
+  **iOS 2026-09-07:** see Invariant 7 above — overnight.
+  **iOS 2026-09-08:** see Invariant 7 above — the UI text "Not done — back in your Inbox" + "I did it" observed 2 s after the foreground (`ios-20260908-1215/shot-b1-first-foreground-122221.png`), the `lapse_observed` rows on the server with `hours_after_slot_end`; the pull-revert defect is the same row's MAJOR.
 - ⬜ **NFR-A1 — VoiceOver/TalkBack on the block action row and the rating chips** (added P7).
   Each action must announce "Skip write report" style labels; the rating chips must be
   reachable in order and announce "Rate your energy: High"; the progress bar must announce its
   value. Screen readers are not exercised on the simulator.
   **Android 2026-09-05 (build 5, owner), action row ✅:** "Start references fix, button", "Done …", "Skip …", "Move… …"; rating chips untested (need a completed block).
+  **iOS 2026-09-07 — DEFECT, MAJOR (both platforms by construction):** the card is one labelled `accessible` container (`ConfidenceBlock.tsx`) with no custom actions, so VoiceOver steps from the card summary to the next gutter time and **"Start / Done / Skip / Move…" are never reachable**; confirmed by the daemon's traversal and by the owner's ear. The rating chips read as "How was your energy?: Okay, Button" and are reachable. Never exercised by a screen reader on Android either (uiautomator lists the buttons; the TalkBack listen was skipped). Fix batch: custom actions on the card. Notes item 35.
+  **iOS 2026-09-08 MINOR:** a lapsed card's spoken summary still reads "…, Confidence 52 percent" with no "Not done" state (`ios-20260908-1215/wda-today-1229.xml`); fold into the same fix (day-2 notes item 58).
+  **iOS 2026-09-08 build 2 ✅ (state):** every card's spoken summary ends with its state ("…, Not done — back in your Inbox", "…, Completed"; `ios-20260908-1215/ax-b2-today.json`). The custom actions are not visible to the daemon or XCUITest — the owner's rotor listen (fix-batch rows).
 - ⬜ **NFR-A2 — 200 % font scale on the Today card with actions and on the Focus tab**
   (added P7). Four action buttons and the status caption must wrap, never clip or overlap the
   next block; the timer digits (JetBrains Mono) must not overflow the panel. The P2 sweep ran on
   the simulator only.
+  **iOS 2026-09-07:** fresh launch at 2× — the card stacks correctly (`shot-b1-dt-max-relaunch-wda.png`), Focus renders (`shot-b1-dt-max-relaunch-focus.png`); after a live size change the card's title wraps into the rationale (notes item 22).
 - ⬜ **NFR-R1 — facts logged offline reach the server later** (added P7). Airplane mode: start,
   pause, finish a session, skip another block, rate; go online, foreground: the `events` rows
   must appear once (no duplicates — `UNIQUE(user_id, op_id)`), and `attribute-rewards` must
@@ -222,6 +247,7 @@
   list re-renders (no stale block actions); iOS may have suspended the JS timer — the foreground
   trigger, not the 60 s poll, must carry it. Simulator can't settle it: iOS background
   suspension and Android Doze exist only on hardware.
+  **iOS 2026-09-07 ✅:** a task seeded server-side at 13:14 (the Mac as the other device), the app suspended 13:51 → 14:35 (44 min, locked); on foreground the tree read at +1.9 s showed Today intact with no stale row and the Inbox held the new task (7 rows; the pulled database: 13 tasks, seq 4877). The foreground trigger carried the pull with the 60 s poll suspended. Notes item 33.
 - ⬜ **Google Calendar consent round trip on device (P8, FR-03).** Settings → Connect → system
   browser → consent → `hourwell://gcal-callback?status=ok` opens the app (cold and warm start)
   → Settings shows "Connected"; then a meeting created in Google over a planned block shows as
@@ -236,6 +262,7 @@
   firing from the app, the busy row + "meeting" caption at the next foreground; plus the
   week-long items on a real account: push-channel renewal at day 7 and, while the consent
   screen is in Testing, the refresh-token expiry at day 7.
+  **iOS 2026-09-07 ✗ (consent):** the in-app SafariViewService consent (16:03) hit "Access blocked" — the OAuth client is in Testing and the phone's Google account is not a test user; a retry left the account's `oauth_state` unconsumed (never confirmed). The Pixel connected the same calendar the same afternoon (its fresh session `9327f910`, channel + one imported event). The iOS calendar-disconnect dialog therefore stays pending on a completed consent; the Android one was driven over adb: "Disconnect Google Calendar?" / "Disconnect" / "Keep connected", its own window, Settings intact (`android-gcal-disconnect/`). Notes items 42, 45, 46.
 - ⬜ **Deferred-wipe banner (P8, ADR-0012 §11).** Sign in as account A, create a task offline,
   sign in as account B (magic link) → the banner offers Keep / Discard; Discard removes A's rows
   only; sign back in as A after Keep → A's task is still there and syncs. Simulator can't settle
@@ -251,6 +278,8 @@
 
 ### Trust surfaces (added P9)
 
+**iOS 2026-09-07:** see the P10 FR-50 row below.
+
 - ⬜ **FR-40 / NFR-A2 — the energy heatmap at 200 % font scale on both platforms** (added P9).
   Open Insights with the largest accessibility font: the hour gutter (fixed 32 px) and the
   weekday header must not clip or overlap the cells; the legend, the category chips and the
@@ -265,10 +294,12 @@
   TalkBack (Android has never run on hardware).
   **Android 2026-09-02, structural:** the grid is one ImageView with the best/lowest daypart summary; hour and weekday labels are non-focusable texts. Listening pass = owner.
   **Android ✅ 2026-09-05 (build 5, owner listening):** the grid is one element reading "Energy map for {category}. On weekdays your best time is early morning (78 percent) and your lowest is night (30 percent). On weekends … Switch to the text view for every hour." + the role word "image"; labels not focusable. Two rough edges (revisit): the role suffix lands after the switch hint, and the weekday/weekend lead-in is easy to miss at speech speed.
+  **iOS 2026-09-07 ✅:** the heatmap is one spoken element — "Energy map for Deep work. On weekdays your best time is early morning (89 percent) and your lowest is night (30 percent). On weekends …" — with the category chips as "Show Deep work, Selected" tabs, the legend, and "Show as text, Button" swapping in the per-daypart text (`ax-insights.json`, `shot-b1-insights-text.png`); the weekday labels are hidden from VoiceOver by design.
 - ⬜ **FR-41 — ✓/✗ toggles: 44 px targets, `selected` state announced, "pending" caption read**
   (added P9). Tap each toggle by screen reader; confirm the label state sentence and the
   "Saved — applies at the next sync" caption are read; confirm nothing renders red (invariant
   14). Why: touch-target hit-testing and state announcements are device behaviours.
+  **iOS 2026-09-07 ✅ (structure):** each belief reads statement + evidence + state, its buttons as «Mark "…" as correct, Button, Selected» / «… as incorrect, Button», the pending caption "assumed, not yet observed" read; a ✓ produced a `belief_label` event and "You confirmed this." (notes items 19, 34). Target size not measured on iOS.
 - ⬜ **FR-24 — trade-off sheet on a real over-committed day** (added P9). Pin two blocks on the
   same slot (Move… + pin) and re-plan; the sheet must appear inline (never modal-blocking),
   options in the server's order; choose one → the re-plan runs and the sheet does not return;
@@ -282,6 +313,8 @@
 
 ### Notifications, privacy, performance (added P10)
 
+**iOS 2026-09-07 ✅:** relaunched under Reduce Motion (+ Reduce Transparency, Increase Contrast): Insights renders as at the defaults, nothing animates (`shot-b1-rm-rt-ic-insights.png`).
+
 - ⬜ **FR-50 — reminder delivery and the ≤ 5/day cap on hardware** (P10). Plan a day with ≥ 6
   blocks, grant the permission from the Today card, lock the device: the first four reminders
   arrive 10 min before their blocks, the fifth slot is the 20:00 ritual; re-plan twice and change
@@ -290,6 +323,9 @@
   OS; real delivery, coalescing and OS-side dropping only exist on hardware.
   **Android 2026-09-02, scheduling half:** after every plan exactly 4 block alarms + the 20:00 ritual are pending (cap 5); delivery times being read from `dumpsys notification`; the phone is on USB power all day, so the Doze case needs an unplugged owner run.
   **Android 2026-09-05, delivery times of the 2 Sep reminders read from the owner's screenshots (build 3, inexact windows):** the 14:05 alarm posted 14:06:21–14:07:00 (+1–2 min), the 13:20 alarm 13:22:21–13:23:21 (+2–3 min), the 12:35 alarm before 13:18 (`android-20260902-1030/owner-blocks-1418.png`, `-1428.png`; day-5 notes item 3). Exact-alarm points on builds 4–5 are in the FR-50 exact-alarm entry below.
+  **iOS 2026-09-07:** permission granted from the Today card (the iOS alert accepted through WDA); the OS's own schedule after the 13:51 pass: 14:20, 15:05, 15:20, 15:50, 20:00 (+ tomorrow's ritual) — **five today, no nudge for the 17:00 block** (SpringBoard `UserNotificationsCore`, notes item 32); fires by the OS record: **14:20 (captured on the lock screen, `shot-b1-lockscreen-1431-*.png`), 15:05, 15:50, 16:42 (the ritual, moved server-side)**; the 15:20 was dropped by the schedule pass after the reboot's first launch (two delivered + five queued → the planner kept 15:50, 16:50, the ritual); the day's fifth (16:50) and the absence of a sixth are read after 16:50 (notes items 32, 47). Focus modes not exercised (tomorrow).
+  **iOS 2026-09-08 ✅ (cap + ledger reset):** from the OS's record, the 7th ended with five fires (14:20, 15:05, 15:50, 16:42, 20:00 — the last a defect of FR-26, below) and no sixth; the 8th's four nudges fired to the frozen app on the locked phone at 08:50 / 09:35 / 10:20 / 11:05 (lock-screen stack at 12:21, `ios-20260908-1215/shot-b1-lockscreen-1221-stack-row.png`); the first schedule pass of the day kept only the two rituals — four delivered + the ritual = five, no afternoon nudge — so yesterday's deliveries did not count against today (day-2 notes items 52, 57). Focus modes: the 12:45 ritual under Do Not Disturb, below.
+  **iOS 2026-09-08 ✅ (Focus mode):** the ritual moved to 12:45 fired while Do Not Disturb was on (assertion 12:38:07 → 12:47:44): `donotdisturbd` "Breakthrough is NOT allowed … 'ritual:2026-09-08'", suppression level 2, both presentation gateways "DID NOT play lights and sirens"; after Focus ended the lock screen listed "Hourwell · 1 сповіщення · 4 хв тому" (`ios-20260908-1215/oslog-ritual-under-dnd-1245.txt`, `shot-b1-lockscreen-1249-ritual-after-dnd.png`). Deferred presentation, nothing lost, no sixth (day-2 notes item 59).
 - ✅ **FR-50 — Android exact-alarm semantics of the DATE trigger** (P10). On API 31+ confirm a
   reminder lands within a minute of `slot_start − 10 min` without `SCHEDULE_EXACT_ALARM`; if the
   OEM defers it by more, record the drift for the thesis (ADR-0014 Consequences). Why: inexact
@@ -308,12 +344,15 @@
   **Android 2026-09-05 — the 2 Sep question settled:** the owner's own 2 Sep screenshots show the build-3 ritual expanded with no action row; the buttons seen were the Today card (`android-20260902-1030/owner-ritual-2014.png`, `owner-ritual-expanded-2022.png`, `owner-today-after-tap-2022.png`) — root cause established (day-5 notes item 3).
   **Android 2026-09-05 (build 5, on-demand ritual at 10:00 via `hw-set-ritual-time.mjs`) — PASS:** posted +471 ms with both actions to a dead process; "Adjust tasks" as the FIRST response from a killed app → Inbox in 945 ms, one `adjust` fact, no plan, the notification gone from the shade (fix 7c8f67c: dismiss after action; the accept path shares it). Still untested by choice: the Sunday plain tap → Insights and the backgrounded accept (day-5 notes items 7–8).
   **Android 2026-09-05 (build 6) — ADR-0019 on the ritual paths:** no daily ritual alarm on the eve of a day off (the Sunday review kept), the in-app "Plan tomorrow?" card hidden until tomorrow has a window (the adversarial pass's MAJOR, fixed b5c7ad6) — build-6 notes items 3 and 7. A ritual tap on such a day (§5) remains unit-tested only.
+  **iOS 2026-09-07 ✅ (killed variant):** ritual moved server-side to 16:42, app terminated and phone locked; fired at 16:42:00.010 to the locked phone; the long-press showed "Plan tomorrow? 11 tasks are waiting — one tap plans your day." with the category actions **"Plan tomorrow" / "Adjust tasks"** (`shot-b1-lockscreen-ritual-*.png` — the categories render on iOS); "Plan tomorrow" cold-started the app → one `evening_ritual` plan for the 8th (learned, 11 recommendations), one `notification_response` event (`accept`, `latency_ms` 253 172), Today "Tomorrow is planned: 11 blocks, first at 09:00." (notes item 48). Backgrounded variant and "Adjust tasks" not exercised on iOS.
+  **iOS 2026-09-08 — DEFECT (second ritual on one day):** after the 16:42 ritual had fired and been answered, restoring the evening time to 20:00 re-added `ritual:2026-09-07` and it **fired again at 20:00:00.007** to the locked phone (archive: request FD1A-28FB, requested 16:48:14); nobody tapped it. Fix batch: a ritual delivered or answered on the day is spent (day-2 notes item 51).
 - ⬜ **FR-42 — export on device** (P10). Settings → Export → the share sheet offers Files/AirDrop
   (iOS) or the share targets (Android); the saved JSON opens; it contains the tasks, events, the
   48 Beta cells and no calendar `title`. Why: `expo-sharing` + the cache-directory file are
   native paths; the share sheet itself has no simulator equivalent worth counting.
   **Android 2026-09-02 — BLOCKED by a MAJOR defect:** the Settings screen has no scroll container, so "Export my data" is unreachable on a phone (day-2 notes 23; fix batch F8). Re-run on the rebuilt APK.
   **Android ✅ 2026-09-02 (build 3, device half):** Settings → My data → Export → the Android share sheet offered Gmail / Quick Share / Telegram; status "Export ready — 14 tables shared." Opening the JSON on the device = owner. Erasure stays last.
+  **iOS 2026-09-07 ✅:** Settings → Export → the share sheet with "hourwell-export-2026-09-07 · JSON · 256 КБ" and AirDrop / Messages / Mail / Notes / Copy / New Quick Note / Save to Files (`shot-b1-export-sheet-*.png`, cropped); saved to Files; the JSON pulled from the app's cache: `format: hourwell-export`, tasks 12 / plans 11 / recommendations 80 / events 89 / profile / feedback_rewards / belief_labels (notes item 26).
 - ✅ **FR-42 — erasure on device** (P10). Settings → Delete (two confirmations) → the
   confirmation screen with a reference → relaunch → onboarding; notifications scheduled before
   the deletion never fire afterwards; the reference exists in `deletion_audit` (owner: an
@@ -323,6 +362,7 @@
     **Android ✅ 2026-09-05 (build 5, owner):** two confirmations → "Your account is deleted" with the reference `e1d0b2eb-…`; server: all eight user tables at 0, `auth.users` row gone, `deletion_audit` +1 with that id (`user_request`, 180 ms); device: 0 pending Hourwell alarms (tonight's ritual cancelled), empty shade; "Start over" and a cold relaunch both land on the welcome screen (day-5 notes item 17).
     **Re-verification owed (2026-09-06, ADR-0021):** the two prompts are in-app dialogs now (the build-5 result stays as history of the OS-alert version). Repeat on a fresh throwaway account with two tasks and one plan: Android over adb (session, this branch), iPhone by the owner during the iPhone pass.
     **Android ✅ 2026-09-06 (build 8, session over adb, fresh throwaway `d2aade77-…` with two tasks, one plan, two alarms):** in-app dialog 1 → Continue → dialog 2 → Delete everything → "Your account is deleted" with `Reference: 3192fba6-…`; server: `auth.users` row gone, all eight user tables at 0, `deletion_audit` 56 → 57 with that id (`user_request`, **113 ms**); device: alarms 2 → 0, 0 posted notifications; "Start over" and a cold relaunch (562 ms) both land on the welcome screen; a second throwaway proved the 400 ms arming (two taps within 129 ms → step 2 still up) and was then erased the same way (`96719cfd-…`, 78 ms) — `android-20260906-dialog/notes.md`. iPhone pending.
+    **iOS:** pending — the erasure on this throwaway (with the double-tap arming test) is tomorrow's last step.
 - ⬜ **NFR-A1 — VoiceOver / TalkBack on the P10 surfaces** (P10). Settings: switches announce
   label + state; mute chips read "checkbox, Mute reminders for Admin, checked"; ritual time
   chips read as radios in a labelled group; the export/delete status line is announced
@@ -331,16 +371,19 @@
   and live regions are not verifiable without a real screen reader.
   **Android 2026-09-05 (build 5, owner):** "Delete account and data, button" ✅; the gear that opens Settings is announced as "Open settings, link" ✗ (minor; fix batch).
   **Android 2026-09-05 (build 6):** the gear dumps as `android.widget.Button` (`role="button"`, 57aa541); spoken confirmation: the owner skipped the listen (2026-09-05 evening) — the dump is the evidence.
+  **iOS 2026-09-07 ✅:** the Settings sheet reads "Settings, Header", switches with their state (the daemon's raw "1"; VoiceOver says on/off per the owner's ear), mute chips as "checkbox, unchecked", evening times as "radio button, checked"; MINOR: each switch's visible label is also a separate static text, read twice (`ax-settings.json`, notes item 34).
 - ⬜ **NFR-A2 — `p10-a11y-sweep.yaml` on both devices** (P10). Run via `scripts/device-pass.sh`
   at max text size (Android: + display size) with Reduce Motion (+ Reduce Transparency on iOS),
   light and dark; keep the screenshots for `p10-a11y-audit.md` §2. Why: the flow was written
   in P10 but not executed — it needs a development build with the notification categories.
   **Android 2026-09-02:** the flow fails on its date assertion regardless of scale (single-quoted YAML turned the regex into a literal backslash-w; fix batch F5) — evidence captured with adb screenshots instead (`a11y-maxscale/`); re-run on the rebuilt APK.
+  **iOS 2026-09-07:** Maestro does not run on physical iPhones (its docs); the sweep was done with WebDriverAgent + DVT screenshots + the accessibility daemon's settings holds (`shot-b1-dt-max-*.png`, `shot-b1-rm-rt-ic-*.png`), dark scheme only. Findings under the NFR-A2 rows above.
 - ⬜ **NFR-P2 — cold start and 60 fps on the P10 bundle** (P10). `device-pass.sh` steps 3–4
   (Xcode App Launch / `adb am start -W`, Instruments FPS / `gfxinfo`). Why: the bundle grew
   (notifications, sharing); the only number is the P2 simulator one.
   **Android ✅ 2026-09-01/02:** the two numbers above are on the P10+ bundle (release APK versionCode 1).
   **F7 on build 3 ✅ 2026-09-03:** a delivered block reminder (posted 12:20:34 for the 12:30 block) left the shade on the block's Start action (0 records 4 s later, 0 after background → foreground) — day-3 notes item 11.
+  **iOS 2026-09-07 ✅:** the two NFR-P2 rows at the top (build 1 = the P12-era bundle with the dialog).
 - ⬜ **NFR-P3 from a handset** (P10). Re-run `p10-perf.mjs`'s REST read/write over LTE and Wi-Fi
   from the device network (a Node script cannot run on the handset — use the app's
   `sync_completed` durations from PostHog for `sync-resolve`, and time one `export-data` from
@@ -443,6 +486,73 @@ never substituted. Command: runbook `docs/runbooks/oracle-vm.md` §7.
 - ⬜ **Store screenshots captured on hardware** (added P12; **optional** since 2026-08-31 —
   the pack stays prepared-but-unsubmitted, metadata §7). Capture only if wanted for a
   thesis appendix; nothing gates on it.
+
+## Fix-batch rows only hardware can settle (added 2026-09-08 with the batch)
+
+- ⬜ **NFR-A1 — the block card's custom actions, by ear.** VoiceOver: swipe to a card, the rotor
+  (or swipe up/down) lists "Start / Done / Skip / Move…" ("I did it" on a lapsed card), a
+  double-tap runs the same handler as the button; the summary ends with the state ("Not done —
+  back in your Inbox"). TalkBack: the actions menu (Pixel). Why hardware: XCUITest and the
+  uiautomator dump list buttons regardless; only a screen reader exercises the container's
+  actions. Structural half: `hw-ios-ax.py items` on build 2.
+- ⬜ **FR-42 / NFR-A2 — Reduce Motion with a LATE replacement.** The 120 ms grace covers the
+  erasure's next-tick step 2; a failure dialog arriving after a network call (> 120 ms) still
+  unmounts and mounts. Provoke it (airplane mode + a confirm that ends in a failure dialog) under
+  Reduce Motion; expected: the failure dialog presents. If it does not, the grace must become
+  "until the next request or a longer timeout".
+- ⬜ **NFR-A2 — the font-scale re-mount and what it resets.** Change the text size while a task
+  form is open / the Move picker is up / a skip diagnostic is on Today; expected: correct
+  layout after the change, the form and picker gone (same as an app kill), the diagnostic not
+  re-raised until the next miss (adversarial pass #14, accepted).
+- ⬜ **FR-26 — the spent ritual across a real evening-time change with budget left.** A day with
+  fewer than four deliveries: move the ritual earlier (server), let it fire, move it back to
+  20:00 — the OS log must show no re-add of `ritual:<day>` (day 2 could not: the count was
+  already at the cap, notes item 62).
+
+## Pass status (2026-09-08 — iPhone day 2)
+
+**Day 2 on the same build and account** — evidence under `device-pass/ios-20260908-1215/`
+(notes items 50–63, continuing day 1's numbering). Read from the phone's log archive and the
+server before the phone was touched: the app frozen all night, never killed; the ritual fired a
+**second time at 20:00** (FR-26 defect, item 51); this morning's four nudges fired to the frozen
+app; the daily authority attributed the 7th at 00:00:03; the nightly training backfilled
+propensities on 79 rows and left the 12 exploration-slice rows exact. On the device: the day's
+first foreground (the owner's unlock swipe, recorded as such) showed the ritual plan with zero
+plan requests (UC-03, accepted-ritual branch) and lapsed five blocks (invariant 7, up to 18.9 h
+late); **MAJOR** — the same sync's pull reverted the four local lapses to `shown` and the next
+foreground lapsed them again (duplicate facts, double streaks, a phantom third-skip diagnostic;
+item 55); a clean cycle afterwards lapsed one block once; the reminder ledger reset at the day
+boundary (four delivered + the ritual = five, no afternoon nudge); FR-30 across a 10-minute lock
+and a kill; a ritual under Do Not Disturb delivered silently and listed after Focus ended.
+**Fix batch F1–F8 → build 2 (17:40), re-checked on this account:** F3 (pull) ✅, F1 (Reduce
+Motion, daemon) ✅, F2 (state) ✅, F5 (daemon hold) layout ✅ / Settings path ⬜ owner, F4 ⬜
+(needs a day with budget), F6/F7 jest-only; a third reward defect found on the way (the 2 h
+stale session rewarded as a completion) — fixed on the branch, re-check next build (notes
+items 65–68). Deferred to the end of the pass: the arming test + erasure (item 63; owner-run
+`hw-ios-erase-check.sh`), the rotor listen for the card's custom actions, the calendar consent
+(test user), the client-side NFR-P1 export, the two-device rows (⛔ 6). Owner restores
+Auto-Lock (set to Never for the pass) and the brightness (notes item 68).
+
+## Pass status (2026-09-07 — iPhone day 1)
+
+**The iPhone pass started 2026-09-07 on the owner's iPhone 12 (A14, 2020; iOS 26.6), build 1 =
+main `4d67a78`, free-provisioned, signature to 2026-09-14** — evidence under
+`device-pass/ios-20260907-1130/` (notes items 1–49). Session-driven on iOS: WebDriverAgent for
+touches, pymobiledevice3 for screenshots / logs / the accessibility daemon (spoken order,
+settings holds, audits), devicectl + xctrace for launches and traces, the phone's log archive for
+after-the-fact reconstruction; the owner's hands for the developer-profile trust, unlocks, the
+VoiceOver listen, the calendar consent and the ritual long-press. Rows above carry an
+**iOS 2026-09-07** paragraph each. Day-1 findings for the fix batch: MAJOR — the second erasure
+dialog never appears under Reduce Motion (system switch confirmed); MAJOR — the block action row
+is unreachable by a screen reader (both platforms by construction); a live text-size change does
+not re-lay out (200 % clips and overlaps; a fresh launch is correct); a systemic "default
+renders before the first read" family (Settings calendar/permission, Inbox, Focus, the task
+sheet) with a shared fix; the Android callback screen never leaves on its own; possibly a
+second ritual on one day after the evening time is moved back (read tonight). Still open on
+iOS: the overnight lapse scan + UC-03 day boundary (tomorrow morning), FR-30, the calendar
+consent (test-user gate) and its disconnect dialog, the erasure on this throwaway with the
+double-tap arming test, Focus modes, the client-side NFR-P1 (PostHog export), the two-device
+rows (⛔ 6).
 
 ## Pass status (2026-09-05)
 

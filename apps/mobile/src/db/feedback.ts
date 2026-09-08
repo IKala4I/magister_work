@@ -13,7 +13,7 @@
 import { randomUUID } from 'expo-crypto';
 import { and, desc, eq, inArray, lt } from 'drizzle-orm';
 
-import { focusSessions, recommendations, tasks } from './schema';
+import { events, focusSessions, recommendations, tasks } from './schema';
 import type { RecommendationRow } from './plans';
 import { taskOpPayload } from './tasks';
 import type { TaskRow } from './tasks';
@@ -262,7 +262,18 @@ export function resumeFocusSession(
  */
 export function endFocusSession(
   db: LocalDb,
-  input: { sessionId: string; outcome: 'finished' | 'abandoned'; now?: Date },
+  input: {
+    sessionId: string;
+    outcome: 'finished' | 'abandoned';
+    /**
+     * Why an abandoned session ended: `stale` = the app's own 2 h rule closed it (nobody was
+     * there — the phone sat locked, the elapsed time is wall time, not attention). The server
+     * gives a stale session no credit (iPhone pass 2026-09-08 item 65: a 285-minute "session"
+     * on a 30-minute block was rewarded as a completion). Omitted for a user's "Stop for now".
+     */
+    reason?: 'stale';
+    now?: Date;
+  },
 ): FocusSessionRow {
   const now = input.now ?? new Date();
   return db.transaction((tx) => {
@@ -287,6 +298,7 @@ export function endFocusSession(
       payload: {
         session_id: s.id,
         outcome: input.outcome,
+        ...(input.reason === undefined ? {} : { reason: input.reason }),
         started_at: s.startedAt.toISOString(),
         ended_at: now.toISOString(),
         focused_ms: focusedMs,
@@ -461,7 +473,9 @@ export function abandonStaleSessions(
   for (const s of open) {
     const capMs = s.plannedMinutes * 2 * 60_000 + STALE_SESSION_EXTRA_MS;
     if (now.getTime() - s.startedAt.getTime() > capMs) {
-      closed.push(endFocusSession(db, { sessionId: s.id, outcome: 'abandoned', now }));
+      closed.push(
+        endFocusSession(db, { sessionId: s.id, outcome: 'abandoned', reason: 'stale', now }),
+      );
     }
   }
   return closed;
@@ -506,6 +520,18 @@ export function lapseScan(db: LocalDb, input: { userId: string; now?: Date }): L
         .where(eq(focusSessions.taskId, rec.taskId))
         .all() as FocusSessionRow[];
       if (sessions.some((s) => s.state !== 'abandoned')) continue;
+      // a lapse already logged for this placement is a fact on record: a row that came back as
+      // open (a pulled provisional server status — iPhone pass 2026-09-08 item 55) is repaired
+      // to `lapsed` without a second fact, a second streak step or a second Inbox return
+      const logged = tx
+        .select()
+        .from(events)
+        .where(and(eq(events.recommendationId, rec.id), eq(events.type, 'lapse_observed')))
+        .get();
+      if (logged !== undefined) {
+        setRecStatus(tx, rec.id, 'lapsed', now);
+        continue;
+      }
       const next = deferTask(tx, task, now);
       setRecStatus(tx, rec.id, 'lapsed', now);
       appendEvent(tx, {

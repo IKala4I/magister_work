@@ -92,6 +92,24 @@ Deno.test('row 2 — abandoned in-window with f ≥ 0.5 → 1.0 completed', () =
   assertEquals([r.tuple.reward, r.tuple.reason], [1.0, 'completed']);
 });
 
+Deno.test("a stale-abandoned session (the client's 2 h rule, reason: stale) earns no credit — no instant outcome, the daily authority lapses it (iPhone pass 2026-09-08 item 65)", () => {
+  const stale = {
+    ...session('2026-09-01T13:50:00+03:00', 'abandoned', 285, 30),
+    payload: {
+      ...session('2026-09-01T13:50:00+03:00', 'abandoned', 285, 30).payload,
+      reason: 'stale',
+    },
+  };
+  assertEquals(instantOutcome(rec(), [stale], NOW), null);
+  const daily = dailyOutcome(rec(), [stale], NOW);
+  assertEquals(daily.tuple.reason, 'lapsed');
+  assertEquals(daily.tuple.reward, 0);
+  assertEquals(daily.patch.status, 'lapsed');
+  // the same session without the reason keeps row 2 (an explicit "Stop for now" after ≥ 50 %)
+  const explicit = session('2026-09-01T13:50:00+03:00', 'abandoned', 285, 30);
+  assertEquals(instantOutcome(rec(), [explicit], NOW)?.tuple.reason, 'completed');
+});
+
 Deno.test('row 3 — abandoned in-window with f < 0.5 → r = f partial once the slot cannot be resumed; block not completed', () => {
   // while the slot (+ grace) is still open nothing instant is emitted — a restart can reach row 1/2
   const early = instantOutcome(

@@ -440,6 +440,7 @@ export const en = {
   'settings.gcal.title': 'Google Calendar',
   'settings.gcal.body':
     'Import busy times so plans route around meetings. Hourwell reads free/busy and titles; nothing is written unless you turn write-back on.',
+  'settings.gcal.checking': 'Checking the calendar connection…',
   'settings.gcal.connect': 'Connect Google Calendar',
   'settings.gcal.disconnect': 'Disconnect',
   'settings.gcal.connected': 'Connected',
@@ -458,7 +459,8 @@ export const en = {
   'settings.gcal.disconnect.confirm': 'Disconnect',
   'settings.gcal.disconnect.cancel': 'Keep connected',
 
-  'gcal.callback.ok': 'Google Calendar connected. Importing your meetings…',
+  'gcal.callback.working': 'Connecting Google Calendar…',
+  'gcal.callback.ok': 'Google Calendar connected. Your meetings are being imported.',
   'gcal.callback.failed': 'Google Calendar could not be connected.',
   'gcal.callback.back': 'Back to settings',
 

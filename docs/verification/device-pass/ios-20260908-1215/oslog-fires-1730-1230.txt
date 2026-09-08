@@ -1,0 +1,11 @@
+Timestamp               Ty Process[PID:TID]
+2026-09-07 20:00:00.019 Df SpringBoard[35:10f38] [com.apple.UserNotifications:LocalNotifications] [com.hourwell.app] Persistent timer fired at 2026-09-07 20:00:00.007 +0300
+2026-09-07 20:00:00.026 Df SpringBoard[35:10f38] [com.apple.UserNotifications:LocalNotifications] [com.hourwell.app] Notification FD1A-28FB requested at 2026-09-07 16:48:14.856 +0300 has a current trigger date 2026-09-07 20:00:00.002 +0300
+2026-09-08 08:50:00.017 Df SpringBoard[35:16bbf] [com.apple.UserNotifications:LocalNotifications] [com.hourwell.app] Persistent timer fired at 2026-09-08 08:50:00.010 +0300
+2026-09-08 08:50:00.024 Df SpringBoard[35:16bbf] [com.apple.UserNotifications:LocalNotifications] [com.hourwell.app] Notification 06F6-F524 requested at 2026-09-07 16:48:14.866 +0300 has a current trigger date 2026-09-08 08:50:00.002 +0300
+2026-09-08 09:35:00.010 Df SpringBoard[35:17a94] [com.apple.UserNotifications:LocalNotifications] [com.hourwell.app] Persistent timer fired at 2026-09-08 09:35:00.004 +0300
+2026-09-08 09:35:00.013 Df SpringBoard[35:17a94] [com.apple.UserNotifications:LocalNotifications] [com.hourwell.app] Notification DEE1-37A5 requested at 2026-09-07 16:48:14.875 +0300 has a current trigger date 2026-09-08 09:35:00.002 +0300
+2026-09-08 10:20:00.006 Df SpringBoard[35:17c15] [com.apple.UserNotifications:LocalNotifications] [com.hourwell.app] Persistent timer fired at 2026-09-08 10:20:00.004 +0300
+2026-09-08 10:20:00.010 Df SpringBoard[35:17c15] [com.apple.UserNotifications:LocalNotifications] [com.hourwell.app] Notification EABD-BE53 requested at 2026-09-07 16:48:14.883 +0300 has a current trigger date 2026-09-08 10:20:00.002 +0300
+2026-09-08 11:05:00.003 Df SpringBoard[35:1824a] [com.apple.UserNotifications:LocalNotifications] [com.hourwell.app] Persistent timer fired at 2026-09-08 11:05:00.004 +0300
+2026-09-08 11:05:00.006 Df SpringBoard[35:1824a] [com.apple.UserNotifications:LocalNotifications] [com.hourwell.app] Notification 368A-DF74 requested at 2026-09-07 16:48:14.890 +0300 has a current trigger date 2026-09-08 11:05:00.002 +0300

@@ -2,6 +2,85 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — iPhone pass fix batch → build 2 (2026-09-08, post-p12/iphone-pass)
+
+- **Sync — facts beat plans on the client (MAJOR).** A pulled recommendation row that still
+  carries a provisional server status never lowers a local `completed` / `lapsed`; the lazy
+  lapse scan never logs the same lapse twice (repairs the status, no second fact / streak
+  step / Inbox return). Trigger on the phone: the nightly propensity backfill bumped every
+  row's `server_seq`, the first pull of the day reverted four fresh lapses, the next
+  foreground lapsed them again (ADR-0012 addendum).
+- **Notifications — a ritual that fired is spent for its day.** The ledger hands delivered
+  ids to the planner; `ritual:<day>` is never re-added after it fired, wherever the evening
+  time moves (ADR-0014 addendum).
+- **Dialog — reduced motion keeps the Modal mounted for 120 ms on exit**, so the erasure's
+  second step presents on iOS (ADR-0021 amendment).
+- **Accessibility — block cards offer their actions as custom accessibility actions and speak
+  their state**; a live Dynamic Type change re-mounts the navigator (iOS re-layout).
+- **First read — `useLiveRows` reads synchronously on the first render and on input changes;
+  `useLastKnown` seeds the calendar / permission / exact-alarm tri-states from MMKV and
+  renders a neutral form while unknown.** The calendar consent landing distinguishes its
+  states and returns to Settings by itself.
+- **Build 2 on the iPhone 12 (2026-09-08 17:40, gate clean):** F3 re-checked — a server-side
+  row bump re-pulled as `shown` left the local `lapsed` in place and the next scan added no
+  duplicate; F1 — the second erasure dialog present under the daemon's Reduce Motion hold; F2 —
+  every card's spoken summary carries its state; F5 — a live change to the maximum text size
+  re-measures the Inbox and the Settings sheet without a relaunch. Found on the way: **the 2 h
+  stale-session rule was rewarded as a completion** (285 wall-clock "focused" minutes on a
+  30-minute block, r = 1) — the fact now says `reason: 'stale'` and the reward mapping gives it
+  no credit (ADR-0010 addendum; Deno + jest).
+- **Adversarial pass (fresh-context subagent): 0 MAJOR, 5 MINOR, 11 notes — all addressed.**
+  Server: `persist_plan`'s supersede no longer expires rows that carry facts or whose slot has
+  ended (a lapse followed by a same-day re-plan lost its r = 0 tuple; migration
+  `20260908140000_…`, pgTAP 7/7 linked, ⛔ owner push). Client: the live-rows hook re-reads once
+  after subscribing (a one-frame gap); the unused `useLastKnown` hook dropped, readings
+  account-scoped (`gcal`) so a sign-out race cannot seed the next account; the reminders switch
+  never asserts ON while the permission is unknown; a pulled `moved` over a local `lapsed`
+  keeps the local slot; VoiceOver hears the callback outcome; `spent` reaches analytics.
+- Records: explainer section, ADR-0012 / ADR-0014 addenda, ADR-0021 amendment, revisit lines
+  (the backfill's `server_seq` bump; nudges spent on unseen blocks), traceability rows.
+
+## Post-P12 — iPhone pass, day 2: the overnight from the archive, the day boundary, two more MAJORs (2026-09-08, post-p12/iphone-pass)
+
+- **Read from the phone's log archive and the server before the phone was touched:** the app
+  frozen all night (never killed); the ritual **fired a second time at 20:00** (FR-26 defect —
+  the ledger trusts the OS's delivered list, and an answered notification leaves it); the
+  morning's four nudges fired to the frozen app; the daily authority attributed the previous
+  day at 00:00:03; the nightly training backfilled propensities on 79 rows and left the 12
+  exploration-slice rows exact (invariant 9 on live rows).
+- **On the iPhone 12:** the day's first foreground (the owner's unlock swipe — recorded as such)
+  showed the ritual plan with zero plan requests (UC-03, accepted-ritual branch) and lapsed
+  five blocks, one 18.9 h late (invariant 7). **MAJOR:** the same sync's pull re-fetched the
+  backfilled rows and reverted the four local `lapsed` to `shown`; the next foreground lapsed
+  them again — duplicate facts, double-counted streaks, a third-skip diagnostic on a task that
+  missed twice ("facts beat plans" not enforced on the client's pull). A clean cycle lapsed
+  one block once. The reminder ledger reset at the day boundary; FR-30 across a 10-minute lock
+  and a kill; a ritual under Do Not Disturb delivered silently and listed after Focus ended.
+- **Fix batch F1–F8 consolidated** (`device-pass/ios-20260908-1215/notes.md`, last section);
+  the arming test + erasure deferred to the end of the pass (auto-mode blocks hosted deletes;
+  build 2 re-checks on this account).
+
+## Post-P12 — iPhone pass, day 1: build 1, the iOS drivers, six findings (2026-09-07, post-p12/iphone-pass)
+
+- **Build 1 on the iPhone 12 / iOS 26.6** under the personal team; `apps/mobile/plugins/withoutApsEnvironment.js`
+  drops the `aps-environment` entitlement expo-notifications writes (no push; a free team cannot
+  sign it); `hw-build-gate-ios.sh` gates the .app. The dialog PR's flaky arming test pinned to a
+  frozen clock (`test(ui)`).
+- **iOS tooling found and recorded:** WebDriverAgent (personal team) driven over HTTP
+  (`hw-ios-wda.py`); the accessibility daemon as reader, settings switch and auditor
+  (`hw-ios-ax.py`: items / hold / audit); `hw-ios-coldstart.sh` (xctrace App Launch × N);
+  `hw-plan-rows.mjs` (the plans' edge-function timings). Maestro does not run on physical iPhones.
+- **Measured on the iPhone 12:** cold start p50 488 / p90 503 ms to the initial frame (0.95 s
+  after a reboot); zero hitches on a real thumb scroll; NFR-P1 server side p50 710 / p95 783 ms;
+  FR-50 five notifications in the day with the OS's own schedule as evidence; FR-26 to a killed
+  app with category actions; FR-42 export through the share sheet; the pull on the first
+  foreground after a 44-minute suspension.
+- **Defects for the fix batch:** the second erasure dialog missing under Reduce Motion (MAJOR);
+  the block action row unreachable by screen readers (MAJOR, both platforms); a live text-size
+  change not re-laid out; the "default before first read" family (shared fix proposed); the
+  calendar callback screen; a possible second ritual after moving the evening time back.
+
+
 Everything below condenses P0–P11 for release notes and the thesis; per-phase detail follows.
 
 - **Plan your day around your real energy.** Tasks are placed by learned personal completion

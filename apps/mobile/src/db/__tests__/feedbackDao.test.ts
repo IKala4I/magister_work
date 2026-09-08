@@ -392,6 +392,30 @@ describe('lazy lapse scan (File 05 §1; invariant 7)', () => {
     close();
   });
 
+  it('never logs the same lapse twice: a row reverted to shown (a pulled provisional status) is repaired to lapsed with no second fact, streak step or Inbox return (iPhone pass 2026-09-08 item 55)', () => {
+    const { db, close } = openDb();
+    const ended = seed(db, {
+      title: 'e',
+      slotStart: T('2026-09-02T10:00:00+03:00'),
+      slotEnd: T('2026-09-02T11:00:00+03:00'),
+    });
+    const r1 = lapseScan(db, { userId: USER, now: T('2026-09-02T12:00:00+03:00') });
+    expect(r1.lapsed.map((r) => r.id)).toEqual([ended.rec.id]);
+    expect(taskOf(db, ended.task.id).skipStreak).toBe(1);
+    // the pull applies the server's still-provisional row over the local fact
+    db.update(recommendations)
+      .set({ status: 'shown', updatedAt: T('2026-09-02T12:01:00+03:00') })
+      .where(eq(recommendations.id, ended.rec.id))
+      .run();
+    const r2 = lapseScan(db, { userId: USER, now: T('2026-09-02T12:05:00+03:00') });
+    expect(r2.lapsed).toEqual([]);
+    expect(r2.diagnosticDue).toEqual([]);
+    expect(recOf(db, ended.rec.id).status).toBe('lapsed');
+    expect(eventsOf(db, 'lapse_observed')).toHaveLength(1);
+    expect(taskOf(db, ended.task.id)).toMatchObject({ skipStreak: 1, postponeCount: 1 });
+    close();
+  });
+
   it('is DST-safe: the fall-back hour (Europe/Kyiv 2026-10-25 04:00 → 03:00) neither lapses a running slot early nor spares an ended one', () => {
     const { db, close } = openDb();
     // slot 03:30–04:30 local BEFORE the change (EEST, +03) = 00:30–01:30Z
@@ -455,6 +479,10 @@ describe('lazy lapse scan (File 05 §1; invariant 7)', () => {
     const closed = abandonStaleSessions(db, { userId: USER, now: T('2026-09-02T18:01:00+03:00') });
     expect(closed.map((x) => x.id)).toEqual([s.id]);
     expect(closed[0]!.state).toBe('abandoned');
+    // the fact says the app's rule closed it — the server gives a stale session no credit
+    // (iPhone pass 2026-09-08 item 65); a user's "Stop for now" carries no reason
+    const ends = eventsOf(db, 'focus_end');
+    expect(ends[ends.length - 1]!.payload).toMatchObject({ outcome: 'abandoned', reason: 'stale' });
     close();
   });
 

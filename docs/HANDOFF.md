@@ -2,13 +2,152 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-06 (evening) — **one in-app dialog replaces the six OS alerts** (branch
-> `post-p12/in-app-dialog`, ADR-0021; PR opened by this session, auto-merge armed; adversarial
-> pass 2 MAJOR / 7 MINOR / 7 NOTE addressed; verified on the Pixel 7a over adb and smoke-checked
-> on the iPhone 16 simulator). Before that (same day): the narrative rewrite (PR #55) and the
-> sensitivity study (PR #54). **The iPhone pass is scoped (below) and waits for the owner's device
-> and iOS version; it gained the dialog's hands-on items.** Read first: `docs/decisions/ADR-0021-in-app-dialog.md`,
-> then `docs/verification/device-pass/android-20260906-dialog/notes.md`.
+> Last update: 2026-09-08 (evening) — **iPhone pass, day 2 closed on branch `post-p12/iphone-pass`;
+> build 2 on the phone; PR open with auto-merge.** Read first:
+> `docs/verification/device-pass/ios-20260908-1215/notes.md` (items 50–68 + the fix-batch table
+> with the build-2 results), then the "iOS 2026-09-08" paragraphs and the "Fix-batch rows only
+> hardware can settle" section in `docs/verification/device-checklist.md`.
+>
+> **Commits on the branch since day 1:** `8d07c00` day-2 records → `1ed0be0` F3 → `33f8f81` F4 →
+> `607d782` F1 → `415635a` F2/F5/F6/F7 → `5308199` records → `36b297c` adversarial follow-ups →
+> `aaef65e` `persist_plan` migration (pgTAP 7/7 linked) → `1afd4b8` records → the stale-session
+> reward fix (client fact `reason: 'stale'` + the mapping gives it no credit) → the build-2
+> records. **Build 2 = `36b297c` on the phone** (the stale-session fix is not in it — no device
+> check needs it before main).
+>
+> **⛔ Owner items (in order, one per turn):** (1) restore the brightness (my blind slider write
+> landed on Display & Brightness — notes item 68) and, at the very end, Auto-Lock; (2) push the
+> migration `20260908140000_persist_plan_facts_beat_supersede.sql` (`supabase db push`, as for
+> P10/P11); (3) 2-minute VoiceOver listen on Today: a card's rotor must list Start / Done / Skip /
+> Move… (or "I did it"), a double-tap runs it, the summary ends with the state; (4) 1-minute
+> Larger Text check through the Settings app with Hourwell in the background (the path that
+> clipped build 1) — Inbox rows and the Today header must be laid out, not clipped; (5) the
+> erasure with the arming test: `! docs/verification/hw-ios-erase-check.sh <out-dir>` with
+> Settings open on "Delete account and data" and a WDA session alive (the session sets it up);
+> then the session reads `deletion_audit` +1 and the tables at 0.
+
+## What happened this session (2026-09-08 — iPhone pass, day 2)
+
+Phone untouched by the owner overnight; the USB link had dropped at 17:33 the evening before
+(replugged 12:15). **Read before the phone was touched:** the app frozen all night (never
+killed); the phone's keybag unlocked three times (21:38, 21:53, 12:00) without the app running;
+the **ritual fired a second time at 20:00** (FR-26 defect confirmed — item 51, refined by item
+62: the ledger trusts the OS's delivered list, and an answered notification leaves it); the
+morning's four nudges fired 08:50–11:05 to the frozen app; the daily authority attributed the
+7th at 00:00:03 local; the nightly training promoted `als/1` and backfilled propensities on 79
+rows (the 12 slice rows exact, invariant 9 held) — bumping `server_seq`, which set up the day's
+MAJOR.
+
+**On the device:** the day's first foreground was the owner's (the unlock swipe returned to
+Hourwell; recorded as such, reads taken as they are): Today = the ritual's plan, **zero plan
+requests** (UC-03, accepted-ritual branch), five lapses (the 7th's 17:00 experiment block 18.9 h
+late + today's four). **MAJOR (item 55):** the same sync's pull re-fetched the backfilled rows
+and reverted the four local `lapsed` to `shown`; the next `active` transition lapsed them again —
+duplicate facts, double-counted streaks, the third-skip diagnostic on a task that missed twice.
+Mechanism from the code (`pull.ts` upserts status unless an unacked `recommendation_status` op
+protects the id; the lapse path pushes only the fact; the server keeps `shown` until the daily
+job). A clean cycle lapsed one block once. Reminder ledger reset at the day boundary (four
+delivered + ritual = five; no afternoon nudge). FR-30 across a 10-min lock and a kill — PASS.
+A ritual under Do Not Disturb — delivered silently, listed after Focus ended. Erasure + arming
+test deferred to the end of the pass (auto-mode blocks hosted deletes; the account is needed for
+build 2's re-checks).
+
+**Tooling (day 2):** `syslog collect` + `log show` on the locked phone is the overnight tool;
+`dvt screenshot` of a dark screen is black (a screenshot loop around the owner's tap-to-wake
+catches the lock screen); WDA drags scroll only when they START inside the list and last
+≈ 0.25 s (longer = a press; the footer is outside the list); the block action row is not in
+today's XCUITest trees (coordinates); zsh needs `W=(python3 …)` arrays; `scroll-to` stalls on
+Today too, not only on the sheet.
+
+## Exact next actions (this session continues; or a fresh one after `/clear`)
+
+1. ~~Fix batch F1–F8~~ done; ~~build 2 + re-checks~~ done (notes items 65–68: F3 ✅, F1 ✅,
+   F2 state ✅, F5 layout ✅ via the daemon / Settings path owner; F4 needs a day with budget).
+   The owner items above come next; then the pass closes with a docs commit flipping the
+   remaining rows (rotor listen, Larger Text, erasure) and the PR merges.
+2. ~~**Build 2**~~ (see above; the exact command that worked: `SENTRY_DISABLE_AUTO_UPLOAD=true npx expo run:ios --device 00008101-0015081602F1003A --configuration Release --no-bundler` with the WDA runner and the live syslog STOPPED — both hold the CoreDevice connection xcodebuild needs — and the phone unlocked; a wedged RSD (0xE8000003) is cleared by `pymobiledevice3 diagnostics restart` + the owner's first unlock) (`npx expo run:ios --device 00008101-0015081602F1003A --configuration Release
+--no-bundler` after `expo prebuild`; `hw-build-gate-ios.sh`), install over build 1 (same
+   account, same data), re-check each row of the table on the phone with the same drivers;
+   flip the checklist rows; day-2 notes items 64+.
+3. Then, on the same account: the arming test (`wda-doubletap.py` — owner-run if the
+   classifier blocks) → the erasure → `deletion_audit` +1 → welcome after a cold relaunch.
+4. Phase report, PR `post-p12/iphone-pass` → main (auto-merge once after `gh pr create`).
+5. Optional owner items: the calendar consent retry on the iPhone with the Pixel's Google
+   account (then the disconnect dialog, site 2); the client-side NFR-P1 PostHog export.
+
+## What happened this session (2026-09-07 — iPhone pass, day 1)
+
+Owner's device: iPhone 12 (A14, 2020), iOS 26.6, personal team, Developer Mode on. PR #56 had a
+red TypeScript gate (the dialog's arming test raced a slow runner) — pinned to a frozen clock,
+merged. Free-provisioning finding fixed at the source: the expo-notifications plugin writes
+`aps-environment`, which a personal team cannot sign → `apps/mobile/plugins/withoutApsEnvironment.js`
+(listed before expo-notifications; mods run last-listed-first). Build 1 installed, gated
+(`hw-build-gate-ios.sh`), trusted by the owner.
+
+**Tooling (all in `docs/verification/`, all verified on the phone):** Maestro does not run on
+physical iPhones; the accessibility daemon's "Activate" does not fire RN Pressables → real
+touches come from **WebDriverAgent** built with the personal team (`hw-ios-wda.py` over
+`pymobiledevice3 usbmux forward 8100 8100`; the runner must be started while the phone is
+unlocked); the **accessibility daemon** (`hw-ios-ax.py`) reads the VoiceOver order with spoken
+strings, holds Reduce Motion / Reduce Transparency / Increase Contrast / Dynamic Type while a
+client stays connected (`hold`), and runs Apple's audits; `pymobiledevice3` gives screenshots
+(`developer dvt screenshot`), the live syslog, the app container (`apps pull`) and the phone's
+persisted log archive (`syslog collect` → `/usr/bin/log show --archive`, the after-the-fact
+tool: launches, notification fires, foreground/background stamps); `xctrace` App Launch /
+Animation Hitches after a phone reboot (`hw-ios-coldstart.sh`; argument order: `--time-limit`
+and `--output` BEFORE `--launch --`; never bound an xctrace save). Owner's hands: the trust,
+unlocks (WDA cannot unlock this phone), the VoiceOver listen, the calendar consent, the ritual
+long-press.
+
+**Verified on the iPhone 12 (checklist "iOS 2026-09-07" paragraphs):** onboarding with the real
+keyboard, the first plan, NFR-P1 server side (p50 710 / p95 783 ms), the day loop (Start, Finish with a
+rating, Skip, the wheel-picker Move, the 6 s undo), Insights (heatmap, text alternative, a
+belief label), the export through the share sheet into Files, the three dialogs' VoiceOver
+order and a clean audit, cold start (p50 488 / p90 503 ms; 0.95 s after a reboot), zero hitches
+on a real thumb scroll, the pull on the first foreground after a 44-min suspension, FR-50 (five
+in the day, the OS's own schedule as evidence, the 14:20 nudge captured on the lock screen),
+FR-26 to a killed app with the category actions ("Plan tomorrow" cold-started the app → one
+`evening_ritual` plan for the 8th + one `notification_response` fact).
+
+**Findings (fix batch → build 2):** MAJOR — under Reduce Motion (the system switch) the second
+erasure dialog never appears (notes 24, 36; mechanism hypothesis: the Modal is unmounted and
+re-mounted within one tick; keep it mounted across an immediate replacement). MAJOR — the block
+action row is unreachable by a screen reader on both platforms (`ConfidenceBlock`'s
+`accessible` wrapper; custom actions; notes 35, 41). A live text-size change re-renders text
+without re-laying out (200 % clips/overlaps; fresh launch correct; re-mount on font-scale
+change; notes 22, 23, 36). Systemic "default before the first read" (Settings calendar /
+permission, Inbox, Focus, the task sheet) — shared fix: synchronous first read in
+`useLiveRows` + a last-known-value hook for the tri-states (note 44). The Android calendar
+callback screen never leaves on its own (note 43). Possibly a second ritual on one day after
+the evening time is moved back (note 49 — read from the log at 20:00).
+
+**Not done on iOS:** the calendar consent (the OAuth client is in Testing; the phone's account
+is not a test user; the iPhone attempt never confirmed — note 46 settles the account question
+from `auth.sessions` user agents), hence the iOS disconnect dialog (its Android twin captured);
+FR-30; Focus modes; the erasure with the double-tap arming test; the client-side NFR-P1
+(PostHog export, owner); the two-device rows (⛔ 6).
+
+## Exact next actions as written on 2026-09-07 (superseded above)
+
+1. **Before the owner touches the phone:** read tonight's 20:00 from the live capture
+   (`scratchpad/syslog-hourwell-5.log` if the session survived; else `pymobiledevice3 syslog
+collect` + `log show`): a "Persistent timer fired" at 20:00 for com.hourwell.app = a second
+   ritual on one day (defect); none = the ledger held. Then the lock screen (owner wakes it,
+   `dvt screenshot`): tomorrow's 08:50 nudge if the owner is late.
+2. **UC-03 + the lazy lapse scan:** the owner unlocks and stays on the home screen; restart
+   WDA (unlocked), `app activate` → tree at once: `new_day` (the 8th's plan on Today), the
+   lapse facts for the untouched 15:15 / 15:30 / 16:00 / 17:00 blocks (server `events` of the
+   lapse type), the ≤ 5 ledger reset. Ritual time is 20:00 again (seq 4909).
+3. FR-30: start a block → lock 5 min → unlock → `app terminate` → relaunch → the session
+   survives. Focus modes: DND across one nudge (owner, 2 min). Optional: the calendar consent
+   retry on the iPhone with the Pixel's Google account, then the disconnect dialog.
+4. The double-tap arming test (W3C actions, two taps < 400 ms on "Delete everything") and the
+   erasure of this throwaway (`7f088974-…`), reference on screen, audit +1, tables at 0.
+5. **Fix batch → build 2** (the findings above; jest first; `pnpm` gates; explainer + ADR /
+   spec-conflicts / corrections rows per CLAUDE.md), re-verify the four defects on the phone
+   with the same drivers, flip the rows, phase report, PR.
+6. Housekeeping: `hw-ios-wda.py session` after every runner restart; `git status` for stray
+   `*.trace` in the repo root; the 1 GB log archives stay in scratch.
 
 ## What happened this session (2026-09-06, evening — post-p12/in-app-dialog)
 

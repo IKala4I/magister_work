@@ -1,0 +1,15 @@
+Timestamp               Ty Process[PID:TID]
+2026-09-08 12:22:19.354 Df SpringBoard[35:1c829] [com.apple.FrontBoard:ProcessScene] [0xcf9841500:(FBSceneManager):sceneID:com.hourwell.app-default] Scene lifecycle state did change: Foreground
+2026-09-08 12:22:20.355 Df Hourwell[751:1ba5b] [com.apple.UserNotifications:Connections] [com.hourwell.app] Removing all pending notification requests
+2026-09-08 12:22:21.385 Df Hourwell[751:1c3f8] [com.apple.UserNotifications:Connections] [com.hourwell.app] Removing all pending notification requests
+2026-09-08 12:22:23.963 Df Hourwell[751:1c3f8] [com.apple.UserNotifications:Connections] [com.hourwell.app] Removing all pending notification requests
+2026-09-08 12:22:39.068 Df SpringBoard[35:1cbbf] [com.apple.FrontBoard:ProcessScene] [0xcfc462ac0:(FBSceneManager):sceneID:com.hourwell.wda.xctrunner-default] Scene lifecycle state did change: Backgro
+2026-09-08 12:24:11.756 Df Hourwell[751:1cc82] [com.apple.UserNotifications:Connections] [com.hourwell.app] Removing all pending notification requests
+2026-09-08 12:24:12.789 Df Hourwell[751:1cc82] [com.apple.UserNotifications:Connections] [com.hourwell.app] Removing all pending notification requests
+2026-09-08 12:24:14.128 Df Hourwell[751:1cfa0] [com.apple.UserNotifications:Connections] [com.hourwell.app] Removing all pending notification requests
+2026-09-08 12:28:22.041 Df SpringBoard[35:1d73d] [com.apple.FrontBoard:ProcessScene] [0xcf983ce40:(FBSceneManager):sceneID:com.hourwell.wda.xctrunner-default] Scene lifecycle state did change: Backgro
+2026-09-08 12:31:03.188 Df SpringBoard[35:1d70a] [com.apple.FrontBoard:ProcessScene] [0xcf9841500:(FBSceneManager):sceneID:com.hourwell.app-default] Scene lifecycle state did change: Background
+2026-09-08 12:31:05.842 Df SpringBoard[35:1dc86] [com.apple.FrontBoard:ProcessScene] [0xcf9841500:(FBSceneManager):sceneID:com.hourwell.app-default] Scene lifecycle state did change: Foreground
+2026-09-08 12:31:06.128 Df Hourwell[751:1dce7] [com.apple.UserNotifications:Connections] [com.hourwell.app] Removing all pending notification requests
+2026-09-08 12:31:07.157 Df Hourwell[751:1dce8] [com.apple.UserNotifications:Connections] [com.hourwell.app] Removing all pending notification requests
+2026-09-08 12:31:08.311 Df Hourwell[751:1dc73] [com.apple.UserNotifications:Connections] [com.hourwell.app] Removing all pending notification requests

@@ -15,6 +15,7 @@ import { getAnimatedStyle } from 'react-native-reanimated';
 import {
   DIALOG_ARM_DELAY_MS,
   DIALOG_ENTER_SCALE,
+  DIALOG_EXIT_GRACE_MS,
   DIALOG_FOCUS_DELAY_MS,
   DialogHost,
 } from '../DialogHost';
@@ -430,7 +431,45 @@ describe('DialogHost — motion (File 02 §3.4, NFR-A2)', () => {
     await act(async () => {
       fireEvent.press(screen.getByRole('button', { name: spec.cancelLabel }));
     });
+    // invisible at once; the Modal itself is torn down after the exit grace (below)
+    expect(cardStyle().opacity).toBe(0);
+    expect(screen.queryByTestId('dialog')).not.toBeNull();
+    await act(async () => {
+      jest.advanceTimersByTime(DIALOG_EXIT_GRACE_MS);
+    });
     expect(screen.queryByTestId('dialog')).toBeNull();
+  });
+
+  it('under reduced motion a replacement right after the confirm keeps the one Modal mounted — never an unmount + mount, which iOS drops mid-dismissal (hardware pass 2026-09-07 items 24, 36)', async () => {
+    mockMotion.reduced = true;
+    await render(<DialogHost />);
+    let stepTwo: Promise<boolean> | null = null;
+    await act(async () => {
+      // the erasure flow: step 1 confirmed → (await) → step 2 requested in the next tick
+      void confirmDialog({ ...spec, confirmLabel: 'Continue' }).then((ok) => {
+        if (ok) stepTwo = confirmDialog({ ...spec, title: 'Step two', destructive: true });
+      });
+    });
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+    });
+    // step 1 is answered; the Modal is still in the tree while the grace runs
+    expect(screen.queryByTestId('dialog')).not.toBeNull();
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(stepTwo).not.toBeNull();
+    expect(screen.getByRole('header', { name: 'Step two' })).toBeTruthy();
+    await act(async () => {
+      jest.advanceTimersByTime(FRAME_MS); // one frame, well inside the grace
+    });
+    expect(cardStyle().opacity).toBe(1);
+    await act(async () => {
+      jest.advanceTimersByTime(DIALOG_EXIT_GRACE_MS * 2);
+    });
+    // the grace timer found a newer request and left the Modal alone
+    expect(screen.getByRole('header', { name: 'Step two' })).toBeTruthy();
+    expect(screen.queryByTestId('dialog')).not.toBeNull();
   });
 
   it('the arming window is a fixed timer, independent of motion: it applies under reduced motion too', async () => {

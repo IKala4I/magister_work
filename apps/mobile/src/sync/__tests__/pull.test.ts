@@ -285,6 +285,57 @@ describe('applyPull', () => {
     expect(db.select().from(calendarEvents).all()).toHaveLength(1);
   });
 
+  it('a pulled provisional status never lowers a local completed / lapsed (facts beat plans on the client — iPhone pass 2026-09-08 item 55); a terminal server status still lands', () => {
+    applyPull(db, {
+      userId: USER,
+      rows: [taskRow(), planRow, recRow({ status: 'shown' })],
+      now: NOW,
+    });
+    // the lazy scan lapsed the block locally; the server keeps `shown` until the 23:55 job
+    const lapsedAt = new Date('2026-09-01T13:00:00Z');
+    db.update(recommendations)
+      .set({ status: 'lapsed', updatedAt: lapsedAt })
+      .where(eq(recommendations.id, REC))
+      .run();
+    // the nightly backfill bumped the row (a new server_seq, a propensity) — status still `shown`
+    const r = applyPull(db, {
+      userId: USER,
+      rows: [
+        recRow({
+          status: 'shown',
+          propensity: 0.1,
+          server_seq: 40,
+          updated_at: '2026-09-02T00:30:23.000Z',
+        }),
+      ],
+      now: NOW,
+    });
+    expect(r.applied).toBe(1);
+    const row = db.select().from(recommendations).where(eq(recommendations.id, REC)).get();
+    expect(row?.status).toBe('lapsed');
+    expect(row?.propensity).toBe(0.1);
+    expect(row?.updatedAt).toEqual(lapsedAt);
+    // the server's own reading of the facts (the daily job) lands — and so does a supersede
+    applyPull(db, {
+      userId: USER,
+      rows: [
+        recRow({ status: 'completed', attributed_at: '2026-09-01T13:05:00.000Z', server_seq: 41 }),
+      ],
+      now: NOW,
+    });
+    expect(db.select().from(recommendations).where(eq(recommendations.id, REC)).get()?.status).toBe(
+      'completed',
+    );
+    applyPull(db, {
+      userId: USER,
+      rows: [recRow({ status: 'expired', server_seq: 42 })],
+      now: NOW,
+    });
+    expect(db.select().from(recommendations).where(eq(recommendations.id, REC)).get()?.status).toBe(
+      'expired',
+    );
+  });
+
   it("another identity's rows are never applied", () => {
     const r = applyPull(db, {
       userId: USER,

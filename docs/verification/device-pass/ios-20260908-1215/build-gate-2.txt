@@ -1,0 +1,10 @@
+bundle host hits: 1
+entitlements keys: application-identifier com.apple.developer.team-identifier get-task-allow 
+  Identifier=com.hourwell.app
+  Authority=Apple Development: <email> (XF6KL2RKFN)
+  Authority=Apple Worldwide Developer Relations Certification Authority
+  Authority=Apple Root CA
+  TeamIdentifier=75894LSHG3
+size: 66904 KB
+sha256(main.jsbundle): 30242ba2bc3e331d…
+GATE OK

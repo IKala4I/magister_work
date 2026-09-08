@@ -55,6 +55,14 @@ export interface PlanInput {
   permissionGranted: boolean;
   /** Notifications already delivered (or counted as delivered) per local day. */
   deliveredByDay: ReadonlyMap<string, number>;
+  /**
+   * Ids already delivered on a kept day (the ledger's `deliveredIds`). A ritual is one per
+   * calendar day: once `ritual:<day>` has fired it is spent, whatever the evening time is moved
+   * to afterwards and however much of the day's budget is left (iPhone pass 2026-09-08 items
+   * 51, 62). Block reminders keep their id across a Move, so a block moved AFTER its reminder
+   * fired may be reminded again at the new time — counted by the cap like any other.
+   */
+  deliveredIds?: ReadonlySet<string>;
   /** How many days ahead rituals are pre-scheduled (today + N). */
   ritualDaysAhead?: number;
   cap?: number;
@@ -77,6 +85,8 @@ export interface PlanResult {
     past: number;
     /** Placement no longer open, or its task gone. */
     closed: number;
+    /** A ritual whose id already fired today (one per calendar day). */
+    spent: number;
   };
   reason: 'ok' | 'no_permission';
 }
@@ -98,7 +108,7 @@ export function ritualVariantOf(fireAt: Date): RitualVariant {
 
 export function planNotifications(input: PlanInput): PlanResult {
   const cap = input.cap ?? NOTIFICATION_DAILY_CAP;
-  const dropped = { capped: 0, muted: 0, past: 0, closed: 0 };
+  const dropped = { capped: 0, muted: 0, past: 0, closed: 0, spent: 0 };
   if (!input.permissionGranted) return { schedule: [], dropped, reason: 'no_permission' };
   const nowMs = input.now.getTime();
   const today = localDayOf(input.now);
@@ -146,6 +156,10 @@ export function planNotifications(input: PlanInput): PlanResult {
     const ahead = input.ritualDaysAhead ?? DEFAULT_RITUAL_DAYS_AHEAD;
     for (let i = 0; i <= ahead; i += 1) {
       const day = addDays(today, i);
+      if (input.deliveredIds?.has(`ritual:${day}`) === true) {
+        dropped.spent += 1;
+        continue;
+      }
       const at = timeOnDay(day, input.settings.evening_ritual_time);
       if (at.getTime() < nowMs + MIN_LEAD_MS) continue;
       const variant = ritualVariantOf(at);

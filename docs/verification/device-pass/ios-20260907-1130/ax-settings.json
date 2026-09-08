@@ -1,0 +1,290 @@
+[
+  {
+    "platform_identifier": "94030000008E002801000000F601000000000000",
+    "estimated_uid": "F6010000-0000-0000-9403-000000000000",
+    "caption": "Settings, Header",
+    "spoken_description": "Settings, Header"
+  },
+  {
+    "platform_identifier": "94030000F094112801000000F701000000000000",
+    "estimated_uid": "F7010000-0000-0000-9403-000000000000",
+    "caption": "Account",
+    "spoken_description": "Account"
+  },
+  {
+    "platform_identifier": "94030000A094112801000000F801000000000000",
+    "estimated_uid": "F8010000-0000-0000-9403-000000000000",
+    "caption": "Trial account on this device",
+    "spoken_description": "Trial account on this device"
+  },
+  {
+    "platform_identifier": "940300005094112801000000F901000000000000",
+    "estimated_uid": "F9010000-0000-0000-9403-000000000000",
+    "caption": "Add your email to keep your data if you lose or change this phone.",
+    "spoken_description": "Add your email to keep your data if you lose or change this phone."
+  },
+  {
+    "platform_identifier": "9403000000B0762701000000FA01000000000000",
+    "estimated_uid": "FA010000-0000-0000-9403-000000000000",
+    "caption": "Add email to keep my data, Button",
+    "spoken_description": "Add email to keep my data, Button"
+  },
+  {
+    "platform_identifier": "9403000000B3762701000000FB01000000000000",
+    "estimated_uid": "FB010000-0000-0000-9403-000000000000",
+    "caption": "Sign out, Button",
+    "spoken_description": "Sign out, Button"
+  },
+  {
+    "platform_identifier": "940300000094112801000000FC01000000000000",
+    "estimated_uid": "FC010000-0000-0000-9403-000000000000",
+    "caption": "Sync",
+    "spoken_description": "Sync"
+  },
+  {
+    "platform_identifier": "94030000B093112801000000FD01000000000000",
+    "estimated_uid": "FD010000-0000-0000-9403-000000000000",
+    "caption": "Up to date",
+    "spoken_description": "Up to date"
+  },
+  {
+    "platform_identifier": "940300006093112801000000FE01000000000000",
+    "estimated_uid": "FE010000-0000-0000-9403-000000000000",
+    "caption": "Last synced just now",
+    "spoken_description": "Last synced just now"
+  },
+  {
+    "platform_identifier": "9403000000B6762701000000FF01000000000000",
+    "estimated_uid": "FF010000-0000-0000-9403-000000000000",
+    "caption": "Sync now, Button",
+    "spoken_description": "Sync now, Button"
+  },
+  {
+    "platform_identifier": "9403000010931128010000000002000000000000",
+    "estimated_uid": "00020000-0000-0000-9403-000000000000",
+    "caption": "Google Calendar",
+    "spoken_description": "Google Calendar"
+  },
+  {
+    "platform_identifier": "94030000C0921128010000000102000000000000",
+    "estimated_uid": "01020000-0000-0000-9403-000000000000",
+    "caption": "Import busy times so plans route around meetings. Hourwell reads free/busy and titles; nothing is written unless you turn write-back on.",
+    "spoken_description": "Import busy times so plans route around meetings. Hourwell reads free/busy and titles; nothing is written unless you turn write-back on."
+  },
+  {
+    "platform_identifier": "9403000000B97627010000000202000000000000",
+    "estimated_uid": "02020000-0000-0000-9403-000000000000",
+    "caption": "Connect Google Calendar, Button",
+    "spoken_description": "Connect Google Calendar, Button"
+  },
+  {
+    "platform_identifier": "9403000070921128010000000302000000000000",
+    "estimated_uid": "03020000-0000-0000-9403-000000000000",
+    "caption": "Notifications",
+    "spoken_description": "Notifications"
+  },
+  {
+    "platform_identifier": "9403000020921128010000000402000000000000",
+    "estimated_uid": "04020000-0000-0000-9403-000000000000",
+    "caption": "Block reminders",
+    "spoken_description": "Block reminders"
+  },
+  {
+    "platform_identifier": "94030000005EC427010000000502000000000000",
+    "estimated_uid": "05020000-0000-0000-9403-000000000000",
+    "caption": "Block reminders, 1, Button, Toggle",
+    "spoken_description": "Block reminders, 1, Button, Toggle"
+  },
+  {
+    "platform_identifier": "94030000D0911128010000000602000000000000",
+    "estimated_uid": "06020000-0000-0000-9403-000000000000",
+    "caption": "A nudge 10 minutes before each block. At most 5 notifications a day.",
+    "spoken_description": "A nudge 10 minutes before each block. At most 5 notifications a day."
+  },
+  {
+    "platform_identifier": "9403000080911128010000000702000000000000",
+    "estimated_uid": "07020000-0000-0000-9403-000000000000",
+    "caption": "Mute reminders for",
+    "spoken_description": "Mute reminders for"
+  },
+  {
+    "platform_identifier": "9403000000BC7627010000000802000000000000",
+    "estimated_uid": "08020000-0000-0000-9403-000000000000",
+    "caption": "Mute reminders for Deep work, checkbox, unchecked",
+    "spoken_description": "Mute reminders for Deep work, checkbox, unchecked"
+  },
+  {
+    "platform_identifier": "9403000000C0FD27010000000902000000000000",
+    "estimated_uid": "09020000-0000-0000-9403-000000000000",
+    "caption": "Mute reminders for Admin, checkbox, unchecked",
+    "spoken_description": "Mute reminders for Admin, checkbox, unchecked"
+  },
+  {
+    "platform_identifier": "9403000000C3FD27010000000A02000000000000",
+    "estimated_uid": "0A020000-0000-0000-9403-000000000000",
+    "caption": "Mute reminders for Physical, checkbox, unchecked",
+    "spoken_description": "Mute reminders for Physical, checkbox, unchecked"
+  },
+  {
+    "platform_identifier": "9403000000C6FD27010000000B02000000000000",
+    "estimated_uid": "0B020000-0000-0000-9403-000000000000",
+    "caption": "Mute reminders for Learning, checkbox, unchecked",
+    "spoken_description": "Mute reminders for Learning, checkbox, unchecked"
+  },
+  {
+    "platform_identifier": "9403000030911128010000000C02000000000000",
+    "estimated_uid": "0C020000-0000-0000-9403-000000000000",
+    "caption": "\"Plan tomorrow\" in the evening",
+    "spoken_description": "\"Plan tomorrow\" in the evening"
+  },
+  {
+    "platform_identifier": "94030000006DC427010000000D02000000000000",
+    "estimated_uid": "0D020000-0000-0000-9403-000000000000",
+    "caption": "\"Plan tomorrow\" in the evening, 1, Button, Toggle",
+    "spoken_description": "\"Plan tomorrow\" in the evening, 1, Button, Toggle"
+  },
+  {
+    "platform_identifier": "94030000E0901128010000000E02000000000000",
+    "estimated_uid": "0E020000-0000-0000-9403-000000000000",
+    "caption": "One notification at the time you choose; one tap plans the next day.",
+    "spoken_description": "One notification at the time you choose; one tap plans the next day."
+  },
+  {
+    "platform_identifier": "9403000090901128010000000F02000000000000",
+    "estimated_uid": "0F020000-0000-0000-9403-000000000000",
+    "caption": "Evening time",
+    "spoken_description": "Evening time"
+  },
+  {
+    "platform_identifier": "9403000000C9FD27010000001002000000000000",
+    "estimated_uid": "10020000-0000-0000-9403-000000000000",
+    "caption": "Evening time 19:00, radio button, unchecked",
+    "spoken_description": "Evening time 19:00, radio button, unchecked"
+  },
+  {
+    "platform_identifier": "9403000000CCFD27010000001102000000000000",
+    "estimated_uid": "11020000-0000-0000-9403-000000000000",
+    "caption": "Evening time 20:00, radio button, checked",
+    "spoken_description": "Evening time 20:00, radio button, checked"
+  },
+  {
+    "platform_identifier": "9403000000CFFD27010000001202000000000000",
+    "estimated_uid": "12020000-0000-0000-9403-000000000000",
+    "caption": "Evening time 21:00, radio button, unchecked",
+    "spoken_description": "Evening time 21:00, radio button, unchecked"
+  },
+  {
+    "platform_identifier": "9403000000D2FD27010000001302000000000000",
+    "estimated_uid": "13020000-0000-0000-9403-000000000000",
+    "caption": "Evening time 22:00, radio button, unchecked",
+    "spoken_description": "Evening time 22:00, radio button, unchecked"
+  },
+  {
+    "platform_identifier": "9403000040901128010000001402000000000000",
+    "estimated_uid": "14020000-0000-0000-9403-000000000000",
+    "caption": "Hourwell never sends more than 5 notifications a day.",
+    "spoken_description": "Hourwell never sends more than 5 notifications a day."
+  },
+  {
+    "platform_identifier": "94030000F08F1128010000001502000000000000",
+    "estimated_uid": "15020000-0000-0000-9403-000000000000",
+    "caption": "My data",
+    "spoken_description": "My data"
+  },
+  {
+    "platform_identifier": "94030000A08F1128010000001602000000000000",
+    "estimated_uid": "16020000-0000-0000-9403-000000000000",
+    "caption": "A JSON file with your tasks, plans, events and what Hourwell learned — to keep or share as you like.",
+    "spoken_description": "A JSON file with your tasks, plans, events and what Hourwell learned — to keep or share as you like."
+  },
+  {
+    "platform_identifier": "9403000000D5FD27010000001702000000000000",
+    "estimated_uid": "17020000-0000-0000-9403-000000000000",
+    "caption": "Export my data, Button",
+    "spoken_description": "Export my data, Button"
+  },
+  {
+    "platform_identifier": "94030000508F1128010000001802000000000000",
+    "estimated_uid": "18020000-0000-0000-9403-000000000000",
+    "caption": "Removes your account and everything Hourwell holds about you. This cannot be undone.",
+    "spoken_description": "Removes your account and everything Hourwell holds about you. This cannot be undone."
+  },
+  {
+    "platform_identifier": "9403000000D8FD27010000001902000000000000",
+    "estimated_uid": "19020000-0000-0000-9403-000000000000",
+    "caption": "Delete account and data, Button",
+    "spoken_description": "Delete account and data, Button"
+  },
+  {
+    "platform_identifier": "94030000008F1128010000001A02000000000000",
+    "estimated_uid": "1A020000-0000-0000-9403-000000000000",
+    "caption": "Privacy",
+    "spoken_description": "Privacy"
+  },
+  {
+    "platform_identifier": "94030000B08E1128010000001B02000000000000",
+    "estimated_uid": "1B020000-0000-0000-9403-000000000000",
+    "caption": "Usage analytics",
+    "spoken_description": "Usage analytics"
+  },
+  {
+    "platform_identifier": "94030000004AFE27010000001C02000000000000",
+    "estimated_uid": "1C020000-0000-0000-9403-000000000000",
+    "caption": "Usage analytics, 1, Button, Toggle",
+    "spoken_description": "Usage analytics, 1, Button, Toggle"
+  },
+  {
+    "platform_identifier": "94030000608E1128010000001D02000000000000",
+    "estimated_uid": "1D020000-0000-0000-9403-000000000000",
+    "caption": "Anonymous, categorical events (which screens, which actions) — never your task text. Stops immediately.",
+    "spoken_description": "Anonymous, categorical events (which screens, which actions) — never your task text. Stops immediately."
+  },
+  {
+    "platform_identifier": "94030000108E1128010000001E02000000000000",
+    "estimated_uid": "1E020000-0000-0000-9403-000000000000",
+    "caption": "Crash reports",
+    "spoken_description": "Crash reports"
+  },
+  {
+    "platform_identifier": "940300008056FE27010000001F02000000000000",
+    "estimated_uid": "1F020000-0000-0000-9403-000000000000",
+    "caption": "Crash reports, 1, Button, Toggle",
+    "spoken_description": "Crash reports, 1, Button, Toggle"
+  },
+  {
+    "platform_identifier": "94030000C08D1128010000002002000000000000",
+    "estimated_uid": "20020000-0000-0000-9403-000000000000",
+    "caption": "Stack traces and device details when the app crashes — never your task text. Takes effect at the next launch.",
+    "spoken_description": "Stack traces and device details when the app crashes — never your task text. Takes effect at the next launch."
+  },
+  {
+    "platform_identifier": "94030000708D1128010000002102000000000000",
+    "estimated_uid": "21020000-0000-0000-9403-000000000000",
+    "caption": "On",
+    "spoken_description": "On"
+  },
+  {
+    "platform_identifier": "9403000060891128010000002202000000000000",
+    "estimated_uid": "22020000-0000-0000-9403-000000000000",
+    "caption": "Appearance",
+    "spoken_description": "Appearance"
+  },
+  {
+    "platform_identifier": "9403000000DBFD27010000002302000000000000",
+    "estimated_uid": "23020000-0000-0000-9403-000000000000",
+    "caption": "System, radio button, checked",
+    "spoken_description": "System, radio button, checked"
+  },
+  {
+    "platform_identifier": "9403000000DEFD27010000002402000000000000",
+    "estimated_uid": "24020000-0000-0000-9403-000000000000",
+    "caption": "Light, radio button, unchecked",
+    "spoken_description": "Light, radio button, unchecked"
+  },
+  {
+    "platform_identifier": "9403000000E1FD27010000002502000000000000",
+    "estimated_uid": "25020000-0000-0000-9403-000000000000",
+    "caption": "Dark, radio button, unchecked",
+    "spoken_description": "Dark, radio button, unchecked"
+  }
+]

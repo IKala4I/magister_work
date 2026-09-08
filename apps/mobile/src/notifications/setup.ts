@@ -88,6 +88,9 @@ async function registerChannels(): Promise<void> {
 /** Sign-out / account switch / erasure: nothing pending, nothing remembered (ledger + OS). */
 export async function clearAllNotifications(): Promise<void> {
   resetLedger();
+  // (the account's last-known calendar reading is forgotten by the caller, which knows the
+  // account — this module must not pull the auth/db stack in; the OS permission and the
+  // exact-alarm state are device facts and stay known across accounts)
   try {
     await Notifications.cancelAllScheduledNotificationsAsync();
     await Notifications.dismissAllNotificationsAsync();

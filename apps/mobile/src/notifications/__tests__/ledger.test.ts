@@ -57,6 +57,7 @@ describe('ledger — conservative delivered counting (ADR-0014 §2)', () => {
     );
     const first = settleLedger(new Date(2026, 8, 7, 10, 0), s);
     expect(first.deliveredByDay.get(day)).toBe(1);
+    expect([...first.deliveredIds]).toEqual(['block:a']);
     expect(first.pending.map((p) => p.id)).toEqual(['block:b', 'ritual:2026-09-07']);
     // re-committing the same id later and settling again never double counts
     commitScheduled(

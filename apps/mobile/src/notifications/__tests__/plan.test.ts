@@ -124,7 +124,7 @@ describe('planNotifications — FR-50 hard cap', () => {
       },
     });
     expect(r.schedule).toEqual([]);
-    expect(r.dropped).toEqual({ capped: 0, muted: 1, past: 2, closed: 3 });
+    expect(r.dropped).toEqual({ capped: 0, muted: 1, past: 2, closed: 3, spent: 0 });
     expect(MIN_LEAD_MS).toBe(30_000);
   });
 
@@ -146,7 +146,7 @@ describe('planNotifications — FR-50 hard cap', () => {
     });
     expect(denied).toEqual({
       schedule: [],
-      dropped: { capped: 0, muted: 0, past: 0, closed: 0 },
+      dropped: { capped: 0, muted: 0, past: 0, closed: 0, spent: 0 },
       reason: 'no_permission',
     });
   });
@@ -185,6 +185,34 @@ describe('planNotifications — FR-50 hard cap', () => {
       ['ritual:2026-09-06', 'sunday'],
       ['ritual:2026-09-07', 'daily'],
     ]);
+  });
+
+  it('a ritual that already fired today is spent: moving the evening time later does not re-add it, whatever the budget (iPhone pass 2026-09-08 items 51, 62)', () => {
+    // 16:42 → the ritual fired and was answered; the evening time goes back to 20:00 at 16:48
+    const later = new Date(2026, 8, 7, 16, 48);
+    const recs = [rec(1, 17, 0)];
+    const r = planNotifications({
+      ...base,
+      now: later,
+      recommendations: recs,
+      tasks: tasks(recs),
+      settings: { ...DEFAULT_NOTIFICATION_SETTINGS, evening_ritual_time: '20:00' },
+      deliveredByDay: new Map([[DAY, 4]]),
+      deliveredIds: new Set([`ritual:${DAY}`, 'block:r9']),
+    });
+    expect(r.schedule.map((s) => s.id)).toEqual(['block:r1', 'ritual:2026-09-08']);
+    expect(r.dropped.spent).toBe(1);
+    // the same ledger without the ritual id: the count has room and the ritual comes back —
+    // the pre-fix behaviour, kept only to show what the id rule changes
+    const byCountOnly = planNotifications({
+      ...base,
+      now: later,
+      recommendations: recs,
+      tasks: tasks(recs),
+      settings: { ...DEFAULT_NOTIFICATION_SETTINGS, evening_ritual_time: '20:00' },
+      deliveredByDay: new Map([[DAY, 4]]),
+    });
+    expect(byCountOnly.schedule.map((s) => s.id)).toContain(`ritual:${DAY}`);
   });
 
   it('is deterministic: the same input yields the same schedule', () => {

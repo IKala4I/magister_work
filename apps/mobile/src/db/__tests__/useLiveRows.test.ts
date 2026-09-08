@@ -43,11 +43,11 @@ beforeEach(() => {
 });
 
 describe('useLiveRows', () => {
-  it('reads once on mount and subscribes', async () => {
+  it('reads in the first render, once more after subscribing (the gap between the render read and the listener), and subscribes', async () => {
     const build = jest.fn(() => ({ all: () => [{ id: 'a' }] }));
     const { result } = await renderHook(() => useLiveRows(build, ['tasks']));
     expect(result.current).toEqual([{ id: 'a' }]);
-    expect(build).toHaveBeenCalledTimes(1);
+    expect(build).toHaveBeenCalledTimes(2);
     expect(listeners).toHaveLength(1);
   });
 
@@ -60,18 +60,17 @@ describe('useLiveRows', () => {
     rows = [{ id: 'a' }, { id: 'b' }];
     await emit('tasks');
     expect(result.current).toEqual([{ id: 'a' }, { id: 'b' }]);
-    expect(build).toHaveBeenCalledTimes(2);
+    expect(build).toHaveBeenCalledTimes(3);
   });
 
   it('builds a fresh query per refresh (never re-awaits one prepared statement)', async () => {
-    const alls = [jest.fn(() => []), jest.fn(() => [{ id: 'a' }])];
+    const alls = [jest.fn(() => []), jest.fn(() => []), jest.fn(() => [{ id: 'a' }])];
     let call = 0;
     const build = jest.fn(() => ({ all: alls[call++]! }));
     await renderHook(() => useLiveRows(build, ['tasks']));
     await emit('tasks');
-    expect(build).toHaveBeenCalledTimes(2);
-    expect(alls[0]).toHaveBeenCalledTimes(1);
-    expect(alls[1]).toHaveBeenCalledTimes(1);
+    expect(build).toHaveBeenCalledTimes(3);
+    for (const all of alls) expect(all).toHaveBeenCalledTimes(1);
   });
 
   it('ignores change events for tables it does not watch', async () => {
@@ -79,7 +78,7 @@ describe('useLiveRows', () => {
     await renderHook(() => useLiveRows(build, ['tasks']));
     await emit('op_outbox');
     await emit('events');
-    expect(build).toHaveBeenCalledTimes(1);
+    expect(build).toHaveBeenCalledTimes(2); // the mount's two reads, nothing since
   });
 
   it('refreshes from an empty result set (the failure mode that broke the Inbox)', async () => {
@@ -98,12 +97,12 @@ describe('useLiveRows', () => {
     await unmount();
     expect(mockRemove).toHaveBeenCalledTimes(1);
     await emit('tasks');
-    expect(build).toHaveBeenCalledTimes(1); // mount read only
+    expect(build).toHaveBeenCalledTimes(2); // the mount's two reads only
   });
 });
 
-describe('useLiveRowsState — "not read yet" is distinguishable from "empty" (hardware pass #15)', () => {
-  it('the first render is not ready with no rows; the mount read flips it', async () => {
+describe('useLiveRowsState — the first render carries the rows (hardware pass 2026-09-07 item 44; #15)', () => {
+  it('the first render already holds the rows and is ready — no empty frame before the read', async () => {
     const seen: Array<{ rows: unknown[]; ready: boolean }> = [];
     const build = jest.fn(() => ({ all: () => [{ id: 'a' }] }));
     const { result } = await renderHook(() => {
@@ -111,8 +110,10 @@ describe('useLiveRowsState — "not read yet" is distinguishable from "empty" (h
       seen.push(state);
       return state;
     });
-    expect(seen[0]).toEqual({ rows: [], ready: false });
+    expect(seen[0]).toEqual({ rows: [{ id: 'a' }], ready: true });
     expect(result.current).toEqual({ rows: [{ id: 'a' }], ready: true });
+    // the synchronous render read, then one more once the listener is attached
+    expect(build).toHaveBeenCalledTimes(2);
   });
 
   it('an empty table still reports ready after the read (empty ≠ unread)', async () => {
@@ -137,7 +138,7 @@ describe('useLiveRowsState — "not read yet" is distinguishable from "empty" (h
     expect(listeners).toHaveLength(1);
   });
 
-  it('a deps change drops ready until the re-read for the NEW inputs lands (review F1e)', async () => {
+  it("a deps change re-reads synchronously in the same render — never a frame with the previous inputs' rows (review F1e, item 44)", async () => {
     const seen: Array<{ rows: Array<{ id: string }>; ready: boolean }> = [];
     const readFor = jest.fn((user: string) => ({ all: () => [{ id: `plan-of-${user}` }] }));
     const { result, rerender } = await renderHook(
@@ -151,8 +152,8 @@ describe('useLiveRowsState — "not read yet" is distinguishable from "empty" (h
     expect(result.current).toEqual({ rows: [{ id: 'plan-of-u1' }], ready: true });
     seen.length = 0;
     await rerender({ user: 'u2' });
-    // the render that first sees the new user still holds u1's rows — and says so
-    expect(seen[0]).toEqual({ rows: [{ id: 'plan-of-u1' }], ready: false });
+    // the render that first sees the new user already holds u2's rows
+    expect(seen[0]).toEqual({ rows: [{ id: 'plan-of-u2' }], ready: true });
     expect(result.current).toEqual({ rows: [{ id: 'plan-of-u2' }], ready: true });
     expect(readFor).toHaveBeenLastCalledWith('u2');
     expect(listeners).toHaveLength(1); // the old subscription was removed, one new one
@@ -166,6 +167,6 @@ describe('useLiveRowsState — "not read yet" is distinguishable from "empty" (h
     );
     await rerender({ day: '2026-09-02' });
     expect(result.current).toEqual({ rows: [{ id: 'a' }], ready: true });
-    expect(build).toHaveBeenCalledTimes(1);
+    expect(build).toHaveBeenCalledTimes(2); // the mount's two reads; a same-input re-render reads nothing
   });
 });

@@ -34,6 +34,7 @@ import { markFirstFrame } from '../src/observability/startup';
 import { wireSync } from '../src/sync/engine';
 import { EmptyState, Screen } from '../src/ui/primitives';
 import { useTheme } from '../src/ui/theme';
+import { useWindowDimensions } from 'react-native';
 
 SplashScreen.preventAutoHideAsync().catch(() => {
   // Already hidden (fast reload) — nothing to hold.
@@ -47,6 +48,7 @@ initNotifications(); // P10: handler, channels, categories — local notificatio
 
 function RootLayout() {
   const theme = useTheme();
+  const { fontScale } = useWindowDimensions();
   const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -88,7 +90,13 @@ function RootLayout() {
       <StatusBar style={theme.scheme === 'dark' ? 'light' : 'dark'} />
       <NotificationResponder />
       <DialogHost />
+      {/* iOS re-renders text at a new Dynamic Type size but does not re-lay out the Yoga tree
+          (fixed 1× heights, clipped glyphs, overlapping card text at 200 % — hardware pass
+          2026-09-07 items 22, 23, 36); a fresh mount lays out correctly. Android recreates the
+          activity on a font-scale change, so the key never changes there in practice. The
+          navigation state resets to Today, which is where the user lands after Settings anyway. */}
       <Stack
+        key={`font-scale-${fontScale}`}
         screenOptions={{
           headerStyle: { backgroundColor: theme.colors.surface },
           headerTintColor: theme.colors.textPrimary,

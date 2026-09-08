@@ -120,3 +120,16 @@ Facts that shaped the design (all verified 2026-09-06):
   except the optional cancel weight (order and colour carry the distinction, as decided). A
   confirmed delete after Settings was unmounted underneath (notification-driven navigation) still
   completes and routes; only its failure caption has nowhere to render — expected.
+
+## Amendment (2026-09-08, iPhone pass) — the exit under reduced motion keeps the Modal mounted
+
+On the iPhone 12 with the system Reduce Motion switch on, the second erasure dialog never
+appeared (day-1 notes items 24, 36): with every duration at 0 the hide branch unmounted the
+`Modal` in the same tick, the replacement (step 2, requested after step 1's promise resolved)
+mounted a new one, and UIKit dropped the presentation requested during a dismissal. Android's
+Dialog tolerated the sequence; the simulator smoke never ran reduced motion. Change: the
+reduced-motion exit is still instant visually (progress 0 at once) but the `Modal` stays
+mounted for `DIALOG_EXIT_GRACE_MS` = 120 ms — the length the fast spring gives it with motion
+on — and a request arriving in that window reuses the presentation. `dialog.test.tsx` pins
+"resolve → request in the next tick under reduced motion: one Modal, never an unmount +
+mount". Re-verified on the phone with build 2 (day-2 notes).

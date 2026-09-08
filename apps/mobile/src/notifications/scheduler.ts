@@ -160,6 +160,7 @@ async function pass(now: Date): Promise<void> {
     settings,
     permissionGranted: permission === 'granted',
     deliveredByDay: settled.deliveredByDay,
+    deliveredIds: settled.deliveredIds,
     workingHours: profile.workingHours as WorkingHours,
     sleepWindow: (profile.sleepWindow ?? null) as MinuteRange | null,
   });
@@ -188,6 +189,7 @@ async function pass(now: Date): Promise<void> {
     capped: plan.dropped.capped,
     muted: plan.dropped.muted,
     past: plan.dropped.past,
+    spent: plan.dropped.spent,
     reason: plan.reason,
     exact: exactAlarmState(),
   });

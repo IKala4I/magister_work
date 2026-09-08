@@ -75,6 +75,16 @@ export const DIALOG_ENTER_SCALE = 0.96;
 export const DIALOG_FOCUS_DELAY_MS = 100;
 /** A destructive confirm ignores presses this long after its request appears. */
 export const DIALOG_ARM_DELAY_MS = 400;
+/**
+ * Under reduced motion the exit is instant (progress 0 at once) but the Modal stays MOUNTED this
+ * long before it is torn down — the length the fast spring gives it with motion on. A request
+ * that replaces the closing one inside this window (the erasure's step 2 after step 1's
+ * "Continue") reuses the same presentation. Without the grace, iOS was asked to present a new
+ * Modal while still dismissing the old one and dropped the request: on the iPhone 12 with the
+ * system Reduce Motion switch on, the second erasure dialog never appeared (hardware pass
+ * 2026-09-07 items 24, 36 — MAJOR). Android's Dialog tolerated the sequence.
+ */
+export const DIALOG_EXIT_GRACE_MS = 120;
 
 const ESCAPE_ACTIONS = [{ name: 'escape' }];
 
@@ -103,12 +113,25 @@ export function DialogHost() {
   const titleRef = useRef<View>(null);
   const focusedId = useRef<number | null>(null);
   const armedAt = useRef<number>(0);
+  const exitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (exitTimer.current !== null) clearTimeout(exitTimer.current);
+    },
+    [],
+  );
 
   const animateTo = useCallback(
     (target: 0 | 1, spring: SpringSpec, onDone?: () => void) => {
       if (spring.duration <= 0) {
         progress.value = target;
-        onDone?.();
+        if (onDone === undefined) return;
+        // instant, but not torn down at once: see DIALOG_EXIT_GRACE_MS
+        if (exitTimer.current !== null) clearTimeout(exitTimer.current);
+        exitTimer.current = setTimeout(() => {
+          exitTimer.current = null;
+          onDone();
+        }, DIALOG_EXIT_GRACE_MS);
         return;
       }
       progress.value = withSpring(target, spring, (finished) => {

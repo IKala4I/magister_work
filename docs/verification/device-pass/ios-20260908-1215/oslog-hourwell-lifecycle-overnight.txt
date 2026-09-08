@@ -1,0 +1,12 @@
+Timestamp               Ty Process[PID:TID]
+2026-09-07 17:32:23.043 Df kernel[0:330] [com.apple.xnu:memorystatus] memorystatus: freezing (general) pid 751 [Hourwell] done, memorystatus_freeze_budget_pages_remaining 58882 froze 1641 pages
+2026-09-08 12:00:41.430 Df kernel[0:19007] [com.apple.xnu:memorystatus] memorystatus: resuming/thawing pid 751 [Hourwell]
+2026-09-08 12:00:42.464 Df kernel[0:19696] [com.apple.xnu:memorystatus] memorystatus: resuming/thawing pid 751 [Hourwell]
+2026-09-08 12:00:46.018 Df kernel[0:18daf] [com.apple.xnu:memorystatus] memorystatus: resuming/thawing pid 751 [Hourwell]
+2026-09-08 12:00:46.453 Df kernel[0:18daf] [com.apple.xnu:memorystatus] memorystatus: resuming/thawing pid 751 [Hourwell]
+2026-09-08 12:01:16.391 Df kernel[0:19694] [com.apple.xnu:memorystatus] memorystatus: resuming/thawing pid 751 [Hourwell]
+2026-09-08 12:05:50.541 Df kernel[0:330] [com.apple.xnu:memorystatus] memorystatus: too soon to refreeze pid 751 [Hourwell], in memorystatus_freeze_pick_refreeze_process
+2026-09-08 12:10:50.571 Df kernel[0:330] [com.apple.xnu:memorystatus] memorystatus: too soon to refreeze pid 751 [Hourwell], in memorystatus_freeze_pick_refreeze_process
+2026-09-08 12:15:38.274 Df kernel[0:1b881] [com.apple.xnu:memorystatus] memorystatus: resuming/thawing pid 751 [Hourwell]
+2026-09-08 12:15:46.843 Df kernel[0:1b956] [com.apple.xnu:memorystatus] memorystatus: resuming/thawing pid 751 [Hourwell]
+2026-09-08 12:15:50.624 Df kernel[0:330] [com.apple.xnu:memorystatus] memorystatus: too soon to refreeze pid 751 [Hourwell], in memorystatus_freeze_pick_refreeze_process

@@ -145,6 +145,8 @@ export type AnalyticsEvents = {
     capped: number;
     muted: number;
     past: number;
+    /** A ritual whose id already fired today (one per calendar day, ADR-0014 addendum). */
+    spent?: number;
     reason: 'ok' | 'no_permission';
     /** FR-50 on Android 12+: whether the OS delivers the schedule exactly (build 6). */
     exact: 'allowed' | 'denied' | 'not_applicable' | 'unavailable';

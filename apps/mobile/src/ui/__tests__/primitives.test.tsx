@@ -7,7 +7,7 @@ jest.mock('../useReduceTransparency', () => ({
   useReduceTransparency: jest.fn(() => false),
 }));
 
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import type { ReactElement } from 'react';
 
@@ -136,6 +136,27 @@ describe('ConfidenceBlock (confidence = solidity, FR-22)', () => {
     expect(
       screen.getByLabelText('Deep work, 9:00 to 10:30, Experiment, Confidence 82 percent'),
     ).toBeTruthy();
+  });
+
+  it('speaks the state after the confidence and offers the action row as custom actions — the labelled container is a leaf for screen readers (hardware pass 2026-09-07 item 35, 2026-09-08 item 58)', async () => {
+    const onAction = jest.fn();
+    await renderWithSafeArea(
+      <ConfidenceBlock
+        confidence={0.52}
+        contentLabel="b6 task 05 admin, 09:00 to 09:30"
+        stateLabel={en['block.status.lapsed']}
+        accessibilityActions={[{ name: 'did_it', label: en['block.action.didIt'] }]}
+        onAccessibilityAction={onAction}
+      >
+        <ThemedText>{en['block.status.lapsed']}</ThemedText>
+      </ConfidenceBlock>,
+    );
+    const card = screen.getByLabelText(
+      'b6 task 05 admin, 09:00 to 09:30, Confidence 52 percent, Not done — back in your Inbox',
+    );
+    expect(card.props.accessibilityActions).toEqual([{ name: 'did_it', label: 'I did it' }]);
+    await fireEvent(card, 'accessibilityAction', { nativeEvent: { actionName: 'did_it' } });
+    expect(onAction).toHaveBeenCalledWith('did_it');
   });
 
   it('announces confidence alone when no content label is given', async () => {

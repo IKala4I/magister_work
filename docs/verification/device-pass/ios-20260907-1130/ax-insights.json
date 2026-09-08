@@ -1,0 +1,602 @@
+[
+  {
+    "platform_identifier": "94030000E0BD7C26010000009700000000000000",
+    "estimated_uid": "97000000-0000-0000-9403-000000000000",
+    "caption": "Insights",
+    "spoken_description": "Insights"
+  },
+  {
+    "platform_identifier": "9403000000957627010000009800000000000000",
+    "estimated_uid": "98000000-0000-0000-9403-000000000000",
+    "caption": "Open settings, Button",
+    "spoken_description": "Open settings, Button"
+  },
+  {
+    "platform_identifier": "9403000000893327010000009900000000000000",
+    "estimated_uid": "99000000-0000-0000-9403-000000000000",
+    "caption": "Refresh, Button",
+    "spoken_description": "Refresh, Button"
+  },
+  {
+    "platform_identifier": "94030000E046C627010000009A00000000000000",
+    "estimated_uid": "9A000000-0000-0000-9403-000000000000",
+    "caption": "Insights",
+    "spoken_description": "Insights"
+  },
+  {
+    "platform_identifier": "940300009046C627010000009B00000000000000",
+    "estimated_uid": "9B000000-0000-0000-9403-000000000000",
+    "caption": "As of just now",
+    "spoken_description": "As of just now"
+  },
+  {
+    "platform_identifier": "940300004046C627010000009C00000000000000",
+    "estimated_uid": "9C000000-0000-0000-9403-000000000000",
+    "caption": "Learning mode",
+    "spoken_description": "Learning mode"
+  },
+  {
+    "platform_identifier": "94030000F045C627010000009D00000000000000",
+    "estimated_uid": "9D000000-0000-0000-9403-000000000000",
+    "caption": "These hours come mostly from people with a similar chronotype. Every finished block makes them yours.",
+    "spoken_description": "These hours come mostly from people with a similar chronotype. Every finished block makes them yours."
+  },
+  {
+    "platform_identifier": "94030000A045C627010000009E00000000000000",
+    "estimated_uid": "9E000000-0000-0000-9403-000000000000",
+    "caption": "Your survey placed you as a definite morning type; that is where the starting hours came from.",
+    "spoken_description": "Your survey placed you as a definite morning type; that is where the starting hours came from."
+  },
+  {
+    "platform_identifier": "940300005045C627010000009F00000000000000",
+    "estimated_uid": "9F000000-0000-0000-9403-000000000000",
+    "caption": "Your energy map",
+    "spoken_description": "Your energy map"
+  },
+  {
+    "platform_identifier": "940300000045C62701000000A000000000000000",
+    "estimated_uid": "A0000000-0000-0000-9403-000000000000",
+    "caption": "Chance of finishing Deep work on time, by hour and weekday",
+    "spoken_description": "Chance of finishing Deep work on time, by hour and weekday"
+  },
+  {
+    "platform_identifier": "94030000008F332701000000A100000000000000",
+    "estimated_uid": "A1000000-0000-0000-9403-000000000000",
+    "caption": "Show Deep work, Selected",
+    "spoken_description": "Show Deep work, Selected"
+  },
+  {
+    "platform_identifier": "940300000092332701000000A200000000000000",
+    "estimated_uid": "A2000000-0000-0000-9403-000000000000",
+    "caption": "Show Admin",
+    "spoken_description": "Show Admin"
+  },
+  {
+    "platform_identifier": "940300000095332701000000A300000000000000",
+    "estimated_uid": "A3000000-0000-0000-9403-000000000000",
+    "caption": "Show Physical",
+    "spoken_description": "Show Physical"
+  },
+  {
+    "platform_identifier": "940300000098332701000000A400000000000000",
+    "estimated_uid": "A4000000-0000-0000-9403-000000000000",
+    "caption": "Show Learning",
+    "spoken_description": "Show Learning"
+  },
+  {
+    "platform_identifier": "94030000009B332701000000A500000000000000",
+    "estimated_uid": "A5000000-0000-0000-9403-000000000000",
+    "caption": "Energy map for Deep work. On weekdays your best time is early morning (89 percent) and your lowest is night (30 percent). On weekends your best time is early morning (67 percent) and your lowest is night (43 percent). Switch to the text view for every hour., Image",
+    "spoken_description": "Energy map for Deep work. On weekdays your best time is early morning (89 percent) and your lowest is night (30 percent). On weekends your best time is early morning (67 percent) and your lowest is night (43 percent). Switch to the text view for every hour., Image"
+  },
+  {
+    "platform_identifier": "94030000B044C62701000000A600000000000000",
+    "estimated_uid": "A6000000-0000-0000-9403-000000000000",
+    "caption": "lower",
+    "spoken_description": "lower"
+  },
+  {
+    "platform_identifier": "940300006044C62701000000A700000000000000",
+    "estimated_uid": "A7000000-0000-0000-9403-000000000000",
+    "caption": "higher",
+    "spoken_description": "higher"
+  },
+  {
+    "platform_identifier": "940300001044C62701000000A800000000000000",
+    "estimated_uid": "A8000000-0000-0000-9403-000000000000",
+    "caption": "Solid cells have more evidence; faint cells are still mostly assumed.",
+    "spoken_description": "Solid cells have more evidence; faint cells are still mostly assumed."
+  },
+  {
+    "platform_identifier": "94030000C043C62701000000A900000000000000",
+    "estimated_uid": "A9000000-0000-0000-9403-000000000000",
+    "caption": "The model learns by daypart and weekday-vs-weekend, so neighbouring hours share a colour.",
+    "spoken_description": "The model learns by daypart and weekday-vs-weekend, so neighbouring hours share a colour."
+  },
+  {
+    "platform_identifier": "9403000000AD332701000000AA00000000000000",
+    "estimated_uid": "AA000000-0000-0000-9403-000000000000",
+    "caption": "Show as text, Button",
+    "spoken_description": "Show as text, Button"
+  },
+  {
+    "platform_identifier": "940300007043C62701000000AB00000000000000",
+    "estimated_uid": "AB000000-0000-0000-9403-000000000000",
+    "caption": "What Hourwell believes about you",
+    "spoken_description": "What Hourwell believes about you"
+  },
+  {
+    "platform_identifier": "940300002043C62701000000AC00000000000000",
+    "estimated_uid": "AC000000-0000-0000-9403-000000000000",
+    "caption": "Tap ✓ if a belief is right, ✗ if it is wrong. Corrections count a lot.",
+    "spoken_description": "Tap ✓ if a belief is right, ✗ if it is wrong. Corrections count a lot."
+  },
+  {
+    "platform_identifier": "94030000D042C62701000000AD00000000000000",
+    "estimated_uid": "AD000000-0000-0000-9403-000000000000",
+    "caption": "You finish deep work most reliably in the early morning on weekdays. 4 finished blocks of evidence. You confirmed this.",
+    "spoken_description": "You finish deep work most reliably in the early morning on weekdays. 4 finished blocks of evidence. You confirmed this."
+  },
+  {
+    "platform_identifier": "940300008042C62701000000AE00000000000000",
+    "estimated_uid": "AE000000-0000-0000-9403-000000000000",
+    "caption": "+57% vs. your other hours",
+    "spoken_description": "+57% vs. your other hours"
+  },
+  {
+    "platform_identifier": "940300003042C62701000000AF00000000000000",
+    "estimated_uid": "AF000000-0000-0000-9403-000000000000",
+    "caption": "4 finished blocks of evidence",
+    "spoken_description": "4 finished blocks of evidence"
+  },
+  {
+    "platform_identifier": "940300000036602701000000B000000000000000",
+    "estimated_uid": "B0000000-0000-0000-9403-000000000000",
+    "caption": "Mark \"You finish deep work most reliably in the early morning on weekdays.\" as correct, Button, Selected",
+    "spoken_description": "Mark \"You finish deep work most reliably in the early morning on weekdays.\" as correct, Button, Selected"
+  },
+  {
+    "platform_identifier": "940300000039602701000000B100000000000000",
+    "estimated_uid": "B1000000-0000-0000-9403-000000000000",
+    "caption": "Mark \"You finish deep work most reliably in the early morning on weekdays.\" as incorrect, Button",
+    "spoken_description": "Mark \"You finish deep work most reliably in the early morning on weekdays.\" as incorrect, Button"
+  },
+  {
+    "platform_identifier": "94030000E041C62701000000B200000000000000",
+    "estimated_uid": "B2000000-0000-0000-9403-000000000000",
+    "caption": "You confirmed this.",
+    "spoken_description": "You confirmed this."
+  },
+  {
+    "platform_identifier": "940300009041C62701000000B300000000000000",
+    "estimated_uid": "B3000000-0000-0000-9403-000000000000",
+    "caption": "People like you finish learning most reliably in the early morning on weekdays. assumed, not yet observed. ",
+    "spoken_description": "People like you finish learning most reliably in the early morning on weekdays. assumed, not yet observed. "
+  },
+  {
+    "platform_identifier": "940300004041C62701000000B400000000000000",
+    "estimated_uid": "B4000000-0000-0000-9403-000000000000",
+    "caption": "+39% vs. your other hours",
+    "spoken_description": "+39% vs. your other hours"
+  },
+  {
+    "platform_identifier": "94030000F040C62701000000B500000000000000",
+    "estimated_uid": "B5000000-0000-0000-9403-000000000000",
+    "caption": "assumed, not yet observed",
+    "spoken_description": "assumed, not yet observed"
+  },
+  {
+    "platform_identifier": "94030000003C602701000000B600000000000000",
+    "estimated_uid": "B6000000-0000-0000-9403-000000000000",
+    "caption": "Mark \"People like you finish learning most reliably in the early morning on weekdays.\" as correct, Button",
+    "spoken_description": "Mark \"People like you finish learning most reliably in the early morning on weekdays.\" as correct, Button"
+  },
+  {
+    "platform_identifier": "9403000000806E2701000000B700000000000000",
+    "estimated_uid": "B7000000-0000-0000-9403-000000000000",
+    "caption": "Mark \"People like you finish learning most reliably in the early morning on weekdays.\" as incorrect, Button",
+    "spoken_description": "Mark \"People like you finish learning most reliably in the early morning on weekdays.\" as incorrect, Button"
+  },
+  {
+    "platform_identifier": "94030000A040C62701000000B800000000000000",
+    "estimated_uid": "B8000000-0000-0000-9403-000000000000",
+    "caption": "People like you finish admin most reliably in the early morning on weekdays. assumed, not yet observed. ",
+    "spoken_description": "People like you finish admin most reliably in the early morning on weekdays. assumed, not yet observed. "
+  },
+  {
+    "platform_identifier": "940300005040C62701000000B900000000000000",
+    "estimated_uid": "B9000000-0000-0000-9403-000000000000",
+    "caption": "+21% vs. your other hours",
+    "spoken_description": "+21% vs. your other hours"
+  },
+  {
+    "platform_identifier": "940300000040C62701000000BA00000000000000",
+    "estimated_uid": "BA000000-0000-0000-9403-000000000000",
+    "caption": "assumed, not yet observed",
+    "spoken_description": "assumed, not yet observed"
+  },
+  {
+    "platform_identifier": "9403000000836E2701000000BB00000000000000",
+    "estimated_uid": "BB000000-0000-0000-9403-000000000000",
+    "caption": "Mark \"People like you finish admin most reliably in the early morning on weekdays.\" as correct, Button",
+    "spoken_description": "Mark \"People like you finish admin most reliably in the early morning on weekdays.\" as correct, Button"
+  },
+  {
+    "platform_identifier": "9403000000866E2701000000BC00000000000000",
+    "estimated_uid": "BC000000-0000-0000-9403-000000000000",
+    "caption": "Mark \"People like you finish admin most reliably in the early morning on weekdays.\" as incorrect, Button",
+    "spoken_description": "Mark \"People like you finish admin most reliably in the early morning on weekdays.\" as incorrect, Button"
+  },
+  {
+    "platform_identifier": "94030000E04BFA2601000000BD00000000000000",
+    "estimated_uid": "BD000000-0000-0000-9403-000000000000",
+    "caption": "People like you finish physical most reliably in the early morning on weekdays. assumed, not yet observed. ",
+    "spoken_description": "People like you finish physical most reliably in the early morning on weekdays. assumed, not yet observed. "
+  },
+  {
+    "platform_identifier": "940300001062FA2601000000BE00000000000000",
+    "estimated_uid": "BE000000-0000-0000-9403-000000000000",
+    "caption": "+22% vs. your other hours",
+    "spoken_description": "+22% vs. your other hours"
+  },
+  {
+    "platform_identifier": "94030000E041FA2601000000BF00000000000000",
+    "estimated_uid": "BF000000-0000-0000-9403-000000000000",
+    "caption": "assumed, not yet observed",
+    "spoken_description": "assumed, not yet observed"
+  },
+  {
+    "platform_identifier": "9403000000896E2701000000C000000000000000",
+    "estimated_uid": "C0000000-0000-0000-9403-000000000000",
+    "caption": "Mark \"People like you finish physical most reliably in the early morning on weekdays.\" as correct, Button",
+    "spoken_description": "Mark \"People like you finish physical most reliably in the early morning on weekdays.\" as correct, Button"
+  },
+  {
+    "platform_identifier": "94030000008C6E2701000000C100000000000000",
+    "estimated_uid": "C1000000-0000-0000-9403-000000000000",
+    "caption": "Mark \"People like you finish physical most reliably in the early morning on weekdays.\" as incorrect, Button",
+    "spoken_description": "Mark \"People like you finish physical most reliably in the early morning on weekdays.\" as incorrect, Button"
+  },
+  {
+    "platform_identifier": "940300001058FA2601000000C200000000000000",
+    "estimated_uid": "C2000000-0000-0000-9403-000000000000",
+    "caption": "People like you finish deep work most reliably in the early morning on weekends. assumed, not yet observed. ",
+    "spoken_description": "People like you finish deep work most reliably in the early morning on weekends. assumed, not yet observed. "
+  },
+  {
+    "platform_identifier": "94030000905FFA2601000000C300000000000000",
+    "estimated_uid": "C3000000-0000-0000-9403-000000000000",
+    "caption": "+21% vs. your other hours",
+    "spoken_description": "+21% vs. your other hours"
+  },
+  {
+    "platform_identifier": "940300008060FA2601000000C400000000000000",
+    "estimated_uid": "C4000000-0000-0000-9403-000000000000",
+    "caption": "assumed, not yet observed",
+    "spoken_description": "assumed, not yet observed"
+  },
+  {
+    "platform_identifier": "94030000008F6E2701000000C500000000000000",
+    "estimated_uid": "C5000000-0000-0000-9403-000000000000",
+    "caption": "Mark \"People like you finish deep work most reliably in the early morning on weekends.\" as correct, Button",
+    "spoken_description": "Mark \"People like you finish deep work most reliably in the early morning on weekends.\" as correct, Button"
+  },
+  {
+    "platform_identifier": "9403000000926E2701000000C600000000000000",
+    "estimated_uid": "C6000000-0000-0000-9403-000000000000",
+    "caption": "Mark \"People like you finish deep work most reliably in the early morning on weekends.\" as incorrect, Button",
+    "spoken_description": "Mark \"People like you finish deep work most reliably in the early morning on weekends.\" as incorrect, Button"
+  },
+  {
+    "platform_identifier": "94030000305BFA2601000000C700000000000000",
+    "estimated_uid": "C7000000-0000-0000-9403-000000000000",
+    "caption": "People like you finish learning most reliably in the early morning on weekends. assumed, not yet observed. ",
+    "spoken_description": "People like you finish learning most reliably in the early morning on weekends. assumed, not yet observed. "
+  },
+  {
+    "platform_identifier": "94030000D07EFA2601000000C800000000000000",
+    "estimated_uid": "C8000000-0000-0000-9403-000000000000",
+    "caption": "+19% vs. your other hours",
+    "spoken_description": "+19% vs. your other hours"
+  },
+  {
+    "platform_identifier": "94030000E07DFA2601000000C900000000000000",
+    "estimated_uid": "C9000000-0000-0000-9403-000000000000",
+    "caption": "assumed, not yet observed",
+    "spoken_description": "assumed, not yet observed"
+  },
+  {
+    "platform_identifier": "9403000000956E2701000000CA00000000000000",
+    "estimated_uid": "CA000000-0000-0000-9403-000000000000",
+    "caption": "Mark \"People like you finish learning most reliably in the early morning on weekends.\" as correct, Button",
+    "spoken_description": "Mark \"People like you finish learning most reliably in the early morning on weekends.\" as correct, Button"
+  },
+  {
+    "platform_identifier": "9403000000986E2701000000CB00000000000000",
+    "estimated_uid": "CB000000-0000-0000-9403-000000000000",
+    "caption": "Mark \"People like you finish learning most reliably in the early morning on weekends.\" as incorrect, Button",
+    "spoken_description": "Mark \"People like you finish learning most reliably in the early morning on weekends.\" as incorrect, Button"
+  },
+  {
+    "platform_identifier": "94030000707FFA2601000000CC00000000000000",
+    "estimated_uid": "CC000000-0000-0000-9403-000000000000",
+    "caption": "No strong preference yet for admin on weekends — the early morning leads slightly. assumed, not yet observed. ",
+    "spoken_description": "No strong preference yet for admin on weekends — the early morning leads slightly. assumed, not yet observed. "
+  },
+  {
+    "platform_identifier": "940300006053FA2601000000CD00000000000000",
+    "estimated_uid": "CD000000-0000-0000-9403-000000000000",
+    "caption": "assumed, not yet observed",
+    "spoken_description": "assumed, not yet observed"
+  },
+  {
+    "platform_identifier": "94030000009B6E2701000000CE00000000000000",
+    "estimated_uid": "CE000000-0000-0000-9403-000000000000",
+    "caption": "Mark \"No strong preference yet for admin on weekends — the early morning leads slightly.\" as correct, Button",
+    "spoken_description": "Mark \"No strong preference yet for admin on weekends — the early morning leads slightly.\" as correct, Button"
+  },
+  {
+    "platform_identifier": "94030000009E6E2701000000CF00000000000000",
+    "estimated_uid": "CF000000-0000-0000-9403-000000000000",
+    "caption": "Mark \"No strong preference yet for admin on weekends — the early morning leads slightly.\" as incorrect, Button",
+    "spoken_description": "Mark \"No strong preference yet for admin on weekends — the early morning leads slightly.\" as incorrect, Button"
+  },
+  {
+    "platform_identifier": "94030000F054FA2601000000D000000000000000",
+    "estimated_uid": "D0000000-0000-0000-9403-000000000000",
+    "caption": "No strong preference yet for physical on weekends — the early morning leads slightly. assumed, not yet observed. ",
+    "spoken_description": "No strong preference yet for physical on weekends — the early morning leads slightly. assumed, not yet observed. "
+  },
+  {
+    "platform_identifier": "94030000807EFA2601000000D100000000000000",
+    "estimated_uid": "D1000000-0000-0000-9403-000000000000",
+    "caption": "assumed, not yet observed",
+    "spoken_description": "assumed, not yet observed"
+  },
+  {
+    "platform_identifier": "9403000000A16E2701000000D200000000000000",
+    "estimated_uid": "D2000000-0000-0000-9403-000000000000",
+    "caption": "Mark \"No strong preference yet for physical on weekends — the early morning leads slightly.\" as correct, Button",
+    "spoken_description": "Mark \"No strong preference yet for physical on weekends — the early morning leads slightly.\" as correct, Button"
+  },
+  {
+    "platform_identifier": "9403000000A46E2701000000D300000000000000",
+    "estimated_uid": "D3000000-0000-0000-9403-000000000000",
+    "caption": "Mark \"No strong preference yet for physical on weekends — the early morning leads slightly.\" as incorrect, Button",
+    "spoken_description": "Mark \"No strong preference yet for physical on weekends — the early morning leads slightly.\" as incorrect, Button"
+  },
+  {
+    "platform_identifier": "94030000205CFA2601000000D400000000000000",
+    "estimated_uid": "D4000000-0000-0000-9403-000000000000",
+    "caption": "Weekly review",
+    "spoken_description": "Weekly review"
+  },
+  {
+    "platform_identifier": "940300000045FA2601000000D500000000000000",
+    "estimated_uid": "D5000000-0000-0000-9403-000000000000",
+    "caption": "How the plan held up, and what Hourwell learned.",
+    "spoken_description": "How the plan held up, and what Hourwell learned."
+  },
+  {
+    "platform_identifier": "94030000907DFA2601000000D600000000000000",
+    "estimated_uid": "D6000000-0000-0000-9403-000000000000",
+    "caption": "Plan adherence",
+    "spoken_description": "Plan adherence"
+  },
+  {
+    "platform_identifier": "94030000D03E5B2501000000D700000000000000",
+    "estimated_uid": "D7000000-0000-0000-9403-000000000000",
+    "caption": "Blocks you started within 15 minutes of the plan and mostly finished.",
+    "spoken_description": "Blocks you started within 15 minutes of the plan and mostly finished."
+  },
+  {
+    "platform_identifier": "9403000000895C2701000000D800000000000000",
+    "estimated_uid": "D8000000-0000-0000-9403-000000000000",
+    "caption": "Week 2026-W37: 50 percent adherence over 2 blocks",
+    "spoken_description": "Week 2026-W37: 50 percent adherence over 2 blocks"
+  },
+  {
+    "platform_identifier": "94030000303E5B2501000000D900000000000000",
+    "estimated_uid": "D9000000-0000-0000-9403-000000000000",
+    "caption": "This week Hourwell believes",
+    "spoken_description": "This week Hourwell believes"
+  },
+  {
+    "platform_identifier": "9403000090735B2401000000DA00000000000000",
+    "estimated_uid": "DA000000-0000-0000-9403-000000000000",
+    "caption": "You finish deep work most reliably in the early morning on weekdays. 4 finished blocks of evidence. You confirmed this.",
+    "spoken_description": "You finish deep work most reliably in the early morning on weekdays. 4 finished blocks of evidence. You confirmed this."
+  },
+  {
+    "platform_identifier": "94030000207A5B2401000000DB00000000000000",
+    "estimated_uid": "DB000000-0000-0000-9403-000000000000",
+    "caption": "+57% vs. your other hours",
+    "spoken_description": "+57% vs. your other hours"
+  },
+  {
+    "platform_identifier": "94030000B0675B2401000000DC00000000000000",
+    "estimated_uid": "DC000000-0000-0000-9403-000000000000",
+    "caption": "4 finished blocks of evidence",
+    "spoken_description": "4 finished blocks of evidence"
+  },
+  {
+    "platform_identifier": "9403000000AD6E2701000000DD00000000000000",
+    "estimated_uid": "DD000000-0000-0000-9403-000000000000",
+    "caption": "Mark \"You finish deep work most reliably in the early morning on weekdays.\" as correct, Button, Selected",
+    "spoken_description": "Mark \"You finish deep work most reliably in the early morning on weekdays.\" as correct, Button, Selected"
+  },
+  {
+    "platform_identifier": "9403000000B06E2701000000DE00000000000000",
+    "estimated_uid": "DE000000-0000-0000-9403-000000000000",
+    "caption": "Mark \"You finish deep work most reliably in the early morning on weekdays.\" as incorrect, Button",
+    "spoken_description": "Mark \"You finish deep work most reliably in the early morning on weekdays.\" as incorrect, Button"
+  },
+  {
+    "platform_identifier": "94030000307E5B2401000000DF00000000000000",
+    "estimated_uid": "DF000000-0000-0000-9403-000000000000",
+    "caption": "You confirmed this.",
+    "spoken_description": "You confirmed this."
+  },
+  {
+    "platform_identifier": "9403000050807C2601000000E000000000000000",
+    "estimated_uid": "E0000000-0000-0000-9403-000000000000",
+    "caption": "People like you finish learning most reliably in the early morning on weekdays. assumed, not yet observed. ",
+    "spoken_description": "People like you finish learning most reliably in the early morning on weekdays. assumed, not yet observed. "
+  },
+  {
+    "platform_identifier": "9403000080BE7C2601000000E100000000000000",
+    "estimated_uid": "E1000000-0000-0000-9403-000000000000",
+    "caption": "+39% vs. your other hours",
+    "spoken_description": "+39% vs. your other hours"
+  },
+  {
+    "platform_identifier": "94030000008F7C2601000000E200000000000000",
+    "estimated_uid": "E2000000-0000-0000-9403-000000000000",
+    "caption": "assumed, not yet observed",
+    "spoken_description": "assumed, not yet observed"
+  },
+  {
+    "platform_identifier": "9403000000B36E2701000000E300000000000000",
+    "estimated_uid": "E3000000-0000-0000-9403-000000000000",
+    "caption": "Mark \"People like you finish learning most reliably in the early morning on weekdays.\" as correct, Button",
+    "spoken_description": "Mark \"People like you finish learning most reliably in the early morning on weekdays.\" as correct, Button"
+  },
+  {
+    "platform_identifier": "9403000000B66E2701000000E400000000000000",
+    "estimated_uid": "E4000000-0000-0000-9403-000000000000",
+    "caption": "Mark \"People like you finish learning most reliably in the early morning on weekdays.\" as incorrect, Button",
+    "spoken_description": "Mark \"People like you finish learning most reliably in the early morning on weekdays.\" as incorrect, Button"
+  },
+  {
+    "platform_identifier": "9403000090BD7C2601000000E500000000000000",
+    "estimated_uid": "E5000000-0000-0000-9403-000000000000",
+    "caption": "People like you finish admin most reliably in the early morning on weekdays. assumed, not yet observed. ",
+    "spoken_description": "People like you finish admin most reliably in the early morning on weekdays. assumed, not yet observed. "
+  },
+  {
+    "platform_identifier": "9403000050857C2601000000E600000000000000",
+    "estimated_uid": "E6000000-0000-0000-9403-000000000000",
+    "caption": "+21% vs. your other hours",
+    "spoken_description": "+21% vs. your other hours"
+  },
+  {
+    "platform_identifier": "9403000020BF7C2601000000E700000000000000",
+    "estimated_uid": "E7000000-0000-0000-9403-000000000000",
+    "caption": "assumed, not yet observed",
+    "spoken_description": "assumed, not yet observed"
+  },
+  {
+    "platform_identifier": "9403000000B96E2701000000E800000000000000",
+    "estimated_uid": "E8000000-0000-0000-9403-000000000000",
+    "caption": "Mark \"People like you finish admin most reliably in the early morning on weekdays.\" as correct, Button",
+    "spoken_description": "Mark \"People like you finish admin most reliably in the early morning on weekdays.\" as correct, Button"
+  },
+  {
+    "platform_identifier": "9403000000BC6E2701000000E900000000000000",
+    "estimated_uid": "E9000000-0000-0000-9403-000000000000",
+    "caption": "Mark \"People like you finish admin most reliably in the early morning on weekdays.\" as incorrect, Button",
+    "spoken_description": "Mark \"People like you finish admin most reliably in the early morning on weekdays.\" as incorrect, Button"
+  },
+  {
+    "platform_identifier": "9403000070BF7C2601000000EA00000000000000",
+    "estimated_uid": "EA000000-0000-0000-9403-000000000000",
+    "caption": "Tell Hourwell",
+    "spoken_description": "Tell Hourwell"
+  },
+  {
+    "platform_identifier": "9403000000955C2701000000EB00000000000000",
+    "estimated_uid": "EB000000-0000-0000-9403-000000000000",
+    "caption": "Deep work, Selected",
+    "spoken_description": "Deep work, Selected"
+  },
+  {
+    "platform_identifier": "9403000000985C2701000000EC00000000000000",
+    "estimated_uid": "EC000000-0000-0000-9403-000000000000",
+    "caption": "Admin",
+    "spoken_description": "Admin"
+  },
+  {
+    "platform_identifier": "94030000009B5C2701000000ED00000000000000",
+    "estimated_uid": "ED000000-0000-0000-9403-000000000000",
+    "caption": "Physical",
+    "spoken_description": "Physical"
+  },
+  {
+    "platform_identifier": "94030000009E5C2701000000EE00000000000000",
+    "estimated_uid": "EE000000-0000-0000-9403-000000000000",
+    "caption": "Learning",
+    "spoken_description": "Learning"
+  },
+  {
+    "platform_identifier": "94030000D0BE7C2601000000EF00000000000000",
+    "estimated_uid": "EF000000-0000-0000-9403-000000000000",
+    "caption": "When do you actually do deep work best on weekdays?",
+    "spoken_description": "When do you actually do deep work best on weekdays?"
+  },
+  {
+    "platform_identifier": "9403000000A15C2701000000F000000000000000",
+    "estimated_uid": "F0000000-0000-0000-9403-000000000000",
+    "caption": "My best time for deep work is the early morning, Button",
+    "spoken_description": "My best time for deep work is the early morning, Button"
+  },
+  {
+    "platform_identifier": "9403000000A45C2701000000F100000000000000",
+    "estimated_uid": "F1000000-0000-0000-9403-000000000000",
+    "caption": "My best time for deep work is the morning, Button",
+    "spoken_description": "My best time for deep work is the morning, Button"
+  },
+  {
+    "platform_identifier": "9403000000A75C2701000000F200000000000000",
+    "estimated_uid": "F2000000-0000-0000-9403-000000000000",
+    "caption": "My best time for deep work is the midday, Button",
+    "spoken_description": "My best time for deep work is the midday, Button"
+  },
+  {
+    "platform_identifier": "9403000000AA5C2701000000F300000000000000",
+    "estimated_uid": "F3000000-0000-0000-9403-000000000000",
+    "caption": "My best time for deep work is the afternoon, Button",
+    "spoken_description": "My best time for deep work is the afternoon, Button"
+  },
+  {
+    "platform_identifier": "9403000000AD5C2701000000F400000000000000",
+    "estimated_uid": "F4000000-0000-0000-9403-000000000000",
+    "caption": "My best time for deep work is the evening, Button",
+    "spoken_description": "My best time for deep work is the evening, Button"
+  },
+  {
+    "platform_identifier": "9403000000B05C2701000000F500000000000000",
+    "estimated_uid": "F5000000-0000-0000-9403-000000000000",
+    "caption": "My best time for deep work is the night, Button",
+    "spoken_description": "My best time for deep work is the night, Button"
+  },
+  {
+    "platform_identifier": "9403000000B35C2701000000F600000000000000",
+    "estimated_uid": "F6000000-0000-0000-9403-000000000000",
+    "caption": "Done reviewing, Button",
+    "spoken_description": "Done reviewing, Button"
+  },
+  {
+    "platform_identifier": "940300000021BB26010000001800000000000000",
+    "estimated_uid": "18000000-0000-0000-9403-000000000000",
+    "caption": "Today, tab, 1 of 4, Button",
+    "spoken_description": "Today, tab, 1 of 4, Button"
+  },
+  {
+    "platform_identifier": "940300000024BB26010000001A00000000000000",
+    "estimated_uid": "1A000000-0000-0000-9403-000000000000",
+    "caption": "Inbox, tab, 2 of 4, Button",
+    "spoken_description": "Inbox, tab, 2 of 4, Button"
+  },
+  {
+    "platform_identifier": "940300000027BB26010000001B00000000000000",
+    "estimated_uid": "1B000000-0000-0000-9403-000000000000",
+    "caption": "Focus, tab, 3 of 4, Button",
+    "spoken_description": "Focus, tab, 3 of 4, Button"
+  },
+  {
+    "platform_identifier": "94030000002ABB26010000001C00000000000000",
+    "estimated_uid": "1C000000-0000-0000-9403-000000000000",
+    "caption": "Insights, tab, 4 of 4, Button, Selected",
+    "spoken_description": "Insights, tab, 4 of 4, Button, Selected"
+  }
+]

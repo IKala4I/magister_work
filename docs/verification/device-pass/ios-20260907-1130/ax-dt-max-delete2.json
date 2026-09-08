@@ -1,0 +1,26 @@
+[
+  {
+    "platform_identifier": "6103000000F6C70D010000009403000000000000",
+    "estimated_uid": "94030000-0000-0000-6103-000000000000",
+    "caption": "This cannot be undone, Header",
+    "spoken_description": "This cannot be undone, Header"
+  },
+  {
+    "platform_identifier": "6103000030DBC90E01000000EC06000000000000",
+    "estimated_uid": "EC060000-0000-0000-6103-000000000000",
+    "caption": "Delete the account and all its data now?",
+    "spoken_description": "Delete the account and all its data now?"
+  },
+  {
+    "platform_identifier": "6103000000EDC70D010000009103000000000000",
+    "estimated_uid": "91030000-0000-0000-6103-000000000000",
+    "caption": "Delete everything, Button",
+    "spoken_description": "Delete everything, Button"
+  },
+  {
+    "platform_identifier": "6103000000F0C70D010000009203000000000000",
+    "estimated_uid": "92030000-0000-0000-6103-000000000000",
+    "caption": "Cancel, Button",
+    "spoken_description": "Cancel, Button"
+  }
+]

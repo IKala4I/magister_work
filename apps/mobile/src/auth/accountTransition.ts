@@ -36,6 +36,7 @@ import { clearInsightsCache } from '../sync/insights';
 import { resetSyncCursor } from '../sync/cursor';
 import { isLocalUserId, LOCAL_USER_PREFIX } from '../sync/localUser';
 import { forgetRequestedPlanDay } from '../sync/planRequestDay';
+import { forgetLastKnownOfLastUser } from '../storage/lastKnown';
 
 const USER_TABLES = [
   tasks,
@@ -139,6 +140,7 @@ export function wipeRowsOf(db: LocalDb, userId: string): void {
  */
 export function transitionToAccount(db: LocalDb, previousUserId: string): void {
   void clearAllNotifications(); // the previous account's reminders never reach the next one (P10 #1)
+  forgetLastKnownOfLastUser('gcal'); // the leaving account's last-known calendar reading
   const pending = unackedOpsFor(db, previousUserId);
   if (pending === 0) {
     wipeLocalMirror(db);

@@ -66,7 +66,17 @@ function daysBack(now: Date, n: number): Set<string> {
 export function settleLedger(
   now: Date,
   store: LedgerStore = appStorage,
-): { deliveredByDay: Map<string, number>; pending: LedgerState['scheduled'] } {
+): {
+  deliveredByDay: Map<string, number>;
+  /**
+   * Every id counted as delivered on a kept day — a request that fired is SPENT: the planner
+   * never asks the OS for the same id again (iPhone pass 2026-09-08 item 62: the ritual fired at
+   * 16:42, the evening time moved back to 20:00, the same `ritual:<day>` was re-added and fired
+   * a second time — the count had room, the id had not).
+   */
+  deliveredIds: Set<string>;
+  pending: LedgerState['scheduled'];
+} {
   const state = readLedger(store);
   const keep = daysBack(now, KEEP_DAYS);
   const delivered: Record<string, string[]> = {};
@@ -86,8 +96,12 @@ export function settleLedger(
   }
   writeLedger({ delivered, scheduled: pending }, store);
   const deliveredByDay = new Map<string, number>();
-  for (const [day, ids] of Object.entries(delivered)) deliveredByDay.set(day, ids.length);
-  return { deliveredByDay, pending };
+  const deliveredIds = new Set<string>();
+  for (const [day, ids] of Object.entries(delivered)) {
+    deliveredByDay.set(day, ids.length);
+    for (const id of ids) deliveredIds.add(id);
+  }
+  return { deliveredByDay, deliveredIds, pending };
 }
 
 /** Record what was just handed to the OS (replaces the pending set). */
