@@ -21,7 +21,7 @@ Word file.**
 | -------------- | --------------------------------------------- | ------------------------------------------------------------------- |
 | `rozdil-6.md`  | **РОЗДІЛ 6** (new; owner decision 2026-09-09) | ✅ written — 6.1–6.9, tables 6.1–6.7                                |
 | `dodatok-g.md` | **Додаток Г** (replaces the existing one)     | ✅ written — the deployed schema, not an illustration (decision D5) |
-| `rozdil-5.md`  | **РОЗДІЛ 5** (rebuilt)                        | ⬜ next — the plan is `corrections-rollup.md` §9.1                  |
+| `rozdil-5.md`  | **РОЗДІЛ 5** (rebuilt)                        | ✅ written — 5.1–5.9, tables 5.1–5.2                                |
 
 ## Rules these files were written under
 
@@ -35,6 +35,13 @@ Both come from `corrections-rollup.md` and they are not stylistic:
    compared; the field study is out of scope and simulation does not stand in for it; the gap does
    not compound. §3.5 lists the hedges that must not reappear.
 
+3. **Instrument discipline** (owner directive 2026-09-09, extending to the whole text what §6.6
+   does for the device pass): where a number depends on **how** it was measured, that goes in the
+   same sentence, not in a footnote. An assumption is called an assumption, a figure computed on
+   code is called computed rather than observed, a lower bound is called a lower bound. Розділ 5
+   §5.5 is the densest application — the protocol's N = 30 rests on three assumptions and not one
+   of them is a measurement.
+
 Percentage points are «в. п.»; the research questions are ДП1–ДП4.
 
 ## What was corrected in the sources while writing
@@ -44,4 +51,11 @@ File 06's N = 30 "is supported in none of the 75 cells (the smallest adult-mix N
 is adult mix with N₈₀ = 21, so both halves were wrong. Recomputed from `results/sensitivity.json`
 and corrected in place, with the correction dated in the document. The chapter carries the accurate
 statement: exactly one cell of 75 supports N = 30, and it is the six-tasks-a-day world at twice the
-table's pattern strength.
+table's pattern strength — the least plausible world on the grid.
+
+Owner directive 2026-09-09: **do not bury that correction.** It is stated in both places the number
+is used — `rozdil-6.md` §6.5, where the recomputation happened, and `rozdil-5.md` §5.5.3, where the
+protocol's own N = 30 is assessed — on the reasoning that a claim which survived its own
+recomputation is stronger than one nobody checked. Substantively it strengthens the conclusion:
+the single world in which the designed sample size suffices is also the least plausible one
+considered.
