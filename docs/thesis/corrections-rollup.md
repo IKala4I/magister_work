@@ -121,6 +121,27 @@ A number without its condition is the failure mode this whole rollup exists to p
 NFR-P2 claim was true of a number and false of the condition attached to it. **The condition travels
 with the number into the sentence**, not into a footnote.
 
+### 2.0 How these numbers are checked
+
+Every study-derived number below is **recomputed from `docs/study/results/*.json`** by
+`docs/thesis/verify-numbers.py` (132 checks, run from the repository root, exit 1 on any
+mismatch). The rule it enforces is the owner's, 2026-09-09: **a number that cannot be reproduced
+from the results JSON does not go into the thesis until it can** — and the study documents' prose
+summaries are not the source. Three errors have now been found in those summaries, twice inside a
+sentence that was itself a correction, and the checker was written after the third.
+
+The constants of Розділ 2–4 are not in the JSON; they are verified against the code that defines
+them, and each fragment below names the file. Verified this way on 2026-09-09: ε = 1, m = 4 and
+the two-bucket eligibility floor (`params.py:50–55`); the chunk cap of four and the hint's
+one-scaled-unit stability bonus, 1e-4 (`params.py:94,108`); the duration EWMA α = 0,3 clipped to
+[0,5; 2] and the 28-day Beta half-life (`_shared/params.ts:37,54,58`); the prior strengths
+n₀ = 8 in-hours / 4 out (`params.py:58–59`); the UC-07 pair 0,1 / 0,7 (`rewards.ts:356`); the
+off-slot same-day reward 0,3 and the seven-day correction window (`_shared/params.ts:48,51`); the
+PAR grace of 15 min and the 50 % threshold (`_shared/params.ts:46–47`), whose single-source
+property is pinned by `test_par.py::test_source_never_touches_reward_columns`; the 17-feature
+snapshot (`_shared/params.ts:34`); |C| = 14 (`contexts.py:5–8`); and the 422 refusal of a drifted
+ε or m (`app.py:141`).
+
 ### 2.1 The measured numbers the thesis may quote
 
 | Number                                                        | Condition it is only true under                                                                                                                                                                                                                                                                                    | Source                                                                                              |
@@ -1527,9 +1548,12 @@ decision sits in step 5 and later, which is why the back matter is written last.
 | **D7** | ВСТУП «Апробація» / «Публікації»                                          | **Owner's own.** No conference, no publications — both stay minimal                                                                                                                                                                                                               |
 | **D8** | Додаток З scope                                                           | **All 75 cells.** The claim is "every cell reported, including losses and ties"                                                                                                                                                                                                   |
 
-**Progress:** steps 1–3 are done — §3's four statements, `text/rozdil-6.md` and
-`text/rozdil-5.md`; D5 is delivered as `text/dodatok-g.md`. Next is **step 4**, the Розділ 2–4
-edits, which are anchored fragments and stay in this file (§6, §7, §8).
+**Progress:** steps 1–4 are done. §3's four statements; `text/rozdil-6.md`; `text/rozdil-5.md`;
+D5 as `text/dodatok-g.md`; and the Розділ 2–4 edits, which are anchored fragments and stay in this
+file (§6, §7, §8) — every constant they quote is now verified against the code that defines it
+(§2.0), and every study-derived number in §2.1 against the results JSON by
+`docs/thesis/verify-numbers.py`. Next is **step 5**, Розділ 1 §1.1 and §1.4–§1.6, which needs
+D2 and D3 (both decided) and Розділ 6's numbers (now machine-checked).
 
 ### Sanity checks before freeze
 

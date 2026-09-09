@@ -58,6 +58,28 @@ first draft of both chapters: "the smallest N₈₀ at four tasks a day is 33" i
 **adult-mix** value; across mixes it is **31** (cell 49, uniform, s = 2). Both are now stated, and
 `sensitivity-results.md` carries the correction.
 
+### The failure mode both corrections shared
+
+Worth recording as a pattern, not as two incidents. In each case a recomputation was read in the
+direction the reader already wanted:
+
+- The session wrote that the correction «посилює висновок» — it does not; numerically it weakens
+  the claim, and only the conclusion survives.
+- The owner, reviewing that same correction, read it the same way for the same reason, and named it:
+  "I did exactly what I warned you about — read a recomputation as strengthening the claim because
+  that's the direction I wanted."
+
+The pattern is that a number which has just been checked feels more solid than it is, and the
+feeling attaches to whatever the checker hoped the number would say. It is the same mechanism the
+pre-registration discipline exists to block, arriving after the fact instead of before it.
+
+**The rule that follows** (owner directive 2026-09-09, applies from here without asking): a
+recomputation is reported in its own direction, whichever way it goes. And more strongly — **if a
+number in the draft or in any study document cannot be reproduced from
+`docs/study/results/*.json`, it does not go into the thesis until it can.** The prose summaries of
+the study documents are not a trustworthy source for their own numbers: three errors have now been
+found in places that read as already-checked, twice in the corrected sentence itself.
+
 Owner directive 2026-09-09: **do not bury that correction.** It is stated in both places the number
 is used — `rozdil-6.md` §6.5, where the recomputation happened, and `rozdil-5.md` §5.5.3, where the
 protocol's own N = 30 is assessed — on the reasoning that a claim which survived its own
