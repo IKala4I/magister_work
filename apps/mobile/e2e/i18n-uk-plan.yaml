@@ -1,0 +1,33 @@
+# The surfaces the empty-account sweep cannot reach: a real block card with its Ukrainian
+# rationale (FR-21) and its action row — the row measured as the tightest in Ukrainian
+# (`Skip`→«Пропустити» is +150 %) and the one already known to wrap on the iPhone 12 in English.
+#
+# Runs at the maximum text size, in Ukrainian, and asks the hosted backend for a plan. One
+# throwaway anonymous account, one plan request.
+appId: com.hourwell.app
+---
+- launchApp:
+    stopApp: true
+- tapOn: 'Вхідні(, tab.*)?'
+- tapOn: 'Швидке додавання завдання'
+- inputText: 'чернетка звіту 2 год'
+- tapOn: 'Додати'
+- takeScreenshot: uk-13-inbox-task-added
+# The simulator keyboard stays up and covers the tab bar, and `hideKeyboard` does not work here
+# (P2 gotcha). A relaunch is the reliable way past it, and costs nothing: the task is committed.
+- launchApp:
+    stopApp: true
+- tapOn: 'Сьогодні(, tab.*)?'
+# A plan may already exist from an earlier run, in which case the button re-plans.
+- tapOn: '(Спланувати день|Перепланувати)'
+# The learned path can be cold; the fallback answers inside NFR-P1 either way.
+- extendedWaitUntil:
+    visible: '(Зараз|Експеримент|Почати|Готово)'
+    timeout: 30000
+- takeScreenshot: uk-14-today-planned
+# The action row itself: «Почати» «Готово» «Пропустити» «Перенести…» — the tightest row in
+# Ukrainian (`Skip`→«Пропустити» is +150 % on the English label).
+# The action row — «Почати» «Готово» «Пропустити», with «Перенести…» wrapping to its own line at
+# this text size — is on the card in that screenshot. It is deliberately not asserted here: which
+# actions a card offers depends on the block's state, and re-planning returns a different plan
+# every run. The screenshot is the evidence; a person reads it.

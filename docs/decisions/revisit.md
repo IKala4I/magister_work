@@ -457,3 +457,25 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   none). By design (ADR-0014: per delivery). A "nudges for blocks already lapsed at the first
   open do not count" rule would change the cap's meaning — revisit only if a real user reports
   the silence.
+
+- [2026-09-09, post-P12 localisation] **Arm A always falls through to the generic trade-off
+  consequence.** `supabase/functions/_shared/heuristic.ts:394` emits
+  `consequence.metric = 'pinned_overlap_minutes'`, but the client switch
+  (`apps/mobile/src/domain/tradeoff.ts:80`) handles only `pinned_conflict`, the planner's metric —
+  so on the heuristic path an `unpin` option reads "a smaller change to the day" and
+  `tradeoff.consequence.pinned_conflict` is unreachable. Found while mapping every user-facing
+  string; a small hole in the study's "pixel-identical UI" claim (File 06 arm A). One `case` to
+  fix, plus a parity test over the two metric vocabularies — decide with the next planner change.
+- [2026-09-09, post-P12 localisation] **The Ukrainian CSM as a future cold-start instrument.**
+  ADR-0023 keeps the rMEQ in English because no validated Ukrainian rMEQ exists; the CSM and MCTQ
+  _are_ validated for Ukrainian (Senyk, Jankowski & Cholii 2022, cut-offs ≤ 23 evening / ≥ 42
+  morning). Adopting the CSM would let a Ukrainian reader answer in their own language, at the
+  price of a new score→class→prior derivation (13 items, a different range) and two languages
+  seeded by different instruments. Not taken; revisit only if a real Ukrainian participant cohort
+  is ever recruited.
+- [2026-09-09, post-P12 localisation] **PLAN.md §2 promises `packages/shared` holds "event names
+  and context-bucket enums"; it does not.** `packages/shared/src/index.ts` exports generated types
+  plus numeric `params.ts` only; event names live in `apps/mobile/src/observability/events.ts` and
+  context buckets in three parallel definitions (`contexts.py`, `_shared/contexts.ts`, a SQL CHECK).
+  The layout note is stale rather than the code being wrong — the parity that matters is tested. Fix
+  the PLAN sentence, or move the constants, at the next `packages/shared` change.

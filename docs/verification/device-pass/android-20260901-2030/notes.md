@@ -84,7 +84,12 @@ Real on-screen keyboard, autocorrect on; English + Ukrainian IMEs. Inbox left cl
 9. **STATED LIMITATION (not a bug): non-English NL degrades silently to plain title.**
    "документ до 12 годин в п'ятницю" → whole string kept as title, no duration/deadline
    extracted (chrono-node is English-only; durations use the app's own English grammar —
-   thesis-corrections #14 territory). To record with the i18n scaffolding decision as a
+   thesis-corrections #14 territory).
+   **Correction (2026-09-09, ADR-0023):** "chrono-node is English-only" is wrong. Measured on the
+   pinned 2.10.1, `chrono.uk` exists and is in upstream's full-support tier; the English-only
+   property was our configuration (`chrono.parse` = English casual, plus our own English duration
+   and connector grammar). The observation above — the whole string kept as the title — is exactly
+   what that configuration did. Ukrainian now parses; see spec-conflicts L22. To record with the i18n scaffolding decision as a
    documented limitation; verify tomorrow that the preview shows NO chips in this case
    (must not imply a parse that didn't happen).
 

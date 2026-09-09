@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="iPhone 16 - iOS 18.3 - 5C080B83-AF7B-467C-91E3-2775717DC943" tests="1" failures="0" time="25.791" timestamp="2026-09-09T12:41:09">
+    <testcase id="i18n-uk-switch" name="i18n-uk-switch" classname="i18n-uk-switch" file="/Users/vladyslav/Workspace/magister_work/apps/mobile/e2e/i18n-uk-switch.yaml" time="25.784" timestamp="2026-09-09T12:41:09" status="SUCCESS"/>
+  </testsuite>
+</testsuites>

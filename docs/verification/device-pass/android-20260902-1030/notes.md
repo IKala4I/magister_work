@@ -53,6 +53,10 @@ ritual (`RTC_WAKEUP`, `window=+1h`). All numbers here are from this physical dev
    п'ятницю" via Maestro; the preview line shows the raw string only, no duration or deadline
    chip (`fr11-uk-nl-preview-no-chips.png` + tree dump). The documented limitation stands
    (chrono-node is English-only); the row was removed afterwards.
+   **Correction (2026-09-09, ADR-0023):** the parenthesis is wrong about the library — `chrono.uk`
+   ships in chrono-node 2.10.1 and parses Ukrainian; our parser was configured for English only.
+   The observation itself (no chips shown, nothing implied) stands, and was the right behaviour for
+   what the build then did. See spec-conflicts L22.
 7. **NFR-R1 offline → reconnect, server half — PASS.** Airplane mode on 10:56:15 → quick-add
    "offline note 30m" → airplane mode off 10:58:04: the task reached the server exactly once
    (`created_at` 07:57:29 UTC, i.e. while offline; one `task_created` event; no duplicate).

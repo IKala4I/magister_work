@@ -537,3 +537,28 @@ in the thesis: **"field study out of scope; evaluation performed in simulation"*
 simulation evaluation is itself a study with hypotheses, method and results; nothing may
 read as "no study was conducted". File 06 §2.3's pre-registered simulation-based power
 analysis is part of that study (M9/#21 recomputed at the measured experiment rate).
+
+## Post-review additions (post-P12 localisation, 2026-09-09)
+
+- **L20.** No FR or NFR in `specs/` covers internationalisation: `specs/07` §4 has
+  `profiles.locale`, §5 notes that FR-21 sends a key + params "so the client renders localized
+  copy — i18n decision 6", and File 02's FR-11 fixes NL quick-add without naming a language. The
+  whole i18n obligation lives in PLAN.md decision 6, outside the frozen specs. Recorded so nobody
+  hunts for a requirement id: the Ukrainian work is anchored to decision 6 plus FR-02, FR-11,
+  UC-01, UC-02 and NFR-A1/A2 (ADR-0023). No new requirement id was minted.
+- **L21.** File 04 §3.1 names the rMEQ and its cut-offs but gives no item wording (the existing
+  gap L13, fixed by ADR-0005 rather than by an appendix row). It is therefore silent on what
+  happens to the instrument in a non-English interface. Resolution (ADR-0023 §1): the five items
+  and their options stay in English in every catalog, because the cut-offs were validated for that
+  wording and no validated Ukrainian rMEQ exists — the validated Ukrainian chronotype instruments
+  are the CSM and MCTQ (Senyk, Jankowski & Cholii 2022). Pinned by a test; the reader is told why
+  on the screen. The cost — a Ukrainian-only speaker more often skips — is stated, and the skip is
+  an existing designed path (ADR-0005 §2).
+- **L22.** File 03 §2.1's table justifies chrono-node as "best-in-class natural-language
+  date/duration parsing… runs on-device (FR-11)" without naming a language, and two hardware notes
+  (`device-pass/android-20260901-2030` item 9, `android-20260902-1030` item 6) recorded
+  "chrono-node is English-only". **Measured false** on the pinned 2.10.1: `chrono.uk` ships in
+  upstream's full-support tier and parses «завтра о 15:00», «наступного вівторка», «через 2
+  години», «25 грудня». The English-only property belonged to our configuration, not the library.
+  Both notes carry a dated correction; FR-11 is now bilingual (ADR-0023 §1.2), with «за 30 хвилин»
+  and «цими вихідними» as documented residual gaps.

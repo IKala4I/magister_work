@@ -957,3 +957,34 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     Cross-refs: #11 (the simulator caveat this section closes), #50–#53, #60 (i), ADR-0018,
     ADR-0019, `docs/verification/device-checklist.md` "Pass status" paragraphs, the explainer's
     defence passage of 2026-09-08.
+
+63. **§implementation (the interface language) / §verification (FR-11) / §method (cold start):**
+    the draft assumes a Ukrainian-facing product throughout — correction #7 already notes that
+    rationales are a `rationale_key` + `rationale_params` pair rendered client-side "instead of a
+    server-rendered Ukrainian string". As of 2026-09-09 the app **is** bilingual, with a language
+    switch in Settings and Ukrainian as the default on a Ukrainian phone, and the text should say
+    so plainly. Three specific edits:
+
+    **Text for the draft (implementation):** "Усі рядки інтерфейсу живуть у двох типізованих
+    каталогах — англійському й українському; мова береться з телефона, а явний вибір у
+    налаштуваннях її перекриває. Межа локалізації задана свідомо: словник, яким обмінюються клієнт
+    і сервер (ключі пояснень, метрики компромісів, назви подій, значення перелічень), лишається
+    машинними ідентифікаторами — саме ці ідентифікатори версіонуються, тестуються, відтворюються в
+    таблицях роботи й використовуються в offline-оцінюванні."
+
+    **FR-11 — a limitation to retire, not to restate.** Any sentence resting on the hardware-pass
+    note "chrono-node is English-only" (device-pass 2026-09-01 item 9, 2026-09-02 item 6) is false
+    about the library: `chrono.uk` ships in the pinned 2.10.1 in upstream's full-support tier, and
+    quick-add now parses both languages. Residual gaps to state honestly instead: «за 30 хвилин»
+    and «цими вихідними» are unknown to the parser and fall back to the plain title, exactly as an
+    unrecognised English phrase does. See spec-conflicts L22.
+
+    **Cold start — the one place the thesis must claim less, not more.** The rMEQ's five items stay
+    in English in the Ukrainian interface, and the text should say why rather than pass over it:
+    the cut-offs 22/18/12/8 were validated for that wording, no validated Ukrainian rMEQ exists,
+    and the validated Ukrainian chronotype instruments are the CSM and MCTQ (Senyk, Jankowski &
+    Cholii, _Biological Rhythm Research_ 53(6):878–896) — a different item set with its own
+    cut-offs (≤ 23 / ≥ 42), which would require its own score→class→prior derivation. The honest
+    cost belongs in the same paragraph: a Ukrainian-only speaker will more often skip the survey,
+    and skipping is a designed path (INT with prior strength halved, ADR-0005 §2), not a failure.
+    Do **not** write that the survey "is localised". ADR-0023 §1.1, spec-conflicts L21.
