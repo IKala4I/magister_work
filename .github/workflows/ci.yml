@@ -25,6 +25,17 @@ jobs:
         run: npx expo-doctor
         working-directory: apps/mobile
 
+  thesis-numbers:
+    name: Thesis numbers (recomputed from the study results)
+    runs-on: ubuntu-latest
+    # Owner rule 2026-09-09: a number that cannot be reproduced from docs/study/results/*.json
+    # does not go into the thesis. The study documents' prose summaries are not the source —
+    # three errors were found in them, twice inside a sentence that was itself a correction.
+    # Stdlib only, no setup step needed: ubuntu-latest ships python3.
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 docs/thesis/verify-numbers.py
+
   db:
     name: Database gates (pgTAP + contract sync)
     runs-on: ubuntu-latest

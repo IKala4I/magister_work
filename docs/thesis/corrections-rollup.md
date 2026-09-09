@@ -448,31 +448,90 @@ draft lets it read as a measured comparison:
 > пояснюваність»; питання про те, чи виправдовує навчання свою складність, є емпіричним, і межу
 > відповіді локалізовано в розділі 6.»
 
-### §1.4 + табл. 1.2 — **С**, items 49, 60 (n), U6
+### §1.4 + табл. 1.2 — **С** (argument rebuilt, not patched), items 49, 60 (n), U6
 
-**This is the structural item in Розділ 1.** The gap argument is: every neighbouring field covers
-some of D1–D7, none covers the whole row, and Kairos does — including **D7, розгорнуте польове
-оцінювання**. The field study is out of scope, so Kairos does not occupy D7 either, and the
-argument as written no longer stands.
+**The original argument and why patching it fails.** §1.4 introduces seven dimensions, shows that
+each neighbouring field covers some, that no known work covers the whole row, and that Kairos does
+— **including D7, розгорнуте польове оцінювання**. The field study is out of scope, so the row is
+not complete. The tempting patch — «шість із семи, сьомий спроєктовано» — is both weaker than the
+original and duller: it concedes the point without saying anything. What follows rebuilds the
+argument instead, and §5's honest-assessment note says plainly what is lost.
 
 **(a) Табл. 1.2, рядок «Kairos (ця робота)» — Ф.** D7: `+` → `◐`, with a footnote to the table:
 
-> «◐ — протокол польового оцінювання спроєктовано, інструментовано та перевірено наскрізно;
-> виконання лежить поза межами роботи (підрозділ 5.1). Оцінювання виконано в симуляції (розділ 6).»
+> «◐ — протокол польового оцінювання спроєктовано, інструментовано та перевірено наскрізно на
+> розгорнутій системі; виконання лежить поза межами роботи (підрозділ 5.1). Оцінювання виконано в
+> симуляції (розділ 6).»
 
-**(b) The gap paragraph after the table — П.** Rewrite so the contribution is the integration of
-D1–D6 and the _design_ of D7, which is what is true:
+**(b) The gap paragraph after the table — С, replaced by four paragraphs.** The rebuilt argument
+does not claim a completed row. It asks **why** the row is empty, answers with a property of the
+problem class, and then shows that this work is the first to put a number on that property.
 
 > «З матриці випливає формулювання наукового розриву: кожен окремий вимір присутній у літературі,
 > проте жодна відома праця не поєднує обмеженого рекомендування часових інтервалів (D1+D2),
 > керованого онлайн-навчанням на відкладених поведінкових винагородах (D3+D4), у домені
 > персонального планування (D5), з методологією оцінювання, стійкою до контрфактичної
-> розрідженості (D6). Внеском роботи є інтеграція цих шести вимірів та формалізація, яка робить
-> інтеграцію принциповою, а не механічною. Сьомий вимір — розгорнуте польове оцінювання (D7) —
-> у цій роботі **не закрито**: протокол розроблено, інструментовано й перевірено на розгорнутій
-> системі, але його виконання потребує ресурсів поза межами кваліфікаційної роботи. Замість нього
-> виконано оцінювання в симуляції, яке закриває D6 на відомій істині та локалізує межу
-> застосовності методу (розділ 6); закриття D7 лишається першим пунктом перспектив.»
+> розрідженості (D6). Ці шість вимірів робота закриває, і формалізація розділу 2 робить їхнє
+> поєднання принциповим, а не механічним.
+>
+> Сьомий вимір — розгорнуте польове оцінювання — робота **не закриває**, і це не випадковість
+> окремого проєкту, а властивість самого класу задач. Варто подивитися, які напрями в матриці
+> мають D7. Його мають ті, чия інтервенція дешева в розгортанні, а результат — майже миттєвий:
+> контекстні бандити на новинних стрічках, бандити для моментів надсилання сповіщень, своєчасні
+> адаптивні інтервенції. Його не мають ті, хто працює з жорсткими ресурсними обмеженнями
+> (дослідження операцій, календарні асистенти) — і саме вони найближчі до цієї роботи за D1+D2.
+> Порожній рядок у матриці — не прогалина, яку ніхто не помітив, а наслідок того, що **властивості,
+> які роблять рекомендування часових інтервалів складним, є тими самими властивостями, які роблять
+> польове оцінювання дорогим**. Винагорода є відкладеним поведінковим результатом, тож одиницею
+> спостереження стає тиждень, а не клік. Інтервал вичерпний, а призначення комбінаторно зв'язані,
+> тож інтервенцією є цілий розклад, і рандомізувати окремий елемент дешево не вдається — звідси
+> потреба вкласти мікрорандомізоване випробування всередину реверсивного дизайну (підрозділ 5.2).
+>
+> Внеском роботи щодо D7 є не його закриття, а **перетворення його з невизначеної перспективи на
+> величину з ціною**. Протокол розроблено, інструментовано й перевірено наскрізно на розгорнутій
+> системі: точні пропенсіті кожного рядка, перемикання плечей, блокова рандомізація, показник
+> дотримання з фактів, стенд офлайн-оцінювання, перевірений на відомій істині. А симуляційне
+> оцінювання (розділ 6) уперше дає відповідь на питання, скільки коштувало б його виконати саме для
+> цього класу задач: **від 21 до понад 120 завершених учасників залежно від властивостей популяції,
+> причому понад 120 — у 48 із 75 розглянутих світів**, тобто набір щонайменше 172 осіб (120 / 0,7 за припущеного відсіву 30 %) на
+> восьмитижневий внутрішньосуб'єктний протокол. Попередня оцінка, з якої виходив протокол (30
+> учасників), підтримується рівно однією коміркою сітки з сімдесяти п'яти, і та лежить на
+> зареєстрованій верхній межі навантаження. Це число — і є відповідь на питання, чому рядок
+> порожній.
+>
+> Отже, формулювання внеску таке: робота закриває шість вимірів із семи, доводить сьомий до стану,
+> у якому його може виконати будь-яка лабораторія з ресурсом на набір, і **вимірює, яким має бути
+> цей ресурс**. Останнє є самостійним результатом: попередні праці, що обіцяли польове оцінювання
+> планувальника, обсягу вибірки з властивостей задачі не виводили.»
+
+**(c) §1.7 (висновки до розділу 1) — Ф.** The chapter conclusion currently ends on «наявність
+наукового розриву». Add one sentence so it matches:
+
+> «Шість із семи вимірів цього розриву закриває ця робота; сьомий — розгорнуте польове оцінювання —
+> лишається відкритим, і розділ 6 показує, чому: обсяг вибірки, якого він потребує для цього класу
+> задач, перевищує 120 завершених учасників у 48 із 75 розглянутих світів.»
+
+**(d) The honest assessment — for the owner, not for the draft.** The rebuilt argument is **weaker
+as a claim and stronger as a defensible one**, and one thing is lost outright:
+
+|                                            | Original                                                             | Rebuilt                                   |
+| ------------------------------------------ | -------------------------------------------------------------------- | ----------------------------------------- |
+| Claim shape                                | completeness — "no work occupies the full row; this one does"        | six dimensions filled, the seventh costed |
+| Survives "did the field study run?"        | **no** — it collapses on the first question                          | yes; the answer is part of the argument   |
+| Says anything about _why_ the row is empty | no                                                                   | yes, with a measured number               |
+| **Lost with no replacement**               | the sentence «жодна відома праця не займає повний рядок — ця займає» | —                                         |
+
+That last row is the real cost and should not be talked around: the original had a single clean
+sentence a reader remembers, and there is no equally clean replacement. What replaces it is longer
+and conditional. Against that, the original sentence was **not true**, and a committee's first
+question about a matrix with a D7 column is whether D7 was executed.
+
+One further caution against over-reading the rebuild. The argument «the properties that make the
+problem hard make evaluation expensive» is supported — the delayed reward sets the observation unit
+at weeks, the combinatorial coupling forces the nested MRT, and the sample size follows the
+measured effect — but it is an argument about **this** problem class made from **one** system's
+simulation. It is not a general law about scheduling research, and the text should not let it read
+as one.
 
 ### §1.5 + табл. 1.3 — **С**, items 26, 27, 42, 60 (c)(d)(o), U7, U8
 
