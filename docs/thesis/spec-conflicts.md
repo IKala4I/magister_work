@@ -279,7 +279,9 @@ decision rule (defensibility → consistency → measurability → pragmatics) a
   change needed beyond noting where the tag originates.
 - **L22.** specs/07 §4.2 M-01 declares `recommendations.propensity real` (float4). With the P6
   eligibility rule the exact per-row propensity can be 1/3, which float4 stores as 0.33333334 —
-  a 6·10⁻⁸ relative error that would ride into every 1/p weight and contradict "exact".
+  a relative error of ≈ 3·10⁻⁸ that would ride into every 1/p weight and contradict "exact".
+  (Corrected 2026-09-09: this entry and the migration's own comment said 6·10⁻⁸; float32(1/3) =
+  0.3333333432674408, so the absolute error is 9.9·10⁻⁹ and the relative error 2.98·10⁻⁸.)
   Normative: the column is `double precision` (migration `20260827130000_p6_propensity_double`);
   `A_m(x)` is logged beside it, so p is also recoverable as ε/|A_m(x)| symbolically. ADR-0008 §4.
 
