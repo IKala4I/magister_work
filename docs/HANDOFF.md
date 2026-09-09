@@ -22,10 +22,9 @@ home for this?"; and an order of work.
 1. **Розділ 5 is rebuilt.** It specifies a field study in the future tense and contains none of the
    evaluation that was performed.
 2. **A Розділ 6 is needed.** Everything the corrections address to «§6 (обговорення)» (item 59) or
-   «§verification» (items 50–53, 62) has **no referent in the draft**. Recommended split: Розділ 5
+   «§verification» (items 50–53, 62) has **no referent in the draft**. **DECIDED (owner, 2026-09-09): six chapters** — Розділ 5
    «Методика оцінювання», Розділ 6 «Результати оцінювання та їх обговорення», with the device pass
-   as §6.6 and `spec-conflicts.md` as §6.8. The alternative (keep five chapters, grow Розділ 5 to
-   eleven subsections) is named in §1 of the rollup; the owner picks.
+   as §6.6 and `spec-conflicts.md` as §6.8.
 3. **§1.4's research-gap argument no longer holds.** It rests on the work occupying all seven
    dimensions D1–D7 including a deployed field evaluation. D7 is now ◐, and the gap must be
    re-argued over six dimensions with D7 stated as open.
@@ -67,15 +66,22 @@ the standard abbreviation for «пункти».
 
 ## Exact next actions
 
-1. **Owner decides the chapter structure** (§1 of the rollup, last paragraph) — five chapters or
-   six. Everything downstream hangs on it.
-2. **Write in the order of §14**: the four full-strength statements first, then Розділ 6, then
-   Розділ 5, then Розділ 1 §1.4–§1.6, then the Розділ 2–4 edits, then the annotation and
-   conclusions, then appendices and the reference list.
-3. **Re-count the test suites at freeze time** and paste the gate output — the 583/191 pair in #62
-   and the conclusions is traceable to nothing (the last recorded runs are jest 519/521 and
+1. **Structure is DECIDED (owner, 2026-09-09): six chapters** — Розділ 5 «Методика оцінювання»,
+   Розділ 6 «Результати оцінювання та їх обговорення», the device pass as §6.6 and the
+   specification-as-hypothesis material as §6.8. Reason on record: that material is strong enough
+   to carry its own chapter, and folding it into five would bury the best part of the work.
+2. **Write in the order of §14**, which is now a checklist: (1) the four full-strength statements
+   of §3, (2) Розділ 6 in the order of §9.2, (3) Розділ 5 around §5.1's boundary paragraph,
+   (4) the Розділ 2–4 edits, (5) Розділ 1 §1.1/§1.4–§1.6, (6) Анотація and ВИСНОВКИ,
+   (7) appendices, (8) the reference list and the ВСТУП's structure sentence.
+   **Steps 1–4 are decision-free**; every open decision sits at step 5 or later.
+3. **Eight open decisions D1–D8 are tabled in §14** with a recommendation each: a fifth novelty
+   item, the competitor figures, the unsourced «2–3 години», the orphaned sources, Додаток Г's
+   approach, the test-count recount, the ВСТУП placeholders, and Додаток З's scope.
+4. **Re-count the test suites at freeze time** and paste the gate output (D6) — the 583/191 pair in
+   #62 and the conclusions is traceable to nothing (the last recorded runs are jest 519/521 and
    Deno 187).
-4. Two new appendices to generate: the 75-cell sensitivity table (Додаток З) and the frozen
+5. Two new appendices to generate: the 75-cell sensitivity table (Додаток З) and the frozen
    pre-registration plus world grid (Додаток И).
 
 ## What the next phase needs to read

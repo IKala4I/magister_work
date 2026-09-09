@@ -97,14 +97,21 @@ correction lands in a place the draft does not yet have, the anchor says **[NEW]
    hypothesis" section. Everything the corrections address to «§6 (обговорення)» (item 59) or to
    «§verification» (items 50–53, 62) currently has no referent in the draft.
 
-**Recommended structure decision (one call to make before writing):** split the evaluation into
-**Розділ 5 «Методика оцінювання ефективності системи»** and **Розділ 6 «Результати оцінювання
-та їх обговорення»**, and carry the device pass as §6.6 inside Розділ 6 with a two-sentence
-forward reference from §4.6. The alternative — keeping five chapters and growing Розділ 5 to
-eleven subsections — keeps the ВСТУП's «п'яти розділів» line but leaves the main quantitative
-contribution and the device pass as subsections of a chapter titled «методика», which reads as
-if neither was executed. Whichever is chosen, the ВСТУП's «Структура та обсяг роботи» sentence
-and Додаток Е's chapter column change with it.
+**Structure — DECIDED by the owner, 2026-09-09: six chapters.** The evaluation splits into
+**Розділ 5 «Методика оцінювання ефективності системи»** and **Розділ 6 «Результати оцінювання та
+їх обговорення»**; the device pass is **§6.6** inside Розділ 6, with a two-sentence forward
+reference from §4.6, and the specification-as-hypothesis material is **§6.8**. The owner's reason,
+recorded because it governs later editing calls: the device-verification material and the
+"specification asserted, measurement refuted" story are strong enough to carry their own chapter,
+and folding them into the existing five would bury the best part of the work. The rejected
+alternative — five chapters with Розділ 5 grown to eleven subsections — would have left the main
+quantitative contribution and the device pass as subsections of a chapter titled «методика»,
+reading as if neither was executed.
+
+**What the decision drags with it** (mechanical, all of it last-pass work): the ВСТУП's «Структура
+та обсяг роботи» sentence («шести розділів»); Додаток Е's chapter column; every cross-reference in
+Розділи 1–4 that points at «розділ 5» for results; and §1.6's closing paragraph, which now points
+ДП1–ДП4 at Розділ 6 rather than Розділ 5.
 
 ---
 
@@ -1904,16 +1911,41 @@ That story is a contribution, and it is the one the draft's own design-science f
 
 ## 14. Order of work
 
-1. **Decide the chapter structure** (§1, last paragraph) — everything else hangs on it.
-2. **§3 first, not last.** The four full-strength statements set the tone of Розділ 1, Розділ 6 and
-   ВИСНОВКИ; writing them after the surrounding prose invites hedging them back.
-3. **Розділ 6 next**, in the order of §9.2 — it is the largest new material and it fixes the
-   vocabulary the other chapters must use.
-4. **Розділ 5**, rewritten around §5.1's boundary paragraph.
-5. **Розділ 1 §1.4–§1.5 and §1.6**, which depend on Розділ 6's numbers.
-6. **Розділ 2–4 edits**, mostly mechanical once §2.3, §2.4, §2.6.2 and §4.5 are done.
-7. **Анотація and ВИСНОВКИ last** — they summarise numbers that are only final after step 3.
-8. **Appendices and the reference list**, then the ВСТУП's structure sentence.
+Step 1 is done: **six chapters** (§1). The spine below — steps 1–4 — is decision-free; every open
+decision sits in step 5 and later, which is why the back matter is written last.
+
+1. **§3 first, not last.** The four full-strength statements set the tone of Розділ 1, Розділ 6 and
+   ВИСНОВКИ; writing them after the surrounding prose invites hedging them back. No open decisions.
+2. **Розділ 6**, in the order of §9.2 — the largest new material, and it fixes the vocabulary the
+   other chapters must use. No open decisions; §6.6 needs the 583/191 recount only at step 6.
+3. **Розділ 5**, rewritten around §5.1's boundary paragraph, with item 21 opening §5.4. No open
+   decisions.
+4. **Розділ 2–4 edits** — mechanical once §2.3, §2.4, §2.6.2, §4.5 and §4.6 are done. No open
+   decisions, but §4.6's forward reference to §6.6 needs Розділ 6 to exist first.
+5. **Розділ 1 §1.1, §1.4–§1.5 and §1.6** — depends on Розділ 6's numbers, and on **D2** (the
+   competitor figures) and **D3** (the unsourced «2–3 години»).
+6. **Анотація and ВИСНОВКИ** — they summarise numbers that are only final after step 2, and they
+   depend on **D1** (a fifth novelty item) and **D6** (the test counts).
+7. **Appendices** — Додаток В, Г, Д, Е, Ж plus the two new ones; depends on **D5** (Додаток Г's
+   approach) and **D8** (whether Додаток З carries all 75 cells).
+8. **Reference list, then the ВСТУП's structure sentence** — the list renumbers every citation in
+   the draft, so it is genuinely last; depends on **D4** (the orphaned sources).
+
+### Open decisions (D1–D8) and what waits on them
+
+| ID     | The call                                                                                                                                                        | Blocks                       | Recommendation                                                                                                                                                  |
+| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **D1** | Does the sensitivity study + pre-registration-in-git become a **fifth наукова новизна** item? Text is written in §4.3 (c)                                       | ВСТУП, ВИСНОВКИ              | **Yes.** It is the work's main quantitative contribution and currently appears in no novelty item                                                               |
+| **D2** | §1.2's competitor figures (19–34 / ≈15 дол./міс., «понад 30 млн користувачів») — keep with «станом на …» and a dated citation, or drop and compare on mechanism | Розділ 1 §1.2, табл. 1.1     | **Drop the figures.** They were read in early 2026 and nothing in the repo dates them; the argument is about mechanism, not price                               |
+| **D3** | ВСТУП's «втрати двох-трьох продуктивних годин на день» — delete, or supply a source you have                                                                    | ВСТУП                        | **Delete.** §4.3 (a) rewrites the paragraph so it reads better without a number                                                                                 |
+| **D4** | Orphaned sources [30] HF, [44] ONNX, [46] PyTorch, [56] MiniLM, [40] Maestro — delete, or keep attached to «перспективи» sentences                              | Список джерел, all citations | **Keep [44] and [46]** on the on-device перспективи sentence; **delete [30], [56]**; keep [40] if §4.6 still names Maestro (it does)                            |
+| **D5** | Додаток Г — update the SQL fragment to the real schema, or relabel it «спрощений ілюстративний фрагмент»                                                        | Додаток Г                    | **Relabel and fix the three outright errors** (`op_id` type, `model_version` FK, the missing columns); a full schema dump belongs in the repo, not the appendix |
+| **D6** | The 583/191 test counts — re-run the gates and paste the output, or drop the counts and write «автоматизовані набори»                                           | §6.6, ВИСНОВКИ п.8           | **Re-run and paste.** The sentence is stronger with numbers, and the run costs minutes                                                                          |
+| **D7** | ВСТУП «Апробація» and «Публікації» placeholders                                                                                                                 | ВСТУП                        | Yours alone — blocks nothing else                                                                                                                               |
+| **D8** | Додаток З — all 75 cells, or the Block A table plus a pointer to the repository                                                                                 | Додаток З                    | **All 75.** The claim is "every cell reported, including losses and ties"; an abridged table undercuts it                                                       |
+
+None of D1–D8 blocks steps 1–4. If you want to start today, start at step 1 and do not open the
+back matter until Розділ 6 is written.
 
 ### Sanity checks before freeze
 
