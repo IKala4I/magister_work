@@ -1324,8 +1324,9 @@ column → «anytime CP-SAT 1,5 с з критеріями зупинки за �
 - `"propensity": 0.25` → `"propensity": 0.3333333333333333, "a_m_size": 3` **plus a sentence**:
   «пропенсіті дорівнює ε/|A_m(x)| і набуває значень 0,5, 1/3 або 0,25 залежно від рядка; розмір
   зрізу зберігається поряд, тож величину можна відновити символьно».
-- `"unplaced": [{ "reason": "no_feasible_slot" }]` → `"no_feasible_start"` (the value the service
-  actually returns, as observed on the device on 2026-09-04).
+- `"unplaced": [{ "reason": "no_feasible_slot" }]` → `"no_feasible_start"` — the closed vocabulary
+  is `no_feasible_start | deferred | infeasible` (`schemas.py:36`, `_shared/types.ts:15`), and
+  `no_feasible_start` is the value every task returned on the Friday-evening Saturday plan (#52).
 
 ### 10.7 Нові додатки — **С**
 
@@ -1381,7 +1382,7 @@ the condition rather than removing the claim.
 | «a real thumb scroll with zero hitches on the iPhone and zero janky frames on the Pixel»      | 0 hitches on a **7-block** iPhone list under the owner's thumb; 0 janky on an **8-block** Pixel list. The 13-block Pixel runs show **1 janky frame**; the 16-block scripted iPhone runs, **8 hitches**  | name the list length and the input: a thumb and a scripted drag are different inputs, and the hitch count depends on which one is used (§12, U33)                   |
 | «cold start p90 1.07 s on the Pixel 7a … and 0.50 s on the iPhone 12 (0.95 s after a reboot)» | Android's `am start -W` measures process start → first frame; the iPhone's 488/503 ms measures **initial frame → foreground-active** and excludes 413 ms of process creation reported by the same trace | quote each platform with its interval, and make only the defensible cross-platform statement: post-reboot **0,95 с (iPhone 12) проти 1,07 с (Pixel 7a)** (§12, U26) |
 
-Two further qualifications for the same section:
+Three further qualifications for the same section:
 
 - **«the cap holding on real days on both platforms, the fifth slot going to the ritual»** — on
   7 September the fifth delivery **was the duplicated ritual**, i.e. the defect the same section
