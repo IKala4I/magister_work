@@ -25,6 +25,7 @@ import migrations from '../drizzle/migrations';
 import { initAuth } from '../src/auth/session';
 import { db } from '../src/db/client';
 import { t } from '../src/i18n';
+import { initLanguage, useLanguageStore } from '../src/state/language';
 import { NotificationResponder } from '../src/notifications/NotificationResponder';
 import { DialogHost } from '../src/ui/dialog';
 import { initNotifications } from '../src/notifications/setup';
@@ -44,11 +45,13 @@ initSentry(); // env-gated: disabled without EXPO_PUBLIC_SENTRY_DSN
 initAnalytics(); // env-gated: disabled without EXPO_PUBLIC_POSTHOG_API_KEY + _HOST (EU)
 initAuth(); // env-gated: disabled without EXPO_PUBLIC_SUPABASE_URL + _ANON_KEY (local-only)
 wireSync(); // P8: foreground / reconnect / poll triggers (no-op without a Supabase client)
+initLanguage(); // ADR-0023: resolve the catalog (stored choice, else OS) before the first render
 initNotifications(); // P10: handler, channels, categories — local notifications only (ADR-0014)
 
 function RootLayout() {
   const theme = useTheme();
   const { fontScale } = useWindowDimensions();
+  const locale = useLanguageStore((s) => s.locale);
   const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -94,9 +97,13 @@ function RootLayout() {
           (fixed 1× heights, clipped glyphs, overlapping card text at 200 % — hardware pass
           2026-09-07 items 22, 23, 36); a fresh mount lays out correctly. Android recreates the
           activity on a font-scale change, so the key never changes there in practice. The
-          navigation state resets to Today, which is where the user lands after Settings anyway. */}
+          navigation state resets to Today, which is where the user lands after Settings anyway.
+          The language is in the same key for the same reason (ADR-0023): `t()` is a plain
+          function read by 378 call sites, none of which is a hook, so a fresh mount is what
+          makes a language change total rather than partial. Switching language therefore also
+          returns to Today — the documented behaviour, not a glitch. */}
       <Stack
-        key={`font-scale-${fontScale}`}
+        key={`font-scale-${fontScale}-${locale}`}
         screenOptions={{
           headerStyle: { backgroundColor: theme.colors.surface },
           headerTintColor: theme.colors.textPrimary,

@@ -33,6 +33,7 @@ import {
   updateNotificationSettingsAction,
 } from '../src/domain/notificationActions';
 import { notificationSettingsOf, RITUAL_TIME_PRESETS } from '../src/domain/notificationSettings';
+import { changeLanguageAction } from '../src/domain/languageActions';
 import { formatRelative } from '../src/domain/relativeTime';
 import { plural, t, type MessageKey, type PluralKey } from '../src/i18n';
 import type { PermissionState } from '../src/notifications/setup';
@@ -51,6 +52,11 @@ import {
   useAppearanceStore,
   type SchemePreference,
 } from '../src/state/appearance';
+import {
+  LANGUAGE_PREFERENCES,
+  useLanguageStore,
+  type LanguagePreference,
+} from '../src/state/language';
 import { useSyncStore, type SyncUiStatus } from '../src/state/sync';
 import { syncNow } from '../src/sync/engine';
 import { readLastKnown, writeLastKnown } from '../src/storage/lastKnown';
@@ -652,6 +658,60 @@ function PrivacySection() {
   );
 }
 
+const LANGUAGE_LABELS: Record<LanguagePreference, MessageKey> = {
+  system: 'settings.language.system',
+  en: 'settings.language.en',
+  uk: 'settings.language.uk',
+};
+
+/**
+ * ADR-0023: the language switch, and the boundary it does not cross. The boundary block appears
+ * only when the interface is not English — under an English UI it would explain nothing.
+ */
+function LanguageSection() {
+  const theme = useTheme();
+  const preference = useLanguageStore((s) => s.preference);
+  const locale = useLanguageStore((s) => s.locale);
+  return (
+    <View style={styles.block}>
+      <View accessibilityRole="radiogroup">
+        {LANGUAGE_PREFERENCES.map((option) => (
+          <Pressable
+            key={option}
+            testID={`language-${option}`}
+            accessibilityRole="radio"
+            accessibilityState={{ checked: option === preference }}
+            accessibilityLabel={t('settings.language.option.a11y', {
+              language: t(LANGUAGE_LABELS[option]),
+            })}
+            onPress={() => changeLanguageAction(option)}
+            style={styles.row}
+          >
+            <ThemedText>{t(LANGUAGE_LABELS[option])}</ThemedText>
+            {option === preference ? (
+              <Ionicons name="checkmark" size={20} color={theme.colors.primary} />
+            ) : null}
+          </Pressable>
+        ))}
+      </View>
+      {locale === 'en' ? null : (
+        <View style={styles.block} testID="language-boundary">
+          <ThemedText variant="caption">{t('settings.language.boundary.title')}</ThemedText>
+          <ThemedText variant="caption" tone="secondary">
+            {t('settings.language.boundary.survey')}
+          </ThemedText>
+          <ThemedText variant="caption" tone="secondary">
+            {t('settings.language.boundary.yourWords')}
+          </ThemedText>
+          <ThemedText variant="caption" tone="secondary">
+            {t('settings.language.boundary.technical')}
+          </ThemedText>
+        </View>
+      )}
+    </View>
+  );
+}
+
 const PREFERENCE_LABELS: Record<SchemePreference, MessageKey> = {
   system: 'settings.appearance.system',
   light: 'settings.appearance.light',
@@ -710,7 +770,7 @@ export default function SettingsScreen() {
         <ThemedText variant="h2" style={styles.sectionTitle}>
           {t('settings.appearance.title')}
         </ThemedText>
-        <View accessibilityRole="radiogroup">
+        <View accessibilityRole="radiogroup" testID="appearance-group">
           {SCHEME_PREFERENCES.map((option) => (
             <Pressable
               key={option}
@@ -727,6 +787,10 @@ export default function SettingsScreen() {
             </Pressable>
           ))}
         </View>
+        <ThemedText variant="h2" style={styles.sectionTitle}>
+          {t('settings.language.title')}
+        </ThemedText>
+        <LanguageSection />
       </ScrollView>
       {/* a native modal screen is its own presentation context (ADR-0021) */}
       <DialogHost />

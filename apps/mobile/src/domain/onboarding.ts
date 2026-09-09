@@ -11,6 +11,7 @@ import { db } from '../db/client';
 import { saveProfile } from '../db/profile';
 import type { ProfileRow } from '../db/profile';
 import type { LocalDb } from '../db/writes';
+import { getActiveLocale } from '../i18n';
 import { track } from '../observability/analytics';
 import { scheduleSync } from '../sync/engine';
 
@@ -34,7 +35,7 @@ export function completeOnboardingAction(input: {
     userId: currentUserId(),
     draft: {
       timezone: deviceTimezone(),
-      locale: 'en',
+      locale: getActiveLocale(),
       workingHours: input.workingHours,
       sleepWindow: input.sleepWindow,
       rmeqScore: result.score,

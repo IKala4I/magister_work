@@ -85,6 +85,16 @@ async function registerChannels(): Promise<void> {
   }
 }
 
+/**
+ * ADR-0023: re-render the OS-side copy after a language change. Categories are replaced wholesale;
+ * an Android channel keeps its id, and the OS allows exactly the two fields we change here — its
+ * name and description — after creation, so the user's own importance and sound survive.
+ */
+export async function reRegisterNotificationCopy(): Promise<void> {
+  await registerCategories();
+  if (Platform.OS === 'android') await registerChannels();
+}
+
 /** Sign-out / account switch / erasure: nothing pending, nothing remembered (ledger + OS). */
 export async function clearAllNotifications(): Promise<void> {
   resetLedger();

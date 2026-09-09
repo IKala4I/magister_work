@@ -96,9 +96,12 @@ describe('tab screens render their catalog copy', () => {
 describe('settings appearance control', () => {
   it('renders the three preferences as a radio group', async () => {
     await render(withSafeArea(<SettingsScreen />));
-    expect(screen.getByText(en['settings.appearance.system'])).toBeTruthy();
-    expect(screen.getByText(en['settings.appearance.light'])).toBeTruthy();
-    expect(screen.getByText(en['settings.appearance.dark'])).toBeTruthy();
+    // Settings now has two "System" rows (appearance and language, ADR-0023), so the
+    // appearance assertions are scoped to their own group.
+    const group = within(screen.getByTestId('appearance-group'));
+    expect(group.getByText(en['settings.appearance.system'])).toBeTruthy();
+    expect(group.getByText(en['settings.appearance.light'])).toBeTruthy();
+    expect(group.getByText(en['settings.appearance.dark'])).toBeTruthy();
     // P10 added the ritual-time radios to Settings; the appearance group is the three labelled ones
     const appearance = [
       en['settings.appearance.system'],

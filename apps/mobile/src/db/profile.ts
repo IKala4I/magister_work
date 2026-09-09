@@ -158,6 +158,24 @@ export function updateProfileSettings(
 }
 
 /**
+ * ADR-0023: record the language the interface is actually in. Same transaction shape as
+ * updateProfileSettings (row + op, base_version chained). No row yet → nothing, and the value
+ * is written at onboarding instead.
+ */
+export function updateProfileLocale(
+  db: LocalDb,
+  input: { userId: string; locale: string; now?: Date },
+): ProfileRow | undefined {
+  const existing = getProfile(db, input.userId);
+  if (existing === undefined || existing.locale === input.locale) return existing;
+  return saveProfile(db, {
+    userId: input.userId,
+    draft: { ...draftFromRow(existing), locale: input.locale },
+    now: input.now ?? new Date(),
+  });
+}
+
+/**
  * Pull-path upsert: mirror a row the SERVER already owns. Deliberately enqueues nothing —
  * echoing a pulled row back as a `profile_update` op would bump the server version on every
  * account switch for no reason (P4 adversarial finding m3). Push paths use saveProfile.

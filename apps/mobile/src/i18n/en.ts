@@ -233,6 +233,9 @@ export const en = {
   // Language names are autonyms in every catalog — a list of languages you cannot read is no help.
   'settings.language.en': 'English',
   'settings.language.uk': 'Українська',
+  // Both this group and Appearance offer a row called "System"; a screen reader walking the
+  // screen row by row needs to hear which is which.
+  'settings.language.option.a11y': 'Language: {language}',
   'settings.language.boundary.title': 'What stays in English',
   'settings.language.boundary.survey':
     'The morning-and-evening survey. Its scale was validated for the English wording, so a translation would give a different answer against the same thresholds.',

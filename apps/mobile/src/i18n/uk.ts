@@ -242,6 +242,7 @@ export const uk: Record<MessageKey, string> = {
   'settings.language.system': 'Системна',
   'settings.language.en': 'English',
   'settings.language.uk': 'Українська',
+  'settings.language.option.a11y': 'Мова: {language}',
   'settings.language.boundary.title': 'Що лишається англійською',
   'settings.language.boundary.survey':
     'Опитувальник про ранок і вечір. Його шкалу перевіряли саме для англійських формулювань, тож переклад дав би іншу відповідь за тими самими межами.',
