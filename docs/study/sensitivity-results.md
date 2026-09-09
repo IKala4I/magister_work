@@ -116,7 +116,7 @@ users.
 
 Range across the 75 worlds: **N₈₀ = 21 … > 120; > 120 in 48 cells** (medians rounded up — a
 sample size is not rounded down). Recruitment at File 06's assumed 30 % attrition: N = 120
-completers means ≈ 170 enrolled — beyond a master's project and, for an eight-week
+completers means **172** enrolled (120 / 0.7; the earlier "≈ 170" rounded the recruitment burden down — corrected 2026-09-09) — beyond a master's project and, for an eight-week
 within-subject protocol, beyond most single-lab studies. The honest reading, with N following
 its inputs: **the designed ABAB study needs N ≈ 35–70 completers if a pilot shows that
 individuals' completion varies across dayparts by σ ≈ 0.6 logits (≈ ±14 pp) beyond their

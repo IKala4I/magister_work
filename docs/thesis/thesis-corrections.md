@@ -641,7 +641,7 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     not a measured fact about people. Then draw the conclusion plainly, with N following its
     inputs: **the designed ABAB study needs N ≈ 35–70 if a pilot shows individual slot-effect
     spread of ≈ 0.6 logits (≈ ±14 pp per daypart), N ≈ 30–45 only if it shows a population
-    effect 1.5–2× File 04's on an extreme-heavy sample; otherwise N ≥ 120 (recruit ≥ 170) and it
+    effect 1.5–2× File 04's on an extreme-heavy sample; otherwise N ≥ 120 (recruit ≥ 172 — 120 / 0.7; an earlier "≥ 170" rounded the recruitment burden down) and it
     is not worth running as designed.** Keep #55's E2 numbers (0.84 / 0.82) only as "what File 06's
     own model gives under its own assumption", and note the 28 → 30 normal-approximation
     correction. Cross-refs: File 06 §2 amendment block; grid §4 S11 (the prediction that

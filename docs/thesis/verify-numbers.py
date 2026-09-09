@@ -227,6 +227,10 @@ def sens() -> None:
     # the s=2 stress level is shared, so "least plausible world" would be unsupported
     check("cells at s=2 (the superlative check)", 17, sum(1 for c in cells if c["s"] == 2.0))
 
+    # rozdil-1 §1.4's rebuilt gap argument rests on these two, so they are checked here too
+    check("§1.4: cells needing N > 120", 48, sum(1 for c in cells if c["n80_over_grid_max"]))
+    check("§1.4: enrolment at 30 % attrition from 120", 172, math.ceil(120 / 0.7))
+
     # exploration cost on slice rows: the grid maximum quoted as 17 pp
     costs = [c["exploration_cost_B"]["mean"] * 100 for c in cells]
     check("max exploration cost, arm B (pp)", 17, round(max(costs)), 0.5)
