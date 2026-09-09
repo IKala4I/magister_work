@@ -45,6 +45,8 @@ import { saveProfile } from '../db/profile';
 import { emptyRmeqAnswers } from '../domain/rmeq';
 import { DEFAULT_SLEEP_WINDOW, DEFAULT_WORKING_HOURS } from '../domain/workingHours';
 import { en } from '../i18n/en';
+import { uk } from '../i18n/uk';
+import { applyLanguage, useLanguageStore } from '../state/language';
 import { track } from '../observability/analytics';
 import { useOnboardingStore } from '../state/onboarding';
 
@@ -161,5 +163,41 @@ describe('completeOnboardingAction (File 04 §3.1 wiring)', () => {
       chronotypeClass: 'INT',
       surveySkipped: true,
     });
+  });
+});
+
+describe('the instrument stays English, and says so (FR-02, ADR-0023)', () => {
+  afterEach(() => {
+    useLanguageStore.setState({ preference: 'system', locale: 'en' });
+    applyLanguage('system', ['en']);
+  });
+
+  it('an English interface shows no note — there is nothing to explain', async () => {
+    await render(withSafeArea(<SurveyScreen />));
+    expect(screen.queryByTestId('survey-english-note')).toBeNull();
+  });
+
+  it('a Ukrainian interface explains why the five items are in English', async () => {
+    applyLanguage('uk', ['uk']);
+    useLanguageStore.setState({ preference: 'uk', locale: 'uk' });
+    await render(withSafeArea(<SurveyScreen />));
+    expect(screen.getByText(uk['onboarding.survey.englishNote'])).toBeTruthy();
+  });
+
+  it('the items themselves are unchanged, so the score stays comparable to the cut-offs', async () => {
+    applyLanguage('uk', ['uk']);
+    useLanguageStore.setState({ preference: 'uk', locale: 'uk' });
+    await render(withSafeArea(<SurveyScreen />));
+    for (const key of [
+      'onboarding.rmeq.wakeTime.q',
+      'onboarding.rmeq.morningFeel.q',
+      'onboarding.rmeq.eveningSleepy.q',
+      'onboarding.rmeq.bestTime.q',
+      'onboarding.rmeq.selfType.q',
+    ] as const) {
+      expect(screen.getByText(en[key])).toBeTruthy();
+    }
+    // Option order carries the score (src/domain/rmeq.ts RMEQ_ITEMS): 5 + 4 + 5 + 5 + 4.
+    expect(screen.getAllByRole('radio')).toHaveLength(23);
   });
 });

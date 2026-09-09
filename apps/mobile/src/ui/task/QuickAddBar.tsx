@@ -173,6 +173,14 @@ export function QuickAddBar({ onSubmit, showExample = true }: QuickAddBarProps) 
           {deadline !== null ? (
             <PreviewChip label={t('inbox.preview.deadline', { date: formatDeadline(deadline) })} />
           ) : null}
+          {/* Nothing parsed is a state, not the absence of one. Until now the row simply showed
+              no chips and left the user to infer why — the silence the hardware pass recorded
+              against Ukrainian input (2026-09-01 item 9, confirmed 2026-09-02 item 6). */}
+          {canSubmit && estMinutes === null && deadline === null ? (
+            <ThemedText variant="caption" tone="secondary" testID="quick-add-no-parse">
+              {t('inbox.quickAdd.noParseHint')}
+            </ThemedText>
+          ) : null}
         </View>
       )}
 

@@ -249,3 +249,21 @@ describe('delete with undo (File 02 §3 — 6 s window)', () => {
     expect(screen.queryByText(plural('inbox.undo.deleted', 2))).toBeNull();
   });
 });
+
+describe('quick add says when nothing parsed (FR-11)', () => {
+  it('shows the hint when a typed line carries no date or duration', async () => {
+    await render(withSafeArea(<InboxScreen />));
+    await fireEvent.changeText(screen.getByLabelText(en['inbox.quickAdd.input.a11y']), 'buy milk');
+    expect(screen.getByTestId('quick-add-no-parse')).toBeTruthy();
+    expect(screen.getByText(en['inbox.quickAdd.noParseHint'])).toBeTruthy();
+  });
+
+  it('stays quiet once something is parsed', async () => {
+    await render(withSafeArea(<InboxScreen />));
+    await fireEvent.changeText(
+      screen.getByLabelText(en['inbox.quickAdd.input.a11y']),
+      'buy milk 30m',
+    );
+    expect(screen.queryByTestId('quick-add-no-parse')).toBeNull();
+  });
+});

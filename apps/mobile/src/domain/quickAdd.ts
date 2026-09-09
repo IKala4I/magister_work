@@ -1,16 +1,24 @@
 /**
- * NL quick-add parser (FR-11, UC-02): "report draft 2h by Fri" → structured draft fields,
- * entirely on-device (File 03 §2.1 — task text never leaves the phone for parsing).
- * chrono-node 2.x owns date expressions; a small explicit grammar owns durations.
- * Ambiguity is surfaced, never guessed (UC-02 A1): the UI renders disambiguation chips
- * from the `ambiguities` list, and confirm applies whatever the preview shows.
+ * NL quick-add parser (FR-11, UC-02): "report draft 2h by Fri" / «чернетка звіту 2 год до
+ * п'ятниці» → structured draft fields, entirely on-device (File 03 §2.1 — task text never leaves
+ * the phone for parsing). chrono-node owns date expressions; a small explicit grammar owns
+ * durations and deadline connectors. Ambiguity is surfaced, never guessed (UC-02 A1): the UI
+ * renders disambiguation chips from the `ambiguities` list, and confirm applies whatever the
+ * preview shows.
  *
- * Order matters: chrono treats bare durations ("90m", "2h") as *relative time* expressions
+ * Order matters: chrono treats bare durations ("90m", «2 год») as *relative time* expressions
  * and would consume them, so the duration grammar runs FIRST and its spans are masked out
- * of the text chrono sees. The exception is "in 2 hours"/"within 45 min" — an in/within
- * prefix marks a relative deadline, so those stay unmasked for chrono.
+ * of the text chrono sees. The exception is "in 2 hours" / «через 2 години» — a relative prefix
+ * marks a deadline, so those stay unmasked for chrono.
+ *
+ * Both languages are parsed (ADR-0023). chrono-node 2.10.1 ships `chrono.uk` in its full-support
+ * tier; what it does not ship is our own grammar, so durations, connectors and weekday forms are
+ * declared per language below. Word boundaries use `\P{L}` rather than `\b`: JavaScript's `\w`
+ * is ASCII, so `\bдо\b` matches nothing at all.
  */
 import * as chrono from 'chrono-node';
+
+import { getActiveLocale, type CatalogLocale } from '../i18n';
 
 export type QuickAddAmbiguity =
   | {
@@ -48,16 +56,63 @@ export type ParsedQuickAdd = {
 
 type Span = { start: number; end: number };
 
-const CONNECTORS = ['by', 'due by', 'due', 'before', 'until', 'till'];
-
-/** h/min forms: "2h", "2 hrs", "1.5 hours", "90m", "45 min", "1h30m", "1h 30m". */
-const DURATION_RE =
-  /(?:(\d+(?:[.,]\d+)?)\s*(?:hours?|hrs?|h)(?![a-z]))?\s*(?:(\d+)\s*(?:minutes?|mins?|m)(?![a-z]))?/gi;
-
 /** End-of-day convention for day-granular deadlines; the UI treats 23:59 as "no clock time". */
 export const DAY_END = { hour: 23, minute: 59 };
 
-const WEEKDAY_RE = /^(?:on\s+)?(mon|tue|tues|wed|thu|thur|thurs|fri|sat|sun)(?:[a-z]*day)?$/i;
+interface Grammar {
+  /** The chrono instance for this language (casual parsing). */
+  parser: chrono.Chrono;
+  /** Words that introduce a deadline, longest first. */
+  connectors: readonly string[];
+  /** Duration forms; capture group 1 = hours, group 2 = minutes. Must be global + sticky-free. */
+  duration: RegExp;
+  /** A prefix meaning "from now", which makes the number a deadline rather than an estimate. */
+  relativePrefix: RegExp;
+  /** A bare weekday, for the "today or next week?" question. */
+  weekday: RegExp;
+  /** A connector left dangling once its date span was consumed ("lunch at" → "lunch"). */
+  dangling: RegExp;
+  /**
+   * Applied before parsing, never to the title. Same length in, same length out, so spans
+   * computed on the normalised text still address the user's original words.
+   */
+  normalize: (text: string) => string;
+}
+
+/**
+ * Ukrainian keyboards produce U+02BC (ʼ) and autocorrect often gives U+2019 (’), but chrono.uk
+ * 2.10.1 recognises «п'ятниця» only with an ASCII apostrophe — so the phone's own apostrophe
+ * would silently fail to parse. Every variant is folded to U+0027 for the parser's eyes only.
+ */
+const APOSTROPHES = /[\u02BC\u2019\u2018\u02B9\u00B4`]/g;
+const identity = (text: string): string => text;
+
+const GRAMMARS: Record<CatalogLocale, Grammar> = {
+  en: {
+    parser: chrono.casual,
+    connectors: ['due by', 'by', 'due', 'before', 'until', 'till'],
+    // "2h", "2 hrs", "1.5 hours", "90m", "45 min", "1h30m", "1h 30m"
+    duration:
+      /(?:(\d+(?:[.,]\d+)?)\s*(?:hours?|hrs?|h)(?![a-z]))?\s*(?:(\d+)\s*(?:minutes?|mins?|m)(?![a-z]))?/gi,
+    relativePrefix: /(?:^|\P{L})(?:in|within)\s*$/iu,
+    weekday: /^(?:on\s+)?(mon|tue|tues|wed|thu|thur|thurs|fri|sat|sun)(?:[a-z]*day)?$/i,
+    dangling: /(?:^|\s)(?:at|on|by|due|before|until|till)$/i,
+    normalize: identity,
+  },
+  uk: {
+    parser: chrono.uk.casual,
+    connectors: ['дедлайн', 'аж до', 'до', 'перед'],
+    // «2 год», «2год», «1,5 години», «90 хв», «1 год 30 хв». No bare «м» for minutes: it would
+    // swallow the metre in «2 м» and, with a following apostrophe, ordinary words too.
+    duration:
+      /(?:(\d+(?:[.,]\d+)?)\s*(?:годин[аиуою]?|год|г)(?![\p{L}]))?\s*(?:(\d+)\s*(?:хвилин[аиуою]?|хв)(?![\p{L}]))?/giu,
+    relativePrefix: /(?:^|\P{L})через\s*$/iu,
+    // Stems, so every case form counts: «п'ятниця», «у п'ятницю», «до п'ятниці».
+    weekday: /^(?:[ву]\s+)?(понеділ|вівтор|серед|четвер|п'ятниц|субот|неділ)[\p{L}]*$/iu,
+    dangling: /(?:^|\s)(?:до|перед|дедлайн|о|об|у|в|на)$/iu,
+    normalize: (text) => text.replace(APOSTROPHES, "'"),
+  },
+};
 
 function minutesFrom(hoursText: string | undefined, minutesText: string | undefined): number {
   const hours = hoursText ? Number.parseFloat(hoursText.replace(',', '.')) : 0;
@@ -65,11 +120,13 @@ function minutesFrom(hoursText: string | undefined, minutesText: string | undefi
   return Math.round(hours * 60 + minutes);
 }
 
-function connectorBefore(text: string, index: number): Span | null {
+function connectorBefore(text: string, index: number, grammar: Grammar): Span | null {
   const head = text.slice(0, index);
-  for (const connector of CONNECTORS) {
-    const match = new RegExp(`\\b${connector}\\s*$`, 'i').exec(head);
-    if (match) return { start: match.index, end: index };
+  for (const connector of grammar.connectors) {
+    // `\P{L}` rather than `\b`: JavaScript word boundaries are ASCII-only, so a Cyrillic
+    // connector would never match one.
+    const match = new RegExp(`(^|\\P{L})(${connector})\\s*$`, 'iu').exec(head);
+    if (match) return { start: match.index + (match[1]?.length ?? 0), end: index };
   }
   return null;
 }
@@ -82,19 +139,25 @@ function sameLocalDay(a: Date, b: Date): boolean {
   );
 }
 
-const RELATIVE_PREFIX_RE = /\b(?:in|within)\s*$/i;
-
-export function parseQuickAdd(input: string, now: Date = new Date()): ParsedQuickAdd {
+export function parseQuickAdd(
+  input: string,
+  now: Date = new Date(),
+  locale: CatalogLocale = getActiveLocale(),
+): ParsedQuickAdd {
   const text = input.trim();
+  const grammar = GRAMMARS[locale];
+  // Parsed against the normalised text, titled from the original: same length, same indices.
+  const source = grammar.normalize(text);
   const consumed: Span[] = [];
   const ambiguities: QuickAddAmbiguity[] = [];
 
   // --- durations first (chrono would swallow bare "90m"/"2h" as relative times) ---
   const durationSpans: Span[] = [];
   const durations: Array<{ span: Span; minutes: number }> = [];
-  for (const match of text.matchAll(DURATION_RE)) {
+  for (const match of source.matchAll(grammar.duration)) {
     if (match[0].trim() === '' || (match[1] === undefined && match[2] === undefined)) continue;
-    if (RELATIVE_PREFIX_RE.test(text.slice(0, match.index))) continue; // "in 2 hours" → deadline
+    // «через 2 години» / "in 2 hours" is a deadline, not an estimate: leave it for chrono.
+    if (grammar.relativePrefix.test(source.slice(0, match.index))) continue;
     const span: Span = { start: match.index, end: match.index + match[0].length };
     const minutes = minutesFrom(match[1], match[2]);
     // A zero duration ("0m") yields no estimate but is still duration-shaped text: mask and
@@ -116,22 +179,22 @@ export function parseQuickAdd(input: string, now: Date = new Date()): ParsedQuic
   }
 
   // Mask duration spans with spaces so chrono indices still line up with `text`.
-  let masked = text;
+  let masked = source;
   for (const span of durationSpans) {
     masked =
       masked.slice(0, span.start) + ' '.repeat(span.end - span.start) + masked.slice(span.end);
   }
 
   // --- dates (forwardDate so "fri" is the upcoming Friday) ---
-  const dateResults = chrono.parse(masked, now, { forwardDate: true });
+  const dateResults = grammar.parser.parse(masked, now, { forwardDate: true });
   let deadline: Date | null = null;
   // Prefer the result introduced by a deadline connector ("by fri"), else the first.
   const preferred =
-    dateResults.find((r) => connectorBefore(masked, r.index) !== null) ?? dateResults[0];
+    dateResults.find((r) => connectorBefore(masked, r.index, grammar) !== null) ?? dateResults[0];
   if (preferred !== undefined) {
     const span: Span = { start: preferred.index, end: preferred.index + preferred.text.length };
     consumed.push(span);
-    const connector = connectorBefore(masked, preferred.index);
+    const connector = connectorBefore(masked, preferred.index, grammar);
     if (connector) consumed.push(connector);
 
     const parsedDate = preferred.start.date();
@@ -176,7 +239,7 @@ export function parseQuickAdd(input: string, now: Date = new Date()): ParsedQuic
     }
 
     // Bare weekday resolving to today: "fri" said on Friday — today or next week?
-    if (WEEKDAY_RE.test(preferred.text.trim()) && sameLocalDay(parsedDate, now)) {
+    if (grammar.weekday.test(preferred.text.trim()) && sameLocalDay(parsedDate, now)) {
       const nextWeek = new Date(deadline);
       nextWeek.setDate(nextWeek.getDate() + 7);
       ambiguities.push({ kind: 'weekday_today_or_next', today: deadline, nextWeek });
@@ -198,7 +261,7 @@ export function parseQuickAdd(input: string, now: Date = new Date()): ParsedQuic
   title = title.replace(/[,.;:\s]+$/g, '').trim();
   // A connector left dangling by a consumed date span ("lunch at noon" → "lunch at").
   title = title
-    .replace(/\b(?:at|on|by|due|before|until|till)$/i, '')
+    .replace(grammar.dangling, '')
     .replace(/[,.;:\s]+$/g, '')
     .trim();
 
