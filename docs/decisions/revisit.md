@@ -479,3 +479,12 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   context buckets in three parallel definitions (`contexts.py`, `_shared/contexts.ts`, a SQL CHECK).
   The layout note is stale rather than the code being wrong — the parity that matters is tested. Fix
   the PLAN sentence, or move the constants, at the next `packages/shared` change.
+- [2026-09-09, post-P12 localisation] **`e2e/p2-a11y-sweep.yaml` no longer passes as written, and
+  not because of this work.** Run on the current app: at accessibility-XXXL it fails at
+  `assertVisible: 'Appearance'` immediately after opening Settings — Settings has grown from one
+  section at P2 to seven, so Appearance is far below the fold and the flow never scrolls; at medium
+  size it gets past that and fails at `assertVisible: 'Still learning'`, racing the Insights load.
+  Neither touches the language work (the new sweeps in `e2e/i18n-uk-*.yaml` scroll explicitly and
+  wait). The flow is cited by `scripts/device-pass.sh` and by the P2/P10 a11y records, so it should
+  be repaired — scroll to the section, wait for Insights — rather than left to fail silently in the
+  next device pass.
