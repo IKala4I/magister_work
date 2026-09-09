@@ -54,8 +54,14 @@ the remaining twelve are small and logged in `revisit.md` or addressed in place.
 
 ## Exact next actions
 
-**None.** The phase is merged and nothing is pending. A fresh session picks the next item with the
-owner from `docs/decisions/revisit.md`.
+**None of its own.** The phase is merged and nothing is pending. A fresh session picks the next item
+with the owner from `docs/decisions/revisit.md`.
+
+**One deferred one-liner to carry:** `docs/verification/uk-a11y-sweep.sh` documents a build step
+that leaks a Metro bundler (see "Environment" below). The fix is `--no-bundler` on the
+`npx expo run:ios` line plus a word in the header comment. The owner's instruction (2026-09-09) is
+**not** to open a PR for one line — **fold it into the next phase that touches main.** Logged in
+`revisit.md` so it is not lost.
 
 If a catalog string is ever edited: regenerate the owner's review surface with
 `node scripts/i18n-copy-review.mjs && pnpm format` — the prettier pass is not optional, or the
@@ -91,14 +97,21 @@ committed doc and a fresh run differ by hundreds of lines of table padding.
 
 ## Environment left as found
 
-- **Simulator:** iPhone 16 (`5C080B83-…`), iOS 18.3, Release build of `bc753eb` installed, text size
-  restored to `medium`, app in Ukrainian on a throwaway anonymous account with one plan. Several
-  throwaway anonymous accounts were created on the hosted project across the sweep runs
-  (retention-purge material, like the session-only rows from earlier passes), and a handful of plan
-  requests were made. Nothing needs cleaning up; the next session may `clearState` freely.
+- **Simulator: shut down** (owner's instruction, 2026-09-09). iPhone 16 (`5C080B83-…`), iOS 18.3,
+  still holds the Release build of `bc753eb`, text size `medium`, app in Ukrainian on a throwaway
+  anonymous account with one plan. Several throwaway anonymous accounts were created on the hosted
+  project across the sweep runs (retention-purge material, like the session-only rows from earlier
+  passes), and a handful of plan requests were made. Nothing needs cleaning up; the next session may
+  boot it and `clearState` freely.
+- **A leftover Metro bundler was killed at the end of the session.** `npx expo run:ios` was invoked
+  **without** `--no-bundler`, so after the build installed, Metro kept running and streaming the
+  simulator's log for ~2.5 h — it looked like a stalled build from the outside (no build output, a
+  log file still growing with app-runtime noise). It was never waiting for a device: the command
+  targeted the simulator UDID. See the deferred fix below.
 - **This session's Release build added a DerivedData tree** (`~/Library/Developer/Xcode/DerivedData/
 Hourwell-blsssfravpwaygfiszsljufasxeb`) — relevant to the standing disk-space item below.
-- **Phones:** untouched this session. Pixel 7a and iPhone 12 remain as the motion phase left them.
+- **Phones:** untouched this session; the owner has since unplugged both. Pixel 7a and iPhone 12
+  remain as the motion phase left them.
 
 ---
 
