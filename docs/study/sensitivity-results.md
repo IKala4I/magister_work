@@ -40,8 +40,13 @@ including the literature-like adult population at File 04's assumed strength (N�
 strongly from their class (σ_shape = 0.6: 33–52 without day noise, 43–68 at σ_day 0.6, 50–84
 at 0.9), where the population effect is at least 1.5× the table's on an extreme-heavy sample
 (uniform mix: 43 at 1.5×, 31 at 2×; student mix 43 at 2×), or with six tasks a day at 2× (21).
-File 06's N = 30 is supported in none of the 75 cells (the smallest adult-mix N₈₀ is 33, and
-the rejection rate at N = 30 reaches 0.80 in one cell).
+File 06's N = 30 is supported by **exactly one** of the 75 cells — the six-tasks-a-day world at
+s = 2 (N₈₀ = 21, empirical rejection at N = 30 of 0.90). At the grid's standard four tasks a day
+the smallest N₈₀ is 33 (adult mix, s = 0, σ_shape = 0.6, σ_day = 0). The empirical rejection rate
+at N = 30 reaches 0.80 in four cells (indices 6, 49, 54, 66). _(Corrected 2026-09-09: this summary
+previously read "supported in none of the 75 cells (the smallest adult-mix N₈₀ is 33 …)" — cell 66
+is adult mix with N₈₀ = 21, so both halves were wrong. Recomputed from `results/sensitivity.json`;
+the appendix table already carried the right values and no other number in this document changes.)_
 
 ## 1. The boundary (Q1) — located, not asserted
 
