@@ -51,7 +51,19 @@ is missing from Додаток В; and the reference list orphans five sources w
 none.
 
 **Verification depth: thesis-critical.** Two source sweeps (23 ADRs; seven days of device notes
-plus the checklist) and a fresh-context adversarial pass ran as subagents.
+plus the checklist) and a fresh-context adversarial pass ran as subagents. The adversarial pass
+returned **three blocking findings and eleven accuracy fixes**, all applied: an `a_m_size` column
+that does not exist and would have entered the thesis through §2.3 and Додаток Ж (|A_m(x)| is
+recovered from `telemetry.ef.experiment.top_m`); the new Розділ 6 delivered as an ordering rather
+than as text, for a file whose first promise is finished Ukrainian sentences — §6.3, §6.4, §6.6,
+§6.7 and §6.8 are now written, and item 21, which had no home at all, opens §5.4; and a broken
+markdown table. Among the accuracy fixes: the function latency 1,10–1,34 s was a p50→p95 pair, not
+a p95 range; /plan 135 / 487 ms is the pre-rollout image (shipped: 139 / 555); accent-as-text
+contrast is 2,06–3,60:1 and the 2,98:1 was a different pairing **fixed in P10**; the iPhone's
+0,49–0,50 s is a warm series with no 413 ms subtracted; two motion frame series came from two
+builds; the product is **Kairos** in the thesis text, not Hourwell. Percentage points are now
+**«в. п.»** (the ДСТУ form the draft already uses) rather than the repository's «п.п.», which is
+the standard abbreviation for «пункти».
 
 ## Exact next actions
 
