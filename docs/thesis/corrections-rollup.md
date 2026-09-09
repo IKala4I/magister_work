@@ -23,13 +23,15 @@
 | **С** | структура — the section no longer holds: it is rebuilt, moved, split or deleted.      |
 
 **Terminology, fixed here so the chapters do not drift.** Percentage points are written
-**«п.п.»** throughout — the form used by the owner-approved wording of items 58/59, by
-`thesis-corrections.md` and by the explainer (51 occurrences against 0). The draft currently uses
-«в. п.» in four places (§5.5 and табл. 5.3); align those four, or switch everything the other way,
-but not both. Other fixed forms: «навчена політика» (not «навчена модель»), «евристика
-«найраніший вільний слот»», «індивідуальне відхилення від профілю класу», «рандомізований зріз»,
-«пропенсіті». The draft's research questions are **ДП1–ДП4**; the repository calls them RQ1–RQ4 —
-keep ДП in the text and note the mapping once.
+**«в. п.»** — the ДСТУ-conformant abbreviation for «відсоткові пункти», and the form the draft
+already uses in its four occurrences (§5.5 and табл. 5.3). The repository's own Ukrainian
+documents use «п.п.» (`pojasnennia.uk.md` 34 occurrences, `thesis-corrections.md` 17), including
+the exact wording of items 58 and 59; read those as «в. п.» when pasting, because «п.п.» is the
+standard abbreviation for «пункти» and would be read as such by a reviewer. Other fixed forms:
+«навчена політика» (not «навчена модель»), «евристика «найраніший вільний слот»», «індивідуальне
+відхилення від профілю класу», «рандомізований зріз», «пропенсіті», «попередня реєстрація» (not
+«пре-реєстрація»). The draft's research questions are **ДП1–ДП4**; the repository calls them
+RQ1–RQ4 — keep ДП in the text and note the mapping once.
 
 Draft anchors are given as the draft's own numbering (§3.3, табл. 3.2, Додаток Ж). Where a
 correction lands in a place the draft does not yet have, the anchor says **[NEW]**.
@@ -52,9 +54,9 @@ correction lands in a place the draft does not yet have, the anchor says **[NEW]
 | Розділ 2 §2.3                         | **П**         | 18, 19, 20 (amended), 60 (l)               | the stability bonus; chunk weights; **the propensity is p = ε/\|A_m(x)\|, not a constant 0,25**                          |
 | Розділ 2 §2.4                         | **С** rewrite | 17, 26, 37, 51, +U10                       | the size argument was tested and failed — the subsection becomes an empirical result with a mechanism                    |
 | Розділ 2 §2.5                         | **П**         | 40, 58, 60 (o), +U11                       | the priors are a bootstrap, not the mechanism; the AF/MD ordering is an unmeasured assumption                            |
-| Розділ 2 §2.6.2                       | **П**         | 55 (E1), +U12                              | **unweighted replay is biased when \|A_m(x)\| varies** — the methodology statement changes here, not only in the results |
+| Розділ 2 §2.6.2–§2.6.3                | **П**         | 55 (E1), +U12                              | **unweighted replay is biased when \|A_m(x)\| varies** — the methodology statement changes here, not only in the results |
 | Розділ 2 §2.7                         | **Ф**         | 30, 31, 32, 40                             | the concrete attribution rules; the EWMA; store-then-deliver; labels                                                     |
-| Розділ 3 §3.1 табл. 3.1/3.2           | **Ф**         | 3, 11, 23, 45, 47, 51, 60 (i)(j)(k)        | NFR-P1, NFR-P2, NFR-P3, NFR-Sc1, FR-50 rows                                                                              |
+| Розділ 3 §3.1 табл. 3.1/3.2 + NFR-R2  | **Ф**         | 3, 11, 23, 45, 47, 51, 60 (i)(j)(k)        | NFR-P1, NFR-P2, NFR-P3, NFR-Sc1, FR-50 rows                                                                              |
 | Розділ 3 §3.2 + рис. 3.1              | **П**         | 26, 27, 33, 60 (c)(d)                      | the figure caption names Hugging Face, HF Hub and a GitHub-Actions cron — all three moved                                |
 | Розділ 3 §3.3 табл. 3.3               | **Ф**         | 1, 2, 12, 13, 14, 26, 29, 41, 61           | versions and named mechanisms                                                                                            |
 | Розділ 3 §3.4                         | **Ф**         | 5, 6, +U13                                 | the entity list; the `excluded` flag that carries invariant 3                                                            |
@@ -114,60 +116,61 @@ with the number into the sentence**, not into a footnote.
 
 ### 2.1 The measured numbers the thesis may quote
 
-| Number                                                        | Condition it is only true under                                                                                                                                                                                                                             | Source                                                                                              |
-| ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| **план: p50 135 мс / p90 487 мс**                             | server-side `/plan` only, day plan of 12 tasks, OPTIMAL 20/20, Oracle A1 (2 pinned cores), 2026-08-28                                                                                                                                                       | #37; `p5-manual-verification.md` §2.1–2.3                                                           |
-| **практичний поріг 3·10³ літералів**                          | on the deployment box; **8·10³** on an M-series Mac; the spec's 4·10⁴ stays only as an outer bound                                                                                                                                                          | #17, #37; spec-conflicts M8; ADR-0007 §11                                                           |
-| **тижневий план: FEASIBLE у ≈ 60 % запусків**                 | 50 tasks × 7 days, best rung, 1,5 s plan-level budget, deployment box; ≈ 40 % return the partial anytime plan                                                                                                                                               | #37                                                                                                 |
-| **інкумбент за 10–11 мс; остання поліпшувальна за p50 54 мс** | the device's own inbox class (interchangeable tasks, two deadlines); the rest of the second is an optimality proof that never closes                                                                                                                        | ADR-0018                                                                                            |
-| **втрата від обриву ≤ 0,3 % (макс. 4,41 %)**                  | objective units, shortest no-improvement window; the Thompson spread on the same instance is 5,6–19,2 weight units across seeds                                                                                                                             | ADR-0018                                                                                            |
-| **резерв 1/10 → 0/10**                                        | **15-task inbox, 3 Sep** (the 14-task series of 2 Sep had 1/10 and no "after") — erratum inside #51                                                                                                                                                         | #51 erratum 2026-09-06                                                                              |
-| **еталон NFR-P1 3,7–4,1 с p95**                               | Pixel 7a, home Wi-Fi, warm, tap → plan received (timer stops **before** the SQLite mirror), two series of ten (3 and 4 Sep), pooled 4,0 s (n = 20)                                                                                                          | #51; `android-20260905-0942/notes.md` item 4                                                        |
-| **≤ 6,0 с p95 (the requirement)**                             | derived, not measured: 2022 low-end Android over a weak-signal link, from the decomposition                                                                                                                                                                 | #51 owner decision 2026-09-04                                                                       |
-| **2,6 с з 3,9 с — серверна частка**                           | function 1,3 + invoke 0,3 + sync-resolve 1,0 at p95; scales with nothing on the user's phone or network                                                                                                                                                     | #51                                                                                                 |
-| **функція p95 1,10–1,34 с**                                   | after ADR-0018, same inbox, 0/10 fallbacks (before: 1,68–1,91 s)                                                                                                                                                                                            | #51                                                                                                 |
-| **передплановий push 1,16 / 1,54 с**                          | 17 of 21 requests carried one; 3 Sep series                                                                                                                                                                                                                 | #51                                                                                                 |
-| **холодний старт p90 1,07 с (p50 0,89)**                      | **Pixel 7a, build 3, одразу після перезавантаження**, n = 20, `am start -W` TotalTime (старт процесу → перший кадр); warm p90 0,55 с. Build 1 після перезавантаження давав p90 **1,58 с** — зміна між збірками не має приписаної причини                    | #62; `android-20260903-1020/notes.md` item 12; `android-20260901-2030/notes.md`                     |
-| **холодний старт 0,49–0,50 с**                                | **iPhone 12**, n = 19 з 20, xctrace — **інший відрізок**: перший кадр → активний на передньому плані, **без** 413 мс створення процесу, які повідомляє той самий трейс; після перезавантаження від створення процесу — 0,95 с                               | #62; `ios-20260907-1130/notes.md` item 38 — **U26**                                                 |
-| **p90 1075 мс**                                               | **iOS simulator on an Apple-silicon Mac, Release** — satisfies the NFR-P2 threshold and NOT its device condition                                                                                                                                            | #11 — see §2.3                                                                                      |
-| **1825 / 1824 кадри, 1 janky, p99 10 мс**                     | Pixel 7a, the same 13-block plan under a build of main and the motion build                                                                                                                                                                                 | #61; `android-20260908-motion/notes.md`                                                             |
-| **11 / 10 / 14 / 12 кадрів; 17 + 7**                          | Pixel 7a at 60 fps: Done / Skip / I did it / on-screen move; off-screen move = scroll then arrival settle                                                                                                                                                   | #61 (ADR-0022)                                                                                      |
-| **8 = 8 hitches (847 / 807 кадрів)**                          | iPhone 12, 16-block plan, before/after                                                                                                                                                                                                                      | #61                                                                                                 |
-| **0 порожніх карток у 72 сканах**                             | build 6 on the Pixel 7a, 7- and 13-block lists, default density and 1,3× font scale                                                                                                                                                                         | #53                                                                                                 |
-| **82–88 мс p95 / 477 мс p95**                                 | PostgREST читання/запис **з Node → eu-west-1** / складений виклик `sync-resolve`; #60 (k) додає 714 і 736 мс для інших складених. **Числа з телефона не існує** — рядок чек-листа відкритий (§11.5)                                                         | #47; `p10-manual-verification.md` §2.3                                                              |
-| **стирання 78 / 113 / 151 мс**                                | server-side cascade **через діалоги застосунку** (три виміри: build 8 ×2 на Pixel 7a, build 2 на iPhone 12); кожна таблиця користувача на нулі, заплановані будильники скасовано. Ранній вимір **180 мс** — через системні діалоги (build 5), інша поверхня | #62 як виправлено в §11.3; `android-20260906-dialog/notes.md`; `ios-20260908-1215/notes.md` item 70 |
-| **2,1–2,98:1**                                                | accent colours **used as text** on the light surface; white on the dark primary 2,98:1; secondary on the primary container 4,36:1 (large text only)                                                                                                         | #46; spec-conflicts L39                                                                             |
-| **3,76:1 / 3,60:1 → 6,47:1**                                  | `danger` #EF4444 as a body-size label on the elevated white / light surface → the derived `dangerText` #B91C1C                                                                                                                                              | spec-conflicts L41; `colors.ts:52` — **U21, no worklist row**                                       |
-| **+56 % / +150 %**                                            | mean Ukrainian label growth vs English / «Пропустити» against `Skip`; iPhone 16 simulator, accessibility-XXXL                                                                                                                                               | #63; `i18n-uk-20260909/notes.md`                                                                    |
-| **≈ 4,3 / 1,1–2,4 експерименти на користувача за тиждень**    | **computed on the eligibility code, never observed** — plain vs heavy weeks, before INFEASIBLE-after-pin drops                                                                                                                                              | #21; spec-conflicts M9; ADR-0008 §1                                                                 |
-| **ESS ≈ 310 з ≈ 930 рядків зрізу**                            | 30 users × 8 weeks at the computed plain-week rate; heavy weeks 240–520 rows → ESS 80–175 (below the gate at the low end)                                                                                                                                   | #55 E1 §2.3                                                                                         |
-| **ESS/n = 0,333 / 0,361**                                     | deterministic target policy / replay, measured over 200 × 1 000 rows                                                                                                                                                                                        | `simulation-results.md` §1                                                                          |
-| **replay зміщений на −0,6 / +0,7 п.п.**                       | oracle / anti-oracle policies, 3,2 / 4,6 MC SE; closed form −0,55 / +0,54 (and +0,27 for alpha-first)                                                                                                                                                       | #55; spec-conflicts M13/M14                                                                         |
-| **+2,54 ± 0,14 п.п. / +5,37 ± 0,14 п.п.**                     | **E3 only** — the P11 tanh world (base / amplified), whose intermediate types had no slot pattern and nothing to lose                                                                                                                                       | #55 — see §3, this is the number that must stop being "the" effect                                  |
-| **потужність 0,836 / 0,817 при N = 30**                       | E2, ICC 0,10 / 0,20, **under the registered τ ≈ 0,107**, paired-means floor, GLMM not fitted                                                                                                                                                                | #55                                                                                                 |
-| **0,768 / 0,735 при N = 30**                                  | the same floor at File 06's own pessimistic τ = 0,12 (slope 0,545 / 0,578) — 0,80 needs N ≈ 34–40                                                                                                                                                           | #55 §4.2, #57                                                                                       |
-| **58 WIN / 17 TIE / 0 LOSS**                                  | 75 worlds × 40 replicated 120-user studies, MC SE ≈ 0,14 п.п.; WIN = > +1 п.п. and positive in ≥ 90 % of replicates                                                                                                                                         | #56                                                                                                 |
-| **+0,4 / −0,1 / +0,0 п.п.**                                   | **the world the prior was written for** (File 04 §3.2 pattern at s = 1, σ_shape = 0) at day noise 0 / 0,6 / 0,9 — the registered substantive-failure test firing                                                                                            | #56, #59; `sensitivity-results.md` §1                                                               |
-| **втрата 0,8–2,1 п.п. (ранкові) / 1,4–1,9 п.п. (проміжні)**   | in that same world; decomposed on 40 paired seeds: sampler variance ≈ half of DM's, prior level bias ≈ a quarter of each, the rest is the variance of the per-user estimates                                                                                | #56; `sensitivity-results.md` §5.1                                                                  |
-| **приор вартий ±0,4 п.п.**                                    | five ablation worlds (Block E, flat vs informative); the ALS layer was never in the simulation at all                                                                                                                                                       | #56, #60 (g)                                                                                        |
-| **+5,67 п.п. без жодного популяційного візерунка**            | s = 0, σ_shape = 0,6 logits (≈ ±14 п.п. per daypart), no day noise — individual deviation alone                                                                                                                                                             | #56, #58                                                                                            |
-| **N₈₀ = 21 … понад 120; понад 120 у 48 з 75**                 | paired-means floor, medians over 40 replicates rounded up; the GLMM's would be lower but not by the factor of four the centre world needs                                                                                                                   | #57                                                                                                 |
-| **вартість зрізу 0,03–17 п.п. / ≈ 0–4 п.п.**                  | on randomized rows / at arm level; the draw is identical in both arms, the **cost** is not                                                                                                                                                                  | #56 §4 item 6; #60 (h)                                                                              |
-| **14 серйозних дефектів за 7 днів**                           | Pixel 7a (Android 17) 1–5 Sep over six builds + iPhone 12 (iOS 26.6) 7–8 Sep over two; ten first-occurrence moments produced them                                                                                                                           | #62                                                                                                 |
-| **$0 до ≈ 3 тис. MAU; ≤ $25/міс до ≈ 50 тис.**                | **an audit estimate, never load-tested** (#3, #60 (j)); Oracle Always Free 2 OCPU / 12 GB, `eu-marseille-1`                                                                                                                                                 | #26; spec-conflicts M1                                                                              |
+| Number                                                        | Condition it is only true under                                                                                                                                                                                                                                                                                    | Source                                                                                              |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| **план: p50 139 мс / p90 555 мс**                             | server-side `/plan` only, day plan of 12 tasks, OPTIMAL 20/20, **the shipped image `b75d7c11`**, Oracle A1 (2 pinned cores), 2026-08-28. The pre-rollout image measured 135 / 487 мс — the source names the shipped numbers as the ones the thesis reports                                                         | #37; `p5-manual-verification.md` §2.3 (pre-rollout: §2.1)                                           |
+| **практичний поріг 3·10³ літералів**                          | on the deployment box; **8·10³** on an M-series Mac; the spec's 4·10⁴ stays only as an outer bound                                                                                                                                                                                                                 | #17, #37; spec-conflicts M8; ADR-0007 §11                                                           |
+| **тижневий план: FEASIBLE у ≈ 60 % запусків**                 | 50 tasks × 7 days, best rung, 1,5 s plan-level budget, deployment box; ≈ 40 % return the partial anytime plan                                                                                                                                                                                                      | #37                                                                                                 |
+| **інкумбент за 10–11 мс; остання поліпшувальна за p50 54 мс** | the device's own inbox class (interchangeable tasks, two deadlines); the rest of the second is an optimality proof that never closes                                                                                                                                                                               | ADR-0018                                                                                            |
+| **втрата від обриву ≤ 0,3 % (макс. 4,41 %)**                  | objective units, shortest no-improvement window; the Thompson spread on the same instance is 5,6–19,2 weight units across seeds                                                                                                                                                                                    | ADR-0018                                                                                            |
+| **резерв 1/10 → 0/10**                                        | **15-task inbox, 3 Sep** (the 14-task series of 2 Sep had 1/10 and no "after") — erratum inside #51                                                                                                                                                                                                                | #51 erratum 2026-09-06                                                                              |
+| **еталон NFR-P1 3,7–4,1 с p95**                               | Pixel 7a, home Wi-Fi, warm, tap → plan received (timer stops **before** the SQLite mirror), two series of ten (3 and 4 Sep), pooled 4,0 s (n = 20)                                                                                                                                                                 | #51; `android-20260905-0942/notes.md` item 4                                                        |
+| **≤ 6,0 с p95 (the requirement)**                             | derived, not measured: 2022 low-end Android over a weak-signal link, from the decomposition                                                                                                                                                                                                                        | #51 owner decision 2026-09-04                                                                       |
+| **2,6 с з 3,9 с — серверна частка**                           | function 1,3 + invoke 0,3 + sync-resolve 1,0 at p95; scales with nothing on the user's phone or network                                                                                                                                                                                                            | #51                                                                                                 |
+| **функція p50 1,09–1,10 с / p95 1,30–1,34 с**                 | after ADR-0018, the 15-task inbox, 0/10 fallbacks. Before: p50 1,68 / p95 1,84–1,91 с. **These are p50 → p95 pairs, not a p95 range** — no source reports a function p95 of 1,10 с                                                                                                                                 | #51; `android-20260903-1020/notes.md` item 8; `android-20260904-0827/notes.md` item 15              |
+| **передплановий push 1,16 / 1,54 с**                          | 17 of 21 requests carried one; 3 Sep series                                                                                                                                                                                                                                                                        | #51                                                                                                 |
+| **холодний старт p90 1,07 с (p50 0,89)**                      | **Pixel 7a, build 3, одразу після перезавантаження**, n = 20, `am start -W` TotalTime (старт процесу → перший кадр); warm p90 0,55 с. Build 1 після перезавантаження давав p90 **1,58 с** — зміна між збірками не має приписаної причини                                                                           | #62; `android-20260903-1020/notes.md` item 12; `android-20260901-2030/notes.md`                     |
+| **холодний старт 0,49–0,50 с**                                | **iPhone 12**, n = 19 з 20, xctrace — **інший відрізок**: перший кадр → активний на передньому плані, на прогрітих запусках із теплим кешем сторінок. Окремий холодний замір після перезавантаження дає 413 мс створення процесу і перший кадр на 0,95 с — це та величина, яку можна зіставляти з Android          | #62; `ios-20260907-1130/notes.md` item 38 — **U26**                                                 |
+| **p90 1075 мс**                                               | **iOS simulator on an Apple-silicon Mac, Release** — satisfies the NFR-P2 threshold and NOT its device condition                                                                                                                                                                                                   | #11 — see §2.3                                                                                      |
+| **1825 / 1824 кадри, 1 janky, p99 10 мс**                     | Pixel 7a, the same 13-block plan under a build of main and the motion build                                                                                                                                                                                                                                        | #61; `android-20260908-motion/notes.md`                                                             |
+| **11 / 10 / 14 / 12 кадрів** (build `f5fdbe2`)                | Pixel 7a at 60 fps: Done / Skip / «Я зробив» / on-screen move                                                                                                                                                                                                                                                      | #61 (ADR-0022); `android-20260908-motion/notes.md` items 7–10                                       |
+| **17 + 7 кадрів; Done 9**                                     | Pixel 7a, **the re-verified build `ac99dea`**: off-screen move = a 17-frame scroll then a 7-frame arrival settle; Done measured 9 frames on that build, not 11 — do not mix the two series                                                                                                                         | #61; `android-20260908-motion/notes.md` item 18                                                     |
+| **8 = 8 hitches (847 / 807 кадрів)**                          | iPhone 12, 16-block plan, before/after                                                                                                                                                                                                                                                                             | #61                                                                                                 |
+| **0 порожніх карток у 72 сканах**                             | build 6 on the Pixel 7a, 7- and 13-block lists, default density and 1,3× font scale                                                                                                                                                                                                                                | #53                                                                                                 |
+| **82–88 мс p95 / 477 мс p95**                                 | PostgREST читання/запис **з Node → eu-west-1** / складений виклик `sync-resolve`; #60 (k) додає 714 і 736 мс для інших складених. **Числа з телефона не існує** — рядок чек-листа відкритий (§11.5)                                                                                                                | #47; `p10-manual-verification.md` §2.3                                                              |
+| **стирання 78 / 113 / 151 мс**                                | server-side cascade **через діалоги застосунку** (три виміри: build 8 ×2 на Pixel 7a, build 2 на iPhone 12); кожна таблиця користувача на нулі, заплановані будильники скасовано. Ранній вимір **180 мс** — через системні діалоги (build 5), інша поверхня                                                        | #62 як виправлено в §11.3; `android-20260906-dialog/notes.md`; `ios-20260908-1215/notes.md` item 70 |
+| **2,06–3,60:1**                                               | accent colours **used as text** on the light surface (energyHigh 2,06 · success 2,43 · energyLow 2,45 · warning 2,68 · danger 3,60); secondary on the primary container 4,36:1 (large text only, dark). **White on the dark primary was 2,98:1 and was fixed in P10** (6,3:1) — do not quote it as a current value | #46; `p10-a11y-audit.md` §1; spec-conflicts L39                                                     |
+| **3,76:1 / 3,60:1 → 6,47:1**                                  | `danger` #EF4444 as a body-size label on the elevated white / light surface → the derived `dangerText` #B91C1C                                                                                                                                                                                                     | spec-conflicts L41; `colors.ts:52` — **U21, no worklist row**                                       |
+| **+56 % / +150 %**                                            | **a static measurement of string length** over a 16-label risk set / «Пропустити» against `Skip` (ADR-0023 §1.3) — not a rendering measurement. The simulator sweep confirmed it qualitatively: the block action row wraps at accessibility-XXXL                                                                   | #63; `ADR-0023-localisation-boundary.md`; `i18n-uk-20260909/notes.md`                               |
+| **≈ 4,3 / 1,1–2,4 експерименти на користувача за тиждень**    | **computed on the eligibility code, never observed** — plain vs heavy weeks, before INFEASIBLE-after-pin drops                                                                                                                                                                                                     | #21; spec-conflicts M9; ADR-0008 §1                                                                 |
+| **ESS ≈ 310 з ≈ 930 рядків зрізу**                            | 30 users × 8 weeks at the computed plain-week rate; heavy weeks 240–520 rows → ESS 80–175 (below the gate at the low end)                                                                                                                                                                                          | #55 E1 §2.3                                                                                         |
+| **ESS/n = 0,333 / 0,361**                                     | deterministic target policy / replay, measured over 200 × 1 000 rows                                                                                                                                                                                                                                               | `simulation-results.md` §1                                                                          |
+| **replay зміщений на −0,6 / +0,7 в. п.**                      | oracle / anti-oracle policies, 3,2 / 4,6 MC SE; closed form −0,55 / +0,54 (and +0,27 for alpha-first)                                                                                                                                                                                                              | #55; spec-conflicts M13/M14                                                                         |
+| **+2,54 ± 0,14 в. п. / +5,37 ± 0,14 в. п.**                   | **E3 only** — the P11 tanh world (base / amplified), whose intermediate types had no slot pattern and nothing to lose                                                                                                                                                                                              | #55 — see §3, this is the number that must stop being "the" effect                                  |
+| **потужність 0,836 / 0,817 при N = 30**                       | E2, ICC 0,10 / 0,20, **under the registered τ ≈ 0,107**, paired-means floor, GLMM not fitted                                                                                                                                                                                                                       | #55                                                                                                 |
+| **0,768 / 0,735 при N = 30**                                  | the same floor at File 06's own pessimistic τ = 0,12 (slope 0,545 / 0,578) — 0,80 needs N ≈ 34–40                                                                                                                                                                                                                  | #55 §4.2, #57                                                                                       |
+| **58 WIN / 17 TIE / 0 LOSS**                                  | 75 worlds × 40 replicated 120-user studies, MC SE ≈ 0,14 в. п.; WIN = > +1 в. п. and positive in ≥ 90 % of replicates                                                                                                                                                                                              | #56                                                                                                 |
+| **+0,4 в. п. (σ_day = 0)**                                    | **the world the prior was written for** (File 04 §3.2 pattern at s = 1, σ_shape = 0). This one cell is what the registered substantive-failure test names; the neighbouring day-noise cells (−0,1 at 0,6 and +0,0 at 0,9) corroborate it but are not the test                                                      | #56, #59; `sensitivity-grid.md` §4; `sensitivity-results.md` §3                                     |
+| **втрата 0,8–2,1 в. п. (ранкові) / 1,4–1,9 в. п. (проміжні)** | in that same world; decomposed on 40 paired seeds: sampler variance ≈ half of DM's, prior level bias ≈ a quarter of each, the rest is the variance of the per-user estimates                                                                                                                                       | #56; `sensitivity-results.md` §5.1                                                                  |
+| **приор вартий ±0,4 в. п.**                                   | five ablation worlds (Block E, flat vs informative); the ALS layer was never in the simulation at all                                                                                                                                                                                                              | #56, #60 (g)                                                                                        |
+| **+5,67 в. п. без жодного популяційного візерунка**           | s = 0, σ_shape = 0,6 logits (≈ ±14 в. п. per daypart), no day noise — individual deviation alone                                                                                                                                                                                                                   | #56, #58                                                                                            |
+| **N₈₀ = 21 … понад 120; понад 120 у 48 з 75**                 | paired-means floor, medians over 40 replicates rounded up; the GLMM's would be lower but not by the factor of four the centre world needs                                                                                                                                                                          | #57                                                                                                 |
+| **вартість зрізу 0,03–17 в. п. / ≈ 0–4 в. п.**                | on randomized rows / at arm level; the draw is identical in both arms, the **cost** is not                                                                                                                                                                                                                         | #56 §4 item 6; #60 (h)                                                                              |
+| **14 серйозних дефектів за 7 днів**                           | Pixel 7a (Android 17) 1–5 Sep over six builds + iPhone 12 (iOS 26.6) 7–8 Sep over two; ten first-occurrence moments produced them                                                                                                                                                                                  | #62                                                                                                 |
+| **$0 до ≈ 3 тис. MAU; ≤ $25/міс до ≈ 50 тис.**                | **an audit estimate, never load-tested** (#3, #60 (j)); Oracle Always Free 2 OCPU / 12 GB, `eu-marseille-1`                                                                                                                                                                                                        | #26; spec-conflicts M1                                                                              |
 
 ### 2.2 Numbers in the draft that cannot be traced — flag, do not restate
 
-| Draft text                                                                                                    | Problem                                                                                                                                                                                                                                           | What to do                                                                                                                             |
-| ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| ВСТУП: «втрати двох-трьох продуктивних годин на день»                                                         | no source anywhere in the repo or the specs; #60 (b) already rules it unsourced                                                                                                                                                                   | delete the quantity; the sentence works without it (§3, item 60 b)                                                                     |
-| §1.2: «19–34 дол./міс.», «≈15 дол./міс.», «понад 30 млн користувачів»                                         | vendor pricing and a user count read in early 2026, never re-verified; nothing in the repo dates them                                                                                                                                             | keep only with «станом на <місяць 2026 р.» and a dated citation, or drop the figures and compare on mechanism                          |
-| §5.5: «базовий рівень дотримання p(A) ≈ 0,45 (узгоджено з діапазонами телеметрії застосунків продуктивності)» | an assumption with no citation; the sensitivity grid says so in as many words («itself an assumption; swept»)                                                                                                                                     | say it is an assumption and that it was **swept** (0,30 / 0,45 / 0,60), with the measured consequence (§6)                             |
-| §2.2: «\|C\| ≈ 12–18», «50 × 15 = 750»                                                                        | the built value is **\|C\| = 14** (specs/07 §3.2.5's fresh/fatigued split applies only to weekday MO/AF — spec-conflicts M3, which never got a worklist row)                                                                                      | state 14 and keep the order-of-magnitude argument (**U9**)                                                                             |
-| §2.3 / Додаток Ж: «p = ε/m», «"propensity": 0.25»                                                             | **the deployed propensity is p = ε/\|A_m(x)\| with \|A_m(x)\| ∈ {2, 3, 4}**, i.e. 0,5 / 0,333… / 0,25 per row; the column is `double precision` for exactly this reason                                                                           | item 20 is amended in §5; the appendix example must carry `a_m_size` beside `propensity`                                               |
-| #62 / ВИСНОВКИ: «583 тести клієнта, 191 тест крайових функцій»                                                | **not traceable to any committed gate output** — the pair appears only in `thesis-corrections.md` and the explainer, and it is a snapshot from before 1 Sep; four phases have landed since                                                        | re-count at freeze time from a pasted gate run, and write «станом на <дата>»; otherwise drop the counts and say "the automated suites" |
-| §3.9 UC-05: «мінус 18 % оцінки виконання»                                                                     | **producible** — `est_completion_drop` is computed for the shrink option (`planner.py:433`) and rendered by `tradeoff.consequence.est_completion_drop`; but the heuristic engine emits only `pinned_overlap_minutes`/generic (`heuristic.ts:394`) | keep the example, and carry the consequence into §5.1's blinding threat (**U14**)                                                      |
-| ВСТУП: «п'яти розділів», «66 найменувань», «понад 70 сторінках»                                               | all three change with the restructure and the reference work (§7, U20)                                                                                                                                                                            | last edit before freeze                                                                                                                |
+| Draft text                                                                                                    | Problem                                                                                                                                                                                                                                           | What to do                                                                                                                                                                     |
+| ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| ВСТУП: «втрати двох-трьох продуктивних годин на день»                                                         | no source anywhere in the repo or the specs; #60 (b) already rules it unsourced                                                                                                                                                                   | delete the quantity; the sentence works without it (§3, item 60 b)                                                                                                             |
+| §1.2: «19–34 дол./міс.», «≈15 дол./міс.», «понад 30 млн користувачів»                                         | vendor pricing and a user count read in early 2026, never re-verified; nothing in the repo dates them                                                                                                                                             | keep only with «станом на <місяць 2026 р.» and a dated citation, or drop the figures and compare on mechanism                                                                  |
+| §5.5: «базовий рівень дотримання p(A) ≈ 0,45 (узгоджено з діапазонами телеметрії застосунків продуктивності)» | an assumption with no citation; the sensitivity grid says so in as many words («itself an assumption; swept»)                                                                                                                                     | say it is an assumption and that it was **swept** (0,30 / 0,45 / 0,60), with the measured consequence (§6)                                                                     |
+| §2.2: «\|C\| ≈ 12–18», «50 × 15 = 750»                                                                        | the built value is **\|C\| = 14** (specs/07 §3.2.5's fresh/fatigued split applies only to weekday MO/AF — spec-conflicts M3, which never got a worklist row)                                                                                      | state 14 and keep the order-of-magnitude argument (**U9**)                                                                                                                     |
+| §2.3 / Додаток Ж: «p = ε/m», «"propensity": 0.25»                                                             | **the deployed propensity is p = ε/\|A_m(x)\| with \|A_m(x)\| ∈ {2, 3, 4}**, i.e. 0,5 / 0,333… / 0,25 per row; the column is `double precision` for exactly this reason                                                                           | item 20 is amended in §11.1; the appendix shows the true value and the plan telemetry's `top_m`, from whose length \|A_m(x)\| is recovered — there is **no** `a_m_size` column |
+| #62 / ВИСНОВКИ: «583 тести клієнта, 191 тест крайових функцій»                                                | **not traceable to any committed gate output** — the pair appears only in `thesis-corrections.md` and the explainer, and it is a snapshot from before 1 Sep; four phases have landed since                                                        | re-count at freeze time from a pasted gate run, and write «станом на <дата>»; otherwise drop the counts and say "the automated suites"                                         |
+| §3.9 UC-05: «мінус 18 % оцінки виконання»                                                                     | **producible** — `est_completion_drop` is computed for the shrink option (`planner.py:433`) and rendered by `tradeoff.consequence.est_completion_drop`; but the heuristic engine emits only `pinned_overlap_minutes`/generic (`heuristic.ts:394`) | keep the example, and carry the consequence into §5.1's blinding threat (**U14**)                                                                                              |
+| ВСТУП: «п'яти розділів», «66 найменувань», «понад 70 сторінках»                                               | all three change with the restructure and the reference work (§7, U20)                                                                                                                                                                            | last edit before freeze                                                                                                                                                        |
 
 ### 2.3 The two collisions to guard against
 
@@ -196,10 +199,11 @@ substantive-failure test fired, and the reason is known per class.
 
 > «У світі, який описує приор холодного старту — візерунок Файлу 04 §3.2 за припущеної сили, без
 > індивідуальних відхилень, збіг за формою, — навчена політика **лише грає внічию** з евристикою
-> «найраніший вільний слот»: +0,4 / −0,1 / +0,0 п.п. за денного шуму 0 / 0,6 / 0,9 (MC SE ≈
-> 0,14 п.п.). Це не невизначеність вимірювання, а зареєстрований тест на змістовну невдачу, який
-> спрацював. Причина видима за класами: 52 % проміжних типів втрачають по 1,4–1,9 п.п. і 28 %
-> ранкових — по 0,8–2,1 п.п., і це гасить виграш 20 % вечірніх типів у 5–10 п.п. Розклад втрати
+> «найраніший вільний слот»: **+0,4 в. п.** (MC SE ≈ 0,14 в. п.). Саме ця комірка — за нульового
+> денного шуму — є зареєстрованим тестом на змістовну невдачу, і він спрацював; сусідні комірки
+> денного шуму 0,6 і 0,9 підтверджують результат (−0,1 і +0,0 в. п.). Це не невизначеність
+> вимірювання, а передбачений заздалегідь критерій, який справдився. Причина видима за класами: 52 % проміжних типів втрачають по 1,4–1,9 в. п. і 28 %
+> ранкових — по 0,8–2,1 в. п., і це гасить виграш 20 % вечірніх типів у 5–10 в. п. Розклад втрати
 > на сорока парних сидах: дисперсія семплера Томпсона пояснює близько половини втрати виразно
 > ранкових типів, чверть — помірно ранкових і шосту частину — проміжних; зміщення рівня приору
 > (він на 0,12–0,14 оптимістичніший за світ при p₀ = 0,45) — близько чверті кожної; решта —
@@ -233,21 +237,21 @@ conducted». And the boundary is stated in the same breath as the claim:
 
 > «Первинне позиціонування — «перевага зростає з кожним тижнем», «навчальна система виграє
 > категорично» — у симуляції не підтверджується. Розрив у персоналізації **не накопичується**: він
-> зростає на 0,3–1,4 п.п. за чотиритижневу половину дослідження за інформативного приору (0,3–1,8
+> зростає на 0,3–1,4 в. п. за чотиритижневу половину дослідження за інформативного приору (0,3–1,8
 > за плоского приору або сильних індивідуальних відхилень) — замало, щоб дослідження на 30 осіб
 > його виявило (значущий у 3–10 % окремих досліджень), а у світі P11 він вийшов на плато вже в
 > першій парі фаз.»
 
 ### 3.5 Hedges to delete on sight
 
-| If the text says…                                       | Replace with                                                                                        |
-| ------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| «результати свідчать про тенденцію до переваги»         | the WIN/TIE verdict of the cell, with its number and MC SE                                          |
-| «в окремих сценаріях спостерігається незначне зниження» | «ранкові та проміжні типи втрачають по 0,8–2,1 п.п. там, де фіксоване правило вже майже оптимальне» |
-| «дослідження заплановано провести»                      | «протокол спроєктовано, інструментовано та перевірено наскрізно; виконання — поза межами роботи»    |
-| «система навчається вподобанням користувача»            | «система вловлює відхилення людини від профілю її хронотипного класу з поведінки»                   |
-| «підтверджено», where a prediction came out partly      | «підтверджено частково» with the cell that failed named                                             |
-| «близько», «приблизно» in front of a measured p95       | the number with its device, build and series size                                                   |
+| If the text says…                                       | Replace with                                                                                         |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| «результати свідчать про тенденцію до переваги»         | the WIN/TIE verdict of the cell, with its number and MC SE                                           |
+| «в окремих сценаріях спостерігається незначне зниження» | «ранкові та проміжні типи втрачають по 0,8–2,1 в. п. там, де фіксоване правило вже майже оптимальне» |
+| «дослідження заплановано провести»                      | «протокол спроєктовано, інструментовано та перевірено наскрізно; виконання — поза межами роботи»     |
+| «система навчається вподобанням користувача»            | «система вловлює відхилення людини від профілю її хронотипного класу з поведінки»                    |
+| «підтверджено», where a prediction came out partly      | «підтверджено частково» with the cell that failed named                                              |
+| «близько», «приблизно» in front of a measured p95       | the number with its device, build and series size                                                    |
 
 ---
 
@@ -262,8 +266,8 @@ the mechanism sentence into paragraph 1 and **add** a third paragraph before the
 Into paragraph 1, after «…вичерпним (перишабельним) інвентарем часових інтервалів»:
 
 > «Система експлуатує не хронотипний ритм як такий, а те, що конкретна людина _відхиляється_ від
-> профілю свого хронотипного класу; навчальник на рівні окремого користувача виявляє ці
-> відхилення з поведінки, без того, щоб людина їх описувала.»
+> профілю свого хронотипного класу; модуль навчання на рівні окремого користувача відновлює ці
+> відхилення за поведінкою, без того, щоб людина їх описувала.»
 
 New third paragraph (replaces the last sentence of the current paragraph 2, «Розроблено
 переддослідницьки зареєстрований протокол польового експерименту…», which moves inside it):
@@ -329,7 +333,7 @@ the literature at its real strength — which is the argument for learning per p
 
 > «…забезпечує узгоджений перехід від популяційних приорів до персональних апостеріорних оцінок
 > без перезаписування накопичених свідчень; у симуляційному оцінюванні внесок самої популяційної
-> таблиці приорів становить ±0,4 п.п., тобто вона є стартовим наближенням, а не механізмом
+> таблиці приорів становить ±0,4 в. п., тобто вона є стартовим наближенням, а не механізмом
 > переваги.»
 
 **(c) Наукова новизна — new п. 5 (U1, recommended).** The sensitivity study and the
@@ -344,7 +348,7 @@ novelty list:
 
 **(d) Практичне значення — П (items 3, 36, 54).** The dataset sentence is now false as written:
 
-> «Розроблений програмний комплекс Hourwell є завершеним прототипом мобільного застосунку
+> «Розроблений програмний комплекс Kairos є завершеним прототипом мобільного застосунку
 > персонального планування, придатним до дослідної експлуатації; за оцінкою аудиту тарифів (без
 > навантажувального випробування) його архітектура функціонує в межах безоплатних тарифів
 > приблизно до трьох тисяч активних користувачів на місяць. Схема журналювання подій із
@@ -395,17 +399,17 @@ draft lets it read as a measured comparison:
 
 **(b) Two cells (Ф).**
 
-| Рядок                                          | Було                                 | Стало                                                                                                           |
-| ---------------------------------------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
-| Навчання профілю енергії/хронотипу з поведінки | «так (байєсівська погодинна модель)» | «так (байєсівська погодинна модель на рівні людини; виміряний внесок популяційної таблиці приорів — ±0,4 п.п.)» |
-| Приватність / он-девайс перспектива            | «так (у плані розвитку)»             | «частково: обробка в ЄС, RLS, мінімізація; он-девайс ранжування не реалізовано»                                 |
+| Рядок                                          | Було                                 | Стало                                                                                                            |
+| ---------------------------------------------- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| Навчання профілю енергії/хронотипу з поведінки | «так (байєсівська погодинна модель)» | «так (байєсівська погодинна модель на рівні людини; виміряний внесок популяційної таблиці приорів — ±0,4 в. п.)» |
+| Приватність / он-девайс перспектива            | «так (у плані розвитку)»             | «частково: обробка в ЄС, RLS, мінімізація; он-девайс ранжування не реалізовано»                                  |
 
 **(c) The closing paragraph after the table — П (item 59; this is a §3.4 "do not soften" case).**
 
 > «З таблиці 1.1 випливає, що жодне з наявних рішень не замикає петлю зворотного зв'язку
 > «рекомендація → поведінковий результат → оновлення моделі». Замикання цієї петлі є проєктною
 > відмінністю системи, але не є автоматичною перевагою: у симуляційному оцінюванні розрив у
-> персоналізації **не накопичується** — він зростає на 0,3–1,4 п.п. за чотиритижневу половину
+> персоналізації **не накопичується** — він зростає на 0,3–1,4 в. п. за чотиритижневу половину
 > дослідження за інформативного приору, що замало для виявлення дослідженням на 30 осіб. Незайнятим
 > на ринку лишається квадрант «низька ціна — навчання на поведінці — мобільність —
 > пояснюваність»; питання про те, чи виправдовує навчання свою складність, є емпіричним, і межу
@@ -463,8 +467,8 @@ version is stronger, because one of them became a measured finding:
 > витрат — безоплатно-нативна архітектура робить сталим сам безоплатний план; (2) схема даних як
 > фора — журналювання правильних подій (рекомендація показана → результат, з контекстом і точним
 > пропенсіті) від першого дня створює субстрат, придатний для незміщеного офлайн-оцінювання;
-> (3) петля зворотного зв'язку, яка, всупереч первинному припущенню, **не компаундиться в
-> вимірний спосіб**: приріст персоналізації становить 0,3–1,4 п.п. за чотири тижні за
+> (3) петля зворотного зв'язку, яка, всупереч первинному припущенню, **не дає накопичувального ефекту,
+> який можна виміряти**: приріст персоналізації становить 0,3–1,4 в. п. за чотири тижні за
 > інформативного приору (розділ 6), тож перевага навчання є не наслідком часу, а наслідком
 > наявності індивідуальної варіації в популяції користувачів.»
 
@@ -472,7 +476,7 @@ version is stronger, because one of them became a measured finding:
 
 | Ризик                                         | Було                                                                      | Стало                                                                                                                                                                                                                                    |
 | --------------------------------------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Холодний старт: модель марна в перший тиждень | «Онбординг… + колаборативні популяційні приори + чесний «режим навчання»» | «Чесний «режим навчання» в інтерфейсі та навчання на рівні людини. Хронотипні приори **не знижують ризик першого тижня вимірно**: їхній внесок у симуляції становить ±0,4 п.п. (підрозділ 6.4)»                                          |
+| Холодний старт: модель марна в перший тиждень | «Онбординг… + колаборативні популяційні приори + чесний «режим навчання»» | «Чесний «режим навчання» в інтерфейсі та навчання на рівні людини. Хронотипні приори **не знижують ризик першого тижня вимірно**: їхній внесок у симуляції становить ±0,4 в. п. (підрозділ 6.4)»                                         |
 | Ліміти безоплатних тарифів у разі зростання   | «Архітектура з задокументованим шляхом платної міграції…»                 | «Ризик **реалізувався** під час виконання роботи — постачальник скасував безоплатний тариф сервісу (підрозділ 3.3). Пом'якшення: інфраструктурно-незалежний контейнер і постачальник із договірним, а не промоційним безоплатним рівнем» |
 
 **(d) «Північною зіркою… PAR» — Ф (item 42).** Add: «PAR обчислюється зареєстрованим кодом
@@ -488,11 +492,11 @@ side by side, and today the draft promises four answers and delivers one and a h
 > отримано частково: навчена політика порівнюється з детермінованим правилом «найраніший вільний
 > слот» на сітці змодельованих світів, і межу переваги локалізовано (підрозділ 6.4); порівняння
 > з неперсоналізованими популяційними середніми як окремим плечем не проводилося, а виміряний
-> внесок популяційної таблиці приорів становить ±0,4 п.п. **ДП2** — відповіді не отримано:
+> внесок популяційної таблиці приорів становить ±0,4 в. п. **ДП2** — відповіді не отримано:
 > зважування сигналів зворотного зв'язку потребує реальних поведінкових даних, абляцій стратегій
 > атрибуції не проводилося; правила атрибуції реалізовано й покрито тестами. **ДП3** — відповідь
-> отримано частково: виміряно ціну рандомізованого зрізу (0,03–17 п.п. на рандомізованих блоках,
-> ≈ 0–4 п.п. на рівні плеча) і розкладено внесок дисперсії семплінгу Томпсона; порівняння
+> отримано частково: виміряно ціну рандомізованого зрізу (0,03–17 в. п. на рандомізованих блоках,
+> ≈ 0–4 в. п. на рівні плеча) і розкладено внесок дисперсії семплінгу Томпсона; порівняння
 > «дослідження проти чистої експлуатації» не проводилося, а довіра користувача в симуляції не
 > вимірюється. **ДП4** — відповідь отримано: сімейство оцінювачів відновлює істинну цінність
 > політики на відомій істині, а незважений replay виявився зміщеним за змінного розміру
@@ -514,7 +518,7 @@ constraint (C3) two pages later.
 «…|C| ≈ 12–18… ≈ 50 × 15 = 750 скалярних добутків» →
 
 > «…де C — множина контекстних бакетів (частина доби × тип дня × клас відносної позиції). У
-> реалізації |C| = 14: поділ «свіжий / втомлений» застосовується лише до робочих MO та AF, інакше
+> реалізації |C| = 14: поділ «свіжий / втомлений» застосовується лише до MO та AF у робочі дні, інакше
 > повний тривимірний добуток дав би 24 бакети. Бандит опитується один раз для кожної пари (τ, c):
 > щонайбільше |T|·|C| ≈ 50 × 14 = 700 скалярних добутків незалежно від довжини горизонту.»
 
@@ -544,11 +548,12 @@ amended here (§9, C1). Replacement:
 > рівномірно з множини A_m(x) — її top-m кандидатних бакетів (m = 4), з яких на момент розіграшу
 > лишилися досяжними та вільними. Задача вважається придатною, якщо |A_m(x)| ≥ 2. Пропенсіті
 > такого розміщення відоме точно й дорівнює **p = ε/|A_m(x)|**, тобто набуває значень 0,5, 1/3
-> або 0,25 залежно від рядка; воно зберігається в рядку рекомендації разом із самим |A_m(x)|,
-> тож p відновлюване й символьно. Поле пропенсіті має тип подвійної точності: у float4 значення
-> 1/3 зберігається як 0,33333334, і ця відносна похибка 6·10⁻⁸ увійшла б у кожну вагу 1/p,
+> або 0,25 залежно від рядка; воно зберігається в рядку рекомендації, а сама множина A_m(x) — у
+> телеметрії плану (`telemetry.ef.experiment.top_m`), тож |A_m(x)| і p відновлювані точно й
+> символьно. Поле пропенсіті має тип подвійної точності: у float4 значення
+> 1/3 зберігається як 0,33333334, і ця відносна похибка ≈ 3·10⁻⁸ увійшла б у кожну вагу 1/p,
 > суперечачи слову «точне». Сервіс відхиляє запит, у якому ε або m відрізняються від
-> зареєстрованих констант (код 422), бо однаковість ε і m в обох плечах — умова засліплення
+> зареєстрованих констант (код 422), бо тотожність ε і m в обох плечах — умова засліплення
 > (підрозділ 5.2). Блок відображається в інтерфейсі як «експеримент» (вимога FR-22).»
 
 > **Consequence to carry to §2.6.2 and Додаток Ж:** because |A_m(x)| varies, the strict rule
@@ -567,7 +572,7 @@ is one of the stronger passages available to the thesis, because it is a measure
 
 > «Оцінка розміру моделі — у найгіршому разі Σ|F(τ)| ≤ 50 × 300 ≈ 1,5·10⁴ літералів — була
 > **припущенням про те, де зв'язує ліміт 1,5 с, і вимірювання його спростувало**. На моделі
-> підрозділу 2.3 тижневі задачі з гранулярністю 15 хв і 8–10·10³ літералами старту повертали
+> підрозділу 2.3 тижневі екземпляри моделі з гранулярністю 15 хв і 8–10·10³ літералами старту повертали
 > UNKNOWN у межах ліміту, **жодного разу не розпочавши пошуку**: час поглинало передрозв'язувальне
 > зондування (probing) над ≈ 11 тис. літералів значень кодування старту, тоді як 30-хвилинні
 > задачі (3–4·10³ літерали) повертали FEASIBLE. Механізм: складність зондування надлінійно
@@ -617,7 +622,7 @@ where the table is introduced, not only in the results:
 paragraphs:
 
 > «Внесок обох механізмів у роботі виміряний лише частково: у симуляційному оцінюванні популяційна
-> таблиця приорів проти плоского приору дає ±0,4 п.п. у п'яти світах абляції, а колаборативний
+> таблиця приорів проти плоского приору дає ±0,4 в. п. у п'яти світах абляції, а колаборативний
 > шар (ALS + кластери) у симуляції участі не брав і на реальних даних не запускався. Хронотипне
 > опитування й популяційні приори лишаються стартовим наближенням, а не механізмом переваги.»
 
@@ -640,18 +645,22 @@ where the estimator is introduced:
 > «Replay-оцінювач є незміщеним тоді й лише тоді, коли політика логування обирає дії рівномірно
 > випадково над множиною кандидатів, а винагороди не залежать від логера. На рандомізованому
 > зрізі вибір рівномірний **у межах A_m(x)**, і аргумент незміщеності [38] застосовний
-> **поконтекстно**. Проте розмір зрізу не сталий: |A_m(x)| ∈ {2, 3, 4}, а рядок потрапляє в
+> **окремо для кожного контексту**. Проте розмір зрізу не сталий: |A_m(x)| ∈ {2, 3, 4}, а рядок потрапляє в
 > збіг з імовірністю 1/|A_m(x)|, тож рядки з малим зрізом збігаються вдвічі частіше за рядки з
-> великим, і незважений replay оцінює цінність на розподілі контекстів, переваженому на
+> великим, і незважений replay оцінює цінність на розподілі контекстів, переваженому вагами
 > 1/|A_m(x)|. Для політики, цінність якої корелює з розміром зрізу, це дає систематичне
-> зміщення: виміряно −0,6 п.п. на оракульній політиці та +0,7 п.п. на антиоракульній (3,2 та 4,6
+> зміщення: виміряно −0,6 в. п. на оракульній політиці та +0,7 в. п. на антиоракульній (3,2 та 4,6
 > стандартні похибки Монте-Карло на 200 повтореннях по 1 000 рядків), що збігається із замкненою
-> формою (−0,55 та +0,54 п.п.). Оцінювачі IPS, SNIPS і DR зважують кожен збіг на |A_m(x)| і
+> формою (−0,55 та +0,54 в. п.). Оцінювачі IPS, SNIPS і DR зважують кожен збіг на |A_m(x)| і
 > лишаються незміщеними. Нормативне рішення роботи: на зрізі replay подається **лише поряд** зі
 > SNIPS та DR, або його збіги зважуються на |A_m(x)| — що тотожно IPS. Зміщення є прямим
 > наслідком проєктного рішення пом'якшити правило придатності заради обсягу даних: сувора вимога
 > |A_m| = 4 дала б ≈ 615 рядків із незміщеним replay (ESS ≈ 154) проти ≈ 930 рядків із IPS
 > (ESS ≈ 310); ціну сплачено лише незваженим оцінювачем, і її повернено зважуванням.»
+
+Source for the 615 / 154 arithmetic: spec-conflicts M14 — 930 × 0,57/0,86 ≈ 616 rows under the
+strict rule, and with a fixed |A_m| = 4 replay keeps one row in four, 615/4 ≈ 154. Cite it: this
+file's own Rule 1 applies to its own numbers.
 
 ### §2.6.3 — **Ф**, item 55
 
@@ -867,17 +876,17 @@ contrast claims:
 Timeline sentence (item 25): «Today (таймлайн зі «скляними» блоками)» → «Today (**стрічка рядків
 із часовою колонкою та маркером «зараз»**, а не пропорційний канвас — вибір продиктовано
 масштабуванням шрифту до 200 % і читачами екрана; блоки з високою впевненістю щільніші, евристичні
-рядки рендеряться зі сталою щільністю без заявленого відсотка)».
+рядки відображаються зі сталою щільністю без заявленого відсотка)».
 
 ### §3.9 — **П**, items 24, 28, 38, 43, 45, 52, U14
 
-| UC        | Правка                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **UC-03** | «Система (о 06:00 місцевого часу або за першого відкриття)» → «Система за першого відкриття або переходу на передній план у плановий день, для якого плану ще немає (06:00 місцевого часу — межа планового дня, а не запланована задача: жодна коректність не залежить від фонового виконання; о 06:00 надсилається лише сповіщення)». **Add an alternative flow:** «Альтернатива: **день без робочого вікна** — запиту не надсилається, план не зберігається, вечірній ритуал не планується; екран пояснює причину (ADR-0019)». |
-| **UC-05** | Keep the trade-off example; **add** to the postcondition: «наслідок кожної опції обчислюється рушієм: для скорочення — оцінка падіння ймовірності виконання, для перенесення за дедлайн — величина зсуву в хвилинах; евристичне плече повертає лише узагальнений наслідок».                                                                                                                                                                                                                                                      |
-| **UC-07** | «Перетягування запропонованого блоку: гаптичне «прилипання»…» → «Виклик «Перенести…» на блоці: вибір нового часу на сітці 15 хв → оновлення розміщення → парний сигнал (негатив для початкового інтервалу 0,1 / слабкий позитив для цільового 0,7, одна пара на розміщення; цільовий контекст обчислюється на сервері тим самим кодом сітки та ознак). Жест перетягування є пізнішим удосконаленням інтерфейсу й не є частиною навчального сигналу».                                                                             |
-| **UC-09** | Remove «сповіщення з пропозицією заміни»: «витіснена задача автоматично повертається в планування → **пристрій дізнається про витіснення під час наступного переходу на передній план, і поверхнею повідомлення є повідомлення на екрані «Сьогодні»** (окремого сповіщення про витіснення не надсилається) → тихий ремонт, якщо користувач ігнорує».                                                                                                                                                                             |
-| **UC-10** | «…протягом щонайбільше 30 днів з підтвердженням листом» → «…з підтвердженням **у застосунку** (номер запису та час завершення); фактичне виконання є синхронним (десятки–сотні мілісекунд), 30 днів лишаються законодавчою межею».                                                                                                                                                                                                                                                                                               |
+| UC        | Правка                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **UC-03** | «Система (о 06:00 місцевого часу або за першого відкриття)» → «Система за першого відкриття або переходу на передній план у плановий день, для якого плану ще немає (06:00 місцевого часу — межа планового дня, а не заплановане завдання: жодна коректність не залежить від фонового виконання; о 06:00 надсилається лише сповіщення)». **Add an alternative flow:** «Альтернатива: **день без робочого вікна** — запиту не надсилається, план не зберігається, вечірній ритуал не планується; екран пояснює причину (ADR-0019)». |
+| **UC-05** | Keep the trade-off example; **add** to the postcondition: «наслідок кожної опції обчислюється рушієм: для скорочення — оцінка падіння ймовірності виконання, для перенесення за дедлайн — величина зсуву в хвилинах; евристичне плече повертає лише узагальнений наслідок».                                                                                                                                                                                                                                                        |
+| **UC-07** | «Перетягування запропонованого блоку: гаптичне «прилипання»…» → «Виклик «Перенести…» на блоці: вибір нового часу на сітці 15 хв → оновлення розміщення → парний сигнал (негатив для початкового інтервалу 0,1 / слабкий позитив для цільового 0,7, одна пара на розміщення; цільовий контекст обчислюється на сервері тим самим кодом сітки та ознак). Жест перетягування є пізнішим удосконаленням інтерфейсу й не є частиною навчального сигналу».                                                                               |
+| **UC-09** | Remove «сповіщення з пропозицією заміни»: «витіснена задача автоматично повертається в планування → **пристрій дізнається про витіснення під час наступного переходу на передній план, і поверхнею повідомлення є повідомлення на екрані «Сьогодні»** (окремого сповіщення про витіснення не надсилається) → тихий ремонт, якщо користувач ігнорує».                                                                                                                                                                               |
+| **UC-10** | «…протягом щонайбільше 30 днів з підтвердженням листом» → «…з підтвердженням **у застосунку** (номер запису та час завершення); фактичне виконання є синхронним (десятки–сотні мілісекунд), 30 днів лишаються законодавчою межею».                                                                                                                                                                                                                                                                                                 |
 
 ---
 
@@ -887,7 +896,7 @@ Timeline sentence (item 25): «Today (таймлайн зі «скляними»
 
 Three sentences are false as written. Replacement for the second and third paragraphs:
 
-> «Доменні дані течуть у інтерфейс виключно через реактивні живі запити до локальної бази Expo
+> «Доменні дані течуть в інтерфейс виключно через реактивні живі запити до локальної бази Expo
 > SQLite — власним хуком `useLiveRows`: будь-який локальний запис автоматично перерендерює залежні
 > екрани без ручної інвалідизації.
 >
@@ -904,9 +913,9 @@ Three sentences are false as written. Replacement for the second and third parag
 > години, і без маскування кожна тривалість тихо перетворювалася б на дедлайн. Розбір працює
 > **двома мовами** — англійською та українською (`chrono.uk`); нерозпізнана фраза лишається
 > частиною назви, і застосунок каже про це прямо. Прев'ю-чип показує назву, тривалість і дедлайн,
-> а решті полів FR-10 присвоюються **мовчазні значення за замовчуванням** — категорія «admin»,
+> а решті полів FR-10 присвоюються **неявні значення за замовчуванням** — категорія «admin»,
 > пріоритет 2, 30 хв за відсутності тривалості, — усі редаговані в аркуші задачі. Чипи уточнення
-> рендеряться **лише для випадку голого дня тижня**; решту двох видів неоднозначності (кілька дат,
+> відображаються **лише для випадку названо сам день тижня без дати**; решту двох видів неоднозначності (кілька дат,
 > кілька тривалостей) парсер виявляє й розв'язує за першим збігом.»
 
 ### §4.2 + лістинг 4.1 — **Ф**, U15 _(no worklist row — see §10)_
@@ -982,13 +991,14 @@ Three claims in this subsection are false, and one of them is the kind a reviewe
 jest-expo 57 закріплені на лінії 29.x)».
 
 **(b) Наскрізні тести — П.** The draft claims five nightly Maestro paths, including a
-drag-override flow that cannot exist. What exists: ten flow files (onboarding, tasks, four
-accessibility sweeps, two dialog flows, four Ukrainian flows), run **on demand**, not nightly; no
-scheduled workflow exists. Replacement:
+drag-override flow that cannot exist. What exists: ten flow files — onboarding, tasks, two
+accessibility sweeps (`p2-a11y-sweep`, `p10-a11y-sweep`), two dialog flows (one of them itself an
+accessibility sweep) and four Ukrainian flows (one of them an accessibility sweep) — run **on
+demand**, not nightly; no scheduled workflow exists and Maestro is invoked by none. Replacement:
 
-> «Наскрізні перевірки виконуються потоками Maestro на вимогу — онбординг, робота із задачами,
-> два огляди доступності на найбільшому масштабі шрифту, діалоги підтвердження та українські
-> потоки. Апаратна перевірка (підрозділ 6.6) показала межу цього рівня свідчень: жоден із
+> «Наскрізні перевірки виконуються десятьма потоками Maestro на вимогу — онбординг, робота із
+> задачами, огляди доступності на найбільшому масштабі шрифту, діалоги підтвердження та
+> українські потоки. Апаратна перевірка (підрозділ 6.6) показала межу цього рівня свідчень: жоден із
 > потоків не запускається на фізичному iPhone (Maestro не підтримує фізичні пристрої iOS), на
 > реальному Android селектори вкладок не збігалися з жодним елементом, бо Android не додає до
 > міток рядка «, tab», а одне твердження про формат дати містило екрановану послідовність у
@@ -1084,7 +1094,7 @@ Nothing else in the chapter is readable until this is said, and ADR-0020 §3 fix
    > гіпотези, очікувані напрями та план аналізу зафіксовано комітом **до того, як у репозиторії
    > з'явився код дослідження**, і до першого запуску; запуск виконано один раз на зареєстрованій
    > конфігурації; звіт зіставляє кожне передбачення з наслідком, включно з тими, що не
-   > підтвердилися. Історія комітів є часовою міткою: пре-реєстрацію зафіксовано о 22:11:53, код —
+   > підтвердилися. Історія комітів є часовою міткою: попередню реєстрацію зафіксовано 5 вересня 2026 р. о 22:11:53 (+03:00), код —
    > о 22:19:16, результати — після запуску.»
 2. **Модель світу** — verbatim from `sensitivity-grid.md` §1: the logistic completion model, each
    term, **where each range comes from**, and the explicit list of what it cannot represent.
@@ -1095,10 +1105,27 @@ Nothing else in the chapter is readable until this is said, and ADR-0020 §3 fix
    > або відсутність нічиїх у блоці A) і що вважатиметься **змістовною невдачею методу**: нічия
    > або програш за s ≥ 1 із σ_shape = 0 і σ_day = 0 — тобто у світі, для якого писався приор.»
 
-**§5.4 Обсяг вибірки — методика** (was §5.5). Keep the analytic derivation as the historical
-assumption, and mark it as such:
+**§5.4 Обсяг вибірки та частота рандомізації — методика** (was §5.5). Two things: the MRT slice's
+achieved rate (**item 21**, which has no other home) and the analytic derivation marked as the
+assumption it is.
 
-> «Наведений розрахунок виходить із припущеного найменшого ефекту, що становить інтерес, +8 п.п.
+**Item 21 — the experiment rate the power calculation must use:**
+
+> «Потужність мікрорандомізованого зрізу обчислюється не за припущенням «один рандомізований слот
+> на день», а за виміряною частотою придатності. На коді сітки та придатності планувальника: за
+> суворого правила «щонайменше m досяжних бакетів» звичайний будній день 09–18 робить неприйнятною
+> кожну задачу тривалістю ≥ 60 хв, тож план із трьох задач має придатну задачу з імовірністю 0,57,
+> а день із чотирма зустрічами — жодної. За чинним правилом (|A_m(x)| ∈ {2, 3, 4}, точне
+> порядкове p = ε/|A_m(x)|) ця ймовірність становить 0,86 для трьох задач на день, 0,96 для п'яти
+> і 0,22–0,48 у завантажені дні, тобто **≈ 4,3 експерименти на користувача за тиждень на звичайних
+> тижнях і 1,1–2,4 на завантажених** — до втрат через нездійсненність після закріплення і до того,
+> як повторні планування витісняють раніші розіграші (діє лише останній показаний план дня). Ці
+> величини **пораховано на коді придатності, а не спостережено**, і досягнуту потужність зрізу
+> слід рахувати саме від них (Ляо зі співавторами [39]).»
+
+Then keep the analytic derivation as the historical assumption, and mark it as such:
+
+> «Наведений розрахунок виходить із припущеного найменшого ефекту, що становить інтерес, +8 в. п.
 > і дає 28 учасників за нормального наближення (точне значення за нецентральним t-розподілом для
 > тих самих входів — 30). **Обидві величини є властивостями припущення, а не виведеними з
 > вимірювання**; перерахунок за симульованим ефектом наведено в підрозділі 6.5.»
@@ -1107,7 +1134,7 @@ assumption, and mark it as such:
 
 > «Пакет відтворюваності включає: публічний репозиторій (клієнт, серверна частина, конвеєр
 > навчання, код обох симуляційних досліджень); зафіксовані в системі контролю версій
-> пре-реєстрації та сітку світів із зазначенням комітів; **синтетичний** набір подій, згенерований
+> попередні реєстрації та сітку світів із зазначенням комітів; **синтетичний** набір подій, згенерований
 > із підігнаних моделей, разом з однокомандним стендом відтворення, який відтворює кожну таблицю
 > офлайн-оцінювання; реєстр `model_registry`, що пінить кожну версію моделі. Реальний журнал подій
 > є **псевдонімізованим, а не анонімним** — рядковий журнал 42 осіб із восьмитижневою
@@ -1121,65 +1148,129 @@ assumption, and mark it as such:
 **The order matters** — estimators first (they license everything else), then power, then the
 closed loop, then the world grid, then sample size, then device verification, then the discussion.
 
-**§6.1 Оцінювачі політики на відомій істині (E1).** 200 worlds × 1 000 rows. Report the table and
-the one finding that changed the methodology:
+#### §6.1 Оцінювачі політики на відомій істині (E1)
 
-> «Кліповане IPS збіглося з IPS на всіх 200 × 5 комірках (найбільша вага 4 < M = 10);
-> самонормування зменшує дисперсію на всіх політиках; DR з істинною моделлю винагороди строго
-> ефективніший за IPS. Незміщеними виявилися IPS (≤ 2,3 стандартні похибки), DR (≤ 1,2) і DR з
-> навмисно хибною сталою моделлю (≤ 0,9). **Незважений replay — ні**: −0,6 п.п. на оракульній і
-> +0,7 п.п. на антиоракульній політиці (3,2 і 4,6 стандартні похибки), що збігається з
-> обчисленою замкненою формою. Це не властивість оцінювача Лі зі співавторами, а наслідок нашого
-> власного рішення допустити змінний розмір рандомізованого зрізу (підрозділ 2.6.2). Вимірювана
-> частка даних відповідає зареєстрованій арифметиці: ESS/n = 0,333 для детермінованої політики і
-> 0,361 для replay, тож ≈ 930 рядків зрізу звичайного тижня дають ESS ≈ 310 — потрійний запас до
-> бар'єра 100, тоді як завантажені тижні (240–520 рядків) дають 80–175 і на нижньому краї бар'єр
-> не проходять. Із дев'яти зареєстрованих передбачень підтверджено вісім, одне — частково.»
+> «Перше симуляційне дослідження перевіряє інструмент, а не систему: чи відновлює сімейство
+> оцінювачів, на яке спирається робота, істинну цінність політики за тієї щільності даних, яку
+> дає спроєктована схема журналювання. Двісті світів по тисячі рядків зрізу, п'ять цільових
+> політик — від рівномірної до оракульної та антиоракульної. Обрізане (clipped) IPS збіглося з IPS
+> на всіх 200 × 5 комірках (найбільша вага 4 < M = 10); самонормування зменшує дисперсію на всіх
+> політиках; DR з істинною моделлю винагороди строго ефективніший за IPS, а DR із навмисно хибною
+> сталою моделлю все одно не гірший за IPS. Незміщеними виявилися IPS (≤ 2,3 стандартні похибки
+> Монте-Карло), DR (≤ 1,2) і DR зі сталою моделлю (≤ 0,9). **Незважений replay — ні**: −0,6 в. п.
+> на оракульній і +0,7 в. п. на антиоракульній політиці (3,2 і 4,6 стандартні похибки), що
+> збігається з обчисленою замкненою формою (−0,55 і +0,54 в. п.). Це не властивість оцінювача Лі
+> зі співавторами, а наслідок власного проєктного рішення допустити змінний розмір
+> рандомізованого зрізу (підрозділ 2.6.2). Виміряна частка даних відповідає зареєстрованій
+> арифметиці: ESS/n = 0,333 для детермінованої політики і 0,361 для replay, тож ≈ 930 рядків зрізу
+> звичайного тижня дають ESS ≈ 310 — потрійний запас до бар'єра 100, тоді як завантажені тижні
+> (240–520 рядків) дають 80–175 і на нижньому краї бар'єр не проходять. Із дев'яти зареєстрованих
+> передбачень підтверджено вісім, одне — частково.»
 
-**§6.2 Потужність первинного контрасту (E2).** Report both τ readings — this is the item the
-committee will test:
+#### §6.2 Потужність первинного контрасту (E2)
 
 > «За зареєстрованою моделлю потужність парного аналізу становить 0,836 (ICC 0,10) і 0,817
-> (ICC 0,20) за N = 30; найменше N з потужністю ≥ 0,80 дорівнює 30 (за N = 28 — 0,782).
-> Проте зареєстроване стандартне відхилення нахилу відповідає міжкористувацькій дисперсії
+> (ICC 0,20) за N = 30; найменше N з потужністю ≥ 0,80 дорівнює 30 (за N = 28 — 0,782). Проте
+> зареєстроване стандартне відхилення випадкового нахилу відповідає міжкористувацькій дисперсії
 > справжнього ефекту τ ≈ 0,10, а не песимістичному 0,12 з розрахунку у Файлі 06: **за τ = 0,12 та
 > сама межа дає 0,768 і 0,735 за N = 30**, а 0,80 потребує N ≈ 34–40. Обидва числа наведено;
-> N = 30 тримається лише на ефективності змішаної моделі над парною межею, яку в цьому
-> дослідженні не підганяли. Одне зареєстроване твердження виявилося хибно специфікованим:
-> смугу помилки I роду записано для двобічної частки 0,05, тоді як зареєстроване правило
-> відхилення рахує один напрям двобічного критерію, чия калібрована частка — 0,025; спостережені
-> 0,028–0,030 калібровані відносно правильної цілі. Це помилка формулювання пре-реєстрації, а не
-> збій калібрування, і її подано як помилку.»
+> N = 30 тримається лише на ефективності змішаної моделі над парною межею, яку в цьому дослідженні
+> не підганяли. Одне зареєстроване твердження виявилося хибно специфікованим: смугу помилки I роду
+> записано для двобічної частки 0,05, тоді як зареєстроване правило відхилення рахує один напрям
+> двобічного критерію, калібрована частка якого — 0,025; спостережені 0,028–0,030 калібровані
+> відносно правильної цілі. Це помилка формулювання попередньої реєстрації, а не збій калібрування,
+> і її подано як помилку.»
 
-**§6.3 Замкнений цикл на розкладі ABAB (E3).** Effects, per class, learning signature, exploration
-cost, OPE on the study's own slice; then the four deviations verbatim (#55). **The framing
-sentence that must be here:**
+#### §6.3 Замкнений цикл на розкладі ABAB (E3)
 
-> «Ці ефекти (+2,5 і +5,4 п.п.) є властивостями світу генератора P11, у якому проміжні
-> хронотипи не мали жодного слотового візерунка і, отже, не мали чого втрачати. Вони **не є «тим
-> самим» ефектом системи** і не переносяться на інші світи — що показує підрозділ 6.4.»
-
-**§6.4 Сітка світів: межа методу (головний кількісний результат).** In order: the world model
-recap; the 75-cell table (full table → Додаток З); the boundary statement; the substantive-failure
-result; the per-class decomposition; the prior ablation; predictions S1–S12 (2 confirmed, 5 partly,
-5 not) with the seven substantive differences. Load-bearing sentences (items 56, 59 — §3.1, §3.4
-of this file carry the full-strength versions; here is the boundary statement):
-
-> **Межа методу:** «Навчена політика виграє в евристики «найраніший вільний слот», коли є що
-> вчити на рівні людини — індивідуальне відхилення від профілю класу ≥ 0,3 логіта (52 з 60 таких
-> світів) — або коли популяційний ефект щонайменше в 1,5 раза сильніший за припущений у Файлі 04.
-> Вона грає внічию, коли виконання майже не залежить від слоту, коли світ є точно табличним
-> візерунком за припущеної сили або слабшим без індивідуальних відхилень, коли день майже повний
-> (8 із 9 слотів) або майже порожній (2 задачі), а також за низького базового рівня зі слабким
-> візерунком. Вона **ніколи не програє в середньому більш як на 0,5 п.п.** — але ранкові та
-> проміжні типи втрачають по 0,8–2,1 п.п. там, де фіксоване правило вже майже оптимальне.»
+> «Третій експеримент замикає цикл на робочому коді сервісу: сто повторених досліджень по 30
+> користувачів, 45 робочих днів кожне, стадії 2–4 (енергетичні комірки, бандит, змішування,
+> дослідження) без заміни на реалізацію-двійник. У базовому світі навчене плече перевершує
+> евристичне на **+2,54 ± 0,14 в. п.** (стеля 4,12, ефективність 0,62), в підсиленому — на
+> **+5,37 ± 0,14 в. п.** (стеля 7,84, ефективність 0,69); напрям правильний у 96 % і 100 %
+> повторених досліджень, а одне дослідження на 30 осіб виявляє базовий ефект у 26 % випадків і
+> підсилений — у 79 %. З плоским приором ефект нижчий (2,06 і 4,77 в. п.), що є виміряною ціною
+> холодного старту. За класами ефект несуть вечірні типи (+5,9 і +11,5 в. п. для помірно вечірніх,
+> +10,0 і +18,6 для виразно вечірніх), проміжні лишаються біля нуля, а ранкові втрачають
+> 0,9–2,5 в. п.
 >
-> **Що рухає виграшем:** «Без жодного популяційного візерунка, але з індивідуальними
-> відхиленнями 0,6 логіта (≈ ±14 п.п. на частину доби) виграш становить 5,7 п.п.; з
-> популяційним візерунком удвічі сильнішим за табличний, але без індивідуальних відхилень — лише
-> 2,8 п.п. Цінністю системи є навчання профілю **окремої людини**, а не хронотипний візерунок.»
+> **Ці ефекти є властивостями світу генератора P11**, у якому проміжні хронотипи не мали жодного
+> слотового візерунка і, отже, не мали чого втрачати. Вони не є «тим самим» ефектом системи й не
+> переносяться на інші світи — що показує підрозділ 6.4.
+>
+> Чотири результати вийшли інакше, ніж передбачала попередня реєстрація, і подані як такі.
+> **По-перше**, ранкові типи програють там, де передбачалося ≈ 0: діагностика з примусово
+> знеструмленою дисперсією семплера Томпсона показує, що приблизно половина втрати виразно
+> ранкових типів — це шум апостеріорного семплювання на ненавченому бандиті, а решта — одна
+> хибно впорядкована комірка приору (Файл 04 §3.2 ставить AF вище за MD для ранкових типів, а світ
+> — навпаки). **По-друге**, за плоского приору напрям правильний у 92 % досліджень, а не в 95 %:
+> приор холодного старту вартий ≈ 0,5 в. п. ефекту і ≈ 4 пунктів надійності напряму.
+> **По-третє**, сигнатура навчання існує, але одне дослідження її не бачить: приріст між парами
+> фаз становить +0,75 і +1,26 в. п. за плоского приору (2,5–4 стандартні похибки над нулем на ста
+> дослідженнях), проте додатний лише в 59–63 % окремих досліджень і значущий у 3–10 %; за
+> інформативного приору плато досягається вже в першій парі фаз, як і передбачалося. **По-четверте**,
+> три зареєстровані критерії виявилися хибно специфікованими — двобічна смуга проти
+> однонапрямленого правила, вимога монотонності на кожному повторенні там, де твердження
+> стосувалося середнього, і смуга ±0,03 на окрему оцінку, яка дорівнює одній стандартній похибці
+> за ESS ≈ 300, — а зерна генератора E2 відрізняються від зареєстрованого правила. Усі чотири
+> названо, і поруч наведено узгоджене прочитання.»
 
-**§6.5 Обсяг вибірки, перерахований за симульованим ефектом (item 57).** N follows its inputs:
+#### §6.4 Сітка світів: межа методу (головний кількісний результат)
+
+In order: the world model recap → the 75-cell table (full table → Додаток З) → the boundary
+statement → the substantive-failure result → the per-class decomposition → the prior ablation →
+predictions S1–S12 with the seven substantive differences.
+
+**Модель світу (стислий переказ; повний текст — з `sensitivity-grid.md` §1, який слід перекласти
+дослівно, разом із джерелом кожного діапазону та переліком того, чого модель не відтворює):**
+
+> «Змодельована людина розміщує K однакових годинних задач у робочому дні 09:00–18:00. Імовірність
+> виконання блоку в частині доби c є бернуллівською з логітом logit(p₀) + s·T(k, c) + δ + ε, де
+> T — популяційний візерунок класу хронотипу, узятий із таблиці Файлу 04 §3.2 і центрований по
+> чотирьох досяжних частинах доби; s — його сила (1 = припущена в таблиці); δ — фіксоване
+> індивідуальне відхилення людини від профілю свого класу; ε — денний шок. Джерела діапазонів
+> названо поіменно: базовий рівень 0,45 — припущення Файлу 06, яке тут піддано розгортці;
+> сила візерунка — систематичний огляд ефекту синхронності 2025 року; діапазон індивідуальних
+> відхилень — той самий огляд (ефекти неоднорідні між людьми); денний шок — перерахунок
+> внутрішньокласової кореляції Файлу 06 у логітну шкалу; склад класів — розподіл MEQ у вибірці
+> працівників (28 % ранкових, 52 % проміжних, 20 % вечірніх); кількість задач на день —
+> спостережені на Pixel 7a розміри скриньки. Чого модель не відтворює, названо так само прямо:
+> люди в ній не змінюються (немає формування звички, перенесення між фазами й ефекту новизни),
+> задачі однакові, календар порожній, втоми немає, атрибуція ідеальна, план виконується так, як
+> розміщено. Найважливіша вісь — наскільки люди насправді відхиляються від профілю свого класу —
+> це саме та величина, якої в роботі не виміряно і яку мав би виміряти пілот.»
+
+**Межа методу (головний результат; §3.1 і §3.4 цього документа несуть повні формулювання):**
+
+> «Навчена політика виграє в евристики «найраніший вільний слот», коли є що вчити на рівні людини
+> — індивідуальне відхилення від профілю класу ≥ 0,3 логіта (52 з 60 таких світів) — або коли
+> популяційний ефект щонайменше в 1,5 раза сильніший за припущений у Файлі 04. Вона грає внічию,
+> коли виконання майже не залежить від слоту, коли світ є точно табличним візерунком за
+> припущеної сили або слабшим без індивідуальних відхилень, коли день майже повний (8 із 9
+> слотів) або майже порожній (2 задачі), за низького базового рівня зі слабким візерунком і з
+> плоским приором за s = 0,5. Вона **ніколи не програє в середньому більш як на 0,5 в. п.** — але
+> ранкові та проміжні типи втрачають по 0,8–2,1 в. п. там, де фіксоване правило вже майже
+> оптимальне. Загальний підсумок сітки: 58 виграшів, 17 нічиїх, жодного програшу на 75 світах.»
+
+**Що рухає виграшем (це відповідь на питання про механізм):**
+
+> «Без жодного популяційного візерунка, але з індивідуальними відхиленнями 0,6 логіта
+> (≈ ±14 в. п. на частину доби) виграш становить 5,7 в. п.; з популяційним візерунком удвічі
+> сильнішим за табличний, але без індивідуальних відхилень — лише 2,8 в. п. Цінністю системи є
+> навчання профілю **окремої людини**, а не хронотипний візерунок. Внесок самої популяційної
+> таблиці приорів становить ±0,4 в. п. у п'яти світах абляції; колаборативний шар у симуляції
+> участі не брав.»
+
+**Передбачення S1–S12 проти наслідків:**
+
+> «За зафіксованими до запуску критеріями підтверджено два передбачення, частково — п'ять, не
+> підтверджено — п'ять. Сім змістовних розбіжностей названо окремо, і найважливіша з них та, що
+> проміжна більшість користувачів програє щоразу, коли її власні слотові відмінності менші за шум
+> навчання на людину, — цього не передбачав жоден зареєстрований критерій. Масштаб ефекту було
+> переоцінено вдвічі-втричі, бо смуги спиралися на ефективність 0,6–0,7, виміряну у світі P11, де
+> класів, що програють, просто не було.»
+
+#### §6.5 Обсяг вибірки, перерахований за симульованим ефектом (item 57)
 
 > «Від 21 до понад 120 завершених учасників залежно від світу, причому понад 120 — у 48 із 75
 > світів, включно з «літературоподібним» дорослим світом за припущеної сили візерунка (де
@@ -1187,28 +1278,234 @@ of this file carry the full-strength versions; here is the boundary statement):
 > комірках. Звідси висновок, у якому N іде за своїми входами: **спроєктоване дослідження ABAB
 > потребує N ≈ 35–70 завершених учасників, якщо пілот покаже індивідуальний розкид слотового
 > ефекту ≈ 0,6 логіта; N ≈ 30–45 — лише якщо популяційний ефект у 1,5–2 рази сильніший за
-> табличний на вибірці з надлишком крайніх типів; інакше N ≥ 120 (набір ≥ 170), і в такому
-> вигляді дослідження проводити не варто.** За припущеного у Файлі 06 відсіву 30 % набір 170 осіб
-> для восьмитижневого внутрішньосуб'єктного протоколу виходить за межі не лише кваліфікаційної
-> роботи, а й типової однолабораторної розвідки.»
+> табличний на вибірці з надлишком крайніх типів; інакше N ≥ 120 (набір ≥ 170), і в такому вигляді
+> дослідження проводити не варто.** За припущеного у Файлі 06 відсіву 30 % набір 170 осіб для
+> восьмитижневого внутрішньосуб'єктного протоколу виходить за межі не лише кваліфікаційної роботи,
+> а й типової однолабораторної розвідки. Ручний розрахунок Файлу 06 (28 осіб) є нормальним
+> наближенням точного значення 30 за нецентральним t-розподілом; усі наведені N₈₀ є парними
+> нижніми межами, і змішана модель дала б менші — але не вчетверо менші, як потребував би
+> центральний світ.»
 
-**§6.6 [NEW] Верифікація на реальних пристроях (items 11, 50, 51, 52, 53, 62).** Item 62 supplies
-draft-ready text; §11.3 lists the four places it overstates and the wording that fixes them.
-Order: what the automated evidence was → why a phone is a different kind of input → the six
-findings with their data consequence → the six-class table → what does **not** belong to those
-classes → what the pass established positively → cost, attendance and yield → what remains
-unverified.
+#### §6.6 [NEW] Верифікація на реальних пристроях
 
-**§6.7 Обговорення: що встановлено, чого не встановлено, де межа.** Items 49, 59, 62. This is
-where the ДП1–ДП4 statuses of §1.6 are answered in full, where the boundary of the claim about the
-protocol-as-contribution is argued, and where the four "do not soften" statements of §3 land.
+Items 11, 50, 51, 52, 53, 62. Item 62 wrote this section in English; below is the Ukrainian with
+§11.3's four corrections already applied. Order: what the automated evidence was → why a phone is
+a different kind of input → the six findings with their data consequence → the six-class table →
+what does **not** belong to those classes → what the pass established positively → cost,
+attendance and yield → what remains unverified.
 
-**§6.8 [NEW] Специфікація як гіпотеза (U19 — the spec-conflicts story, which currently has no
-home).** See §13.4 for why this deserves its own subsection and what goes in the table.
+> «До апаратної перевірки система мала модульні тести клієнта та крайових функцій, набори на
+> Python і pgTAP, збірку Release, прогнану на симуляторі iOS, і набір «живих» перевірок, які
+> керували розгорнутим бекендом із машини розробника. Усі ці свідчення мають одну спільну
+> властивість: **вони самі постачають собі входи**. Фікстура обирає часовий пояс, годинник,
+> календарний день, мережу, тривалість життя процесу і спосіб дотику до елемента керування.
+> Телефон постачає це сам — і постачає так, як постачав би телефон учасника. Тому апаратна
+> перевірка була не більшим прогоном тестів, а першою зустріччю системи з входами, яких вона не
+> обирала; знахідки — це і є ті входи, яких вона не передбачила.
+>
+> Перевірка тривала п'ять днів на Pixel 7a (Android 17), 1–5 вересня 2026 р., на шести збірках, і
+> два дні на iPhone 12 (iOS 26.6), 7–8 вересня, на двох збірках. Шість знахідок несуть аргумент;
+> кожну названо разом із наслідком для даних, бо саме там була шкода.
+>
+> _Навчений рушій жодного разу не обслужив телефон._ Першого вечора всі тридцять запитів плану з
+> пристрою впали в евристичний резерв, тоді як «жива» перевірка з машини розробника того самого
+> вечора звітувала про справний навчений шлях, п'ятнадцять із п'ятнадцяти. Телефон повідомляє свій
+> пояс як `Europe/Kiev` — застарілу назву-посилання, яку Android дає для України; машина розробника
+> надсилає `Europe/Kyiv`; образ сервісу розпізнавав лише поточну назву, відхиляв запит, і крайова
+> функція вмикала резерв точно так, як спроєктовано. У дослідженні кожного учасника з українським
+> Android-телефоном обслуговувало б базове плече, тоді як журнали показували б справний сервіс;
+> єдиною видимою ознакою був банер резерву, який перше прочитання списало на одиничний збій.
+> Виправлено наступного ранку **на боці сервера** — пристрій і далі надсилає `Europe/Kiev`, це
+> сервіс навчився приймати назву, яку той надсилає; перший навчений план на апаратурі з'явився об
+> 11:37.
+>
+> _Порожні картки з живими елементами керування._ П'ятого дня остання картка списку «Сьогодні»
+> малювалася порожньою панеллю, тоді як її вміст лишався змонтованим: дерево доступності
+> перелічувало назву, час і статус із правильними межами, а кнопки приймали дотики. Два дотики по
+> порожніх картках стали фактами `task_completed` і `focus_start` протягом тринадцяти секунд.
+> Оскільки клієнт є реєстратором фактів, чиї факти переважують плани, а нічна атрибуція перетворює
+> ці факти на винагороди без жодної перевірки правдоподібності, це дефект цілісності даних у
+> вбранні дефекту рендерингу: нижче за течією ніщо не може дізнатися, що елемент керування ніколи
+> не було видно. Обрізання походить від `overflow: hidden` на панелі Android у нативному
+> композиторі; панель iOS — інша реалізація, тому симулятор цього не показував. Виправлено в
+> шостій збірці: **0 порожніх карток у 72 сканах** списків із 7 і 13 блоків.
+>
+> _Три дефекти винагород на iOS, жодного сліду в журналах._ По-перше, наступного ранку після
+> недоторканої ночі перший перехід на передній план правильно зафіксував пропуск чотирьох блоків, і
+> та сама синхронізація повернула їх у стан `shown`: нічне навчання підняло версію кожного рядка,
+> дозаповнюючи пропенсіті, а сервер досі тримав до-пропускний статус, який змінює власне добове
+> завдання. Наступний перехід зафіксував ті самі пропуски вдруге — подвоєні факти, серії пропусків
+> завдовжки три на задачах, пропущених двічі, і діагностичне питання третього пропуску, показане
+> для фантома. По-друге, фокус-сесію, залишену працювати через блокування екрана, клієнтське
+> правило двох годин закрило з 285 хвилинами «фокусу» на тридцятихвилинному блоці, і миттєва
+> атрибуція оплатила це як виконання з винагородою 1, тоді як власне сканування пристрою вже
+> зафіксувало пропуск: вгадана винагорода на неоднозначній сесії — саме той випадок, задля
+> виключення якого існує інваріант 3. По-третє, пропуск із подальшим переплануванням того самого
+> дня взагалі не став кортежем винагороди, бо витіснення плану переводило його ще відкриті рядки в
+> стан `expired`, а відображення назавжди пропускає такі рядки, — систематичне завищення на кожному
+> дні з переплануванням. Третій дефект знайшов не телефон, а свіжий огляд виправлення першого;
+> механізм був записаний на Android-телефоні чотирма днями раніше, і наслідку для винагород тоді
+> ніхто не прочитав. Усі три змінюють навчальний сигнал беззвучно; жоден не спричиняє помилки;
+> жоден недосяжний для фікстури, яка сама постачає собі ніч. **Виправлення другого з них перевірено
+> на пристрої не було** — воно лишилося на гілці; сесія на Android тривалістю 164,5 хвилини мала ту
+> саму форму, і її кортеж ніхто не перевірив.
+>
+> _П'ятничний ритуал._ У п'ятницю ввечері сповіщення обіцяло «6 задач чекають — один дотик
+> спланує ваш день»; прийняття породило план на суботу з нульовою кількістю блоків, бо профіль
+> оголошує робочі години лише для буднів, витратило один із тридцяти денних запитів плану і
+> лишило екран «Сьогодні» з написами «Плану ще немає» над «Сьогодні немає місця для 15 задач» —
+> обидва неправдиві. Кожна фікстура в наборах планує будній день, і жоден сценарій не перетинає
+> межу тижня; дефект потребував справжньої п'ятниці. Правило, що з нього випливло — жодного
+> запиту, жодного збереженого плану, жодного вечірнього ритуалу для дня без робочого вікна, —
+> перевірено потім у справжню суботу: до сервера не дійшов жоден запит, а список будильників
+> тримав лише недільний огляд.
+>
+> _Затримка, побачена з телефона._ Серверний хронометраж уміщав запит плану в бюджет; власний
+> таймер телефона — ні. На еталонному пристрої запит вимірювався 3,7–4,1 с на 95-му перцентилі
+> проти функції, що вимірювалася 1,3 с, бо третина того, чого чекає користувач, відбувається до
+> виклику функції — передплановий push синхронізації щоразу, коли є непередані факти, а в
+> реальному вжитку це звичайний випадок. За консервативним розкладом (сума перцентилів компонент,
+> 3,9 с проти виміряних 3,68 с) 2,6 с — дві третини — це серверна робота, яка не масштабується ні
+> телефоном, ні мережею користувача. Тому вимогу перевиведено з розкладу для телефона нижнього
+> цінового сегмента 2022 року за слабкого зв'язку (≤ 6,0 с на 95-му перцентилі) замість
+> доспостережної оцінки 2,5 с. Пристрій дав і той клас задач, якого не породжувала чиста
+> розгортка: на його власній скриньці — взаємозамінні задачі під двома дедлайнами — розв'язувач
+> зупинявся на доведенні оптимальності в 12 із 15 запитів, і правило зупинки змінено на цьому
+> свідченні.
+>
+> _Три поведінки платформи без сліду поза апаратурою._ Сповіщення ритуалу на Android не мало кнопок
+> дій: модуль Android відхиляє порожню категорію сповіщення, застосунок реєстрував категорію блока
+> першою й без дій, виняток було проковтнуто, і категорія ритуалу так і не збереглася — тоді як
+> iOS порожню категорію приймає, тому симулятор кнопки показував завжди. Нагадування приходили з
+> запізненням від 26 до 60 хвилин, а одне не показалося зовсім, бо дозвіл на точні будильники не
+> було ні оголошено, ні надано, а Android 13+ відмовляє в ньому свіжій інсталяції. І перше
+> відкриття дня з вимкненими радіомодулями читалося як «не ввійшли» — «Увійдіть, щоб спланувати
+> день», — бо токен доступу спав, поки застосунок був мертвий уночі, а клієнт автентифікації
+> закешував невдале оновлення; перший перехід на передній план з мережею теж не спланував нічого.
+> Жодна з трьох не є помилкою у власних журналах застосунку.»
 
-**§6.9 Висновки до розділу 6.**
+**Таблиця класів** — item 62's six-row table translated (клас · чому цього не постачає жоден
+набір тестів чи симулятор · що воно виявило тут). Rows: планування ОС · реальні фонові обмеження ·
+читачі екрана · рендеринг у справжньому композиторі · ідентифікатори та входи від пристрою ·
+багатоденна поведінка та межа тижня. **Add U34 to the screen-reader row**, because it is the
+strongest evidence the section has:
 
----
+> «Огляд коду виявив сам клас дефекту — обгортка з `accessible` поглинала дочірні елементи
+> керування на iOS VoiceOver, — і той самий клас усе одно потрапив у постачання в іншому
+> компоненті, а обидва автоматичні дерева доступності перелічували кнопки як завжди. Огляди коду
+> й проходи з читачем екрана є доповненнями, а не замінниками один одного.»
+
+**Чого немає в цих класах** (item 62 already writes it; keep it — it is what makes the claim
+falsifiable):
+
+> «Не кожна знахідка належить до цих класів, і роботі слід це сказати. Перепланування на кожному
+> холодному старті, непрокручуваний екран налаштувань, нескасовані нагадування, перенесення
+> колонки часу за 200 % шрифту й спалах «значення за замовчуванням до першого читання» були
+> досяжні й на симуляторі — просто ніхто не запускав застосунок начисто зі збереженим планом, не
+> прокручував налаштування на малому екрані й не дивився на шторку впродовж дня. Перевірка знайшла
+> їх тому, що ганяла весь продукт кілька днів на справжніх ставках і з людиною, яка дивиться, — а
+> не через кремній. Твердження роботи стосується шести класів; кількість знахідок є свідченням про
+> практику, а не про твердження.»
+
+**Що перевірка встановила позитивно** — with §11.3's corrections:
+
+> «Вимоги, зумовлені пристроєм, перейшли зі стану «перевірено на симуляторі» у виміряні: холодний
+> старт із 90-м перцентилем 1,07 с на Pixel 7a одразу після перезавантаження (0,55 с прогрітим) і
+> 0,95 с на iPhone 12 у тій самій умові — це єдина порівнянна пара, бо `am start -W` і xctrace
+> вимірюють різні відрізки; прокручування справжнім пальцем без жодного пропущеного кадру на
+> списку із семи блоків на iPhone і без «важких» кадрів на списку з восьми блоків на Pixel (на
+> списках із 13 і 16 блоків — один важкий кадр і вісім затримок відповідно, за скриптованого
+> введення); точні будильники в межах 0,11–0,53 с від запланованого часу на під'єднаному й
+> від'єднаному від живлення телефоні; денний ліміт сповіщень, що витримав справжні дні на обох
+> платформах (чистий доказ — Android 5 вересня і iOS 8 вересня; п'яте сповіщення 7 вересня було
+> продубльованим ритуалом, тобто дефектом, а не підтвердженням); ритуал, доставлений убитому
+> застосунку на Android і замороженому на заблокованому iPhone, із кнопками категорії на екрані
+> блокування; ритуал під «Не турбувати» — відкладений, а не втрачений; фокус-сесія, що пережила
+> блокування, вбивство процесу й перезавантаження; стирання через діалоги застосунку за 78, 113 і
+> 151 мс на боці сервера з нулем у кожній таблиці користувача і скасованими будильниками; і, після
+> того як нічне навчання торкнулося 79 рядків, 12 рядків рандомізованого зрізу лишилися зі своїми
+> точними пропенсіті — інваріант 9, спостережений на живих даних.»
+
+**Ціна, присутність і врожай** — item 62's paragraph, with the scope sentence §11.3 asks for:
+
+> «Перевірка коштувала семи календарних днів сесійного часу (п'ять на Android, два на iOS), і до
+> цих чисел не входять окремі проходи — перевірка діалогів 6 вересня, перевірка руху 8–9 вересня
+> та огляд локалізації на симуляторі 9 вересня. Руки власника були потрібні приблизно півтори-дві
+> години на Android і годину-півтори на iOS, відновлено за позначками часу в нотатках. Решта була
+> роботою сесії: збірки, драйвери, серії вимірювань, пакети виправлень і читання записів заднім
+> числом. На день зусиль перевірка дає менше серйозних дефектів, ніж огляд коду свіжим поглядом —
+> фазові огляди знаходили від одного до семи серйозних дефектів кожен менш ніж за день; перевірка
+> знайшла чотирнадцять за сім днів, тобто близько двох на день. Але дві множини не перетинаються:
+> оглядачі читали налаштування сповіщень, шлях синхронізації та відображення винагород і пропустили
+> їх, і жоден із чотирнадцяти не був би знайдений ще одним читанням, бо кожен потребував входу,
+> якого читач не мав підстав припускати. Чесний опис того, звідки взялися знахідки, — це десяток
+> моментів, кожен із яких був першим разом, коли трапилася справжня умова: перший запит плану,
+> на який відповів сервер; перший холодний старт зі збереженим планом; перший день із
+> нагадуваннями в шторці; перший ранок після недоторканої ночі (три дефекти за півгодини); перший
+> дотик до п'ятничного ритуалу (три дефекти за п'ять хвилин); перший довгий список, прокручений
+> людиною; перший перемикач доступності, натиснутий на працюючому застосунку; перший прохід
+> читачем екрана; перший перехід на передній план після ночі із серверним завданням; і перша
+> збірка, встановлена поверх працюючої сесії. Десять моментів, менш ніж за три години чистого
+> часу між ними, дали чотирнадцять дефектів; решта днів була вимірюваннями, виправленнями,
+> збірками й очікуванням календаря. Саме така форма й має бути в планування апаратної перевірки:
+> не більше днів, а перше настання кожної справжньої умови, з людиною поруч там, де драйвер її не
+> створить.»
+
+**Чого на апаратурі не перевірено** — item 62's list plus the residuals §13.2 names:
+
+> «Лишаються неперевіреними на апаратурі: вхід за магічним посиланням і згода Google, а також
+> синхронізація між двома пристроями (потребують поштової скриньки й робочого клієнта OAuth);
+> правило витраченого ритуалу в день із залишком бюджету нагадувань; пізня заміна діалогу під
+> reduced motion; читання TalkBack власних дій картки на Android; тест на «зведення» подвійним
+> дотиком на iOS, який XCUITest не може доставити в межах 400 мс; **вимірювання NFR-P3 з телефона,
+> якого не існує** — обидва наведені числа отримано з машини розробника; жест перетягування й
+> гаптика (не реалізовано); перехід літнього часу на годиннику пристрою; і весь клас Android
+> нижнього цінового сегмента 2022 року, для якого число NFR-P1 є виведенням із Pixel 7a, а не
+> вимірюванням.»
+
+#### §6.7 Обговорення: що встановлено, чого не встановлено, де межа
+
+> «Що встановлено. Інструменти оцінювання чесні: сімейство оцінювачів відновлює істинну цінність
+> політики на відомій істині, а незважений replay довелося замінити зваженим через власне рішення
+> про змінний розмір зрізу. Розгорнута політика захоплює 60–70 % доступного розриву дотримання у
+> світі P11 під інформативним приором і 50–60 % під плоским, виграє там, де евристика помиляється,
+> і програє 1–2 в. п. там, де вона вже майже оптимальна. Узгоджений рандомізований зріз не коштує
+> евристичному плечу нічого в середньому, а навченому — його експлуатаційного виграшу на одному
+> блоці з чотирьох. Межу методу локалізовано, а не проголошено.
+>
+> Чого не встановлено. Нічого про реальних людей. Імовірність виконання в симуляції задана
+> моделлю, а не виміряна; гіпотези H1–H4 як твердження про людську поведінку лишаються
+> неперевіреними. Порівняння з рушієм правил, у якому користувач сам описує свої вподобання, не
+> проводилося; порівняння «дослідження проти чистої експлуатації» не проводилося; довіру
+> користувача в симуляції виміряти неможливо; колаборативний шар у симуляції участі не брав і на
+> реальних даних не запускався. Найважливіша вісь усієї сітки — наскільки люди насправді
+> відхиляються від профілю свого класу — є саме тією величиною, якої в роботі не виміряно.
+>
+> Чому спроєктований, але не виконаний протокол сам є внеском, і в чому межа цього твердження.
+> Протокол є виконуваним і перевірюваним артефактом: внутрішньосуб'єктний дизайн з узгодженою
+> рандомізацією і вкладеним мікрорандомізованим зрізом, точні пропенсіті, залоговані **живою
+> системою**, а не симулятором, стенд офлайн-оцінювання, перевірений проти відомої істини, аналіз
+> потужності та операційний апарат набору, згоди й приватності — такий, що лабораторія з ресурсами
+> для набору може провести дослідження без подальшої інженерної роботи. Це твердження чинне **лише
+> доти**, доки робота стверджує коректність системи, готовність протоколу й валідність оцінювачів
+> — і ніколи не стверджує результатів щодо користувачів.
+>
+> Кілька відкладених питань слід назвати не перспективами, а постійними обмеженнями, бо огляд «за
+> першими реальними даними», на який їх відкладали, не відбудеться: переналаштування штрафу
+> фрагментації, семантика другого перенесення, порівняння щільності між плечима і асиметрія
+> аркуша компромісів між плечима.»
+
+#### §6.8 [NEW] Специфікація як гіпотеза
+
+The full introductory sentence and the twelve-row table are in §13.4 — paste them here.
+Closing sentence for the subsection:
+
+> «Жодне з цих переписувань не є визнанням помилки в проєктуванні: специфікації писалися до того,
+> як існувала система, яку можна виміряти, і саме тому в парадигмі дизайн-наукового дослідження
+> артефакт є інструментом перевірки власної специфікації. Що заслуговує на увагу — це напрям
+> виправлення: у кожному з дванадцяти випадків змінювали специфікацію, а не результат.»
+
+#### §6.9 Висновки до розділу 6
 
 ## 10. ВИСНОВКИ і ДОДАТКИ
 
@@ -1243,12 +1540,12 @@ home).** See §13.4 for why this deserves its own subsection and what goes in th
 > рандомізованого зрізу — і оцінювач замінено зваженим. На сітці з 75 явно специфікованих світів
 > навчена політика перемагає евристику «найраніший вільний слот» у 58 світах, грає внічию у 17 і
 > не програє в жодному, **проте у світі, для якого писався приор холодного старту, — лише
-> внічию**: 52 % проміжних і 28 % ранкових хронотипів втрачають по 0,8–2,1 п.п. через шум
-> навчання на людину, і це гасить виграш вечірніх типів у 5–10 п.п. Головний висновок:
+> внічию**: 52 % проміжних типів втрачають по 1,4–1,9 в. п., а 28 % ранкових — по 0,8–2,1 в. п.
+> через шум навчання на людину, і це гасить виграш вечірніх типів у 5–10 в. п. Головний висновок:
 > **метод потребує індивідуальної варіації, щоб бути вартим своєї складності; там, де поведінка
 > йде за популяційним хронотипним візерунком за припущеної сили, достатньо правила «найраніший
-> вільний слот»**. Внесок популяційної таблиці приорів становить ±0,4 п.п.; розрив у
-> персоналізації не накопичується (0,3–1,4 п.п. за чотиритижневу половину). Обсяг вибірки, якого
+> вільний слот»**. Внесок популяційної таблиці приорів становить ±0,4 в. п.; розрив у
+> персоналізації не накопичується (0,3–1,4 в. п. за чотиритижневу половину). Обсяг вибірки, якого
 > потребувало б польове дослідження, перераховано за симульованим ефектом: 21 … понад 120
 > завершених учасників, понад 120 — у 48 із 75 світів.»
 
@@ -1257,7 +1554,7 @@ place (with §11.2's corrections applied):
 
 > «8. Автоматизовані свідчення — модульні тести клієнта та крайових функцій, набори на Python і
 > pgTAP, огляди на симуляторі й наскрізні перевірки на розгорнутому бекенді — були необхідними й
-> **сліпими до шести класів дефектів**, бо кожен із них залежить від входу, який постачає лише
+> **нечутливими до шести класів дефектів**, бо кожен із них залежить від входу, який постачає лише
 > операційна система телефона, його апаратура, календар або користувач. Семиденна перевірка на
 > двох реальних пристроях виявила чотирнадцять серйозних дефектів у цих класах, з них чотири
 > спотворювали навчальний сигнал, не спричиняючи жодної помилки, і жоден із них не був би
@@ -1321,9 +1618,11 @@ column → «anytime CP-SAT 1,5 с з критеріями зупинки за �
 - `"solver": {...}` → `"telemetry": {...}`.
 - `"rationale": "…"` → `"rationale_key": "…", "rationale_params": { … }` with a note that the
   Ukrainian sentence is rendered client-side.
-- `"propensity": 0.25` → `"propensity": 0.3333333333333333, "a_m_size": 3` **plus a sentence**:
-  «пропенсіті дорівнює ε/|A_m(x)| і набуває значень 0,5, 1/3 або 0,25 залежно від рядка; розмір
-  зрізу зберігається поряд, тож величину можна відновити символьно».
+- `"propensity": 0.25` → `"propensity": 0.3333333333333333` **plus a sentence**: «пропенсіті
+  дорівнює ε/|A_m(x)| і набуває значень 0,5, 1/3 або 0,25 залежно від рядка; сама множина A_m(x)
+  зберігається в телеметрії плану (`telemetry.ef.experiment.top_m`), тож її потужність і величину
+  p можна відновити символьно». **There is no `a_m_size` column** — do not invent one for the
+  example; show `top_m` inside the response's `telemetry` object instead.
 - `"unplaced": [{ "reason": "no_feasible_slot" }]` → `"no_feasible_start"` — the closed vocabulary
   is `no_feasible_start | deferred | infeasible` (`schemas.py:36`, `_shared/types.ts:15`), and
   `no_feasible_start` is the value every task returned on the Friday-evening Saturday plan (#52).
@@ -1436,7 +1735,7 @@ U17, U18, U19, U20, U23 and U34 are the ones worth acting on first.**
 | **U5**  | §1.2, табл. 1.1        | «Приватність / он-девайс перспектива — так» — the on-device ranker was never built                                                                                                                                                                                                                   | medium |
 | **U6**  | §1.4, табл. 1.2        | **The research-gap argument is built on Kairos occupying all seven dimensions including D7 (deployed field evaluation). It no longer does.** The gap must be re-argued over six dimensions with D7 stated as open                                                                                    | high   |
 | **U7**  | §1.5                   | Two of the four market preconditions are falsified (free Docker tier withdrawn; on-device ML not used). **And the free tier has a measured operational cost:** an hourly synthetic load (`bench_solve.py`, ≈ 3 min CPU) keeps the 7-day CPU p95 ≥ 20 % so the provider does not reclaim the instance | high   |
-| **U8**  | §1.5, табл. 1.3        | Two mitigation rows are contradicted: priors do not measurably de-risk week 1 (±0,4 п.п.), and the free-tier risk **materialised**                                                                                                                                                                   | medium |
+| **U8**  | §1.5, табл. 1.3        | Two mitigation rows are contradicted: priors do not measurably de-risk week 1 (±0,4 в. п.), and the free-tier risk **materialised**                                                                                                                                                                  | medium |
 | **U9**  | §2.2                   | \|C\| = 14 as built (spec-conflicts M3 never got a worklist row)                                                                                                                                                                                                                                     | low    |
 | **U10** | §2.4                   | «забезпечує вимогу NFR-P1 на двох віртуальних ядрах безоплатного тарифу» — wrong requirement, wrong box                                                                                                                                                                                              | medium |
 | **U11** | §2.5.2                 | The AF-above-MD ordering for morning types is an **unmeasured assumption** on which the prior table and the P11 generator disagree — and it is the source of a measured loss. Currently presented as literature-backed                                                                               | medium |
@@ -1580,20 +1879,20 @@ That story is a contribution, and it is the one the draft's own design-science f
 > суперечило специфікації, переписували специфікацію, а не результат. Нижче — ці випадки, кожен із
 > вимірюванням, яке його вирішило, і наслідком для системи.»
 
-| Припущення специфікації                                  | Що показало вимірювання                                                               | Наслідок                                                  |
-| -------------------------------------------------------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| Тижнева задача ≈ 1,5·10⁴ літералів — «мала для CP-SAT»   | presolve-зв'язана, UNKNOWN у межах ліміту, пошук не починався                         | зондування вимкнено; поріг 3·10³ на машині розгортання    |
-| Підказка попереднього плану сама запобігає «трясінню»    | підказка не зберігає порядок за однакової цілі                                        | явний бонус стабільності 1·10⁻⁴                           |
-| Один експеримент на день за суворим правилом придатності | на звичайному дні всі задачі ≥ 60 хв неприйнятні                                      |                                                           | A_m(x) | ∈ {2,3,4}, p = ε/                                | A_m(x) | ; ≈ 4,3 на тиждень |
-| Незважений replay незміщений на зрізі                    | зміщений на −0,6 / +0,7 п.п. за змінного                                              | A_m(x)                                                    |        | зважений replay = SNIPS; File 04 §2.2 переписано |
-| N = 30 за ефекту +8 п.п.                                 | ефект — властивість світу; N₈₀ 21 … понад 120                                         | N іде за пілотною оцінкою розкиду                         |
-| Безоплатний Docker-тариф із хостингом у ЄС               | тариф скасовано; безоплатний і PRO працюють лише в США                                | самостійне розгортання в ЄС; NFR-S2 стало істинним        |
-| «Контролер в Україні, дані в ЄС — передавання немає»     | EDPB 05/2021, приклад 10: експорт обробника контролеру в третій країні є передаванням | обробка й навчання в ЄС; лише агрегати                    |
-| «Усі кольорові пари відповідають WCAG AA»                | акценти як текст 2,06–3,60:1                                                          | акценти — лише заливки; окремий токен `danger-text`       |
-| «Пружинні переходи ≤ 250 мс»                             | у застосунку не було **жодного** переходу                                             | три поверхні за одним критерієм; решта — миттєві навмисно |
-| «chrono-node лише англійська»                            | `chrono.uk` є в повній підтримці версії 2.10.1                                        | FR-11 двомовний; обмеження знято                          |
-| NFR-P1 ≤ 2,5 с (оцінка до розгортання)                   | 3,7–4,1 с p95 на еталонному пристрої; дві третини — серверна частка                   | вимогу виведено з вимірювання: ≤ 6,0 с                    |
-| Хронотип як механізм переваги                            | у світі приору — нічия; виграш дає індивідуальне відхилення                           | механізм переформульовано (§3.1, §3.4 цього документа)    |
+| Припущення специфікації                                  | Що показало вимірювання                                                               | Наслідок                                                                               |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Тижнева задача ≈ 1,5·10⁴ літералів — «мала для CP-SAT»   | presolve-зв'язана, UNKNOWN у межах ліміту, пошук не починався                         | зондування вимкнено; поріг 3·10³ на машині розгортання                                 |
+| Підказка попереднього плану сама запобігає «трясінню»    | підказка не зберігає порядок за однакової цілі                                        | явний бонус стабільності 1·10⁻⁴                                                        |
+| Один експеримент на день за суворим правилом придатності | на звичайному дні всі задачі ≥ 60 хв неприйнятні                                      | \|A_m(x)\| ∈ {2, 3, 4}, p = ε/\|A_m(x)\|; ≈ 4,3 експерименти на користувача за тиждень |
+| Незважений replay незміщений на зрізі                    | зміщений на −0,6 / +0,7 в. п. за змінного \|A_m(x)\|                                  | зважений replay = SNIPS; File 04 §2.2 переписано                                       |
+| N = 30 за ефекту +8 в. п.                                | ефект — властивість світу; N₈₀ 21 … понад 120                                         | N іде за пілотною оцінкою розкиду                                                      |
+| Безоплатний Docker-тариф із хостингом у ЄС               | тариф скасовано; безоплатний і PRO працюють лише в США                                | самостійне розгортання в ЄС; NFR-S2 стало істинним                                     |
+| «Контролер в Україні, дані в ЄС — передавання немає»     | EDPB 05/2021, приклад 10: експорт обробника контролеру в третій країні є передаванням | обробка й навчання в ЄС; лише агрегати                                                 |
+| «Усі кольорові пари відповідають WCAG AA»                | акценти як текст 2,06–3,60:1                                                          | акценти — лише заливки; окремий токен `danger-text`                                    |
+| «Пружинні переходи ≤ 250 мс»                             | у застосунку не було **жодного** переходу                                             | три поверхні за одним критерієм; решта — миттєві навмисно                              |
+| «chrono-node лише англійська»                            | `chrono.uk` є в повній підтримці версії 2.10.1                                        | FR-11 двомовний; обмеження знято                                                       |
+| NFR-P1 ≤ 2,5 с (оцінка до розгортання)                   | 3,7–4,1 с p95 на еталонному пристрої; дві третини — серверна частка                   | вимогу виведено з вимірювання: ≤ 6,0 с                                                 |
+| Хронотип як механізм переваги                            | у світі приору — нічия; виграш дає індивідуальне відхилення                           | механізм переформульовано (§3.1, §3.4 цього документа)                                 |
 
 ---
 
