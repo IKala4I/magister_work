@@ -502,3 +502,12 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   `'en'` until the user opens Settings. The column is a record, not an input — nothing reads it —
   so this is a data-tidiness question, not a behaviour one. Fix would be a reconcile on the first
   foreground after the DB is ready; decide with the next profile change.
+- [2026-09-09, post-P12 localisation] **The documented simulator build leaks a Metro bundler.**
+  `docs/verification/uk-a11y-sweep.sh` and the localisation notes describe building with
+  `npx expo run:ios --configuration Release` and no `--no-bundler`. Expo then starts Metro and keeps
+  it alive after the install, streaming the simulator's log; it ran ~2.5 h unnoticed in this session
+  and reads from the outside like a stalled build (no build output, a log file still growing with
+  `[ExpoModulesCore]` runtime noise). A Release build embeds its own bundle and never uses Metro, so
+  the flag is pure win — the HANDOFF's _device_ build command already carries it. **Fix:** add
+  `--no-bundler` to the script's build line and say why in its header. Owner's instruction: do not
+  open a PR for one line — **fold it into the next phase that touches main.**
