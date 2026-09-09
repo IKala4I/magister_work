@@ -62,7 +62,7 @@ import {
   type MinuteRange,
   type WorkingHours,
 } from '../../src/domain/workingHours';
-import { t } from '../../src/i18n';
+import { formatDate, formatTime, plural, t } from '../../src/i18n';
 import { usePlanStore } from '../../src/state/plan';
 import { useSyncStore } from '../../src/state/sync';
 import { useLapseScan } from '../../src/sync/useLapseScan';
@@ -377,7 +377,7 @@ export default function TodayScreen() {
     <Screen>
       <View style={styles.header}>
         <ThemedText variant="h2">
-          {now.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}
+          {formatDate(now, { weekday: 'long', day: 'numeric', month: 'long' })}
         </ThemedText>
         <Button
           label={hasBlocks ? t('today.replan') : t('today.plan')}
@@ -405,9 +405,7 @@ export default function TodayScreen() {
           style={[styles.banner, { backgroundColor: theme.colors.primaryContainer }]}
           accessibilityRole="summary"
         >
-          <ThemedText variant="caption">
-            {t('today.wipe.body', { count: pendingWipe.ops })}
-          </ThemedText>
+          <ThemedText variant="caption">{plural('today.wipe.body', pendingWipe.ops)}</ThemedText>
           <View style={styles.bannerActions}>
             <Button
               kind="secondary"
@@ -444,9 +442,7 @@ export default function TodayScreen() {
           <ThemedText variant="caption" tone="secondary">
             {liveNotice.kind === 'meeting_kept'
               ? t('today.notice.meetingKept')
-              : liveNotice.count === 1
-                ? t('today.notice.displaced')
-                : t('today.notice.displacedMany', { count: liveNotice.count })}
+              : plural('today.notice.displaced', liveNotice.count)}
           </ThemedText>
         </Pressable>
       ) : null}
@@ -512,20 +508,12 @@ export default function TodayScreen() {
       ) : null}
       {tomorrowPlanned && tomorrowFirst !== undefined ? (
         <ThemedText variant="caption" tone="secondary" style={styles.notice}>
-          {tomorrowOpen.length === 1
-            ? t('today.tomorrow.plannedOne', {
-                time: tomorrowFirst.slotStart.toLocaleTimeString(undefined, {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                }),
-              })
-            : t('today.tomorrow.planned', {
-                count: tomorrowOpen.length,
-                time: tomorrowFirst.slotStart.toLocaleTimeString(undefined, {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                }),
-              })}
+          {plural('today.tomorrow.planned', tomorrowOpen.length, {
+            time: formatTime(tomorrowFirst.slotStart, {
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+          })}
         </ThemedText>
       ) : null}
       {askTomorrow ? (
@@ -535,11 +523,7 @@ export default function TodayScreen() {
           accessibilityLabel={t('today.tomorrow.ask')}
         >
           <ThemedText>{t('today.tomorrow.ask')}</ThemedText>
-          <ThemedText variant="caption">
-            {inboxCount === 1
-              ? t('today.tomorrow.ask.bodyOne')
-              : t('today.tomorrow.ask.body', { count: inboxCount })}
-          </ThemedText>
+          <ThemedText variant="caption">{plural('today.tomorrow.ask.body', inboxCount)}</ThemedText>
           <View style={styles.bannerActions}>
             <Button
               kind="secondary"
@@ -642,9 +626,7 @@ export default function TodayScreen() {
       {unplaced.length > 0 && !dayOff ? (
         <View style={styles.deferred} accessibilityRole="summary">
           <ThemedText variant="caption" tone="secondary">
-            {unplaced.length === 1
-              ? t('today.deferred.one')
-              : t('today.deferred.body', { count: unplaced.length })}
+            {plural('today.deferred', unplaced.length)}
           </ThemedText>
         </View>
       ) : null}

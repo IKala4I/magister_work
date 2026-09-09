@@ -84,6 +84,10 @@ export type AnalyticsEvents = {
   skip_diagnostic: {
     answer: 'too_big' | 'wrong_time' | 'not_important';
   };
+  /** ADR-0023: the interface language changed. The catalog id only — never any device detail. */
+  language_changed: {
+    locale: 'en' | 'uk';
+  };
   /** NFR-R1 (P8): one per sync round trip — counts and timing only. */
   sync_completed: {
     reason: 'foreground' | 'write' | 'reconnect' | 'poll' | 'manual' | 'sign_in' | 'pre_plan';

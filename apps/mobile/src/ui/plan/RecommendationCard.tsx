@@ -22,7 +22,7 @@ import Animated from 'react-native-reanimated';
 
 import type { RecommendationRow } from '../../db/plans';
 import { rationaleSentence } from '../../domain/rationale';
-import { t } from '../../i18n';
+import { formatTime, t } from '../../i18n';
 import { useSettle } from '../motion';
 import { ConfidenceBlock, ThemedText } from '../primitives';
 import { resolveMotion, type SpringSpec } from '../tokens/motion';
@@ -32,7 +32,7 @@ import { type BlockAction, actionLabel, actionsFor } from './BlockActions';
 const STILL_SPRING: SpringSpec = resolveMotion(true).springs.emphasized;
 
 export function formatClock(date: Date): string {
-  return date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  return formatTime(date);
 }
 
 export interface RecommendationCardProps {

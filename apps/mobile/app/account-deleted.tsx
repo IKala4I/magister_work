@@ -6,7 +6,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
-import { t } from '../src/i18n';
+import { formatDateTime, t } from '../src/i18n';
 import { Button, Screen, ThemedText } from '../src/ui/primitives';
 
 export default function AccountDeletedScreen() {
@@ -16,7 +16,7 @@ export default function AccountDeletedScreen() {
   const at = typeof params.at === 'string' ? Date.parse(params.at) : NaN;
   const when = Number.isNaN(at)
     ? ''
-    : new Date(at).toLocaleString(undefined, { dateStyle: 'long', timeStyle: 'short' });
+    : formatDateTime(new Date(at), { dateStyle: 'long', timeStyle: 'short' });
   return (
     <Screen>
       <View style={styles.body} accessibilityRole="summary">

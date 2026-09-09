@@ -2,6 +2,64 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — Ukrainian localisation and the English boundary (2026-09-09, post-p12/i18n-uk)
+
+- **A second catalog, and a switch.** `Системна / English / Українська` in Settings, built on the
+  Appearance radiogroup beside it; `Системна` is the default, so a Ukrainian phone gets a Ukrainian
+  app untouched, and an explicit choice outranks the device in both directions. The choice is an
+  MMKV flag read by `src/i18n/locale.ts` itself, so the first string of a cold start is already
+  right. 465 strings plus 13 counted sentences. — decision 6, ADR-0023
+- **The Ukrainian copy is written, not transposed.** Interpolated slots stay nominative (the app
+  has no case system, so sentences are restructured rather than given one); dayparts are adverbs —
+  «вранці», «по обіді» — precisely because an adverb needs no agreement; no first-person past tense
+  appears anywhere, because it is gendered in Ukrainian and the app does not know the reader's
+  gender («I did it» → «Уже зроблено»). Both rules are in the catalog header, one of them with a
+  test as its tripwire. `docs/i18n/uk-copy-review.md` is generated from the catalogs and grouped by
+  screen, so the copy can be read as copy.
+- **Plurals became a mechanism.** Ukrainian needs three integer forms where English needs two, so
+  thirteen sentences that chose between two keys with `count === 1` are now families resolved by the
+  locale's rule. Hand-written CLDR rules rather than `Intl.PluralRules`: Hermes ships its own ICU
+  subset per platform, and which sentence a person reads must not depend on that.
+- **Dates follow the language; conventions follow the phone.** Every `toLocale*(undefined, …)` asked
+  the OS, which is right only while device and app agree — a Ukrainian interface on an English phone
+  would have printed "Wed, 9 Sep" under Ukrainian prose. The tag is the device's own when its
+  language matches the catalog, else `uk-UA`, else `en-GB` (the app writes 24-hour times, and a
+  phone that never asked for a 12-hour clock should not get one).
+- **FR-11 is bilingual, and a recorded limitation is retired rather than restated.** Two hardware
+  notes said "chrono-node is English-only"; measured on the pinned 2.10.1, `chrono.uk` ships in
+  upstream's full-support tier and the English-only property was our configuration. The grammar is
+  now a per-language table, and Ukrainian parses «2 год», «90 хв», «до п'ятниці», «до 20 вересня»,
+  «через 2 години» (a deadline, not an estimate). Word boundaries moved from `\b` to `\P{L}`,
+  because JavaScript's `\w` is ASCII and `\bдо\b` matches nothing at all. Apostrophes are folded
+  to U+0027 for the parser's eyes only — `chrono.uk` accepts only the ASCII one, while Ukrainian
+  keyboards produce U+02BC and autocorrect gives U+2019, so exactly what a person types would have
+  failed. Residual gap, left as plain title text: «цими вихідними». — FR-11, UC-02
+- **The boundary is stated in the app, not just in the thesis.** Settings carries "Що лишається
+  англійською" (the survey, the user's own words, the technical records) in the Ukrainian UI only;
+  the survey screen explains why its five items are English; and quick add now says when nothing
+  parsed, in either language — the silence the owner met on the phone on 2026-09-01 is gone.
+- **The rMEQ stays English, by citation.** No validated Ukrainian rMEQ exists; the validated
+  Ukrainian chronotype instruments are the CSM and MCTQ (Senyk, Jankowski & Cholii, *Biological
+  Rhythm Research* 53(6):878–896). The five items are byte-identical to English in every catalog and
+  a test says so, because option order carries the score. The cost — a Ukrainian-only speaker more
+  often skips — is stated rather than hidden, and skipping is an existing designed path. — FR-02
+- **682 jest tests** (was 609): parity, hygiene and slot checks over every catalog rather than
+  English alone; the uk plural rule at 1/2/5/11/21/22/25; the formatting-locale matrix; 29 Ukrainian
+  parse cases including all four apostrophe variants and the recorded hardware input; the switch and
+  its four consequences.
+- **Verified on the iOS simulator (smoke), not on a device:** four Maestro flows — onboard, switch,
+  a sweep at accessibility-XXXL, and a real plan — all pass. The block action row **wraps** rather
+  than clips at 200 %+ («Пропустити» is +150 % on `Skip`), the FR-21 rationales read as Ukrainian
+  sentences, the *few* plural form appears correctly, and `Intl` gives «середа, 9 вересня» on iOS.
+  **Not established:** anything about a physical device. Four device-checklist rows are open, and
+  the NFR-A2 rows closed on both phones were closed *in English* — they do not transfer.
+  `docs/verification/i18n-uk-20260909/`
+- **Corrected in the records:** the first draft of ADR-0023, the explainer and one commit message
+  said a language change returns the user to Today. Measured: expo-router restores the route, so
+  Settings stays open and re-renders in Ukrainian. The claim was wrong and is fixed where it was
+  made; the older font-scale claim it was reasoning from is untouched, because this run did not test
+  it. — spec-conflicts L20–L22, thesis-corrections #63, ADR-0023
+
 ## Post-P12 — motion: two transitions on the Today timeline (2026-09-08, post-p12/motion)
 
 - **S1 — Done / Skip / I did it: the list settles instead of jumping.** The tap opens a

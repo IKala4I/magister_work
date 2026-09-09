@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 
 import type { RecommendationRow } from '../../db/plans';
-import { t } from '../../i18n';
+import { formatTime, t } from '../../i18n';
 import { Button, GlassPanel, ThemedText } from '../primitives';
 
 export interface MovePickerProps {
@@ -52,11 +52,7 @@ export function MovePicker({ recommendation, title, onConfirm, onCancel }: MoveP
           accessibilityLabel={t('block.move.a11y')}
         />
       ) : (
-        <Button
-          label={value.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
-          kind="secondary"
-          onPress={() => setOpen(true)}
-        />
+        <Button label={formatTime(value)} kind="secondary" onPress={() => setOpen(true)} />
       )}
       <View style={styles.row}>
         <Button label={t('block.move.confirm')} onPress={() => onConfirm(value)} />

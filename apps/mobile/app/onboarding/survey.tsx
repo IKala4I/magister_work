@@ -9,6 +9,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { RMEQ_ITEMS } from '../../src/domain/rmeq';
 import { t, type MessageKey } from '../../src/i18n';
 import { track } from '../../src/observability/analytics';
+import { useLanguageStore } from '../../src/state/language';
 import { useOnboardingStore } from '../../src/state/onboarding';
 import { Button, Screen, ThemedText } from '../../src/ui/primitives';
 import { useTheme } from '../../src/ui/theme';
@@ -19,6 +20,7 @@ export default function SurveyScreen() {
   const answers = useOnboardingStore((s) => s.answers);
   const setAnswer = useOnboardingStore((s) => s.setAnswer);
   const anySkipped = RMEQ_ITEMS.some((item) => answers[item.id] === null);
+  const locale = useLanguageStore((s) => s.locale);
 
   return (
     <Screen topInset>
@@ -28,6 +30,19 @@ export default function SurveyScreen() {
         </ThemedText>
         <ThemedText variant="h1">{t('onboarding.survey.title')}</ThemedText>
         <ThemedText style={styles.intro}>{t('onboarding.survey.intro')}</ThemedText>
+        {/* ADR-0023: the five items below stay in the language their published cut-offs were
+            established in, so a reader who is not being addressed in their own language is told
+            why, and told that skipping costs them nothing. */}
+        {locale === 'en' ? null : (
+          <ThemedText
+            variant="caption"
+            tone="secondary"
+            style={styles.intro}
+            testID="survey-english-note"
+          >
+            {t('onboarding.survey.englishNote')}
+          </ThemedText>
+        )}
 
         {RMEQ_ITEMS.map((item) => (
           <View key={item.id} style={styles.item}>

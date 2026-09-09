@@ -1,0 +1,663 @@
+/**
+ * Ukrainian catalog. Written as Ukrainian copy, not as a transposition of `en.ts`: sentences are
+ * restructured so that every interpolated slot stays in the nominative (the app has no case
+ * system), dayparts are adverbs (`вранці`, `по обіді`) precisely so they need no agreement, and
+ * no first-person past tense appears anywhere — it is gendered in Ukrainian, and the app does not
+ * know the reader's gender. See ADR-0023.
+ *
+ * Three groups of strings are deliberately English:
+ *   - `onboarding.rmeq.*` — the instrument's published wording, whose validated cut-offs the
+ *     thesis defends. `onboarding.survey.englishNote` explains this to the reader.
+ *   - `app.name`, `auth.signIn.emailPlaceholder`, `settings.language.en` — names and examples.
+ *   - nothing else.
+ */
+import type { MessageKey, PluralKey } from './en';
+import type { PluralForms } from './plural';
+
+export const uk: Record<MessageKey, string> = {
+  'app.name': 'Hourwell',
+
+  'tabs.today': 'Сьогодні',
+  'tabs.inbox': 'Вхідні',
+  'tabs.focus': 'Фокус',
+  'tabs.insights': 'Аналітика',
+
+  'today.empty.title': 'Плану ще немає',
+  'today.empty.body': 'Додайте завдання у Вхідні — і Hourwell розкладе його тут.',
+  'today.emptyInbox.title': 'Нічого планувати',
+  'today.emptyInbox.body': 'Вхідні порожні. Додайте завдання — і день заповниться.',
+  'today.dayOff.title': 'Сьогодні неробочий день',
+  'today.dayOff.body': 'Hourwell планує ваші робочі дні.',
+  'today.plan': 'Спланувати день',
+  'today.replan': 'Перепланувати',
+  'today.planning': 'Плануємо ваш день…',
+  'today.fallback':
+    'Запасний планувальник: сервіс навчання був недоступний, тому цей план спирається на ваші дедлайни й оголошені години.',
+  'today.offline': 'Офлайн — показуємо ваш останній план.',
+  'today.noSession': 'Увійдіть, щоб спланувати день.',
+  'today.error': 'Зараз не вдалося спланувати. Спробуйте за хвилину.',
+  'today.rateLimited': 'Ліміт планувань на сьогодні вичерпано — завтра можна знову.',
+  'today.deferred.title': 'Не вмістилося сьогодні',
+  'today.now': 'Зараз',
+  'today.block.a11y': '{title}, з {start} до {end}',
+  'today.block.time': '{start}–{end}',
+  'today.block.chunk': 'Частина {n}',
+  'today.engine.a11y': 'Складено запасним планувальником',
+
+  // Adverbs, not nouns: they slot into sentences without any case agreement.
+  'daypart.EM': 'рано-вранці',
+  'daypart.MO': 'вранці',
+  'daypart.MD': 'опівдні',
+  'daypart.AF': 'по обіді',
+  'daypart.EV': 'ввечері',
+  'daypart.NT': 'вночі',
+
+  'rationale.pinned': 'Ви це закріпили.',
+  'rationale.experiment': 'Експеримент: {category} {daypart} — щоб зрозуміти, як вам краще.',
+  'rationale.deadline_pressure':
+    'Дедлайн приблизно через {hours} год — поставили раніше, щоб устигнути.',
+  'rationale.deadline_pressure.generic': 'Поставили раніше, щоб устигнути до дедлайну.',
+  'rationale.energy_peak': '{category} — найкраще виходить {daypart}{percent}.',
+  'rationale.fresh_slot': '{category} — {daypart} ще майже не пробували.',
+  'rationale.earliest_feasible': '{category} — найраніший вільний час.',
+  'rationale.best_available': '{category} — найкраще вільне вікно {daypart}.',
+  'rationale.generic': 'Поставили там, де найкраще вміщається.',
+  'rationale.category.generic': 'Це завдання',
+  'rationale.daypart.generic': 'протягом дня',
+  'inbox.empty.title': 'У вхідних порожньо',
+  'inbox.empty.body': 'Сюди потраплятимуть незаплановані завдання.',
+  'focus.empty.title': 'Нічого не запущено',
+  'focus.empty.body': 'Запустіть фокус із запланованого блоку.',
+  'focus.running': 'У фокусі',
+  'focus.paused': 'Пауза',
+  'focus.elapsed.a11y': 'У фокусі {minutes} хв із запланованих {planned} хв',
+  'focus.pause': 'Пауза',
+  'focus.resume': 'Продовжити',
+  'focus.finish': 'Завершити',
+  'focus.abandon': 'Зупинити',
+  'focus.rate.title': 'Як була енергія?',
+  'focus.rate.low': 'Низька',
+  'focus.rate.ok': 'Середня',
+  'focus.rate.high': 'Висока',
+  'focus.rate.difficulty.title': 'А завдання?',
+  'focus.rate.difficulty.easy': 'Легке',
+  'focus.rate.difficulty.fair': 'Помірне',
+  'focus.rate.difficulty.hard': 'Важке',
+  'focus.rate.skip': 'Без оцінки',
+  'focus.rate.thanks': 'Записали — дякуємо.',
+  'focus.rate.a11y': 'Оцініть енергію: {label}',
+  'focus.lastSession.finished': 'Завершено · {minutes} хв у фокусі',
+  'focus.lastSession.abandoned': 'Зупинено · {minutes} хв у фокусі',
+  'block.action.start': 'Почати',
+  'block.action.done': 'Готово',
+  'block.action.skip': 'Пропустити',
+  'block.action.move': 'Перенести…',
+  // Impersonal: «зробив/зробила» would make the app guess the reader's gender.
+  'block.action.didIt': 'Уже зроблено',
+  'block.action.a11y': '{action}: {title}',
+  'block.status.completed': 'Виконано',
+  'block.status.lapsed': 'Не зроблено — повернулося у Вхідні',
+  'block.status.skipped': 'Пропущено — повернулося у Вхідні',
+  'block.status.moved': 'Перенесено',
+  'block.status.active': 'У роботі',
+  'block.move.title': 'Перенести на',
+  'block.move.confirm': 'Перенести сюди',
+  'block.move.cancel': 'Скасувати',
+  'block.move.a11y': 'Новий час початку',
+  'diagnostic.title': 'Це завдання постійно зсувається. У чому річ?',
+  'diagnostic.tooBig': 'Завелике',
+  'diagnostic.wrongTime': 'Не той час',
+  'diagnostic.notImportant': 'Неважливе',
+  'diagnostic.later': 'Спитати пізніше',
+  'diagnostic.tooBig.result':
+    'Позначили як подільне — наступний план зможе розбити його на частини.',
+  'diagnostic.wrongTime.result': 'Зрозуміло — планувальник шукатиме інші години.',
+  'diagnostic.notImportant.result': 'В архіві. Більше не заважатиме.',
+  'insights.empty.title': 'Ще вчимося',
+  'insights.empty.body': 'Тут з’явиться те, що Hourwell дізнається про ваші найкращі години.',
+  'insights.title': 'Аналітика',
+  'insights.refresh': 'Оновити',
+  'insights.refreshing': 'Оновлюємо…',
+  'insights.offline': 'Офлайн — показуємо те, що Hourwell знав {when}.',
+  'insights.unavailable': 'Сервіс навчання відпочиває — показуємо те, що Hourwell знав {when}.',
+  'insights.noSession': 'Увійдіть, щоб побачити, чого навчився Hourwell.',
+  'insights.error': 'Не вдалося завантажити аналітику.',
+  'insights.asOf': 'Станом на {when}',
+  'insights.learningMode.title': 'Режим навчання',
+  'insights.learningMode.body':
+    'Ці години здебільшого взяті від людей зі схожим хронотипом. Кожен завершений блок робить їх вашими.',
+  'insights.personalMode.body': 'Більшість цих годин уже з ваших власних днів.',
+  'insights.chronotype.body': 'Опитувальник визначив вас як {label} — звідти й початкові години.',
+  'insights.chronotype.skipped':
+    'Ви пропустили опитувальник, тому початкові години були нейтральні.',
+  'insights.chronotype.DM': 'виражений ранковий тип',
+  'insights.chronotype.MM': 'помірно ранковий тип',
+  'insights.chronotype.INT': 'проміжний тип',
+  'insights.chronotype.ME': 'помірно вечірній тип',
+  'insights.chronotype.DE': 'виражений вечірній тип',
+
+  'heatmap.title': 'Карта вашої енергії',
+  'heatmap.subtitle': '{category}: шанс завершити вчасно — за годиною й днем тижня',
+  'heatmap.category.a11y': 'Показати: {category}',
+  'heatmap.legend.low': 'нижче',
+  'heatmap.legend.high': 'вище',
+  'heatmap.legend.solidity': 'Насичені клітинки мають більше даних; бліді — це поки що припущення.',
+  'heatmap.legend.resolution':
+    'Модель вчиться за частинами доби та буднями-вихідними, тому сусідні години мають однаковий колір.',
+  'heatmap.showText': 'Показати текстом',
+  'heatmap.showGrid': 'Показати сіткою',
+  'heatmap.grid.a11y':
+    'Карта енергії: {category}. {summary} Перемкніться на текст, щоб почути кожну годину.',
+  'heatmap.summary.weekday':
+    'У будні найкращий час — {best} ({bestPercent}%), найгірший — {lowest} ({lowestPercent}%).',
+  'heatmap.summary.weekend':
+    'У вихідні найкращий час — {best} ({bestPercent}%), найгірший — {lowest} ({lowestPercent}%).',
+  'heatmap.summary.none': 'Змодельованих годин ще немає.',
+  'heatmap.text.weekday': 'Будні',
+  'heatmap.text.weekend': 'Вихідні',
+  'heatmap.text.row': '{daypart}: {percent}%',
+  'heatmap.text.row.personal': '{daypart}: {percent}% (з ваших днів)',
+  'weekday.0': 'Пн',
+  'weekday.1': 'Вт',
+  'weekday.2': 'Ср',
+  'weekday.3': 'Чт',
+  'weekday.4': 'Пт',
+  'weekday.5': 'Сб',
+  'weekday.6': 'Нд',
+  // Ukrainian weekday abbreviations are already two letters, so the large-scale row is identical.
+  'weekday.short.0': 'Пн',
+  'weekday.short.1': 'Вт',
+  'weekday.short.2': 'Ср',
+  'weekday.short.3': 'Чт',
+  'weekday.short.4': 'Пт',
+  'weekday.short.5': 'Сб',
+  'weekday.short.6': 'Нд',
+
+  'beliefs.title': 'Що Hourwell думає про вас',
+  'beliefs.subtitle': 'Торкніться ✓, якщо це правда, і ✗, якщо ні. Виправлення важать багато.',
+  'beliefs.empty': 'Поки нічого не вивчено — спершу завершіть кілька запланованих блоків.',
+  'beliefs.statement.personal': '{dayType} {category} найкраще йде {daypart}.',
+  'beliefs.statement.population':
+    '{dayType} {category} найкраще йде {daypart} — у людей зі схожим ритмом.',
+  'beliefs.statement.weak':
+    '{dayType} {category} поки не має явного фаворита — трохи попереду {daypart}.',
+  'beliefs.factor': '+{percent}% проти інших ваших годин',
+  'beliefs.evidence.none': 'припущення, ще не перевірене',
+  'beliefs.labeled.correct': 'Ви це підтвердили.',
+  'beliefs.labeled.incorrect': 'Ви це виправили.',
+  'beliefs.correct.a11y': 'Позначити «{statement}» як правильне',
+  'beliefs.incorrect.a11y': 'Позначити «{statement}» як хибне',
+  // Always sentence-initial in the statements above, hence the capital.
+  'beliefs.dayType.weekday': 'У будні',
+  'beliefs.dayType.weekend': 'У вихідні',
+  'beliefs.a11y': '{statement} {evidence}. {labelState}',
+  'beliefs.pending': 'Збережено — Hourwell застосує це під час наступної синхронізації.',
+
+  'review.title': 'Підсумок тижня',
+  'review.subtitle': 'Як тримався план і чого навчився Hourwell.',
+  'review.adherence.title': 'Дотримання плану',
+  'review.adherence.body':
+    'Блоки, які ви почали в межах 15 хвилин від плану й здебільшого завершили.',
+  'review.adherence.empty': 'Завершених тижнів ще немає.',
+  'review.trend.up': 'Більше, ніж попереднього тижня з даними.',
+  'review.trend.down': 'Менше, ніж попереднього тижня з даними — це не вирок, а просто дані.',
+  'review.trend.flat': 'Так само, як попереднього тижня з даними.',
+  'review.learnings.title': 'Цього тижня Hourwell вважає',
+  'review.learnings.empty': 'Висновків ще немає — вони з’являться після кількох завершених блоків.',
+  'review.tell.title': 'Підкажіть Hourwell',
+  'review.tell.body': '{category} — коли це справді вдається вам найкраще в будні?',
+  'review.tell.pick.a11y': '{category}: мій найкращий час — {daypart}',
+  'review.tell.done':
+    'Записали: {category} — {daypart}. Це важить стільки ж, скільки все припущене досі.',
+  'review.done': 'Готово',
+  'review.done.thanks': 'Підсумок збережено. До наступного тижня.',
+
+  'tradeoff.title': 'Забагато для одного дня',
+  'tradeoff.body':
+    'Усе не вміщається. Виберіть, чим пожертвувати — рішення ваше, Hourwell перепланує.',
+  'tradeoff.option.drop': 'Лишити «{title}» на інший день',
+  'tradeoff.option.shrink': 'Скоротити «{title}» на {minutes} хв',
+  'tradeoff.option.move_past_deadline': 'Дозволити «{title}» вийти за дедлайн',
+  'tradeoff.option.unpin': 'Відкріпити «{title}»',
+  'tradeoff.consequence.value_forfeited':
+    'втрачає близько {value} балів очікуваної цінності сьогодні',
+  'tradeoff.consequence.est_completion_drop': 'шанс завершити нижчий приблизно на {percent}%',
+  'tradeoff.consequence.deadline_slip_minutes': 'завершиться на {minutes} хв пізніше за дедлайн',
+  'tradeoff.consequence.pinned_conflict': 'звільняє закріплений час, що накладається на інший',
+  'tradeoff.consequence.generic': 'менша зміна в дні',
+  'tradeoff.option.a11y': 'Варіант {rank}: {label}, {consequence}',
+  'tradeoff.rank': '{rank}.',
+  'tradeoff.reject': 'Лишити як є — виправлю вручну',
+  'tradeoff.rejected': 'Лишили як є. Завдання можна редагувати у Вхідних будь-коли.',
+  'tradeoff.applied': 'Прийнято — переплановуємо.',
+
+  'settings.title': 'Налаштування',
+  'settings.open.a11y': 'Відкрити налаштування',
+  'settings.appearance.title': 'Вигляд',
+  'settings.appearance.system': 'Системний',
+  'settings.appearance.light': 'Світлий',
+  'settings.appearance.dark': 'Темний',
+
+  'settings.language.title': 'Мова',
+  'settings.language.system': 'Системна',
+  'settings.language.en': 'English',
+  'settings.language.uk': 'Українська',
+  'settings.language.option.a11y': 'Мова: {language}',
+  'settings.language.boundary.title': 'Що лишається англійською',
+  'settings.language.boundary.survey':
+    'Опитувальник про ранок і вечір. Його шкалу перевіряли саме для англійських формулювань, тож переклад дав би іншу відповідь за тими самими межами.',
+  'settings.language.boundary.yourWords':
+    'Назви ваших завдань і події з календаря. Це ваші слова, і Hourwell їх не чіпає.',
+  'settings.language.boundary.technical':
+    'Технічні записи: журнали, коди помилок і файл експорту. Це формат обміну, а не текст для читання.',
+
+  'block.experiment': 'Експеримент',
+  'block.confidence.a11y': 'Впевненість {percent}%',
+
+  'inbox.quickAdd.placeholder': 'Додати завдання',
+  'inbox.quickAdd.example': 'Спробуйте «чернетка звіту 2 год до п’ятниці»',
+  'inbox.quickAdd.add': 'Додати',
+  'inbox.quickAdd.input.a11y': 'Швидке додавання завдання',
+  'inbox.quickAdd.noTitleHint': 'Додайте кілька слів для назви',
+  'inbox.quickAdd.noParseHint': 'Дати й тривалості не знайдено — усе це стане назвою.',
+  'inbox.preview.duration': '{minutes} хв',
+  'inbox.preview.deadline': 'до {date}',
+  'inbox.chip.today': 'Сьогодні',
+  'inbox.chip.nextWeek': 'Наступного тижня',
+  'inbox.chip.date.a11y': 'Взяти {date} як дедлайн',
+  'inbox.chip.duration.a11y': 'Взяти {minutes} хв як оцінку',
+  'inbox.undo.action': 'Повернути',
+  'inbox.row.a11y': '{title}, {category}, {minutes} хв',
+  'inbox.row.a11y.deadline': '{title}, {category}, {minutes} хв, до {date}',
+  'inbox.row.delete.a11y': 'Видалити {title}',
+
+  'task.new.title': 'Нове завдання',
+  'task.edit.title': 'Редагувати завдання',
+  'task.field.title': 'Назва',
+  'task.field.title.placeholder': 'Що треба зробити?',
+  'task.field.category': 'Категорія',
+  'task.category.deep': 'Глибока робота',
+  'task.category.admin': 'Рутина',
+  'task.category.physical': 'Фізичне',
+  'task.category.learning': 'Навчання',
+  'task.field.duration': 'Оцінка, хв',
+  'task.field.deadline': 'Дедлайн',
+  'task.field.deadline.none': 'Без дедлайну',
+  'task.field.deadline.clear': 'Прибрати дедлайн',
+  'task.field.earliestStart': 'Не раніше',
+  'task.field.earliestStart.none': 'Будь-коли',
+  'task.field.earliestStart.clear': 'Прибрати обмеження',
+  'task.field.value': 'Пріоритет',
+  'task.value.1': 'Низький',
+  'task.value.2': 'Звичайний',
+  'task.value.3': 'Високий',
+  'task.field.range.error': 'Початок не може бути пізніше за дедлайн',
+  'task.field.splittable': 'Можна ділити на частини',
+  'task.save': 'Зберегти',
+  'task.create': 'Додати завдання',
+  'task.notFound': 'Цього завдання більше немає.',
+
+  'db.migrationFailed.title': 'Проблема з локальним сховищем',
+  'db.migrationFailed.body':
+    'Hourwell не зміг підготувати базу на пристрої. Перезапустіть застосунок; якщо не мине — перевстановіть.',
+
+  'onboarding.welcome.title': 'Планувальник, який вчить ваші найкращі години',
+  'onboarding.welcome.body':
+    'Hourwell ставить завдання туди, де ви їх справді завершуєте, — і стає точнішим з кожним днем. Три швидкі кроки, менш ніж три хвилини, будь-яке питання можна пропустити.',
+  'onboarding.welcome.start': 'Почати',
+  'onboarding.welcome.signIn': 'У мене вже є акаунт',
+  'onboarding.step.a11y': 'Крок {current} з {total}',
+  'onboarding.continue': 'Далі',
+  'onboarding.skipStep': 'Пропустити крок',
+
+  'onboarding.survey.title': 'Ваш ритм',
+  'onboarding.survey.intro':
+    'П’ять швидких питань про ранок і вечір. Вони дають вашому першому розкладу фору; будь-яке можна пропустити — тоді Hourwell просто вчитиметься з нуля.',
+  'onboarding.survey.itemSkipped': 'Пропущено',
+  'onboarding.survey.skipNote':
+    'Одна чи більше відповідей порожні, тож опитувальник не рахуватиметься — Hourwell стартує нейтрально й вивчить ваші години з того, що ви справді робите.',
+  'onboarding.survey.englishNote':
+    'Ці п’ять питань — стандартний опитувальник rMEQ. Вони лишаються англійською, бо його шкалу перевіряли саме для цього формулювання: власний переклад дав би число, до якого опубліковані межі вже не застосовні. Будь-яке питання можна пропустити — тоді Hourwell почне з нейтрального припущення й вивчить ваш ритм із ваших справжніх днів.',
+
+  // The instrument itself (ADR-0005, ADR-0023): identical to `en.ts`, deliberately.
+  'onboarding.rmeq.wakeTime.q':
+    'If you were entirely free to plan your day, when would you get up?',
+  'onboarding.rmeq.wakeTime.o1': '5:00–6:30',
+  'onboarding.rmeq.wakeTime.o2': '6:30–7:45',
+  'onboarding.rmeq.wakeTime.o3': '7:45–9:45',
+  'onboarding.rmeq.wakeTime.o4': '9:45–11:00',
+  'onboarding.rmeq.wakeTime.o5': '11:00–12:00',
+  'onboarding.rmeq.morningFeel.q':
+    'During the first half hour after waking, how do you usually feel?',
+  'onboarding.rmeq.morningFeel.o1': 'Very tired',
+  'onboarding.rmeq.morningFeel.o2': 'Fairly tired',
+  'onboarding.rmeq.morningFeel.o3': 'Fairly refreshed',
+  'onboarding.rmeq.morningFeel.o4': 'Very refreshed',
+  'onboarding.rmeq.eveningSleepy.q': 'In the evening, when do you feel tired and in need of sleep?',
+  'onboarding.rmeq.eveningSleepy.o1': '20:00–21:00',
+  'onboarding.rmeq.eveningSleepy.o2': '21:00–22:15',
+  'onboarding.rmeq.eveningSleepy.o3': '22:15–0:45',
+  'onboarding.rmeq.eveningSleepy.o4': '0:45–2:00',
+  'onboarding.rmeq.eveningSleepy.o5': '2:00–3:00',
+  'onboarding.rmeq.bestTime.q': 'At what time of day do you feel at your best?',
+  'onboarding.rmeq.bestTime.o1': '5:00–8:00',
+  'onboarding.rmeq.bestTime.o2': '8:00–10:00',
+  'onboarding.rmeq.bestTime.o3': '10:00–17:00',
+  'onboarding.rmeq.bestTime.o4': '17:00–22:00',
+  'onboarding.rmeq.bestTime.o5': '22:00–5:00',
+  'onboarding.rmeq.selfType.q':
+    'People talk about “morning types” and “evening types.” Which are you?',
+  'onboarding.rmeq.selfType.o1': 'Definitely a morning type',
+  'onboarding.rmeq.selfType.o2': 'More morning than evening',
+  'onboarding.rmeq.selfType.o3': 'More evening than morning',
+  'onboarding.rmeq.selfType.o4': 'Definitely an evening type',
+
+  'onboarding.hours.title': 'Ваші години',
+  'onboarding.hours.intro': 'Коли Hourwell має планувати роботу? Змінюйте будь-що — вихідні теж.',
+  'onboarding.hours.workingDay.a11y': '{day}: робочий, з {start} до {end}',
+  'onboarding.hours.dayOff.a11y': '{day}: вихідний',
+  'onboarding.hours.toggle.a11y': 'Перемкнути робочий день: {day}',
+  'onboarding.hours.startEarlier': 'Починати на 30 хвилин раніше, {day}',
+  'onboarding.hours.startLater': 'Починати на 30 хвилин пізніше, {day}',
+  'onboarding.hours.endEarlier': 'Закінчувати на 30 хвилин раніше, {day}',
+  'onboarding.hours.endLater': 'Закінчувати на 30 хвилин пізніше, {day}',
+  'onboarding.hours.sleep.title': 'Вікно сну',
+  'onboarding.hours.sleep.a11y': 'Сон з {start} до {end}',
+  'onboarding.hours.sleep.startEarlier': 'Лягати на 30 хвилин раніше',
+  'onboarding.hours.sleep.startLater': 'Лягати на 30 хвилин пізніше',
+  'onboarding.hours.sleep.endEarlier': 'Вставати на 30 хвилин раніше',
+  'onboarding.hours.sleep.endLater': 'Вставати на 30 хвилин пізніше',
+  'onboarding.hours.error': 'У кожному робочому дні початок має бути раніше за кінець.',
+  'onboarding.hours.errorNoDays':
+    'Увімкніть хоча б один робочий день — Hourwell планує лише в оголошених годинах.',
+  'onboarding.hours.day.mon': 'Понеділок',
+  'onboarding.hours.day.tue': 'Вівторок',
+  'onboarding.hours.day.wed': 'Середа',
+  'onboarding.hours.day.thu': 'Четвер',
+  'onboarding.hours.day.fri': 'П’ятниця',
+  'onboarding.hours.day.sat': 'Субота',
+  'onboarding.hours.day.sun': 'Неділя',
+
+  'onboarding.categories.title': 'Чим заповнені ваші дні?',
+  'onboarding.categories.intro':
+    'Виберіть, якої роботи у вас найбільше. Це лише впорядкує перші підказки.',
+
+  'onboarding.seedTasks.title': 'Додайте перші завдання',
+  'onboarding.seedTasks.intro':
+    'Дайте Hourwell до трьох справжніх завдань, щоб спланувати завтра. Пишіть звичайною мовою — «чернетка звіту 2 год до п’ятниці» спрацює.',
+  'onboarding.seedTasks.finish': 'Завершити налаштування',
+
+  'auth.signIn.title': 'Вхід',
+  'auth.signIn.emailLabel': 'Пошта',
+  'auth.signIn.emailPlaceholder': 'you@example.com',
+  'auth.signIn.sendLink': 'Надіслати посилання для входу',
+  'auth.signIn.sent.title': 'Перевірте пошту',
+  'auth.signIn.sent.body':
+    'Ми надіслали посилання для входу на {email}. Відкрийте його на цьому пристрої.',
+  'auth.signIn.google': 'Продовжити з Google',
+  'auth.signIn.googleUnavailable': 'Вхід через Google поки недоступний.',
+  'auth.signIn.differentAccountWarning': 'Вхід в інший акаунт замінить дані на цьому пристрої.',
+  'auth.signIn.error.invalidEmail': 'Введіть коректну адресу.',
+  'auth.signIn.error.sendFailed':
+    'Не вдалося надіслати посилання. Перевірте зв’язок і спробуйте ще раз.',
+  'auth.signIn.error.linkFailed': 'Це посилання не спрацювало. Запросіть нове.',
+  'auth.callback.working': 'Виконуємо вхід…',
+  'auth.callback.back': 'Назад до входу',
+  'auth.signIn.replace.title': 'Замінити дані на цьому пристрої?',
+  'auth.signIn.replace.body':
+    'Якщо ця пошта належить іншому акаунту, завдання, що зараз на пристрої, буде замінено даними того акаунта.',
+  'auth.signIn.replace.confirm': 'Продовжити',
+  'auth.signIn.replace.cancel': 'Скасувати',
+
+  'settings.account.title': 'Акаунт',
+  'settings.account.anonymous': 'Пробний акаунт на цьому пристрої',
+  'settings.account.anonymousHint':
+    'Додайте пошту, щоб не втратити дані, якщо зміните чи загубите телефон.',
+  'settings.account.localOnly': 'Працюємо офлайн — дані лишаються на пристрої',
+  'settings.account.signedInAs': 'Ви увійшли як {email}',
+  'settings.account.addEmail': 'Додати пошту, щоб зберегти дані',
+  'settings.account.confirmSent':
+    'Підтвердження надіслано на {email}. Відкрийте посилання, щоб завершити.',
+  'settings.account.emailExists':
+    'На цю пошту вже є акаунт. Увійдіть у нього — зверніть увагу, що це замінить дані на цьому пристрої.',
+  'settings.account.signOut': 'Вийти',
+  'settings.account.signOutAnonymous.title': 'Вийти з пробного акаунта?',
+  'settings.account.signOutAnonymous.body':
+    'У цього пробного акаунта немає пошти, тому повернутися в нього не вийде. Спершу додайте пошту, щоб зберегти дані.',
+  'settings.account.signOutAnonymous.confirm': 'Все одно вийти',
+  'settings.account.signOutAnonymous.cancel': 'Зберегти дані',
+  'settings.account.signIn': 'Увійти',
+
+  'today.busy.a11y': 'Зайнято: {title}, з {start} до {end}',
+  'today.busy.untitled': 'Зайнято',
+  'today.notice.meetingKept': 'Зустріч імпортовано — ваша завершена сесія збережена.',
+  'today.notice.dismiss': 'Сховати',
+  'today.wipe.discard': 'Відкинути',
+  'today.wipe.keep': 'Поки лишити',
+  'block.status.displaced': 'Зустріч зайняла цей час — повернулося у Вхідні',
+  'block.status.displacedPending':
+    'Зустріч накладається на цей блок — він усе одно зарахується, якщо зробите',
+  'today.wipe.confirm.title': 'Відкинути незбережені зміни іншого акаунта?',
+  'today.wipe.confirm.body': 'Вони ніколи не потрапляли на сервер, і після цього їх не відновити.',
+  'today.wipe.confirm.discard': 'Відкинути',
+  'today.wipe.confirm.cancel': 'Лишити',
+
+  'settings.sync.title': 'Синхронізація',
+  'settings.sync.now': 'Синхронізувати',
+  'settings.sync.status.idle': 'Усе актуально',
+  'settings.sync.status.syncing': 'Синхронізуємо…',
+  'settings.sync.status.offline': 'Офлайн — зміни в черзі',
+  'settings.sync.status.no_session': 'Увійдіть, щоб синхронізувати між пристроями',
+  'settings.sync.status.error': 'Збій синхронізації — повторимо',
+  'settings.sync.last': 'Востаннє: {when}',
+  'settings.sync.never': 'Ще не синхронізовано',
+
+  'settings.gcal.title': 'Google Календар',
+  'settings.gcal.body':
+    'Імпортуйте зайнятий час, щоб плани обходили зустрічі. Hourwell читає зайнятість і назви; нічого не записує, поки ви не ввімкнете запис.',
+  'settings.gcal.checking': 'Перевіряємо підключення календаря…',
+  'settings.gcal.connect': 'Підключити Google Календар',
+  'settings.gcal.disconnect': 'Відключити',
+  'settings.gcal.connected': 'Підключено',
+  'settings.gcal.lastSynced': 'Зустрічі синхронізовано {when}',
+  'settings.gcal.writeBack': 'Записувати мої блоки в Google Календар',
+  'settings.gcal.writeBackHint':
+    'Додає події «Hourwell · завдання» на сьогодні й завтра у ваш основний календар.',
+  'settings.gcal.writeBackOn': 'Запис увімкнено',
+  'settings.gcal.writeBackOff': 'Вимкнути запис',
+  'settings.gcal.notConfigured': 'Синхронізація календаря в цій збірці ще недоступна.',
+  'settings.gcal.failed': 'Не вдалося зв’язатися із сервісом календаря. Спробуйте за хвилину.',
+  'settings.gcal.cancelled': 'Підключення скасовано.',
+  'settings.gcal.disconnect.title': 'Відключити Google Календар?',
+  'settings.gcal.disconnect.body':
+    'Імпортовані зустрічі буде прибрано з цього пристрою, і Hourwell перестане читати ваш календар.',
+  'settings.gcal.disconnect.confirm': 'Відключити',
+  'settings.gcal.disconnect.cancel': 'Лишити підключеним',
+
+  'gcal.callback.working': 'Підключаємо Google Календар…',
+  'gcal.callback.ok': 'Google Календар підключено. Ваші зустрічі імпортуються.',
+  'gcal.callback.failed': 'Не вдалося підключити Google Календар.',
+  'gcal.callback.back': 'Назад до налаштувань',
+
+  'notify.channel.reminders': 'Нагадування про блоки',
+  'notify.channel.ritual': 'Планування на завтра',
+  'notify.block.fallbackTitle': 'Ваш наступний блок',
+  'notify.block.body': 'Початок о {time}. Коли будете готові.',
+  'notify.ritual.title': 'Плануємо завтра?',
+  'notify.ritual.body.empty': 'Вхідні порожні. Додайте завдання або просто відпочивайте.',
+  'notify.ritual.sunday.title': 'Спершу тиждень, потім завтра',
+  'notify.ritual.sunday.body': 'Швидкий погляд на тиждень — і плануємо понеділок.',
+  'notify.ritual.action.accept': 'Спланувати завтра',
+  'notify.ritual.action.adjust': 'Змінити завдання',
+
+  'settings.notifications.title': 'Сповіщення',
+  'settings.notifications.reminders': 'Нагадування про блоки',
+  'settings.notifications.reminders.hint':
+    'Нагадування за 10 хвилин до блоку. Не більше 5 сповіщень на день.',
+  'settings.notifications.reminders.denied':
+    'Сповіщення для Hourwell вимкнені в системних налаштуваннях.',
+  'settings.notifications.openSettings': 'Відкрити системні налаштування',
+  'settings.notifications.exactAlarm.hint':
+    'Точний час вимкнено — Android може віддати нагадування із запізненням до години.',
+  'settings.notifications.exactAlarm.allow': 'Дозволити точні нагадування',
+  'settings.notifications.mute': 'Не нагадувати про',
+  'settings.notifications.mute.a11y': 'Не нагадувати про: {category}',
+  'settings.notifications.ritual': 'Вечірнє «Плануємо завтра?»',
+  'settings.notifications.ritual.hint':
+    'Одне сповіщення в обраний час; один дотик планує наступний день.',
+  'settings.notifications.ritual.time': 'Час увечері',
+  'settings.notifications.ritual.time.a11y': 'Час увечері {time}',
+  'settings.notifications.cap': 'Hourwell ніколи не надсилає більше ніж 5 сповіщень на день.',
+
+  'settings.data.title': 'Мої дані',
+  'settings.data.export': 'Експортувати дані',
+  'settings.data.export.hint':
+    'Файл JSON із вашими завданнями, планами, подіями і тим, чого навчився Hourwell, — зберігайте чи діліться, як хочете.',
+  'settings.data.export.working': 'Готуємо експорт…',
+  'settings.data.export.offline': 'Ви офлайн. Спробуйте, коли з’явиться зв’язок.',
+  'settings.data.export.noSession': 'Увійдіть, щоб експортувати дані.',
+  'settings.data.export.failed': 'Зараз не вдалося експортувати. Спробуйте за хвилину.',
+  'settings.data.export.shareUnavailable': 'Поділитися на цьому пристрої не вдається.',
+  'settings.data.delete': 'Видалити акаунт і дані',
+  'settings.data.delete.hint':
+    'Видаляє ваш акаунт і все, що Hourwell про вас зберігає. Це незворотно.',
+  'settings.data.delete.confirm1.title': 'Видалити акаунт?',
+  'settings.data.delete.confirm1.body':
+    'Ваші завдання, плани, історію і все, чого Hourwell про вас навчився, буде стерто. Спершу експортуйте, якщо потрібна копія.',
+  'settings.data.delete.confirm1.cancel': 'Лишити акаунт',
+  'settings.data.delete.confirm1.next': 'Продовжити',
+  'settings.data.delete.confirm2.title': 'Це незворотно',
+  'settings.data.delete.confirm2.body': 'Видалити акаунт і всі його дані зараз?',
+  'settings.data.delete.confirm2.cancel': 'Скасувати',
+  'settings.data.delete.confirm2.confirm': 'Видалити все',
+  'settings.data.delete.working': 'Видаляємо…',
+  'settings.data.delete.offline': 'Ви офлайн. Для видалення потрібен зв’язок.',
+  'settings.data.delete.noSession': 'Увійдіть, щоб видалити акаунт.',
+  'settings.data.delete.failed':
+    'Зараз не вдалося видалити. Нічого не змінено — спробуйте за хвилину.',
+
+  'settings.privacy.title': 'Приватність',
+  'settings.privacy.analytics': 'Аналітика використання',
+  'settings.privacy.analytics.hint':
+    'Анонімні категорійні події (які екрани, які дії) — ніколи текст ваших завдань. Вимикається одразу.',
+  'settings.privacy.crash': 'Звіти про збої',
+  'settings.privacy.crash.hint':
+    'Стек викликів і дані пристрою під час збою — ніколи текст ваших завдань. Діє з наступного запуску.',
+  'settings.privacy.on': 'Увімк.',
+  'settings.privacy.off': 'Вимк.',
+
+  'today.reminders.title': 'Нагадувати перед кожним блоком',
+  'today.reminders.body':
+    'За 10 хвилин до початку блоку — не більше 5 на день. Ви обираєте, що приглушити.',
+  'today.reminders.enable': 'Увімкнути',
+  'today.reminders.later': 'Не зараз',
+  'today.exactAlarm.title': 'Нагадування можуть запізнюватися',
+  'today.exactAlarm.body':
+    'Android притримує нагадування, поки Hourwell не отримає дозвіл на точні будильники — один перемикач у системних налаштуваннях.',
+  'today.exactAlarm.allow': 'Дозволити',
+  'today.exactAlarm.later': 'Не зараз',
+  'today.tomorrow.ask': 'Плануємо завтра?',
+  'today.tomorrow.accept': 'Спланувати завтра',
+  'today.tomorrow.adjust': 'Змінити завдання',
+
+  'accountDeleted.title': 'Ваш акаунт видалено',
+  'accountDeleted.body': 'Усе, що Hourwell про вас зберігав, стерто {when}.',
+  'accountDeleted.reference': 'Номер: {reference}',
+  'accountDeleted.referenceHint':
+    'Збережіть цей номер, якщо колись знадобиться підтвердити видалення.',
+  'accountDeleted.startOver': 'Почати спочатку',
+
+  'common.dayTimeJoin': '{day}, {time}',
+  'common.justNow': 'щойно',
+  'common.hoursAgo': '{count} год тому',
+  'common.minutesAgo': '{count} хв тому',
+};
+
+/**
+ * Ukrainian integer plurals: `one` (1, 21…), `few` (2–4, 22–24…), `many` (0, 5–20, 25–30…).
+ * `other` repeats `many` — the rule never reaches it for integers, but the type requires a
+ * fallback and `many` is the safe genitive-plural form.
+ */
+export const ukPlurals: Record<PluralKey, PluralForms> = {
+  'today.deferred': {
+    one: 'Сьогодні не вмістилося {count} завдання — воно лишається у Вхідних.',
+    few: 'Сьогодні не вмістилося {count} завдання — вони лишаються у Вхідних.',
+    many: 'Сьогодні не вмістилося {count} завдань — вони лишаються у Вхідних.',
+    other: 'Сьогодні не вмістилося {count} завдань — вони лишаються у Вхідних.',
+  },
+  'today.notice.displaced': {
+    one: 'Зустріч наклалася на {count} запланований блок — він повертається у Вхідні до наступного плану.',
+    few: 'Зустрічі наклалися на {count} заплановані блоки — вони повертаються у Вхідні до наступного плану.',
+    many: 'Зустрічі наклалися на {count} запланованих блоків — вони повертаються у Вхідні до наступного плану.',
+    other:
+      'Зустрічі наклалися на {count} запланованих блоків — вони повертаються у Вхідні до наступного плану.',
+  },
+  'today.wipe.body': {
+    one: 'Інший акаунт лишив на цьому пристрої {count} незбережену зміну.',
+    few: 'Інший акаунт лишив на цьому пристрої {count} незбережені зміни.',
+    many: 'Інший акаунт лишив на цьому пристрої {count} незбережених змін.',
+    other: 'Інший акаунт лишив на цьому пристрої {count} незбережених змін.',
+  },
+  'today.tomorrow.planned': {
+    // `one` covers 21/31 as well, so it keeps the "first at" qualifier the other forms have.
+    one: 'Завтра заплановано: {count} блок, перший о {time}.',
+    few: 'Завтра заплановано: {count} блоки, перший о {time}.',
+    many: 'Завтра заплановано: {count} блоків, перший о {time}.',
+    other: 'Завтра заплановано: {count} блоків, перший о {time}.',
+  },
+  'today.tomorrow.ask.body': {
+    one: 'Чекає {count} завдання.',
+    few: 'Чекають {count} завдання.',
+    many: 'Чекає {count} завдань.',
+    other: 'Чекає {count} завдань.',
+  },
+  'inbox.undo.deleted': {
+    // `one` covers 21/31/41 too, so it has to carry the number like the other forms.
+    one: 'Видалено {count} завдання',
+    few: 'Видалено {count} завдання',
+    many: 'Видалено {count} завдань',
+    other: 'Видалено {count} завдань',
+  },
+  'beliefs.evidence': {
+    one: 'на основі {count} завершеного блоку',
+    few: 'на основі {count} завершених блоків',
+    many: 'на основі {count} завершених блоків',
+    other: 'на основі {count} завершених блоків',
+  },
+  'review.adherence.week': {
+    one: '{percent}% з {count} блоку',
+    few: '{percent}% з {count} блоків',
+    many: '{percent}% з {count} блоків',
+    other: '{percent}% з {count} блоків',
+  },
+  'review.adherence.week.a11y': {
+    one: 'Тиждень {week}: {percent}% дотримання з {count} блоку',
+    few: 'Тиждень {week}: {percent}% дотримання з {count} блоків',
+    many: 'Тиждень {week}: {percent}% дотримання з {count} блоків',
+    other: 'Тиждень {week}: {percent}% дотримання з {count} блоків',
+  },
+  'settings.sync.pending': {
+    one: '{count} зміна чекає',
+    few: '{count} зміни чекають',
+    many: '{count} змін чекає',
+    other: '{count} змін чекає',
+  },
+  'settings.data.export.done': {
+    one: 'Експорт готовий — надіслано {count} таблицю.',
+    few: 'Експорт готовий — надіслано {count} таблиці.',
+    many: 'Експорт готовий — надіслано {count} таблиць.',
+    other: 'Експорт готовий — надіслано {count} таблиць.',
+  },
+  'notify.ritual.body': {
+    one: 'Чекає {count} завдання — один дотик планує день.',
+    few: 'Чекають {count} завдання — один дотик планує день.',
+    many: 'Чекає {count} завдань — один дотик планує день.',
+    other: 'Чекає {count} завдань — один дотик планує день.',
+  },
+  'onboarding.seedTasks.added': {
+    one: 'Додано {count}',
+    few: 'Додано {count}',
+    many: 'Додано {count}',
+    other: 'Додано {count}',
+  },
+};

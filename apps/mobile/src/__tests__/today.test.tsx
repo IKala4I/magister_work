@@ -131,6 +131,7 @@ import type { PlanRow, RecommendationRow } from '../db/plans';
 import type { TaskRow } from '../db/tasks';
 import { nextPlanDayOf } from '../domain/planTrigger';
 import { en } from '../i18n/en';
+import { plural } from '../i18n';
 import type { CalendarEventRow } from '../db/calendar';
 import { usePlanStore } from '../state/plan';
 import { useSyncStore } from '../state/sync';
@@ -317,7 +318,7 @@ describe('ADR-0019 — a day without a working window', () => {
     expect(screen.getByText(en['today.dayOff.title'])).toBeTruthy();
     expect(screen.getByText(en['today.dayOff.body'])).toBeTruthy();
     expect(screen.queryByText(en['today.empty.title'])).toBeNull();
-    expect(screen.queryByText(en['today.deferred.one'])).toBeNull();
+    expect(screen.queryByText(plural('today.deferred', 1))).toBeNull();
     // the day-off copy wins over the empty-inbox copy of an earlier request
     usePlanStore.setState({ status: 'idle', emptyInbox: true });
     await render(withSafeArea(<TodayScreen />));
@@ -334,7 +335,7 @@ describe('ADR-0019 — a day without a working window', () => {
     await render(withSafeArea(<TodayScreen />));
     expect(screen.getByText(en['today.replan'])).toBeTruthy();
     expect(screen.queryByText(en['today.dayOff.title'])).toBeNull();
-    expect(screen.queryByText(en['today.deferred.one'])).toBeNull();
+    expect(screen.queryByText(plural('today.deferred', 1))).toBeNull();
   });
   it('the in-app "Plan tomorrow?" card is not offered on the eve of a day off (ADR-0019 §4, review MAJOR)', async () => {
     mockProfile.settings = { notifications: { evening_ritual_time: '00:00' } };
@@ -376,7 +377,7 @@ describe('ADR-0019 — a day without a working window', () => {
     });
     await render(withSafeArea(<TodayScreen />));
     expect(screen.getByText(en['today.empty.title'])).toBeTruthy();
-    expect(screen.getByText(en['today.deferred.one'])).toBeTruthy();
+    expect(screen.getByText(plural('today.deferred', 1))).toBeTruthy();
     expect(screen.queryByText(en['today.dayOff.title'])).toBeNull();
   });
 });

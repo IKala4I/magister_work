@@ -1,0 +1,27 @@
+# The language switch itself (ADR-0023), walked at the default text size: Settings is a long
+# list, and scrolling it to the bottom at accessibility sizes is a test of Maestro rather than
+# of the app. The Ukrainian sweep that follows runs at the maximum size.
+appId: com.hourwell.app
+---
+- launchApp:
+    stopApp: true
+- tapOn: 'Open settings'
+# The row is an `accessible` Pressable, so iOS merges its child Text away and only the
+# accessibility label is exposed to automation.
+- scrollUntilVisible:
+    element: 'Language: Українська'
+    centerElement: true
+- takeScreenshot: uk-01-settings-language-english
+- tapOn: 'Language: Українська'
+# The tree remounts (ADR-0023 §3). Measured on the simulator 2026-09-09: expo-router restores the
+# route it was on, so the Settings modal stays open and re-renders in Ukrainian, scrolled back to
+# the top. The user is not thrown out to Today.
+- assertVisible: 'Налаштування'
+- assertVisible: 'Акаунт'
+- takeScreenshot: uk-02-after-switch-still-in-settings
+# Dismissing the modal returns to the tab shell, also Ukrainian.
+- swipe:
+    start: 50%, 15%
+    end: 50%, 85%
+- assertVisible: 'Сьогодні(, tab.*)?'
+- takeScreenshot: uk-02b-tabs-after-switch

@@ -1,0 +1,40 @@
+# Onboarding for the Ukrainian sweep only: identical to p4-onboarding-flow up to the seed-task
+# step, which is finished WITHOUT typing. Maestro cannot dismiss the simulator keyboard (P2
+# gotcha), and this flow only needs to reach the tab shell — the seed-task path itself is
+# covered by p4-onboarding-flow at the default text size.
+appId: com.hourwell.app
+---
+- launchApp:
+    stopApp: true
+    clearState: true
+- assertVisible: 'The planner that learns your best hours'
+- tapOn: 'Get started'
+- assertVisible: 'Your rhythm'
+- tapOn: '5:00–6:30'
+- scrollUntilVisible:
+    element: 'Very refreshed'
+- tapOn: 'Very refreshed'
+- scrollUntilVisible:
+    element: '20:00–21:00'
+- tapOn: '20:00–21:00'
+- scrollUntilVisible:
+    element: '5:00–8:00'
+- tapOn: '5:00–8:00'
+- scrollUntilVisible:
+    element: 'Definitely a morning type'
+- tapOn: 'Definitely a morning type'
+- scrollUntilVisible:
+    element: 'Continue'
+- tapOn: 'Continue'
+- assertVisible: 'Your hours'
+- scrollUntilVisible:
+    element: 'Continue'
+- tapOn: 'Continue'
+- assertVisible: 'What fills your days?'
+- tapOn: 'Deep work'
+- tapOn: 'Continue'
+- assertVisible: 'Add your first tasks'
+# With no task added the button reads "Skip this step" (seed-tasks.tsx); typing one would
+# open the keyboard this flow exists to avoid.
+- tapOn: 'Skip this step'
+- assertVisible: '(No plan yet|No working hours today)'

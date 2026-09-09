@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import type { TaskRow } from '../../db/tasks';
-import { t, type MessageKey } from '../../i18n';
+import { formatDate, t, type MessageKey } from '../../i18n';
 import type { TaskCategory } from '../../db/tasks';
 import { ThemedText } from '../primitives';
 import { useTheme } from '../theme';
@@ -26,7 +26,7 @@ export interface TaskListRowProps {
 }
 
 function formatDeadline(deadline: Date): string {
-  return deadline.toLocaleDateString(undefined, {
+  return formatDate(deadline, {
     weekday: 'short',
     month: 'short',
     day: 'numeric',

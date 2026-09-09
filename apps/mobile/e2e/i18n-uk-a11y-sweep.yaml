@@ -1,0 +1,59 @@
+# NFR-A2 in Ukrainian, at the largest text size (ADR-0023).
+#
+# Precondition (set by the runner — docs/verification/uk-a11y-sweep.sh): the app is onboarded and
+# already switched to Ukrainian (i18n-uk-onboard, i18n-uk-switch, both at the default size), then
+#   xcrun simctl ui booted content_size accessibility-extra-extra-extra-large
+# Onboarding and the switch are walked at medium size: Maestro cannot dismiss the simulator
+# keyboard (P2 gotcha), and scrolling a 200 %-scale Settings list to its foot tests Maestro rather
+# than the app.
+#
+# The quick-add steps come last on purpose: the simulator keyboard stays up afterwards and covers
+# the tab bar, and `hideKeyboard` does not work here.
+#
+# What this establishes: Ukrainian copy renders and nothing on these surfaces clips or overlaps at
+# 200 %+ on the simulator. What it does NOT establish: anything about a real device (CLAUDE.md
+# "Simulator evidence") — the device-checklist "Ukrainian interface" rows stay open.
+appId: com.hourwell.app
+---
+- launchApp:
+    stopApp: true
+- takeScreenshot: uk-03-launch-xxxl
+- tapOn: 'Сьогодні(, tab.*)?'
+- takeScreenshot: uk-04-today
+- tapOn: 'Фокус(, tab.*)?'
+- assertVisible: 'Нічого не запущено'
+- takeScreenshot: uk-05-focus
+- tapOn: 'Аналітика(, tab.*)?'
+- takeScreenshot: uk-06-insights
+- tapOn: 'Відкрити налаштування'
+- assertVisible: 'Акаунт'
+- takeScreenshot: uk-07-settings-top
+# The Settings list is very long at 200 %+; the default scroll budget does not reach the foot.
+- scrollUntilVisible:
+    element: 'Що лишається англійською'
+    centerElement: true
+    timeout: 60000
+    speed: 30
+- takeScreenshot: uk-08-settings-boundary
+- scrollUntilVisible:
+    element: 'Видалити акаунт і дані'
+    direction: UP
+    centerElement: true
+    timeout: 60000
+    speed: 30
+- takeScreenshot: uk-09-settings-data
+- swipe:
+    start: 50%, 15%
+    end: 50%, 85%
+# Inbox and quick add last (see the keyboard note above).
+- tapOn: 'Вхідні(, tab.*)?'
+- assertVisible: 'У вхідних порожньо'
+- takeScreenshot: uk-10-inbox
+- tapOn: 'Швидке додавання завдання'
+- inputText: 'купити молоко'
+- assertVisible: 'Дати й тривалості не знайдено.*'
+- takeScreenshot: uk-11-inbox-no-parse
+- eraseText
+- inputText: 'чернетка звіту 2 год'
+- assertVisible: '120 хв'
+- takeScreenshot: uk-12-inbox-parsed

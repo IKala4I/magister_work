@@ -1,7 +1,10 @@
 /**
  * English string catalog — the only user-facing string source from P2 onward (decision 6:
- * no hardcoded user-facing strings in components; Ukrainian later = add a file here).
+ * no hardcoded user-facing strings in components). `en` is the reference catalog: `MessageKey`
+ * is derived from it, so every other catalog must match it key for key.
  * Interpolation slots use `{name}` syntax, resolved by `t()`.
+ *
+ * Counted sentences live in `enPlurals`, not here — see `./plural`.
  */
 export const en = {
   'app.name': 'Hourwell',
@@ -27,8 +30,6 @@ export const en = {
   'today.error': 'Could not plan right now. Try again in a moment.',
   'today.rateLimited': 'Daily planning limit reached — you can plan again tomorrow.',
   'today.deferred.title': 'Not placed today',
-  'today.deferred.body': 'No room today for {count} tasks — they stay in your Inbox.',
-  'today.deferred.one': 'No room today for one task — it stays in your Inbox.',
   'today.now': 'Now',
   'today.block.a11y': '{title}, {start} to {end}',
   'today.block.time': '{start}–{end}',
@@ -172,7 +173,6 @@ export const en = {
   'beliefs.statement.weak':
     'No strong preference yet for {category} on {dayType} — the {daypart} leads slightly.',
   'beliefs.factor': '+{percent}% vs. your other hours',
-  'beliefs.evidence': '{count} finished blocks of evidence',
   'beliefs.evidence.none': 'assumed, not yet observed',
   'beliefs.labeled.correct': 'You confirmed this.',
   'beliefs.labeled.incorrect': 'You corrected this.',
@@ -188,8 +188,6 @@ export const en = {
   'review.adherence.title': 'Plan adherence',
   'review.adherence.body': 'Blocks you started within 15 minutes of the plan and mostly finished.',
   'review.adherence.empty': 'No finished weeks yet.',
-  'review.adherence.week': '{percent} percent of {count} blocks',
-  'review.adherence.week.a11y': 'Week {week}: {percent} percent adherence over {count} blocks',
   'review.trend.up': 'Up from the previous week with data.',
   'review.trend.down': 'A dip from the previous week with data — no verdict, just data.',
   'review.trend.flat': 'Steady against the previous week with data.',
@@ -227,6 +225,25 @@ export const en = {
   'settings.appearance.light': 'Light',
   'settings.appearance.dark': 'Dark',
 
+  // --- Language (the switch, and the boundary it does not cross) ---
+  // The boundary block renders only when the interface is not English: it explains what a
+  // Ukrainian reader will still meet in English, and would be nonsense under an English UI.
+  'settings.language.title': 'Language',
+  'settings.language.system': 'System',
+  // Language names are autonyms in every catalog — a list of languages you cannot read is no help.
+  'settings.language.en': 'English',
+  'settings.language.uk': 'Українська',
+  // Both this group and Appearance offer a row called "System"; a screen reader walking the
+  // screen row by row needs to hear which is which.
+  'settings.language.option.a11y': 'Language: {language}',
+  'settings.language.boundary.title': 'What stays in English',
+  'settings.language.boundary.survey':
+    'The morning-and-evening survey. Its scale was validated for the English wording, so a translation would give a different answer against the same thresholds.',
+  'settings.language.boundary.yourWords':
+    'Your task titles and imported calendar events. Those are your words, and Hourwell does not touch them.',
+  'settings.language.boundary.technical':
+    'Technical records: logs, error codes and the export file. They are a format for exchange, not something to read.',
+
   'block.experiment': 'Experiment',
   'block.confidence.a11y': 'Confidence {percent} percent',
 
@@ -237,14 +254,15 @@ export const en = {
   'inbox.quickAdd.add': 'Add',
   'inbox.quickAdd.input.a11y': 'Quick add task',
   'inbox.quickAdd.noTitleHint': 'Add a few words for the title',
+  // Nothing parsed is a real state, not an absence of one: say so rather than showing no chips
+  // and letting the user guess (hardware pass 2026-09-01 item 9, 2026-09-02 item 6).
+  'inbox.quickAdd.noParseHint': 'No date or duration found — all of it becomes the title.',
   'inbox.preview.duration': '{minutes} min',
   'inbox.preview.deadline': 'by {date}',
   'inbox.chip.today': 'Today',
   'inbox.chip.nextWeek': 'Next week',
   'inbox.chip.date.a11y': 'Use {date} as the deadline',
   'inbox.chip.duration.a11y': 'Use {minutes} minutes as the estimate',
-  'inbox.undo.deleted': 'Task deleted',
-  'inbox.undo.deletedMany': '{count} tasks deleted',
   'inbox.undo.action': 'Undo',
   'inbox.row.a11y': '{title}, {category}, {minutes} minutes',
   'inbox.row.a11y.deadline': '{title}, {category}, {minutes} minutes, due {date}',
@@ -296,6 +314,10 @@ export const en = {
   'onboarding.survey.itemSkipped': 'Skipped',
   'onboarding.survey.skipNote':
     'One or more answers are blank, so the survey will not be scored — Hourwell starts neutral and learns your hours from what you actually do.',
+  // Rendered only when the interface is not English (ADR-0023): the five items below stay in
+  // the language their published cut-offs were established in, so the note explains why.
+  'onboarding.survey.englishNote':
+    'These five questions are the standard rMEQ questionnaire. They stay in English because its scale was validated for this wording — our own translation would produce a number the published thresholds no longer describe. Skip any question you would rather not answer: Hourwell then starts from a neutral assumption and learns your rhythm from your real days.',
 
   'onboarding.rmeq.wakeTime.q':
     'If you were entirely free to plan your day, when would you get up?',
@@ -362,7 +384,6 @@ export const en = {
   'onboarding.seedTasks.title': 'Add your first tasks',
   'onboarding.seedTasks.intro':
     'Give Hourwell up to three real tasks to plan tomorrow with. Type naturally — “report draft 2h by fri” works.',
-  'onboarding.seedTasks.added': '{count} added',
   'onboarding.seedTasks.finish': 'Finish setup',
 
   // --- Auth (FR-01) ---
@@ -409,12 +430,7 @@ export const en = {
   'today.busy.a11y': 'Busy: {title}, {start} to {end}',
   'today.busy.untitled': 'Busy',
   'today.notice.meetingKept': 'Meeting imported — your completed session is kept.',
-  'today.notice.displaced':
-    'A meeting now overlaps a planned block — it returns to your Inbox for the next plan.',
-  'today.notice.displacedMany':
-    'Meetings now overlap {count} planned blocks — they return to your Inbox for the next plan.',
   'today.notice.dismiss': 'Dismiss',
-  'today.wipe.body': 'Another account left {count} unsynced changes on this device.',
   'today.wipe.discard': 'Discard them',
   'today.wipe.keep': 'Keep for now',
   'block.status.displaced': 'A meeting took this slot — back in your Inbox',
@@ -435,7 +451,6 @@ export const en = {
   'settings.sync.status.error': 'Sync failed — will retry',
   'settings.sync.last': 'Last synced {when}',
   'settings.sync.never': 'Not synced yet',
-  'settings.sync.pending': '{count} changes waiting',
 
   'settings.gcal.title': 'Google Calendar',
   'settings.gcal.body':
@@ -470,8 +485,6 @@ export const en = {
   'notify.block.fallbackTitle': 'Your next block',
   'notify.block.body': 'Starts at {time}. Ready when you are.',
   'notify.ritual.title': 'Plan tomorrow?',
-  'notify.ritual.body': '{count} tasks are waiting — one tap plans your day.',
-  'notify.ritual.body.one': 'One task is waiting — one tap plans your day.',
   'notify.ritual.body.empty': 'Your inbox is empty. Add a task or enjoy the evening.',
   'notify.ritual.sunday.title': 'Your week, then tomorrow',
   'notify.ritual.sunday.body': 'A quick look at how the week went, then plan Monday.',
@@ -502,7 +515,6 @@ export const en = {
   'settings.data.export.hint':
     'A JSON file with your tasks, plans, events and what Hourwell learned — to keep or share as you like.',
   'settings.data.export.working': 'Preparing your export…',
-  'settings.data.export.done': 'Export ready — {tables} tables shared.',
   'settings.data.export.offline': 'You are offline. Try again when connected.',
   'settings.data.export.noSession': 'Sign in to export your data.',
   'settings.data.export.failed': 'Could not export right now. Try again in a moment.',
@@ -545,11 +557,7 @@ export const en = {
     'Android holds reminders back until Hourwell may set exact alarms — one switch in the system settings.',
   'today.exactAlarm.allow': 'Allow',
   'today.exactAlarm.later': 'Not now',
-  'today.tomorrow.planned': 'Tomorrow is planned: {count} blocks, first at {time}.',
-  'today.tomorrow.plannedOne': 'Tomorrow is planned: one block at {time}.',
   'today.tomorrow.ask': 'Plan tomorrow?',
-  'today.tomorrow.ask.body': '{count} tasks are waiting.',
-  'today.tomorrow.ask.bodyOne': 'One task is waiting.',
   'today.tomorrow.accept': 'Plan tomorrow',
   'today.tomorrow.adjust': 'Adjust tasks',
 
@@ -559,9 +567,74 @@ export const en = {
   'accountDeleted.referenceHint': 'Keep this reference if you ever need to prove the erasure.',
   'accountDeleted.startOver': 'Start over',
 
+  // A date and a clock time shown together; the separator is copy, not punctuation glue.
+  'common.dayTimeJoin': '{day}, {time}',
   'common.justNow': 'just now',
   'common.minutesAgo': '{count} min ago',
   'common.hoursAgo': '{count} h ago',
 } as const;
 
 export type MessageKey = keyof typeof en;
+
+/**
+ * Counted sentences. English needs two integer forms, Ukrainian three, so the choice cannot be a
+ * `count === 1` ternary at the call site — `plural()` asks the active locale's rule instead.
+ * Every catalog supplies `other`; a locale supplies the forms its own rule can reach.
+ */
+export const enPlurals = {
+  'today.deferred': {
+    one: 'No room today for one task — it stays in your Inbox.',
+    other: 'No room today for {count} tasks — they stay in your Inbox.',
+  },
+  'today.notice.displaced': {
+    one: 'A meeting now overlaps a planned block — it returns to your Inbox for the next plan.',
+    other:
+      'Meetings now overlap {count} planned blocks — they return to your Inbox for the next plan.',
+  },
+  'today.wipe.body': {
+    one: 'Another account left one unsynced change on this device.',
+    other: 'Another account left {count} unsynced changes on this device.',
+  },
+  'today.tomorrow.planned': {
+    one: 'Tomorrow is planned: one block at {time}.',
+    other: 'Tomorrow is planned: {count} blocks, first at {time}.',
+  },
+  'today.tomorrow.ask.body': {
+    one: 'One task is waiting.',
+    other: '{count} tasks are waiting.',
+  },
+  'inbox.undo.deleted': {
+    one: 'Task deleted',
+    other: '{count} tasks deleted',
+  },
+  'beliefs.evidence': {
+    one: '{count} finished block of evidence',
+    other: '{count} finished blocks of evidence',
+  },
+  'review.adherence.week': {
+    one: '{percent} percent of {count} block',
+    other: '{percent} percent of {count} blocks',
+  },
+  'review.adherence.week.a11y': {
+    one: 'Week {week}: {percent} percent adherence over {count} block',
+    other: 'Week {week}: {percent} percent adherence over {count} blocks',
+  },
+  'settings.sync.pending': {
+    one: 'One change waiting',
+    other: '{count} changes waiting',
+  },
+  'settings.data.export.done': {
+    one: 'Export ready — one table shared.',
+    other: 'Export ready — {count} tables shared.',
+  },
+  'notify.ritual.body': {
+    one: 'One task is waiting — one tap plans your day.',
+    other: '{count} tasks are waiting — one tap plans your day.',
+  },
+  'onboarding.seedTasks.added': {
+    one: '{count} added',
+    other: '{count} added',
+  },
+} as const;
+
+export type PluralKey = keyof typeof enPlurals;

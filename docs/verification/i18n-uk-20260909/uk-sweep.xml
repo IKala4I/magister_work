@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="iPhone 16 - iOS 18.3 - 5C080B83-AF7B-467C-91E3-2775717DC943" tests="1" failures="0" time="56.221" timestamp="2026-09-09T13:23:31">
+    <testcase id="i18n-uk-a11y-sweep" name="i18n-uk-a11y-sweep" classname="i18n-uk-a11y-sweep" file="/Users/vladyslav/Workspace/magister_work/apps/mobile/e2e/i18n-uk-a11y-sweep.yaml" time="56.213" timestamp="2026-09-09T13:23:31" status="SUCCESS"/>
+  </testsuite>
+</testsuites>

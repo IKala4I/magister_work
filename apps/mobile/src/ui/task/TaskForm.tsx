@@ -11,7 +11,7 @@ import { Platform, Pressable, StyleSheet, Switch, TextInput, View } from 'react-
 
 import { TASK_CATEGORIES } from '../../db/schema';
 import type { TaskCategory, TaskDraft, TaskRow } from '../../db/tasks';
-import { t, type MessageKey } from '../../i18n';
+import { formatDate, t, type MessageKey } from '../../i18n';
 import { ThemedText } from '../primitives';
 import { useTheme } from '../theme';
 import { CATEGORY_LABELS } from './TaskListRow';
@@ -43,7 +43,7 @@ function startOfDay(date: Date): Date {
 }
 
 function formatDay(date: Date): string {
-  return date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  return formatDate(date, { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
 export function TaskForm({ initial, submitLabel, onSubmit }: TaskFormProps) {

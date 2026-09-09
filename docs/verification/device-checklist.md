@@ -211,6 +211,38 @@ REDUCE_MOTION`. Same recordings, same tool → each run is 1 frame.
   both phones at 100 % and 200 % text. Why: a wrapped row is a layout the simulator would show
   too, but it was only noticed because a coordinate tap missed it on hardware.
 
+## Ukrainian interface (added 2026-09-09 with ADR-0023 — NFR-A1/A2, FR-11, FR-50)
+
+The NFR-A2 rows above were all closed **in English**. Ukrainian short labels are 50–150% longer
+than their English originals (`Skip`→«Пропустити» +150%, `Undo`→«Скасувати» +125%,
+`Move`→«Перенести» +125%; mean +56% over a 16-label risk set), so those passes do not transfer and
+these rows are open on both phones.
+
+- ⬜ **NFR-A2 — the Ukrainian interface at 200% text scale.** Switch the app to Українська
+  (Settings → Мова), set the largest system text size, and walk Today, a block's action row, the
+  undo bar, Inbox quick-add, the Move picker, Focus with its rating chips, Insights (heatmap header
+  and the belief cards), the trade-off sheet and Settings. Nothing clips, nothing overlaps, every
+  touch target stays ≥ 44 px. Simulator can't settle it: the simulator flatters layout timing and
+  runs neither phone's actual font rendering, and the two phones' rows were closed in English.
+  Priority surfaces from the measured expansion: the block action row (which already wraps on the
+  iPhone 12 in English — revisit.md) and the tab bar.
+- ⬜ **Ukrainian month and weekday names under Hermes on Android.** `Intl` locale data comes from
+  the OS on Android; jest runs on node's full ICU and the iOS simulator uses Apple's, so neither
+  says what a real Android build has. Open the Today header (`formatDate` with `weekday: 'long'`,
+  `month: 'long'`) in Ukrainian and read it: «середа, 9 вересня», not a fallback to English or a
+  numeric month.
+- ⬜ **FR-50 / FR-26 — notification copy in Ukrainian, and the channel rename.** With the app in
+  Ukrainian, let one block reminder and one evening ritual arrive; both must be Ukrainian on the
+  lock screen, and the ritual's two action buttons («Спланувати завтра», «Змінити завдання») too.
+  Then switch language back and re-open Android's per-app notification settings: the channel names
+  must follow (the OS permits changing a channel's name and description after creation — verified
+  against the expo-notifications docs 2026-09-09, never on a device).
+- ⬜ **A language switch mid-session leaves nothing stale.** Switch in Settings and confirm every
+  surface follows, including a pending reminder scheduled before the switch (re-rendered by the
+  scheduler re-run, not by the OS). On the iOS simulator the remount keeps you in Settings, in the
+  new language, scrolled to the top (2026-09-09) — check the same holds on both phones, and that
+  the tab you were on is still the tab you get back.
+
 ## Behaviour the simulator under-tests
 
 **Android ✅ 2026-09-05 (build 5, owner):** header → date → Re-plan → cards in slot order, each card one utterance ("references fix, 5:30 PM to 6:00 PM, confidence 44 percent") followed by its four actions.
@@ -220,6 +252,12 @@ REDUCE_MOTION`. Same recordings, same tool → each run is 1 frame.
   Simulator can't settle it: development happens with the Mac hardware keyboard, which bypasses
   autocorrect, suggestion bars, and IME composition.
   **Android ✅ 2026-09-01/02:** real Gboard with autocorrect; Ukrainian input keeps the whole string as the title and shows no chips (documented limitation); the autocorrect-acceptance chip refresh (day-1 #8) is still attended; placeholder clip defect (day-1 #7) in the fix batch.
+  **Re-opened for Ukrainian 2026-09-09 (ADR-0023):** that limitation is retired in code — quick-add
+  now parses Ukrainian, and the "no chips" state says why. What hardware must still settle is which
+  apostrophe the real Ukrainian keyboards emit: `chrono.uk` accepts only U+0027, and the parser
+  folds U+02BC / U+2019 / U+2018 / U+00B4 to it, so a fifth variant from a real IME would fail
+  silently. Type «чернетка звіту 2 год до п'ятниці» on Gboard-UA and on the iOS Ukrainian keyboard;
+  both must show a 120 min chip and a Friday deadline chip.
   **iOS 2026-09-07 ✅:** three tasks typed through the real iOS keyboard into the onboarding quick-add ("… 45 min", "… 30 min", "… 20 min" → durations parsed 45 / 30 / 20, category Admin); the Inbox quick-add renders its example hint (notes items 4, 15). At 200 % the Inbox hint and the Add button clip after a live size change (item 22).
 - ⬜ **Glass/blur recommendation blocks — Android fallback path** (obligation lands at P6,
   File 02 §3). Verify the blur (or its documented fallback) renders correctly and doesn't tank
