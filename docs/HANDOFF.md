@@ -87,6 +87,14 @@ the standard abbreviation for «пункти».
    stay in `corrections-rollup.md` (§6, §7, §8). Then step 5 (Розділ 1), step 6 (Анотація and
    ВИСНОВКИ), step 7 (appendices), step 8 (reference list + the ВСТУП structure sentence).
 
+   **Step 4 is done too:** the Розділ 2–4 fragments stay in the rollup (§6–§8) and every constant
+   they quote is verified against the code that defines it (rollup §2.0). Next is **step 5**,
+   Розділ 1 §1.1 and §1.4–§1.6.
+
+   **Run `python3 docs/thesis/verify-numbers.py` before quoting any study number.** 132 checks,
+   recomputed from `docs/study/results/*.json`, exit 1 on a mismatch. Owner rule 2026-09-09: a
+   number that cannot be reproduced from the JSON does not go into the thesis until it can.
+
    **New layout to know about:** `docs/thesis/text/` holds whole chapters and appendices the draft
    does not have yet, written as continuous Ukrainian to be moved in as a unit; the rollup keeps
    the anchored edits for chapters that exist. `text/README.md` explains the split and the three
