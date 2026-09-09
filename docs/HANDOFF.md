@@ -6,7 +6,8 @@
 > armed** (`post-p12/motion` → main; merges when the six CI checks pass). File 02 §3.4 is closed
 > on the plan surface (spec-conflicts L42), ADR-0022 accepted with the hardware results from
 > both phones, the adversarial pass's four fixes in (`ac99dea`) and re-verified on the Pixel.
-> Nothing is pending on either phone. Next phase: none decided — the candidates are in
+> Nothing is pending on either phone, and the owner's-eyes judgement came back good on both
+> (recorded 2026-09-09, PR #61). Next phase: none decided — the candidates are in
 > `docs/decisions/revisit.md` (the Experiment card's wrapped action row on the iPhone 12 is the
 > newest; the Inbox undo-bar transition was named "next candidate" in ADR-0022's inventory).
 
@@ -40,8 +41,12 @@ animator scale (revisit.md, checklist row reworded); the Experiment card's actio
 the iPhone 12 (revisit.md + a checklist row); `hw-account-reads.mjs --latest` means the newest
 auth row, not the newest onboarding.
 
-**Open owner items (none block anything):** (1) look at Move / Done / Skip on each phone and
-say whether the move reads as _that block going there_ — the one judgement no tool makes; (2)
+**Owner's eyes — DONE 2026-09-09:** the owner looked at Move / Done / Skip on both phones
+(Pixel 7a on `ac99dea`, iPhone 12 on build 3) and reported both as good; recorded in the
+checklist S1/S2 rows, ADR-0022 "Hardware results" and the explainer. The design test behind
+ADR-0022 is now answered by a person, not only by frame counts.
+
+**Open owner items (none block anything):** (1)
 Auto-Lock back to the usual value on the iPhone (still on the pass's value); (3) the Mac's disk
 — 22 GB free after the session removed 7 GB of xctrace temp files and the owner cleared more;
 `~/Library/Developer/Xcode/iOS DeviceSupport` (14 GB), Xcode caches, simulators remain the big
