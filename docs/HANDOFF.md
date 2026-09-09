@@ -2,10 +2,11 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-09 (afternoon) — **post-p12/i18n-uk is complete on the branch**: Ukrainian
-> localisation with a language switch, the English boundary decided and stated in the app
-> (ADR-0023), FR-11 parsing both languages. Gates green, simulator sweep passed, adversarial pass
-> run. The PR is the next action.
+> Last update: 2026-09-09 (evening) — **post-p12/i18n-uk is MERGED** (PR #62 → `220ad57`, six of
+> six CI checks green; branch deleted locally and on the remote). Ukrainian localisation with a
+> language switch, the English boundary decided and stated in the app (ADR-0023), FR-11 parsing both
+> languages. The owner read the copy and approved it unchanged, including «%» where English spells
+> out "percent". **Next phase: none decided** — candidates are in `docs/decisions/revisit.md`.
 
 ## What the localisation phase established (2026-09-09)
 
@@ -53,24 +54,24 @@ the remaining twelve are small and logged in `revisit.md` or addressed in place.
 
 ## Exact next actions
 
-1. **Open the PR** `post-p12/i18n-uk` → main, title `Post-P12 — Ukrainian localisation`, body =
-   requirement ids + pasted gate output; arm auto-merge **once** right after `gh pr create` and
-   never re-run `gh pr merge`.
-2. **The copy is the owner's review surface, not the diff:** point them at
-   `docs/i18n/uk-copy-review.md` (generated, grouped by screen, with a section naming where the
-   Ukrainian deliberately is not the literal English). Regenerate with
-   `node scripts/i18n-copy-review.mjs` after any catalog edit.
-3. Nothing else is pending on this branch.
+**None.** The phase is merged and nothing is pending. A fresh session picks the next item with the
+owner from `docs/decisions/revisit.md`.
+
+If a catalog string is ever edited: regenerate the owner's review surface with
+`node scripts/i18n-copy-review.mjs && pnpm format` — the prettier pass is not optional, or the
+committed doc and a fresh run differ by hundreds of lines of table padding.
 
 ## Open items for the owner (none block anything)
 
-- **Four device-checklist rows** under "Ukrainian interface": NFR-A2 in Ukrainian at 200 % on both
+- **Four device-checklist rows** under "Ukrainian interface", **deferred by the owner on 2026-09-09
+  to a later pass — they will say when they want a build on the Android phone.** No device is
+  connected and none was needed for this phase. The rows: NFR-A2 in Ukrainian at 200 % on both
   phones (the English rows do **not** transfer — mean +56 % label growth); a real Ukrainian IME
   (which apostrophe it emits; the parser folds four variants); Ukrainian month/weekday names under
-  Hermes on **Android**; notification copy and the Android channel rename after a switch.
-- **One copy trade worth a listen:** Ukrainian writes «%» where English spells out "percent" for
-  screen readers. Correct convention and TTS reads it, but it is the one place the trade could cost
-  a screen-reader user.
+  Hermes on **Android** (iOS is settled — `Intl` gave «середа, 9 вересня» on the simulator);
+  notification copy and the Android channel rename after a switch.
+- ~~One copy trade worth a listen: «%» vs "percent"~~ — **owner reviewed the copy on 2026-09-09 and
+  approved it unchanged, «%» included.** Closed; do not re-raise it.
 - **revisit.md gained four lines**: arm A always falls through to the generic trade-off consequence
   (`pinned_overlap_minutes` vs `pinned_conflict` — a small hole in the study's "pixel-identical UI"
   claim); the Ukrainian CSM as a future cold-start instrument; PLAN §2's stale `packages/shared`
@@ -90,10 +91,13 @@ the remaining twelve are small and logged in `revisit.md` or addressed in place.
 
 ## Environment left as found
 
-- **Simulator:** iPhone 16 (`5C080B83-…`), iOS 18.3, Release build of this branch installed, text
-  size restored to `medium`, app in English on a fresh anonymous account. Two throwaway anonymous
-  accounts were created on the hosted project during the sweeps (retention-purge material, like the
-  session-only rows from earlier passes); one plan request was made.
+- **Simulator:** iPhone 16 (`5C080B83-…`), iOS 18.3, Release build of `bc753eb` installed, text size
+  restored to `medium`, app in Ukrainian on a throwaway anonymous account with one plan. Several
+  throwaway anonymous accounts were created on the hosted project across the sweep runs
+  (retention-purge material, like the session-only rows from earlier passes), and a handful of plan
+  requests were made. Nothing needs cleaning up; the next session may `clearState` freely.
+- **This session's Release build added a DerivedData tree** (`~/Library/Developer/Xcode/DerivedData/
+Hourwell-blsssfravpwaygfiszsljufasxeb`) — relevant to the standing disk-space item below.
 - **Phones:** untouched this session. Pixel 7a and iPhone 12 remain as the motion phase left them.
 
 ---
