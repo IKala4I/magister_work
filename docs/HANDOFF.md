@@ -2,13 +2,99 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-09 (evening) — **post-p12/i18n-uk is MERGED** (PR #62 → `220ad57`, six of
-> six CI checks green; branch deleted locally and on the remote). Ukrainian localisation with a
-> language switch, the English boundary decided and stated in the app (ADR-0023), FR-11 parsing both
-> languages. The owner read the copy and approved it unchanged, including «%» where English spells
-> out "percent". **Next phase: none decided** — candidates are in `docs/decisions/revisit.md`.
+> Last update: 2026-09-09 (night) — **post-p12/corrections-rollup** is on the branch and green on
+> the format gate. `docs/thesis/corrections-rollup.md` is no longer an index: all 63 items carry
+> the Ukrainian sentences the draft should read, grouped by the draft's own chapters, tagged
+> Ф / П / С, with every number carrying its measurement condition. **Next phase: writing the
+> thesis text** — the rollup is the document to write from.
 
-## What the localisation phase established (2026-09-09)
+## What the rollup phase established (2026-09-09)
+
+**The artefact.** `docs/thesis/corrections-rollup.md` (≈ 1 600 lines) in fourteen sections: the
+chapter map with a structural verdict per chapter; the numbers ledger and the untraceable list;
+the four claims that must survive at full strength; then the paste-ready Ukrainian per chapter,
+including the evaluation chapters written **in order**; the amendments the worklist itself needed;
+forty findings no correction covered (U1–U40); a source-by-source answer to "does the draft have a
+home for this?"; and an order of work.
+
+**Three structural findings** (the answer to "where am I rewriting versus editing"):
+
+1. **Розділ 5 is rebuilt.** It specifies a field study in the future tense and contains none of the
+   evaluation that was performed.
+2. **A Розділ 6 is needed.** Everything the corrections address to «§6 (обговорення)» (item 59) or
+   «§verification» (items 50–53, 62) has **no referent in the draft**. Recommended split: Розділ 5
+   «Методика оцінювання», Розділ 6 «Результати оцінювання та їх обговорення», with the device pass
+   as §6.6 and `spec-conflicts.md` as §6.8. The alternative (keep five chapters, grow Розділ 5 to
+   eleven subsections) is named in §1 of the rollup; the owner picks.
+3. **§1.4's research-gap argument no longer holds.** It rests on the work occupying all seven
+   dimensions D1–D7 including a deployed field evaluation. D7 is now ◐, and the gap must be
+   re-argued over six dimensions with D7 stated as open.
+
+**Six worklist entries were wrong and are amended in place** (dated lines in
+`thesis-corrections.md`): #20 (propensity constant from the superseded eligibility rule — the
+deployed value is p = ε/|A_m(x)|), #47 (the device measurement it promised was never taken; NFR-P3
+still has no handset number), #50 (the fix was server-side; the device still sends `Europe/Kiev`),
+#51 (self-contradictory reference figure; a modelled decomposition sum presented as measured),
+#55 (E3's 2.5 / 5.4 pp are properties of one world), #62 (four positive claims overstate their
+evidence).
+
+**The strongest of the forty uncovered findings**, each verified against the code: the five nightly
+Maestro paths of §4.6 do not exist (no `schedule:` in any workflow, Maestro is invoked by none, and
+one named path is the drag interaction the system does not have); the nightly training pipeline is
+`hourwell-train.timer` on the EU VM while `train.yml` runs the same code on synthetic data only;
+лістинг 4.1 logs `skipEvent` where the client logs `lapse_observed` and writes a status the
+`tg_guard_recommendation_status` trigger refuses from clients; the "pixel-identical UI" blinding
+claim has a hole (the trade-off sheet computes `est_completion_drop` in the learned arm and returns
+generic in the heuristic one); the free tier costs an hourly `bench_solve.py` load to hold CPU p95
+≥ 20 % against Oracle's reclamation rule; `|C| = 14`, not «12–18»; the `dangerText` token ships and
+is missing from Додаток В; and the reference list orphans five sources while eleven arguments cite
+none.
+
+**Verification depth: thesis-critical.** Two source sweeps (23 ADRs; seven days of device notes
+plus the checklist) and a fresh-context adversarial pass ran as subagents.
+
+## Exact next actions
+
+1. **Owner decides the chapter structure** (§1 of the rollup, last paragraph) — five chapters or
+   six. Everything downstream hangs on it.
+2. **Write in the order of §14**: the four full-strength statements first, then Розділ 6, then
+   Розділ 5, then Розділ 1 §1.4–§1.6, then the Розділ 2–4 edits, then the annotation and
+   conclusions, then appendices and the reference list.
+3. **Re-count the test suites at freeze time** and paste the gate output — the 583/191 pair in #62
+   and the conclusions is traceable to nothing (the last recorded runs are jest 519/521 and
+   Deno 187).
+4. Two new appendices to generate: the 75-cell sensitivity table (Додаток З) and the frozen
+   pre-registration plus world grid (Додаток И).
+
+## What the next phase needs to read
+
+- `docs/thesis/corrections-rollup.md` — §1 (chapter map), §2 (numbers), §3 (the four statements),
+  then the chapter section you are writing. **Do not re-read all of `specs/`.**
+- `docs/thesis/thesis-corrections.md` only for the reasoning behind an item you are pasting.
+- `docs/study/simulation-results.md` and `sensitivity-results.md` when writing Розділ 6 §6.1–§6.5;
+  `sensitivity-grid.md` §1 for the world model, which is quoted almost verbatim.
+- `docs/thesis/spec-conflicts.md` before implementing anything a spec file describes, and in full
+  when writing §6.8.
+- The draft itself is git-ignored; extract its text with `python3 -c` over `word/document.xml` if
+  you need the current wording.
+
+## Open items for the owner (none block the writing)
+
+- **Four device-checklist rows under "Ukrainian interface"** remain deferred by the owner
+  (2026-09-09) — NFR-A2 in Ukrainian at 200 % on both phones, a real Ukrainian IME's apostrophe,
+  Ukrainian month/weekday names under Hermes on **Android**, and notification copy after a switch.
+- **`docs/verification/uk-a11y-sweep.sh` leaks a Metro bundler**; the fix is `--no-bundler` on the
+  `npx expo run:ios` line. Owner's instruction: no PR for one line — fold it into the next phase
+  that touches main. Still pending.
+- **`device-checklist.md` has two stale spots** the rollup names: the NFR-P1 row runs the 2 Sep and
+  3 Sep series together as "the same inbox", and the iOS NFR-A2 Settings-path row reads ⬜ while
+  `ios-20260908-1215` item 69 records it as PASS.
+
+---
+
+## Earlier state (localisation, 2026-09-09) — superseded above but still current for its rows
+
+### What the localisation phase established (2026-09-09)
 
 **Shipped (`38543d8`, `f71a3f3`, `f5fff2f` + docs):** a second catalog (465 strings + 13 counted
 sentences) with a `Системна / English / Українська` switch in Settings; plural forms as a mechanism
