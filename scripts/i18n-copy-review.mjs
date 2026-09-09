@@ -3,7 +3,11 @@
  * Generates docs/i18n/uk-copy-review.md — the Ukrainian copy grouped by screen, so it can be
  * read as copy rather than out of a diff. Regenerate after any catalog edit:
  *
- *   node scripts/i18n-copy-review.mjs
+ *   node scripts/i18n-copy-review.mjs && pnpm format
+ *
+ * The `pnpm format` is not optional: prettier re-pads the markdown tables, so without it the
+ * committed file and a fresh run differ by several hundred lines of whitespace and the doc stops
+ * being checkably generated.
  *
  * Reading the catalogs with a regex rather than importing them keeps this a plain node script
  * with no TypeScript toolchain in the way; the parity test in src/i18n/__tests__ is what

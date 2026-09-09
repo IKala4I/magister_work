@@ -20,7 +20,9 @@ when nothing parses, in either language.
 1. **`chrono.uk` exists.** Two hardware notes recorded "chrono-node is English-only". Measured on
    the pinned 2.10.1, it ships a Ukrainian parser in upstream's full-support tier — the English-only
    property was our configuration. FR-11 is now bilingual; both notes carry dated corrections and
-   spec-conflicts L22 records it. Residual gaps: «за 30 хвилин», «цими вихідними».
+   spec-conflicts L22 records it. Residual gap: «цими вихідними» (chrono returns no parse and the
+   whole line stays the title). «за 30 хвилин» was a _defect_ the adversarial pass caught, not a
+   gap — it read as a 30-minute estimate; it is now a deadline, like «через 30 хвилин».
 2. **No validated Ukrainian rMEQ exists.** The validated Ukrainian chronotype instruments are the
    CSM and MCTQ (Senyk, Jankowski & Cholii, Biological Rhythm Research 53(6):878–896). The five
    items stay English in every catalog, pinned by a test, with the reason on the screen. Owner

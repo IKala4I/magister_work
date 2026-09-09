@@ -20,10 +20,11 @@ appId: com.hourwell.app
 - tapOn: 'Сьогодні(, tab.*)?'
 # A plan may already exist from an earlier run, in which case the button re-plans.
 - tapOn: '(Спланувати день|Перепланувати)'
-# The learned path can be cold; the fallback answers inside NFR-P1 either way.
+# The learned path can be cold. NFR-P1 is a warm budget; a first request after the service has
+# been idle is slower than that, and 30 s was not always enough (2026-09-09).
 - extendedWaitUntil:
     visible: '(Зараз|Експеримент|Почати|Готово)'
-    timeout: 30000
+    timeout: 90000
 - takeScreenshot: uk-14-today-planned
 # The action row itself: «Почати» «Готово» «Пропустити» «Перенести…» — the tightest row in
 # Ukrainian (`Skip`→«Пропустити» is +150 % on the English label).

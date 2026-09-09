@@ -48,7 +48,11 @@ describe('locale resolution', () => {
   it('follows the device when the preference is system', () => {
     expect(resolveLocale(['en'])).toBe('en');
     expect(resolveLocale(['uk'])).toBe('uk');
-    expect(resolveLocale(['uk-UA'.toLowerCase().slice(0, 2)])).toBe('uk');
+    // A device that reports a region-tagged code must still find the catalog; the earlier version
+    // of this line sliced the tag down to 'uk' first and so tested nothing (adversarial pass).
+    expect(resolveLocale(['uk-UA'])).toBe('uk');
+    expect(resolveLocale(['en-GB'])).toBe('en');
+    expect(resolveLocale(['de-DE'])).toBe('en');
   });
 
   it('falls back to English for languages without a catalog', () => {
@@ -86,6 +90,31 @@ describe('formatting locale (language from the catalog, conventions from the pho
     resetLocaleForTests();
     mockedGetLocales.mockReturnValue(UKRAINIAN_DEVICE);
     expect(localeTag()).toBe('uk-UA');
+  });
+
+  it('falls back to the language default when the device tag is malformed', () => {
+    // An OEM ROM reporting `uk_UA` used to reach `Intl` and throw a RangeError during render.
+    mockedGetLocales.mockReturnValue([
+      { languageCode: 'uk', languageTag: 'uk_UA', regionCode: 'UA' },
+    ]);
+    setActiveLocale('uk');
+    expect(localeTag()).toBe('uk-UA');
+    expect(() => new Date().toLocaleDateString(localeTag())).not.toThrow();
+  });
+
+  it('reads the device locale once per language, not once per formatted date', () => {
+    // A FlashList of blocks formats two clock times per row; before memoisation each one was a
+    // native `getLocales()` call (adversarial pass, 2026-09-09).
+    localeTag();
+    mockedGetLocales.mockClear();
+    localeTag();
+    localeTag();
+    localeTag();
+    expect(mockedGetLocales).not.toHaveBeenCalled();
+    // …and a language change invalidates it.
+    setActiveLocale('uk');
+    localeTag();
+    expect(mockedGetLocales).toHaveBeenCalled();
   });
 
   it('falls back to the language default when device and app disagree', () => {
@@ -171,12 +200,30 @@ describe('catalog parity and hygiene (every catalog)', () => {
     }
   });
 
+  const slots = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
+
   it.each(catalogs)('%s uses the same interpolation slots as English', (_name, catalog) => {
-    const slots = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
     for (const key of Object.keys(en) as (keyof typeof en)[]) {
       // `rationale.energy_peak` carries an optional `{percent}` suffix built by the caller;
       // every other entry must offer the same slots the English sentence does.
       expect(slots(catalog.messages[key])).toEqual(slots(en[key]));
+    }
+  });
+
+  // Counted sentences were not slot-checked at all, so a typo like `{tme}` in a Ukrainian plural
+  // form would have rendered literally on screen (adversarial pass, 2026-09-09). Each form must
+  // offer every slot the family's English `other` does, plus `{count}` where the form uses it.
+  it.each(catalogs)('%s plural forms carry the English slots', (_name, catalog) => {
+    for (const key of Object.keys(enPlurals) as (keyof typeof enPlurals)[]) {
+      const required = slots(enPlurals[key].other).filter((slot) => slot !== 'count');
+      for (const [form, value] of Object.entries(catalog.plurals[key])) {
+        expect({ key, form, slots: slots(value) }).toMatchObject({
+          slots: expect.arrayContaining(required),
+        });
+        for (const slot of slots(value)) {
+          expect([...required, 'count']).toContain(slot);
+        }
+      }
     }
   });
 
@@ -205,11 +252,31 @@ describe('catalog parity and hygiene (every catalog)', () => {
     }
   });
 
+  // «зробив/зробила», «додав/додала» … — the app cannot know the reader's gender.
+  // `\b` and `\w` are ASCII-only in JavaScript, so the first version of this test could not
+  // match Cyrillic at all and would have passed on «я зробив» (adversarial pass, 2026-09-09).
+  const GENDERED_PAST = /(?:^|\P{L})я\s+\p{L}+(?:в|ла)(?:\P{L}|$)/iu;
+  const GENDERED_PAST_INVERTED = /(?:^|\P{L})\p{L}+(?:в|ла)\s+(?:я|сам|сама)(?:\P{L}|$)/iu;
+
+  it('the gendered-past-tense guard actually matches Cyrillic', () => {
+    expect('я зробив').toMatch(GENDERED_PAST);
+    expect('Я додала це').toMatch(GENDERED_PAST);
+    expect('зробила я').toMatch(GENDERED_PAST_INVERTED);
+    expect('Уже зроблено').not.toMatch(GENDERED_PAST);
+    expect('Ви це закріпили.').not.toMatch(GENDERED_PAST);
+  });
+
   it('no Ukrainian string uses a gendered first-person past form', () => {
-    // «зробив/зробила», «додав/додала» … — the app cannot know the reader's gender.
-    for (const value of Object.values(uk)) {
-      expect(value).not.toMatch(/\b\w+(ив|ила|ов|ла)\s+(я|сам|сама)\b/i);
-      expect(value).not.toMatch(/\bя\s+\w+(в|ла)\b/i);
+    for (const [key, value] of Object.entries(uk)) {
+      expect({ key, value }).toMatchObject({ value: expect.not.stringMatching(GENDERED_PAST) });
+      expect({ key, value }).toMatchObject({
+        value: expect.not.stringMatching(GENDERED_PAST_INVERTED),
+      });
+    }
+    for (const forms of Object.values(ukPlurals)) {
+      for (const value of Object.values(forms)) {
+        expect(value).not.toMatch(GENDERED_PAST);
+      }
     }
   });
 });

@@ -39,6 +39,9 @@ export function loadPersistedLanguage(): LanguagePreference {
 /**
  * The catalog to render in. An explicit preference wins; `system` takes the first OS language
  * that has a catalog; English is the fallback for every other language.
+ *
+ * The code is compared on its language subtag, so a platform that reports a region-tagged
+ * `uk-UA` (or a script-tagged `sr-Latn`) still finds its catalog.
  */
 export function resolveLocale(
   languageCodes: readonly (string | null)[],
@@ -46,8 +49,8 @@ export function resolveLocale(
 ): CatalogLocale {
   if (preference !== 'system') return preference;
   for (const code of languageCodes) {
-    const lower = code?.toLowerCase() ?? null;
-    if (isCatalogLocale(lower)) return lower;
+    const language = code?.toLowerCase().split(/[-_]/)[0] ?? null;
+    if (isCatalogLocale(language)) return language;
   }
   return DEFAULT_LOCALE;
 }
@@ -67,6 +70,7 @@ export function getActiveLocale(): CatalogLocale {
 /** Called by the language store after it persists a new choice. */
 export function setActiveLocale(locale: CatalogLocale): void {
   activeLocale = locale;
+  memoizedTag = null;
 }
 
 /**
@@ -77,16 +81,32 @@ export function setActiveLocale(locale: CatalogLocale): void {
  * — the app writes its own times in 24-hour form, and `en-US` would print 12-hour clocks beside
  * them on a phone that never asked for them.
  */
+let memoizedTag: string | null = null;
+
 export function localeTag(): string {
+  if (memoizedTag !== null) return memoizedTag;
   const active = getActiveLocale();
+  const fallback = active === 'uk' ? 'uk-UA' : 'en-GB';
+  // `getLocales()` is a native call, and this runs for every date and clock time in a list; the
+  // answer only changes when the app is relaunched or the language is switched.
   const device = getLocales()[0];
-  if (device?.languageCode?.toLowerCase() === active && device.languageTag) {
-    return device.languageTag;
+  const tag =
+    device?.languageCode?.toLowerCase().split(/[-_]/)[0] === active && device.languageTag
+      ? device.languageTag
+      : fallback;
+  // An OEM ROM can report a malformed tag (`uk_UA`), and `Intl` throws a RangeError on it during
+  // render — a white screen where the old `toLocale*(undefined, …)` merely used the OS default.
+  try {
+    new Intl.DateTimeFormat(tag);
+    memoizedTag = tag;
+  } catch {
+    memoizedTag = fallback;
   }
-  return active === 'uk' ? 'uk-UA' : 'en-GB';
+  return memoizedTag;
 }
 
 /** Test seam: forget the memoized locale so the next read re-resolves from OS + preference. */
 export function resetLocaleForTests(): void {
   activeLocale = null;
+  memoizedTag = null;
 }

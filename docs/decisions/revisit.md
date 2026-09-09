@@ -488,3 +488,17 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   wait). The flow is cited by `scripts/device-pass.sh` and by the P2/P10 a11y records, so it should
   be repaired — scroll to the section, wait for Insights — rather than left to fail silently in the
   next device pass.
+- [2026-09-09, post-P12 localisation] **«2 год і 45 хв» sums to 120, not 165.** The duration grammar
+  is one regex with an hours group and a minutes group and cannot span the «і» between them
+  (`apps/mobile/src/domain/quickAdd.ts` `GRAMMARS.uk.duration`), so the two halves match separately:
+  the first wins, a spurious `multiple_durations` chip offers 120/45, and the title keeps a stray
+  «і». The conjunction is more idiomatic in Ukrainian than "2h and 45m" is in English. Found by the
+  adversarial pass; not fixed because the fix is a second regex pass rather than a tweak, and the
+  chip at least surfaces the ambiguity instead of hiding it.
+- [2026-09-09, post-P12 localisation] **`profiles.locale` still goes stale for a user who only ever
+  follows the system language.** `changeLanguageAction` now reconciles the row on any tap, including
+  a no-op one (ADR-0023 §3), but nothing reconciles it at startup: an account that onboarded on an
+  English phone and later switched the _phone_ to Ukrainian renders Ukrainian while the row says
+  `'en'` until the user opens Settings. The column is a record, not an input — nothing reads it —
+  so this is a data-tidiness question, not a behaviour one. Fix would be a reconcile on the first
+  foreground after the DB is ready; decide with the next profile change.

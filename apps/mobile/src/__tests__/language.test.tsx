@@ -47,6 +47,11 @@ jest.mock('../notifications/scheduler', () => ({
   runNotificationScheduler: () => mock_runNotificationScheduler(),
 }));
 const mock_track = jest.fn();
+const mock_captureException = jest.fn();
+jest.mock('../observability/sentry', () => ({
+  Sentry: { captureException: (...args: unknown[]) => mock_captureException(...args) },
+  initSentry: () => false,
+}));
 jest.mock('../observability/analytics', () => ({
   track: (...args: unknown[]) => mock_track(...args),
   isAnalyticsEnabled: () => true,
@@ -149,20 +154,39 @@ describe('what a language change has to carry with it', () => {
     expect(mock_track).toHaveBeenCalledWith('language_changed', { locale: 'uk' });
   });
 
-  it('does no work when the choice resolves to the language already in force', () => {
+  it('re-renders nothing when the choice resolves to the language already in force', () => {
     changeLanguageAction('en');
     expect(mock_reRegisterNotificationCopy).not.toHaveBeenCalled();
-    expect(mock_updateProfileLocale).not.toHaveBeenCalled();
     expect(mock_track).not.toHaveBeenCalled();
   });
 
-  it('survives having no profile row yet (the welcome screen)', () => {
-    mock_updateProfileLocale.mockImplementation(() => {
-      throw new Error('no row');
+  it('still reconciles the profile row when the rendered language does not change', () => {
+    // An account that onboarded on an English phone and later followed the system into Ukrainian
+    // never crossed this function, so its row can be stale even for a no-op choice
+    // (adversarial pass, 2026-09-09).
+    changeLanguageAction('en');
+    expect(mock_updateProfileLocale).toHaveBeenCalledWith(expect.anything(), {
+      userId: 'user-1',
+      locale: 'en',
     });
+  });
+
+  it('reports a real profile-write failure instead of swallowing it', () => {
+    mock_updateProfileLocale.mockImplementation(() => {
+      throw new Error('base_version conflict');
+    });
+    expect(() => changeLanguageAction('uk')).not.toThrow();
+    expect(mock_captureException).toHaveBeenCalled();
+    // The language still applies — the row is a record, not a gate.
+    expect(getActiveLocale()).toBe('uk');
+  });
+
+  it('survives having no profile row yet (the welcome screen)', () => {
+    mock_updateProfileLocale.mockReturnValue(undefined);
     expect(() => changeLanguageAction('uk')).not.toThrow();
     expect(appStorage.getString(StorageKeys.language)).toBe('uk');
     expect(getActiveLocale()).toBe('uk');
+    expect(mock_captureException).not.toHaveBeenCalled();
   });
 
   it('an explicit English choice holds on a Ukrainian phone', () => {

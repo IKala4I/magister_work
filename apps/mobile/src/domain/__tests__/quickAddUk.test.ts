@@ -43,6 +43,35 @@ describe('durations', () => {
     expect(parsed.estMinutes).toBeNull();
     expect(parsed.title).toBe('купити 2 м кабелю');
   });
+
+  // «г» is the abbreviation for *gram*, not for година. Reading it as hours turned a shopping
+  // task into a 100-hour block the solver could never place (adversarial pass, 2026-09-09).
+  it.each([
+    ['купити 100 г кави', 'купити 100 г кави'],
+    ['500 г борошна', '500 г борошна'],
+  ])('«%s» keeps its grams and takes no estimate', (input, title) => {
+    const parsed = uk(input);
+    expect(parsed.estMinutes).toBeNull();
+    expect(parsed.title).toBe(title);
+  });
+
+  it('still reads «год» as hours', () => {
+    expect(uk('звіт 2 год').estMinutes).toBe(120);
+    expect(uk('звіт 2год').estMinutes).toBe(120);
+    expect(uk('звіт 1,5 години').estMinutes).toBe(90);
+  });
+
+  // «за 30 хвилин» is "in 30 minutes" — a deadline. It used to be masked by the duration grammar
+  // and read as a 30-minute estimate, leaving a dangling «за» in the title.
+  it.each([
+    ['відповісти за 30 хвилин', 30],
+    ['зробити за 2 години', 120],
+  ])('«%s» is a deadline, not an estimate', (input, minutesFromNow) => {
+    const parsed = uk(input);
+    expect(parsed.estMinutes).toBeNull();
+    expect(parsed.deadline).toEqual(new Date(MONDAY_10AM.getTime() + minutesFromNow * 60_000));
+    expect(parsed.title).not.toMatch(/за$/);
+  });
 });
 
 describe('deadlines', () => {
@@ -102,6 +131,14 @@ describe('ambiguity is surfaced, never guessed (UC-02 A1)', () => {
     if (ambiguity?.kind !== 'weekday_today_or_next') throw new Error('unreachable');
     expect(ambiguity.today).toEqual(localDate(2026, 8, 24, 23, 59));
     expect(ambiguity.nextWeek).toEqual(localDate(2026, 8, 31, 23, 59));
+  });
+});
+
+describe('a title that merely ends in a connector-shaped word keeps it', () => {
+  // The dangling-connector cleanup exists for «обід о 12» → «обід»; it must not fire when no
+  // date was parsed at all (adversarial pass, 2026-09-09).
+  it.each(['покласти книжку на', 'подарунок для Іри на', 'подумати про'])('«%s»', (input) => {
+    expect(uk(input).title).toBe(input);
   });
 });
 

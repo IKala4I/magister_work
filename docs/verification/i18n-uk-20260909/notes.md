@@ -11,7 +11,19 @@ tree, installed by `npx expo run:ios --configuration Release`. Four Maestro flow
 | `i18n-uk-a11y-sweep.yaml` | accessibility-XXXL | Today, Focus, Insights, Settings ×3, Inbox, quick add |
 | `i18n-uk-plan.yaml`       | accessibility-XXXL | a Ukrainian task → a real plan → block cards          |
 
-All four passed. One throwaway anonymous account on the hosted project; one plan request.
+All four passed; the JUnit file for each is committed beside these notes (`failures="0"` in all
+four). Throwaway anonymous accounts on the hosted project, and one plan request per run of the
+fourth flow.
+
+**The fourth flow depends on backend latency and was flaky at first.** `extendedWaitUntil` on the
+plan was set to 30 s; a request against an idle service took longer than that, the assertion fired
+early, and the flow failed while the plan itself arrived seconds later (the screen was correct when
+photographed by hand). The timeout is now 90 s — NFR-P1 is a _warm_ budget and this is a cold first
+request. Anyone re-running this should expect the first plan of a session to be the slow one.
+
+An earlier version of these notes said "all four passed" while only three JUnit files were
+committed, and the runner treats a plan-flow failure as non-fatal — so the claim rested on nothing a
+reader could check. Found by the adversarial pass; all four are now on file.
 
 **What it establishes.** The Ukrainian catalog renders on a real build, and on the swept surfaces
 nothing clips or overlaps at the largest iOS text size.

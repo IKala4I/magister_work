@@ -975,9 +975,12 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     **FR-11 — a limitation to retire, not to restate.** Any sentence resting on the hardware-pass
     note "chrono-node is English-only" (device-pass 2026-09-01 item 9, 2026-09-02 item 6) is false
     about the library: `chrono.uk` ships in the pinned 2.10.1 in upstream's full-support tier, and
-    quick-add now parses both languages. Residual gaps to state honestly instead: «за 30 хвилин»
-    and «цими вихідними» are unknown to the parser and fall back to the plain title, exactly as an
-    unrecognised English phrase does. See spec-conflicts L22.
+    quick-add now parses both languages. The residual gap to state honestly instead: «цими
+    вихідними» is unknown to the parser and falls back to the plain title, exactly as an
+    unrecognised English phrase does. Do not write that «за 30 хвилин» is a gap — an earlier draft
+    of this item said so, and it was wrong twice over: chrono does parse it, and our own duration
+    grammar was masking it into a 30-minute estimate. That was a defect, found by the adversarial
+    pass and fixed. See spec-conflicts L22.
 
     **Cold start — the one place the thesis must claim less, not more.** The rMEQ's five items stay
     in English in the Ukrainian interface, and the text should say why rather than pass over it:

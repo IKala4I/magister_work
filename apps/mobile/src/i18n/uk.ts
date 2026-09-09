@@ -599,7 +599,8 @@ export const ukPlurals: Record<PluralKey, PluralForms> = {
     other: 'Інший акаунт лишив на цьому пристрої {count} незбережених змін.',
   },
   'today.tomorrow.planned': {
-    one: 'Завтра заплановано: {count} блок о {time}.',
+    // `one` covers 21/31 as well, so it keeps the "first at" qualifier the other forms have.
+    one: 'Завтра заплановано: {count} блок, перший о {time}.',
     few: 'Завтра заплановано: {count} блоки, перший о {time}.',
     many: 'Завтра заплановано: {count} блоків, перший о {time}.',
     other: 'Завтра заплановано: {count} блоків, перший о {time}.',
@@ -611,7 +612,8 @@ export const ukPlurals: Record<PluralKey, PluralForms> = {
     other: 'Чекає {count} завдань.',
   },
   'inbox.undo.deleted': {
-    one: 'Завдання видалено',
+    // `one` covers 21/31/41 too, so it has to carry the number like the other forms.
+    one: 'Видалено {count} завдання',
     few: 'Видалено {count} завдання',
     many: 'Видалено {count} завдань',
     other: 'Видалено {count} завдань',

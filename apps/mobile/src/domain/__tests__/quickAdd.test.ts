@@ -181,3 +181,11 @@ describe('title extraction', () => {
     expect(parsed.parsed).toBe(true);
   });
 });
+
+describe('a title ending in a connector-shaped word keeps it (no date parsed)', () => {
+  // The cleanup exists for "lunch at noon" → "lunch"; with nothing parsed it used to eat the
+  // last word (adversarial pass, 2026-09-09).
+  it.each(['put the kettle on', 'sign the lease by', 'read up on'])('"%s"', (input) => {
+    expect(parseQuickAdd(input, MONDAY_10AM).title).toBe(input);
+  });
+});

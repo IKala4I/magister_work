@@ -560,5 +560,7 @@ analysis is part of that study (M9/#21 recomputed at the measured experiment rat
   "chrono-node is English-only". **Measured false** on the pinned 2.10.1: `chrono.uk` ships in
   upstream's full-support tier and parses «завтра о 15:00», «наступного вівторка», «через 2
   години», «25 грудня». The English-only property belonged to our configuration, not the library.
-  Both notes carry a dated correction; FR-11 is now bilingual (ADR-0023 §1.2), with «за 30 хвилин»
-  and «цими вихідними» as documented residual gaps.
+  Both notes carry a dated correction; FR-11 is now bilingual (ADR-0023 §1.2), with «цими
+  вихідними» as the documented residual gap. This entry first also listed «за 30 хвилин» as a gap;
+  the adversarial pass showed it was a defect instead — the duration grammar masked the phrase and
+  a deadline was read as a 30-minute estimate — and it is fixed, not documented.

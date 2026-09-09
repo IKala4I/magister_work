@@ -14,10 +14,11 @@ import { currentUserId } from '../auth/identity';
 import { db } from '../db/client';
 import { updateProfileLocale } from '../db/profile';
 import type { LocalDb } from '../db/writes';
-import type { LanguagePreference } from '../i18n';
+import { getActiveLocale, type CatalogLocale, type LanguagePreference } from '../i18n';
 import { runNotificationScheduler } from '../notifications/scheduler';
 import { reRegisterNotificationCopy } from '../notifications/setup';
 import { track } from '../observability/analytics';
+import { Sentry } from '../observability/sentry';
 import { applyLanguage, useLanguageStore } from '../state/language';
 import { scheduleSync } from '../sync/engine';
 
@@ -25,22 +26,44 @@ const localDb = db as unknown as LocalDb;
 
 /** Applies a language choice everywhere it is visible. Safe to call with the current choice. */
 export function changeLanguageAction(preference: LanguagePreference): void {
-  const before = useLanguageStore.getState().locale;
+  // `getActiveLocale()` rather than the store's copy: the store is the render-side mirror and
+  // starts at 'en' until `initLanguage()` runs, so reading it here would make the comparison
+  // depend on mount order.
+  const before = getActiveLocale();
   useLanguageStore.getState().setPreference(preference);
   const locale = applyLanguage(
     preference,
     getLocales().map((l) => l.languageCode),
   );
+
+  // Outside the early return below: the row can be stale even when the rendered language does not
+  // change — an account that onboarded on an English phone and later followed the system into
+  // Ukrainian never crossed this function until now.
+  recordLocaleOnProfile(locale);
   if (locale === before) return;
 
-  try {
-    updateProfileLocale(localDb, { userId: currentUserId(), locale });
-    scheduleSync('write');
-  } catch {
-    // No session or no profile row yet (the welcome screen): MMKV already holds the choice, and
-    // onboarding writes the locale when it creates the row.
-  }
   void reRegisterNotificationCopy();
   void runNotificationScheduler();
   track('language_changed', { locale });
+}
+
+/**
+ * Records the language actually being read on the profile row. Absent session or row is the
+ * ordinary case on the welcome screen and is ignored; anything else is a real write failure and
+ * is reported rather than swallowed, because a silent one leaves the row disagreeing with the
+ * screen forever.
+ */
+function recordLocaleOnProfile(locale: CatalogLocale): void {
+  let userId: string;
+  try {
+    userId = currentUserId();
+  } catch {
+    return; // no session yet — onboarding writes the locale when it creates the row
+  }
+  try {
+    if (updateProfileLocale(localDb, { userId, locale }) === undefined) return; // no row yet
+    scheduleSync('write');
+  } catch (error) {
+    Sentry.captureException(error);
+  }
 }

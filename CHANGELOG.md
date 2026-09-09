@@ -33,7 +33,7 @@
   because JavaScript's `\w` is ASCII and `\bдо\b` matches nothing at all. Apostrophes are folded
   to U+0027 for the parser's eyes only — `chrono.uk` accepts only the ASCII one, while Ukrainian
   keyboards produce U+02BC and autocorrect gives U+2019, so exactly what a person types would have
-  failed. Residual gaps, left as plain title text: «за 30 хвилин», «цими вихідними». — FR-11, UC-02
+  failed. Residual gap, left as plain title text: «цими вихідними». — FR-11, UC-02
 - **The boundary is stated in the app, not just in the thesis.** Settings carries "Що лишається
   англійською" (the survey, the user's own words, the technical records) in the Ukrainian UI only;
   the survey screen explains why its five items are English; and quick add now says when nothing

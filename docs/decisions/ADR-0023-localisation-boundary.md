@@ -51,8 +51,11 @@ This list is the deliverable, not a side effect. One line each.
    another one.
 2. **Natural-language quick-add — its residual limits, not the feature.** The feature is bilingual
    as of this decision. What stays English is the vocabulary the parser was never taught:
-   «за 30 хвилин», «цими вихідними» and free-form case endings fall back to the plain title,
-   exactly as an unrecognised English phrase does.
+   «цими вихідними» and free-form case endings fall back to the plain title, exactly as an
+   unrecognised English phrase does. (This line first also named «за 30 хвилин»; the adversarial
+   pass showed that was not a graceful fallback but a defect — the duration grammar masked it and
+   read a deadline as a 30-minute estimate, leaving a dangling «за» in the title. «за» is now a
+   deadline connector and the case is tested.)
 3. **Everything crossing the client↔server boundary.** Rationale keys, trade-off consequence
    metrics, unplaced reasons, degradation levels, engine tags, context buckets,
    category/daypart/day-type enums, analytics event names, model version strings, database enum

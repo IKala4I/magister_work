@@ -101,12 +101,16 @@ const GRAMMARS: Record<CatalogLocale, Grammar> = {
   },
   uk: {
     parser: chrono.uk.casual,
-    connectors: ['дедлайн', 'аж до', 'до', 'перед'],
-    // «2 год», «2год», «1,5 години», «90 хв», «1 год 30 хв». No bare «м» for minutes: it would
-    // swallow the metre in «2 м» and, with a following apostrophe, ordinary words too.
+    // «перед» is listed for completeness but never fires today: it governs the instrumental, and
+    // chrono.uk 2.10.1 does not parse instrumental weekday forms («перед п'ятницею» → no match).
+    connectors: ['дедлайн', 'аж до', 'до', 'перед', 'за'],
+    // «2 год», «2год», «1,5 години», «90 хв», «1 год 30 хв». No bare «м» for minutes — it would
+    // swallow the metre in «2 м» — and no bare «г» for hours, because «г» is the abbreviation for
+    // *gram*: «купити 100 г кави» must not become a 100-hour task.
     duration:
-      /(?:(\d+(?:[.,]\d+)?)\s*(?:годин[аиуою]?|год|г)(?![\p{L}]))?\s*(?:(\d+)\s*(?:хвилин[аиуою]?|хв)(?![\p{L}]))?/giu,
-    relativePrefix: /(?:^|\P{L})через\s*$/iu,
+      /(?:(\d+(?:[.,]\d+)?)\s*(?:годин[аиуою]?|год)(?![\p{L}]))?\s*(?:(\d+)\s*(?:хвилин[аиуою]?|хв)(?![\p{L}]))?/giu,
+    // Both «через 2 години» and «за 2 години» mean "from now" — a deadline, not an estimate.
+    relativePrefix: /(?:^|\P{L})(?:через|за)\s*$/iu,
     // Stems, so every case form counts: «п'ятниця», «у п'ятницю», «до п'ятниці».
     weekday: /^(?:[ву]\s+)?(понеділ|вівтор|серед|четвер|п'ятниц|субот|неділ)[\p{L}]*$/iu,
     dangling: /(?:^|\s)(?:до|перед|дедлайн|о|об|у|в|на)$/iu,
@@ -259,11 +263,15 @@ export function parseQuickAdd(
     .replace(/\s+([,.;:])/g, '$1')
     .trim();
   title = title.replace(/[,.;:\s]+$/g, '').trim();
-  // A connector left dangling by a consumed date span ("lunch at noon" → "lunch at").
-  title = title
-    .replace(grammar.dangling, '')
-    .replace(/[,.;:\s]+$/g, '')
-    .trim();
+  // A connector left dangling by a consumed date span ("lunch at noon" → "lunch at"). Only when
+  // a date span really was consumed: otherwise this eats the last word of an ordinary title
+  // («покласти книжку на», "put the kettle on").
+  if (preferred !== undefined) {
+    title = title
+      .replace(grammar.dangling, '')
+      .replace(/[,.;:\s]+$/g, '')
+      .trim();
+  }
 
   return {
     title,
