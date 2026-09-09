@@ -128,6 +128,12 @@ set-time` has no iOS twin short of the owner's Settings); the path is the same S
 12. **Restore (01:12).** WDA runner and forward stopped; `wed` hours back to `[540, 1080]`
     (5314); the account keeps its Wednesday plan (two requests in all). Final: plans 2,
     recommendations 17, tasks 26, events 30 — 3 completed, 2 skipped, 7 moved.
+13. **After the adversarial pass (2026-09-09 morning).** Build 3 carried the pre-fix arrival code
+    (ADR-0022 implementation note 5a): the 43 frames after the off-screen "Move here" in item 8
+    are the scroll; the arrival settle did not play on this build. Not re-run on the iPhone: iOS
+    has no frame tool to show it, the fix is pinned in jest (a deferred scroll with re-renders
+    in flight) and shown on the Pixel (Android item 18); the paint and order checks of items
+    8–10 are unaffected by the fix. The next iOS build carries `ac99dea`.
 
 ## Tooling lessons (kept in the scripts)
 

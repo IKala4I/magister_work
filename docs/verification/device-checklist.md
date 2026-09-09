@@ -137,8 +137,7 @@
   the tap, ≤ 15 frames at 60 fps (the 200 ms spring + one tick). Why: whether Reanimated's
   `layout` spring fires at all on FlashList's absolute-positioned recycled cells on Fabric is a
   native-renderer question; the simulator's frame pacing says nothing about it.
-  **Android ✅ 2026-09-08 (Pixel 7a, motion build `f5fdbe2`, 13-block list):** Done 11 frames /
-  183 ms, Skip 10 / 167, I did it 14 / 233 — one run each, 0 BLANK after every one, order intact
+  **Android ✅ 2026-09-08 (Pixel 7a, motion build `f5fdbe2`, 13-block list):** Done 11 frames / 183 ms and Skip 10 / 167 — one run each; I did it 14 frames / 233 ms in four short runs (a small height change dips under the tool's threshold mid-spring); 0 BLANK after every one, order intact
   (`device-pass/android-20260908-motion/notes.md` items 7, 8, 15). **iOS ✅ 2026-09-09 (iPhone
   12, build 3, 16-block list):** Done and Skip under an Animation Hitches trace — 15 frames after
   each tap, all one vsync apart, no hitch within 1.5 s of a tap; "I did it" not exercisable on
@@ -152,13 +151,9 @@
   tool makes). Why: the cell-key retention across a reorder and the mount-vs-rebind order after
   `scrollToIndex` are FlashList internals whose behaviour on device is the claim.
   **Android ✅ 2026-09-08:** on-screen move 12 frames / 200 ms (the cell travelled two rows);
-  off-screen move 19 frames / 317 ms (scroll + arrival settle, one window; the moved card at
-  30 % of the viewport, "Moved"); a same-slot move: caption only, no travel; 0 BLANK, order
-  correct (items 9, 10, 13). The owner's-eyes judgement is still open on both phones.
+  off-screen move: the scroll 17–19 frames, and on the fixed build `ac99dea` the arrival settle as a separate 7-frame run on the arrived card (item 18; the first build never played it — adversarial pass #1); a same-slot move: caption only, no travel; 0 BLANK, order correct (items 9, 10, 13, 18). The owner's-eyes judgement is still open on both phones.
   **iOS ✅ 2026-09-09:** on-screen move (11:00 → 12:15, one row down) and off-screen move (11:45
-  → 18:00: the list scrolled, the card landed at ≈ 54 % of the viewport) under the trace — 43
-  frames at one vsync across the scroll + settle, no hitch; a same-slot move: caption only
-  (iOS items 8, 9). Per-transition frame counts exist only for Android (no `screenrecord` on iOS).
+  → 18:00: the list scrolled, the card landed at ≈ 54 % of the viewport) under the trace — 43 frames at one vsync across the scroll, no hitch; a same-slot move: caption only (iOS items 8, 9). The arrival settle itself is not established on iOS: build 3 carried the pre-fix code and iOS has no frame tool (iOS item 13). Per-transition frame counts exist only for Android (no `screenrecord` on iOS).
 - ⬜ **Reduced motion: every one of the five interactions changes the screen in ONE frame.**
   Android: `settings put global transition_animation_scale 0` — the switch React Native reads
   (`AccessibilityInfoModule.kt`: `TRANSITION_ANIMATION_SCALE`, with a content observer; the

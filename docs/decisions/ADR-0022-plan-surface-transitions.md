@@ -116,8 +116,24 @@ read in the installed packages, not a change of decision.
    move by id **and** slot. A stale row — a sync pull carrying the old slot inside the window —
    is never mistaken for the move (pinned in `timeline.test.tsx`).
 
-Constants as shipped: `LAYOUT_SETTLE_MS` 350, `SETTLE_TRIGGER_WINDOW_MS` 400, arrival pose
-8 px below / scale 0.97, `MOVED_VIEW_POSITION` 0.3.
+5. **Adversarial pass (2026-09-09, fresh-context subagent) — four fixes (`ac99dea`).** (a) MAJOR:
+   the effect that issued `scrollToIndex` cancelled its pending promise in the cleanup, and the
+   settle window closing at 350 ms (or any pull / clock tick) re-rendered the timeline before
+   FlashList's stepped scroll resolved (≈ 300–450 ms) — the arrival settle never played; the
+   Pixel's first off-screen recording (item 10 of the Android notes, one 19-frame run) is the
+   scroll alone. The promise is now cancelled only by unmount or a newer move (refs). (b)
+   `useSettle` wrote the shared value during render (Reanimated strict mode); the rebind reset
+   moved into the layout effect — still before the next presented frame, which is the honest
+   wording of the rule. (c) A block rebound to another cell inside the trigger window replayed
+   its arrival; a module-level registry of settled stamps per key plays each arrival once. (d)
+   `moved` never cleared; it is dropped after `MOVE_PENDING_MS` (3 s) and on a new plan.
+   Recorded observation, no fix: `computeVisibleIndices` uses estimated layouts for unmeasured
+   rows, so a destination near the fold can be judged on screen and travel to a partly hidden
+   slot, and `scrollToIndex` lands near rather than at `viewPosition` (the iPhone landed at
+   ≈ 54 % for a 0.3 ask).
+
+Constants as shipped: `LAYOUT_SETTLE_MS` 350, `SETTLE_TRIGGER_WINDOW_MS` 400, `MOVE_PENDING_MS`
+3000, arrival pose 8 px below / scale 0.97, `MOVED_VIEW_POSITION` 0.3.
 
 ### The rule (goes into the card's header comment too)
 
@@ -207,16 +223,13 @@ Evidence: `docs/verification/device-pass/android-20260908-motion/notes.md` (17 i
   An `Animated.View` per cell costs nothing measurable.
 - **The transitions fire on Fabric with FlashList's absolute cells** (the first device eye):
   Pixel — Done 11 frames (183 ms), Skip 10 (167), I did it 14 (233), on-screen move 12 (200),
-  off-screen move 19 (317: the scroll and the arrival settle in one window), same-slot move
-  caption only; iPhone — 15 frames at one vsync after Done and Skip, 43 across the off-screen
-  scroll + settle, no hitch within 1.5 s of any tap (the five hitches of that trace sit at the
+  off-screen move: the scroll 17–19 frames, then — on the fixed build `ac99dea`, after the adversarial pass — the arrival settle as its own 7-frame run on the arrived card (the first build never played it; see the implementation notes), same-slot move caption only; iPhone (build 3, which carried the pre-fix arrival code) — 15 frames at one vsync after Done and Skip, 43 across the off-screen scroll, no hitch within 1.5 s of any tap; the arrival settle on iOS is pinned in jest, not observed on the device (the five hitches of that trace sit at the
   WDA scans between interactions). No fallback worklet was needed.
-- **Reduced motion.** Pixel: one frame per interaction — under `transition_animation_scale 0`,
+- **Reduced motion.** Pixel: one frame for Done and Skip, and for each move two single frames a tick apart (the panel closing, then the reorder on the SQLite change event) — under `transition_animation_scale 0`,
   the switch React Native reads (the animator scale the dialog pass used is never consulted;
   revisit.md). iPhone: held by the accessibility daemon, verified by a second client — captions,
   order and paint correct on Done / Skip / both moves; iOS has no frame counter.
-- **No invisible state.** 0 BLANK in every after-scan on both phones (Android 15 recorded
-  interactions, iOS 10); the block order as expected every time; two interrupt tests on the
+- **No invisible state.** 0 BLANK in every after-scan on both phones (Android 15 recorded interactions, iOS 9 with evidence); the block order as expected every time; two interrupt tests on the
   Pixel (a fling 90 ms after Done; two Dones 200 ms apart) left no cell off its slot and logged
   every intended fact.
 - **Not established here:** per-transition frame counts on iOS (no `screenrecord`; the
@@ -241,8 +254,7 @@ Evidence: `docs/verification/device-pass/android-20260908-motion/notes.md` (17 i
   `prepareForLayoutAnimationRender`, Reanimated layout springs — verified 2026-09-08), the
   Ukrainian explainer section, HANDOFF.
 - Tests: `layoutTransitionFor` (undefined at 0; token duration/ratio otherwise); `useSettle`
-  through a probe (plays on a fresh trigger and settles under 250 ms; **a key change resets to
-  rest on the same frame**; a stale trigger never plays; at rest on the first frame under
+  through a probe (plays on a fresh trigger and settles under 250 ms; **a key change resets to rest before the next presented frame**; a stale trigger never plays; at rest on the first frame under
   reduced motion; no `opacity` key); Timeline (context undefined outside the window, a
   transition inside; the moved index found; `animated: false` under reduced motion); Today
   (the window opens on done/skip/did_it/move and closes after `LAYOUT_SETTLE_MS`; move sets

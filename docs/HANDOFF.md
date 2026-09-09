@@ -2,92 +2,70 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-08 (late evening) — **the iPhone pass is CLOSED (PRs #57, #58) and the
-> thesis hardware-pass section is merged (PR #59, `fdff809`).** The next phase is
-> **`post-p12/motion`** (this branch, created from `fdff809`): close File 02 §3.4 / spec-conflicts
-> L42 with two transitions on the Today timeline. The plan was agreed with the owner on
-> 2026-09-08 and is written as **`docs/decisions/ADR-0022-plan-surface-transitions.md`**
-> (status: proposed) — read it first, in full; it is the spec for this phase. Nothing of it is
-> implemented yet.
+> Last update: 2026-09-09 (00:10) — **post-p12/motion, mid-phase.** The two transitions of
+> ADR-0022 are built, tested in jest and **verified on the Pixel 7a** (commits `f5fdbe2` code,
+> `35d3059` Android evidence + tools). The iPhone half is in progress: the baseline build of
+> main was compiling when this was written. Read ADR-0022 (now with "Implementation notes"),
+> `docs/verification/device-pass/android-20260908-motion/notes.md` (17 items + tooling lessons)
+> and this section; nothing else is needed to continue.
 
-## Next phase — post-p12/motion (start here)
+## Where the motion phase stands (2026-09-09)
 
-**Read before coding (in this order, addressably):** ADR-0022 (all of it) · CLAUDE.md
-invariants 2, 14 and "Simulator evidence" · `apps/mobile/src/ui/dialog/DialogHost.tsx` lines
-17–30 and 91–170 (the motion pattern to copy: `motionRef`, `animateTo`, duration-0 assignment)
-· `apps/mobile/src/ui/tokens/motion.ts` · `apps/mobile/src/ui/plan/Timeline.tsx` ·
-`apps/mobile/src/ui/plan/RecommendationCard.tsx` · `apps/mobile/app/(tabs)/index.tsx` (`onAction`
-at ~236, the `<Timeline>` render at ~559, the move confirm at ~548) ·
-`apps/mobile/src/ui/dialog/__tests__/dialog.test.tsx` lines 313–330 (the jest motion harness) ·
-`docs/verification/device-pass/android-20260905-1725-build6/notes.md` item 9 (the 13-block
-recipe) · `docs/verification/device-pass/android-20260902-1030/notes.md` item 11 (the gfxinfo
-series) · `docs/verification/hw-blank-cards-sweep.sh` + `hw-blank-cards.py` (the detector) ·
-`docs/verification/device-checklist.md` NFR-P2 rows (corrected wording, lines ~22–30 and ~40).
-File 02 §3.4 is four lines (`specs/02*.md` line 68–71) — nothing else in `specs/` is needed.
+**Done (Android, all on the same 13-block plan):** NFR-P2 equal before/after (1825 / 1824
+frames, 1 janky, p99 10 ms); Done 11 frames, Skip 10, I did it 14, on-screen move 12,
+off-screen move 19 (scroll + settle), same-slot move caption-only; reduced motion → 1 frame
+each on **`transition_animation_scale 0`** (the switch React Native reads — the animator scale
+is never consulted; the dialog pass's row was on the wrong switch: revisit.md 2026-09-09, the
+checklist row reworded); 0 BLANK after every interaction; two interrupt tests clean. Records
+written with the evidence: checklist (six new rows, Android ✅, iOS ⬜), versions.md, revisit.
+**Not yet:** the iOS half; the closing records (File 02 §3.4 amendment, spec-conflicts L42
+closure, revisit 2026-09-06 row → DONE, corrections #61 + rollup, ADR-0022 status → accepted,
+traceability device columns, CHANGELOG line for the pass, explainer paragraph with the numbers,
+PLAN status); the adversarial subagent pass; the PR.
 
-**Decisions already made (do not re-open):** ship **S1** (Done / Skip / I did it → the list
-settles) and **S2** (Move → the block travels or the list scrolls to it + arrival settle);
-**S3 (plan-applied entrance) is dropped as decoration** — the owner's steer: "settled, not busy";
-the leave-alone list is in the ADR; the **no-invisible-state rule** (transforms only, never
-opacity, synchronous reset on rebind, no entering/exiting); the settle-window gate on the cell
-`layout` prop; the **NFR-P2 baseline correction** (8-block Pixel / 7-block iPhone are what was
-measured; the 13-block list has no frame stats — the checklist rows already say so). The owner
-does not referee the rest (constants, the fallback worklet, test mechanics).
+**Exact next actions (this branch):**
 
-**Exact next actions (one session, this branch):**
-
-1. `pnpm install` is not needed (no new packages). Implement per ADR-0022 "Mechanism":
-   `src/ui/motion.ts` (`layoutTransitionFor`, `useSettle`, the two constants) → `Timeline.tsx`
-   (stable `CellRendererComponent` + context, ref, `scrollToIndex` effect, props) →
-   `RecommendationCard.tsx` (the settle wrapper + the rule in the header comment) →
-   `app/(tabs)/index.tsx` (motion once per screen, `settleUntil`, `movedId/movedAt`,
-   `prepareForLayoutAnimationRender()` before the move write). Tests as listed in the ADR
-   "Consequences"; gates: `pnpm typecheck · lint · format:check · test`, `npx expo-doctor`.
-   Commit as `feat(ui): …` with `Refs: NFR-A2, UC-07, FR-23` and `Phase: post-P12 (motion)`.
-2. Write `docs/verification/hw-motion-frames.py` (mp4/mov → per-frame mean absolute change in a
-   crop → the run of changed frames after a tap = transition length; one tool for both phones)
-   — replaces the ad-hoc brightness method of the dialog evidence.
-3. **Hardware, both phones attached (they are: Pixel 7a `39131JEHN07217` over adb, iPhone 12
-   `00008101-0015081602F1003A` paired and connected):** follow ADR-0022 "Verification protocol"
-   in its order — Pixel baseline (build of main) → Pixel motion build → iPhone baseline → iPhone
-   build 3. Evidence directory: `docs/verification/device-pass/android-20260908-motion/notes.md`
-   and `ios-20260908-motion/notes.md` (numbered items, the day-notes style). App-filtered
-   extracts only; raw recordings and logs stay in scratch.
-4. Records in the same commits (ADR-0022 "Consequences"): accept ADR-0022; File 02 §3.4
-   amendment; spec-conflicts L42 closure; revisit row DONE; corrections #61 amended + rollup;
-   checklist rows (transitions + the NFR-P2 before/after numbers); traceability; CHANGELOG;
-   versions.md; the Ukrainian explainer section; HANDOFF.
-5. Adversarial pass in a fresh-context subagent (the list in the ADR), fix, re-verify what the
-   phones can settle, phase report, PR `post-p12/motion` → main (`gh pr create`, auto-merge
-   armed **once**), `HANDOFF WRITTEN — safe to /clear`.
+1. **iPhone baseline (main `fdff809`)** — the build was started from the tree with main's
+   `apps/mobile/app` + `src` checked out (`git checkout fdff809 -- apps/mobile/app apps/mobile/src`;
+   restore with `git checkout HEAD -- …` **after** the build — the JS bundle is produced during
+   xcodebuild). Command that works: `SENTRY_DISABLE_AUTO_UPLOAD=true npx expo run:ios --device
+00008101-0015081602F1003A --configuration Release --no-bundler` from `apps/mobile`, prebuild
+   already done (`expo prebuild --clean --platform ios`, 00:05), phone unlocked, WDA runner and
+   live syslog stopped. Gate: `hw-build-gate-ios.sh`. Log: session scratch `build-ios-baseline.log`.
+2. Runner up (`uvx --from pymobiledevice3 pymobiledevice3 developer dvt xcuitest
+com.hourwell.wda.xctrunner` in the background + `… usbmux forward 8100 8100`; then
+   `hw-ios-wda.py session`), onboarding over WDA (day-1 recipe, item 4), tasks: 25 × 30 min
+   via `hw-seed-tasks.mjs --user <uuid> 25 --minutes 30`; the profile-zone-only variant first
+   (`hw-set-profile-timezone.mjs America/Los_Angeles`, `hw-set-working-hours.mjs` for the day
+   to 1440, sleep window to `[1425,420]` if needed — the Pixel needed it for the 13th block);
+   if < 10 blocks, the device zone is the owner's step. Plan requests: 3–4, never a loop.
+3. xctrace Animation Hitches attached across 20 s of WDA drags inside the list (never bound the
+   save) → the `hitches` table; then build 3 (branch, runner STOPPED), gate, the same drags →
+   hitches; then the five interactions through WDA taps with `hw-ios-paint.py` (new: cards in
+   the XCUITest tree vs the pixels, + the block order) after each; the wheel picker via
+   `hw-ios-wda.py set` (day-1 item 13); reduce motion via `hw-ios-ax.py hold REDUCE_MOTION=1
+--seconds N` in the background → the same five → instant. Timing on iOS only from an
+   owner-started QuickTime USB recording (optional) analysed with `hw-motion-frames.py`.
+4. Notes: `device-pass/ios-20260909-motion/notes.md` (skeleton written). Then the closing records
+   (list above), the Ukrainian explainer paragraph with both phones' numbers, CHANGELOG, PLAN,
+   HANDOFF; adversarial subagent (ADR list); phase report; PR `post-p12/motion` → main.
 
 **⛔ Owner steps (one per turn):** (1) keep the iPhone unlocked on the cable during each
-build/install, WDA runner and live syslog stopped (they hold the CoreDevice connection); (2)
-if the profile-zone-only variant yields < 10 blocks on the iPhone, flip the device zone in
-Settings → General → Date & Time (America/Los_Angeles) for the 13-block scroll, back afterwards;
-(3) look at Move / Done / Skip on each phone and say whether the move reads as _that block going
-there_ — the one judgement no tool makes; (4) optional: a QuickTime USB screen recording of the
-iPhone (File → New Movie Recording → iPhone) for the transition timing (iOS has no
-`screenrecord`); (5) Auto-Lock back to the usual value is still open from the iPhone pass.
+build/install (it was unlocked at 00:03; Auto-Lock is still on the pass's value); (2) if the
+profile-zone-only variant gives < 10 blocks, flip the device zone in Settings → General → Date
+& Time to Los Angeles for the scroll, back afterwards; (3) look at Move / Done / Skip on each
+phone and say whether the move reads as _that block going there_; (4) optional QuickTime USB
+recording of the iPhone for the transition timing; (5) Auto-Lock back to the usual value.
 
-**Phones' state at the handoff:** Pixel — build 8 (`9593903`, 2026-09-06), welcome screen, no
-account, OS state restored (font 1.0, animator 1, TalkBack off). iPhone 12 — build 2
-(`36b297c`), welcome screen, no account. Both need onboarding + tasks + a plan (scripted: adb
-`input`; WDA `hw-ios-wda.py`). Every plan request counts toward the 30/24 h limit — three or
-four per phone, never a loop. **The iOS simulator shares the hosted project** — keep it closed
-during the pass so "newest account" reads are unambiguous.
-
-**Gotchas for this phase (new):** a `CellRendererComponent` defined inside Timeline's render
-remounts every cell on every render — module scope + context, never a closure; a `layout` prop
-left on permanently animates FlashList's recycle jumps during scroll ("flying cells") — hence the
-window; `entering`/`exiting` hold a view at opacity 0 and misfire under recycling — banned by
-the rule; the SQLite change event lands on the tick after the write, so the window opened in
-the press handler is registered one commit before the rows change (if the device shows no
-transition, the fallback is the gated custom worklet, ADR-0022); `uiautomator dump` fails while
-anything animates — dump after the 350 ms window; `input swipe` must start inside the list
-(y > 490 on the Pixel); never `KEYCODE_BACK` on the Today root; `xctrace` saves must never be
-bounded by a timeout; the 13-block recipe's zone shift is on the _profile_ (server) and the
-device — on iOS try the profile alone first.
+**Gotchas (this phase, both phones):** never send input without a foreground check (a blind
+tap reached a chat app the owner had in front — the drivers now refuse); `uiautomator` bounds
+invert for a clipped card (read document order; skip inverted buttons); scope regexes to a
+widget class (`^10$` matched the time dialog's header, not the clock face); wait 2 s after a
+native dialog closes before the next tap; size recordings for the step count (a locate dump
+costs ≈ 2 s); pass driver steps as argv, never through a double-quoted shell string; RN reads
+`TRANSITION_ANIMATION_SCALE` for reduce motion; the 13th block on a 13:15–23:00 window needs
+the sleep window past 23:00; a `moveBlockAction` mock must return a row (the screen reads the
+slot the write produced).
 
 ---
 

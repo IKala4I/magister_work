@@ -23,15 +23,18 @@
   module-scope `TimelineCell` + `CellLayoutContext`, the `moved` prop and the scroll; the
   card's `settleAt`. 23 new jest cases (motion, timeline, today, card).
 - **Verified on both phones (Pixel 7a 2026-09-08, iPhone 12 2026-09-09):** the transitions
-  fire on Fabric with FlashList's absolute cells — Pixel 11 / 10 / 14 / 12 / 19 frames for
-  Done / Skip / I did it / on-screen move / off-screen move (incl. the scroll), one frame each
-  under reduced motion, 0 BLANK and correct order after every interaction, NFR-P2 equal before
+  fire on Fabric with FlashList's absolute cells — Pixel 11 / 10 / 14 / 12 frames for Done / Skip / I did it / on-screen move, an off-screen move as a 17–19-frame scroll followed (on the fixed build) by a 7-frame arrival settle, one frame each under reduced motion (two single frames for a move), 0 BLANK and correct order after every interaction, NFR-P2 equal before
   and after on the same 13-block list; iPhone hitch-free through every interaction, 8 = 8
   hitches on a 16-block scroll series. Two findings recorded: React Native reads
   `transition_animation_scale` for reduce motion on Android (the dialog pass used the animator
   scale); the Experiment card's action row wraps on the iPhone 12. Tools: `hw-motion-frames.py`,
   `hw-motion-drive.py`, `hw-scroll-frames.sh`, `hw-ios-hitches.sh`, `hw-ios-paint.py`,
   `hw-ios-motion-drive.py`, `hw-set-profile-timezone.mjs`.
+- **Adversarial pass (fresh-context subagent) → `ac99dea`:** the arrival settle after an
+  off-screen move could not play (the pending scroll was cancelled by any re-render, and the
+  settle window closing is one) — fixed and re-verified on the Pixel (a separate 7-frame settle
+  after the 17-frame scroll); no shared-value write during render; one arrival per stamp; a
+  stale `moved` dropped after 3 s and on a new plan. iOS build 3 carried the pre-fix code.
 
 ## Post-P12 — iPhone pass fix batch → build 2 (2026-09-08, post-p12/iphone-pass)
 

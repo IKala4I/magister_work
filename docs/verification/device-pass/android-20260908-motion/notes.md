@@ -126,6 +126,26 @@ America/Los_Angeles` (13:18 PDT); `am force-stop` → `am start -W` 794 ms. "Pla
     `Europe/Kiev` (5206), `tue` `[540, 1080]` (5207), `sleep_window` `[1380, 420]` (5208). Final
     account: 4 plans, 37 recommendations, 56 events — 6 completed, 3 skipped, 7 moved, 1
     corrected; every fact intended, none stray (item 4's tap reached no Hourwell control).
+18. **Re-verification after the adversarial pass (2026-09-09 07:24–07:31, build `ac99dea`,
+    APK `82a852023d00a86d…`, gate ✓, installed over the motion build with the account kept).**
+    The reviewer showed that the arrival settle could not play on the first build: the effect
+    that issued `scrollToIndex` cancelled its promise in the cleanup, and the 350 ms settle
+    window closing re-rendered the timeline before FlashList's stepped scroll resolved — so
+    item 10's single 19-frame run was the scroll alone. Today's plan came from the `new_day`
+    trigger on launch (04:24 UTC, 12 blocks 9:00 AM–5:45 PM Kyiv, request 5 on this account).
+    A first run (07:25) was a same-slot move by my own tooling fault (the shell expanded `$#`
+    inside a heredoc again — the hour/minute steps never ran; the block read "Moved" at 9:00 AM,
+    caption only, 8 frames of rows settling; `block_moved` logged). **The off-screen move on the
+    fixed build (07:27, 06 deep 9:45 AM → 4:30 PM, "Move here" at 24.53 s):** the list crop shows
+    the scroll as **17 frames / 283 ms** (24.70–24.98 s) and then, starting 0.33 s after the
+    scroll began, **a second run of 7 frames / 117 ms (25.03–25.15 s)** that the arrived card's
+    own rect also shows (mean change 7.4, peak 14.1 — concentrated in that card): the arrival
+    settle, playing once the scroll lands (the spring's 250 ms tail dips under the threshold
+    after ≈ 7 frames, the pose being 8 px / 3 %). The first build's recording had no such
+    second run. The card landed at 1016–1480 px (≈ 42–62 % of the viewport, before "07 learning"
+    at the same 4:30 PM start), "Moved", 0 BLANK in 6 scans, order correct. **Done on the fixed
+    build (07:30, 14 deep 3:00 PM):** 9 frames / 150 ms + 1 — S1 unchanged by the refactor; 0
+    BLANK; order correct. Server after: 73 events, 6 completed, 9 moved.
 
 ## Tooling lessons (kept in the scripts)
 
