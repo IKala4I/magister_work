@@ -2,70 +2,70 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-09 (00:10) — **post-p12/motion, mid-phase.** The two transitions of
-> ADR-0022 are built, tested in jest and **verified on the Pixel 7a** (commits `f5fdbe2` code,
-> `35d3059` Android evidence + tools). The iPhone half is in progress: the baseline build of
-> main was compiling when this was written. Read ADR-0022 (now with "Implementation notes"),
-> `docs/verification/device-pass/android-20260908-motion/notes.md` (17 items + tooling lessons)
-> and this section; nothing else is needed to continue.
+> Last update: 2026-09-09 (07:40) — **post-p12/motion is DONE: PR #60 open with auto-merge
+> armed** (`post-p12/motion` → main; merges when the six CI checks pass). File 02 §3.4 is closed
+> on the plan surface (spec-conflicts L42), ADR-0022 accepted with the hardware results from
+> both phones, the adversarial pass's four fixes in (`ac99dea`) and re-verified on the Pixel.
+> Nothing is pending on either phone. Next phase: none decided — the candidates are in
+> `docs/decisions/revisit.md` (the Experiment card's wrapped action row on the iPhone 12 is the
+> newest; the Inbox undo-bar transition was named "next candidate" in ADR-0022's inventory).
 
-## Where the motion phase stands (2026-09-09)
+## What the motion phase established (2026-09-08 → 09)
 
-**Done (Android, all on the same 13-block plan):** NFR-P2 equal before/after (1825 / 1824
-frames, 1 janky, p99 10 ms); Done 11 frames, Skip 10, I did it 14, on-screen move 12,
-off-screen move 19 (scroll + settle), same-slot move caption-only; reduced motion → 1 frame
-each on **`transition_animation_scale 0`** (the switch React Native reads — the animator scale
-is never consulted; the dialog pass's row was on the wrong switch: revisit.md 2026-09-09, the
-checklist row reworded); 0 BLANK after every interaction; two interrupt tests clean. Records
-written with the evidence: checklist (six new rows, Android ✅, iOS ⬜), versions.md, revisit.
-**Not yet:** the iOS half; the closing records (File 02 §3.4 amendment, spec-conflicts L42
-closure, revisit 2026-09-06 row → DONE, corrections #61 + rollup, ADR-0022 status → accepted,
-traceability device columns, CHANGELOG line for the pass, explainer paragraph with the numbers,
-PLAN status); the adversarial subagent pass; the PR.
+**Shipped (`f5fdbe2` + `ac99dea`):** S1 — after Done / Skip / I did it the rows settle on a cell
+`layout` spring registered for a 350 ms window; S2 — a moved block travels, or the list scrolls to
+it and the arrived card plays a transform-only settle once. The rule (no invisible state on a
+control-bearing surface) sits in the card header and the ADR. 26 new jest cases (609 total).
 
-**Exact next actions (this branch):**
+**Measured:** Pixel 7a, the same 13-block plan under a build of main and the motion build —
+NFR-P2 equal (1825 / 1824 frames, 1 janky, p99 10 ms); Done 11 frames, Skip 10, I did it 14,
+on-screen move 12, off-screen move = a 17–19-frame scroll then (fixed build) a 7-frame arrival
+settle; one frame per interaction under reduced motion **on `transition_animation_scale 0`**;
+0 BLANK and correct order after every one; two interrupt tests clean. iPhone 12, a 16-block
+plan — NFR-P2 8 = 8 hitches (847 / 807 frames); every interaction hitch-free; Reduce Motion via
+the daemon hold verified by a second client. Evidence:
+`docs/verification/device-pass/android-20260908-motion/notes.md` (18 items),
+`ios-20260909-motion/notes.md` (13 items); the checklist rows carry the numbers.
 
-1. **iPhone baseline (main `fdff809`)** — the build was started from the tree with main's
-   `apps/mobile/app` + `src` checked out (`git checkout fdff809 -- apps/mobile/app apps/mobile/src`;
-   restore with `git checkout HEAD -- …` **after** the build — the JS bundle is produced during
-   xcodebuild). Command that works: `SENTRY_DISABLE_AUTO_UPLOAD=true npx expo run:ios --device
-00008101-0015081602F1003A --configuration Release --no-bundler` from `apps/mobile`, prebuild
-   already done (`expo prebuild --clean --platform ios`, 00:05), phone unlocked, WDA runner and
-   live syslog stopped. Gate: `hw-build-gate-ios.sh`. Log: session scratch `build-ios-baseline.log`.
-2. Runner up (`uvx --from pymobiledevice3 pymobiledevice3 developer dvt xcuitest
-com.hourwell.wda.xctrunner` in the background + `… usbmux forward 8100 8100`; then
-   `hw-ios-wda.py session`), onboarding over WDA (day-1 recipe, item 4), tasks: 25 × 30 min
-   via `hw-seed-tasks.mjs --user <uuid> 25 --minutes 30`; the profile-zone-only variant first
-   (`hw-set-profile-timezone.mjs America/Los_Angeles`, `hw-set-working-hours.mjs` for the day
-   to 1440, sleep window to `[1425,420]` if needed — the Pixel needed it for the 13th block);
-   if < 10 blocks, the device zone is the owner's step. Plan requests: 3–4, never a loop.
-3. xctrace Animation Hitches attached across 20 s of WDA drags inside the list (never bound the
-   save) → the `hitches` table; then build 3 (branch, runner STOPPED), gate, the same drags →
-   hitches; then the five interactions through WDA taps with `hw-ios-paint.py` (new: cards in
-   the XCUITest tree vs the pixels, + the block order) after each; the wheel picker via
-   `hw-ios-wda.py set` (day-1 item 13); reduce motion via `hw-ios-ax.py hold REDUCE_MOTION=1
---seconds N` in the background → the same five → instant. Timing on iOS only from an
-   owner-started QuickTime USB recording (optional) analysed with `hw-motion-frames.py`.
-4. Notes: `device-pass/ios-20260909-motion/notes.md` (skeleton written). Then the closing records
-   (list above), the Ukrainian explainer paragraph with both phones' numbers, CHANGELOG, PLAN,
-   HANDOFF; adversarial subagent (ADR list); phase report; PR `post-p12/motion` → main.
+**Adversarial pass (fresh-context subagent, 2026-09-09):** MAJOR — the arrival settle could not
+play on the first build (the pending `scrollToIndex` was cancelled by any re-render; the settle
+window closing is one) → fixed (cancel only on unmount / a newer move), pinned by a deferred-
+scroll test, re-verified on the Pixel; plus no shared-value write during render, one arrival per
+stamp (a module-level registry), a stale `moved` dropped after 3 s and on a new plan. The
+reviewer's record mismatches are fixed. iOS build 3 carries the pre-fix code (recorded).
 
-**⛔ Owner steps (one per turn):** (1) keep the iPhone unlocked on the cable during each
-build/install (it was unlocked at 00:03; Auto-Lock is still on the pass's value); (2) if the
-profile-zone-only variant gives < 10 blocks, flip the device zone in Settings → General → Date
-& Time to Los Angeles for the scroll, back afterwards; (3) look at Move / Done / Skip on each
-phone and say whether the move reads as _that block going there_; (4) optional QuickTime USB
-recording of the iPhone for the transition timing; (5) Auto-Lock back to the usual value.
+**Findings beside the claim (recorded, not fixed):** React Native reads
+`TRANSITION_ANIMATION_SCALE` for reduce motion on Android — the dialog pass's row used the
+animator scale (revisit.md, checklist row reworded); the Experiment card's action row wraps on
+the iPhone 12 (revisit.md + a checklist row); `hw-account-reads.mjs --latest` means the newest
+auth row, not the newest onboarding.
 
-**Gotchas (this phase, both phones):** never send input without a foreground check (a blind
-tap reached a chat app the owner had in front — the drivers now refuse); `uiautomator` bounds
-invert for a clipped card (read document order; skip inverted buttons); scope regexes to a
-widget class (`^10$` matched the time dialog's header, not the clock face); wait 2 s after a
-native dialog closes before the next tap; size recordings for the step count (a locate dump
-costs ≈ 2 s); pass driver steps as argv, never through a double-quoted shell string; RN reads
-`TRANSITION_ANIMATION_SCALE` for reduce motion; the 13th block on a 13:15–23:00 window needs
-the sleep window past 23:00; a `moveBlockAction` mock must return a row (the screen reads the
-slot the write produced).
+**Open owner items (none block anything):** (1) look at Move / Done / Skip on each phone and
+say whether the move reads as _that block going there_ — the one judgement no tool makes; (2)
+Auto-Lock back to the usual value on the iPhone (still on the pass's value); (3) the Mac's disk
+— 22 GB free after the session removed 7 GB of xctrace temp files and the owner cleared more;
+`~/Library/Developer/Xcode/iOS DeviceSupport` (14 GB), Xcode caches, simulators remain the big
+items; (4) optional: an iOS build with `ac99dea` if the arrival settle should be seen on the
+iPhone (jest-pinned; no frame tool there).
+
+**Phones' state:** Pixel — the fixed motion build (`82a852023d00a86d…`), account `edc05c5d…`
+with a 12-block Wednesday plan (throwaway; five requests on it), Kyiv zone, auto time, animation
+scales 1, font 1.0, Today on screen. iPhone 12 — build 3 (`7a3063f9…`), account `6c2e88b5…` with
+a 16-block Wednesday plan, Reduce Motion off, WDA runner and forward stopped, unlocked on the
+cable at the handoff.
+
+**Tools this phase left in `docs/verification/`:** `hw-motion-frames.py` (video → change runs
+in a crop), `hw-motion-drive.py` (Android: record + drive + paint/order, foreground guard,
+class-scoped finds, `tapxy`), `hw-scroll-frames.sh` (the gfxinfo series), `hw-set-profile-
+timezone.mjs`, `hw-ios-hitches.sh` (trace → hitches / lifetimes / GPU), `hw-ios-paint.py`,
+`hw-ios-motion-drive.py` (coordinate taps, auto-scroll, settled-rect wait); `hw-ios-wda.py
+session` now turns XCUITest's idle waits off. Gotchas are listed at the end of each notes file
+— the two that bit hardest: never pass driver steps through a double-quoted shell string
+(`$#` and `$` mangle), and delete `$TMPDIR/instruments*.ktrace` after every xctrace run.
+
+**Exact next actions:** none for this branch after PR #60 merges (check `gh pr view 60`; if a
+CI check failed, read its log, fix on the branch, push — auto-merge stays armed). A fresh
+session picks the next item with the owner.
 
 ---
 
