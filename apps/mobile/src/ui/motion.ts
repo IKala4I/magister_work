@@ -67,26 +67,40 @@ export interface SettleInput {
   spring: SpringSpec;
 }
 
+/** A move is pending for the timeline this long after the confirm; then `moved` is dropped. */
+export const MOVE_PENDING_MS = 3000;
+
+/**
+ * The stamps already settled, per key, across every cell: a block rebound to another cell inside
+ * the trigger window (a fling right after the scroll lands) must not play the same arrival twice
+ * (adversarial pass 2026-09-09 #3). Module-level on purpose — the cells come and go.
+ */
+const settled = new Map<string, number>();
+/** Test seam: forget every settled stamp (fake clocks repeat the same `Date.now()`). */
+export function resetSettleHistory(): void {
+  settled.clear();
+}
+
 /**
  * Arrival settle for a card: a transform-only spring from the arrival pose to rest, played once
  * per (key, trigger) when the card is (re)bound to `key` inside SETTLE_TRIGGER_WINDOW_MS of
  * `playedAt`. A cell that travelled (same key across the reorder) never plays it — no double
- * motion. On a key change the value is reset to rest **synchronously, during render**, so the
- * recycled cell's next paint is at rest whatever was running. Duration 0 → rest assigned, no
- * spring. Nothing waits on completion.
+ * motion. On a key change the value is reset to rest in the layout effect — before the frame
+ * that shows the new block is presented, whatever was running (assigning cancels a spring);
+ * never during render (Reanimated's strict mode flags that, adversarial pass #2). Duration 0 →
+ * rest assigned, no spring. Nothing waits on completion.
  */
 export function useSettle({ key, playedAt, spring }: SettleInput): AnimatedStyle<ViewStyle> {
   const progress = useSharedValue(1);
-  const bound = useRef<{ key: string; playedAt: number }>({ key, playedAt: 0 });
-  if (bound.current.key !== key) {
-    // rebind: rest first (assigning cancels a running spring), then decide below
-    bound.current = { key, playedAt: 0 };
-    progress.value = 1;
-  }
+  const boundKey = useRef(key);
   useLayoutEffect(() => {
-    if (playedAt <= bound.current.playedAt) return; // already played, or nothing to play
-    bound.current.playedAt = playedAt;
+    if (boundKey.current !== key) {
+      boundKey.current = key;
+      progress.value = 1; // rebind: rest first, then decide below
+    }
+    if (playedAt <= 0 || settled.get(key) === playedAt) return; // nothing to play, or played
     if (Date.now() - playedAt > SETTLE_TRIGGER_WINDOW_MS) return; // stale trigger: stay at rest
+    settled.set(key, playedAt);
     if (spring.duration <= 0) {
       progress.value = 1;
       return;

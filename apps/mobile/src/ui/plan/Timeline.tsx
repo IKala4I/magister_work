@@ -200,18 +200,31 @@ export function Timeline({
     // call, and the screen re-renders once (the picker closing) before the change event lands.
     listRef.current?.prepareForLayoutAnimationRender();
   }
-  // the arrival stamp: set when the scroll lands, so the card bound to the moved id settles then
+  // the arrival stamp: set when the scroll lands, so the card bound to the moved id settles then.
+  // The promise resolves ≈ 300–450 ms after the confirm (FlashList steps the scroll, then waits
+  // 300 ms) — later than the settle window closes and than any pull or clock tick, each of which
+  // re-renders; so the pending scroll is cancelled only by unmount or a newer move, never by an
+  // effect cleanup (adversarial pass 2026-09-09 #1: a `live` flag in the cleanup killed every
+  // arrival on the Pixel).
   const [arrival, setArrival] = useState<{ id: string; at: number } | null>(null);
+  const latestMoveAt = useRef(0);
+  const mounted = useRef(true);
+  useEffect(
+    () => () => {
+      mounted.current = false;
+    },
+    [],
+  );
   const reduceMotion = motion.reduceMotion;
   useEffect(() => {
     if (!movePending || moved === null) return;
     handledMoveAt.current = moved.at;
+    latestMoveAt.current = moved.at;
     const list = listRef.current;
     if (list === null) return;
     const { startIndex, endIndex } = list.computeVisibleIndices();
     if (movedIndex >= startIndex && movedIndex <= endIndex) return; // on screen: the cell travelled
-    const id = moved.id;
-    let live = true;
+    const { id, at } = moved;
     void list
       .scrollToIndex({
         index: movedIndex,
@@ -219,11 +232,8 @@ export function Timeline({
         viewPosition: MOVED_VIEW_POSITION,
       })
       .then(() => {
-        if (live) setArrival({ id, at: Date.now() });
+        if (mounted.current && latestMoveAt.current === at) setArrival({ id, at: Date.now() });
       });
-    return () => {
-      live = false;
-    };
   }, [movePending, moved, movedIndex, reduceMotion]);
 
   return (

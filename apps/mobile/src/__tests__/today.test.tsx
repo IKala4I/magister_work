@@ -135,7 +135,7 @@ import type { CalendarEventRow } from '../db/calendar';
 import { usePlanStore } from '../state/plan';
 import { useSyncStore } from '../state/sync';
 import { DIALOG_ARM_DELAY_MS, DialogHost, useDialogStore } from '../ui/dialog';
-import { LAYOUT_SETTLE_MS } from '../ui/motion';
+import { LAYOUT_SETTLE_MS, MOVE_PENDING_MS } from '../ui/motion';
 import type { TimelineProps } from '../ui/plan/Timeline';
 
 const initialMetrics = {
@@ -983,6 +983,37 @@ describe('Today — the settle window and the moved block (ADR-0022, File 02 §3
       slotStart: written.slotStart.getTime(),
     });
     expect(lastTimeline().moved!.at).toBeGreaterThanOrEqual(before);
+  });
+
+  it('the moved block is dropped after MOVE_PENDING_MS and on a new plan — a remount never re-plays an old move (adversarial #4)', async () => {
+    rows({ plans: [plan()], recs: [rec()], tasks: [task()] });
+    await render(withSafeArea(<TodayScreen />));
+    await act(async () => {
+      fireEvent.press(screen.getByText(en['block.action.move']));
+    });
+    await act(async () => {
+      fireEvent.press(screen.getByText(en['block.move.confirm']));
+    });
+    expect(lastTimeline().moved).not.toBeNull();
+    await act(async () => {
+      jest.advanceTimersByTime(MOVE_PENDING_MS - 1);
+    });
+    expect(lastTimeline().moved).not.toBeNull();
+    await act(async () => {
+      jest.advanceTimersByTime(1);
+    });
+    expect(lastTimeline().moved).toBeNull();
+    // a second move, then a re-plan replaces the plan row: dropped at once
+    await act(async () => {
+      fireEvent.press(screen.getByText(en['block.action.move']));
+    });
+    await act(async () => {
+      fireEvent.press(screen.getByText(en['block.move.confirm']));
+    });
+    expect(lastTimeline().moved).not.toBeNull();
+    rows({ plans: [plan({ id: 'plan-2' })], recs: [rec({ planId: 'plan-2' })], tasks: [task()] });
+    await screen.rerender(withSafeArea(<TodayScreen />));
+    expect(lastTimeline().moved).toBeNull();
   });
 
   it('reduced motion reaches the timeline as the still configuration (one listener per screen)', async () => {

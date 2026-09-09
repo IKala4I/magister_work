@@ -76,7 +76,7 @@ import { SkipDiagnosticCard } from '../../src/ui/plan/SkipDiagnosticCard';
 import { type MovedBlock, Timeline } from '../../src/ui/plan/Timeline';
 import { TradeOffSheet } from '../../src/ui/plan/TradeOffSheet';
 import { confirmDialog } from '../../src/ui/dialog';
-import { LAYOUT_SETTLE_MS } from '../../src/ui/motion';
+import { LAYOUT_SETTLE_MS, MOVE_PENDING_MS } from '../../src/ui/motion';
 import { Button, EmptyState, Screen, ThemedText } from '../../src/ui/primitives';
 import { useTheme } from '../../src/ui/theme';
 import { resolveMotion } from '../../src/ui/tokens/motion';
@@ -259,7 +259,28 @@ export default function TodayScreen() {
     },
     [],
   );
+  // the block just moved, for the timeline's scroll + arrival settle; dropped after
+  // MOVE_PENDING_MS and on a new plan, so a timeline remount or a re-plan never re-plays an old
+  // move (adversarial pass 2026-09-09 #4)
   const [moved, setMoved] = useState<MovedBlock | null>(null);
+  const movedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const markMoved = useCallback((next: MovedBlock) => {
+    setMoved(next);
+    if (movedTimer.current !== null) clearTimeout(movedTimer.current);
+    movedTimer.current = setTimeout(() => {
+      movedTimer.current = null;
+      setMoved(null);
+    }, MOVE_PENDING_MS);
+  }, []);
+  useEffect(
+    () => () => {
+      if (movedTimer.current !== null) clearTimeout(movedTimer.current);
+    },
+    [],
+  );
+  useEffect(() => {
+    setMoved(null);
+  }, [planId]);
 
   const onAction = useCallback(
     (action: BlockAction, rec: RecommendationRow) => {
@@ -583,7 +604,7 @@ export default function TodayScreen() {
           onConfirm={(toStart) => {
             openSettleWindow();
             const row = moveBlockAction(moving, toStart);
-            setMoved({ id: row.id, at: Date.now(), slotStart: row.slotStart.getTime() });
+            markMoved({ id: row.id, at: Date.now(), slotStart: row.slotStart.getTime() });
             setMoving(null);
           }}
           onCancel={() => setMoving(null)}

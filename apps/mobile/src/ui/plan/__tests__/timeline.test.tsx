@@ -74,6 +74,7 @@ import { getAnimatedStyle } from 'react-native-reanimated';
 
 import type { RecommendationRow } from '../../../db/plans';
 import { resolveMotion, springs } from '../../tokens/motion';
+import { resetSettleHistory } from '../../motion';
 import { MOVED_VIEW_POSITION, Timeline, TimelineCell } from '../Timeline';
 
 const FRAME_MS = 17;
@@ -121,6 +122,7 @@ function cellLayouts(): unknown[] {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  resetSettleHistory();
   mockCellLayouts.clear();
   mockFlash.visible = { startIndex: 0, endIndex: 1 };
   mockFlash.scrollToIndex.mockImplementation(() => Promise.resolve());
@@ -241,6 +243,53 @@ describe('Timeline — a confirmed move (S2)', () => {
     );
     expect(mockFlash.prepare).toHaveBeenCalledTimes(1);
     expect(mockFlash.scrollToIndex).toHaveBeenCalledTimes(1);
+  });
+
+  it('the arrival survives re-renders while the scroll is in flight (the settle window closing, a pull) — adversarial #1', async () => {
+    let land: () => void = () => {};
+    mockFlash.scrollToIndex.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          land = resolve;
+        }),
+    );
+    const moved = { id: 'r1', at: Date.now(), slotStart: at(15).getTime() };
+    const reordered = [three[1]!, three[2]!, rec('r1', at(15), { status: 'moved' })];
+    await render(
+      <Timeline
+        recommendations={reordered}
+        titles={titles}
+        now={now}
+        motion={motion}
+        layoutSettling
+        moved={moved}
+      />,
+    );
+    expect(mockFlash.scrollToIndex).toHaveBeenCalledTimes(1);
+    // the settle window closes (350 ms) and a pull hands the timeline new row objects — both
+    // re-render it before FlashList's stepped scroll resolves (≈ 300–450 ms after the confirm)
+    await act(async () => {
+      jest.advanceTimersByTime(350);
+    });
+    await screen.rerender(
+      <Timeline
+        recommendations={reordered.map((r) => ({ ...r }))}
+        titles={titles}
+        now={now}
+        motion={motion}
+        layoutSettling={false}
+        moved={moved}
+      />,
+    );
+    await act(async () => {
+      land();
+      await Promise.resolve();
+    });
+    await act(async () => {
+      jest.advanceTimersByTime(FRAME_MS);
+    });
+    expect(settleOf('r1').transform[0]?.translateY).toBeGreaterThan(0);
+    expect(mockFlash.scrollToIndex).toHaveBeenCalledTimes(1); // and no second scroll
   });
 
   it('an on-screen destination scrolls nothing (the cell travels on the layout spring) and no card settles', async () => {

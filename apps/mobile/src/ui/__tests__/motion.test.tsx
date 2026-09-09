@@ -11,6 +11,7 @@ import Animated, { getAnimatedStyle } from 'react-native-reanimated';
 import {
   LAYOUT_SETTLE_MS,
   layoutTransitionFor,
+  resetSettleHistory,
   SETTLE_SCALE_FROM,
   SETTLE_TRANSLATE_PX,
   SETTLE_TRIGGER_WINDOW_MS,
@@ -64,6 +65,7 @@ describe('layoutTransitionFor', () => {
 describe('useSettle', () => {
   beforeEach(() => {
     jest.useFakeTimers();
+    resetSettleHistory();
   });
   afterEach(() => {
     jest.runOnlyPendingTimers();
@@ -110,14 +112,30 @@ describe('useSettle', () => {
     expectAtRest(pose());
   });
 
-  it('a key change (a recycled cell rebound to another block) resets to rest on the same frame', async () => {
+  it('the same arrival never plays twice: a second cell bound to the block with the same stamp sits at rest (adversarial #3)', async () => {
+    const at = Date.now();
+    await render(<Probe id="moved" at={at} />);
+    await act(async () => {
+      jest.advanceTimersByTime(MOTION_MAX_MS);
+    });
+    expectAtRest(pose());
+    // the block scrolls into another cell inside the trigger window (a fling right after landing)
+    await screen.unmount();
+    await render(<Probe id="moved" at={at} />);
+    await act(async () => {
+      jest.advanceTimersByTime(FRAME_MS);
+    });
+    expectAtRest(pose());
+  });
+
+  it('a key change (a recycled cell rebound to another block) resets to rest before the next frame', async () => {
     await render(<Probe id="a" at={Date.now()} />);
     await act(async () => {
       jest.advanceTimersByTime(FRAME_MS * 2);
     });
     expect(translateY(pose())).toBeGreaterThan(0); // mid-settle
     await screen.rerender(<Probe id="b" at={0} />);
-    // no frame advanced: the rebound cell paints at rest, whatever was running
+    // no frame advanced: the layout effect has already put the rebound cell at rest
     expectAtRest(pose());
     await act(async () => {
       jest.advanceTimersByTime(FRAME_MS);
