@@ -232,10 +232,14 @@ Evidence: `docs/verification/device-pass/android-20260908-motion/notes.md` (17 i
 - **No invisible state.** 0 BLANK in every after-scan on both phones (Android 15 recorded interactions, iOS 9 with evidence); the block order as expected every time; two interrupt tests on the
   Pixel (a fling 90 ms after Done; two Dones 200 ms apart) left no cell off its slot and logged
   every intended fact.
+- **The owner's eyes (2026-09-09).** The judgement no tool makes — does the move read as _that
+  block going there_ — was made by the owner on both phones after the fix (Pixel 7a on
+  `ac99dea`, iPhone 12 on build 3): Move / Done / Skip reported good on each. The design test
+  that chose these two transitions ("does the motion tell the user what changed and where it
+  went") is therefore answered by a person, not only by frame counts.
 - **Not established here:** per-transition frame counts on iOS (no `screenrecord`; the
   optional QuickTime recording was not made); "I did it" on iOS (no lapsed block without clock
-  control — the same S1 window as Done); the owner's-eyes judgement on whether the move reads as
-  _that block going there_ (open on both phones).
+  control — the same S1 window as Done).
 - **Findings beside the claim:** the Experiment card's action row wraps on the iPhone 12
   (revisit.md 2026-09-09); the dialog pass's reduced-motion evidence was on the wrong Android
   switch (revisit.md, the checklist row reworded).
