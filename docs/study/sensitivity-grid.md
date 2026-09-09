@@ -43,6 +43,15 @@ logit q(u, c, d) = logit(p₀) + s · T(k_u, c) + δ_{u,c} + ε_{u,d}
 | K                        | tasks per weekday (inbox pressure)                                                                                                                                                                                                                     | File 06 §2.2 assumes ≈ 4 blocks/weekday; the Pixel 7a pass planned 7–13 blocks from a 14-task inbox (build-6 notes) — so 2, 4, 6, 8 span "light" to "the day is nearly full" (9 slots)                                                                                                                                                                                                                                                                                   |
 | N                        | completers                                                                                                                                                                                                                                             | File 06's 30; 60 and 120 to locate N₈₀                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 
+> **Erratum 2026-09-09 (citation only; no factor, level, criterion or prediction changes).** The
+> justification for the K row cites "the Pixel 7a pass planned 7–13 blocks from a 14-task inbox
+> (build-6 notes)". The 7- and 13-block lists of the build-6 notes came from a **25-task** inbox
+> (`android-20260905-1725-build6/notes.md` items 5 and 9); the 14-task inbox is the day-2 latency
+> series, from which the system placed **8** blocks with 6 tasks unplaced
+> (`android-20260902-1030/notes.md` item 8). The K levels {2, 4, 6, 8} and everything computed from
+> them are unaffected — the range they were chosen to span is if anything wider than the citation
+> claimed. Recorded here rather than edited into the frozen text, per the ADR-0020 discipline.
+
 **What the world cannot represent (limitations to carry into the thesis):** people do not change
 (no habit formation, no carry-over between phases, no Hawthorne/novelty effect — File 06 H4's
 mechanism as a _human_ claim is outside the model); tasks are identical (no deadlines, values,

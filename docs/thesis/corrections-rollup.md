@@ -1063,7 +1063,8 @@ Ukrainian in its own file.
 number depends on how it was measured, that is in the sentence. §5.5.2 is the densest case — p(A)
 ≈ 0,45 is an assumption whose cited source is a range, not a measurement, and it is swept in §6.4;
 +8 в. п. is a decision about practical significance, not an estimate; ≈ 4 blocks per weekday is an
-assumption about usage that the device pass measured differently (7–13 blocks from a 14-task inbox,
+assumption about usage that the device pass measured differently (8 blocks placed from a 14-task
+inbox; 7 on a Kyiv evening and 13 on a full day from a 25-task one —
 and a Kyiv evening caps at six whatever the inbox holds); 30 % attrition is taken as typical, not
 piloted; the 0,84 / 0,82 power figures are the paired-means floor with the GLMM **not fitted**.
 Second, **the N₈₀ correction is not buried**: §5.5.3 states that exactly one cell of 75 supports
@@ -1091,12 +1092,16 @@ are kept apart.
 | 6.8 | Специфікація як гіпотеза                             | U19 — the twelve refuted assumptions as a table                                                   |
 | 6.9 | Висновки до розділу 6                                | —                                                                                                 |
 
-**One correction to a source came out of writing it.** `docs/study/sensitivity-results.md` said
-File 06's N = 30 "is supported in none of the 75 cells (the smallest adult-mix N₈₀ is 33)". Cell 66
-is adult mix with N₈₀ = 21, so both halves were wrong; recomputed from `results/sensitivity.json`
-and corrected in place with a dated note. The chapter states it accurately: **exactly one** cell of
-75 supports N = 30 — the six-tasks-a-day world at twice the table's strength — and at the grid's
-standard four tasks a day the smallest N₈₀ is 33.
+**Two corrections to `docs/study/sensitivity-results.md` came out of writing it, both dated in
+place.** (i) Its summary said File 06's N = 30 "is supported in none of the 75 cells (the smallest
+adult-mix N₈₀ is 33)". Cell 66 is adult mix with N₈₀ = 21, so both halves were wrong. (ii) The
+corrected paragraph then said the smallest N₈₀ at four tasks a day is 33 — that is the smallest
+**adult-mix** value; across mixes it is **31** (cell 49, uniform, s = 2), a figure the same
+document's own sweep table already printed. Both recomputed from `results/sensitivity.json`. The
+chapters state it accurately: **exactly one** cell of 75 supports N = 30, it sits at the grid's
+registered upper stress bound (s = 2), and at four tasks a day the minimum is 31 across mixes and
+33 within the adult mix. The framing was corrected too — numerically the recomputation **weakens**
+the claim (from "no cell" to "one"); what survives is the conclusion, not a strengthening.
 
 ## 10. ВИСНОВКИ і ДОДАТКИ
 

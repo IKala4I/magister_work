@@ -50,12 +50,19 @@ Writing `rozdil-6.md` turned up an error in `docs/study/sensitivity-results.md`:
 File 06's N = 30 "is supported in none of the 75 cells (the smallest adult-mix N₈₀ is 33)". Cell 66
 is adult mix with N₈₀ = 21, so both halves were wrong. Recomputed from `results/sensitivity.json`
 and corrected in place, with the correction dated in the document. The chapter carries the accurate
-statement: exactly one cell of 75 supports N = 30, and it is the six-tasks-a-day world at twice the
-table's pattern strength — the least plausible world on the grid.
+statement: exactly one cell of 75 supports N = 30, and it sits at the grid's registered upper stress
+bound (s = 2, twice the table's pattern strength).
+
+The adversarial pass then found a **second** error, this time in the corrected paragraph and in the
+first draft of both chapters: "the smallest N₈₀ at four tasks a day is 33" is the smallest
+**adult-mix** value; across mixes it is **31** (cell 49, uniform, s = 2). Both are now stated, and
+`sensitivity-results.md` carries the correction.
 
 Owner directive 2026-09-09: **do not bury that correction.** It is stated in both places the number
 is used — `rozdil-6.md` §6.5, where the recomputation happened, and `rozdil-5.md` §5.5.3, where the
 protocol's own N = 30 is assessed — on the reasoning that a claim which survived its own
-recomputation is stronger than one nobody checked. Substantively it strengthens the conclusion:
-the single world in which the designed sample size suffices is also the least plausible one
-considered.
+recomputation has a different epistemic status from one nobody checked. The framing is honest about
+direction: **numerically the recomputation weakens the claim** (from "no cell" to "one"); what
+survives is the conclusion, because the single supporting world sits on the grid's own
+implausibility bound. An earlier draft said the correction "strengthens" the conclusion — it does
+not, and that overstatement was itself caught by the adversarial pass.
