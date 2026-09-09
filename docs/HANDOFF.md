@@ -49,6 +49,15 @@ generic in the heuristic one); the free tier costs an hourly `bench_solve.py` lo
 is missing from Додаток В; and the reference list orphans five sources while eleven arguments cite
 none.
 
+**Three numbers were wrong and are now right — the pattern is worth carrying.** Each was found by
+a fresh-context adversarial pass, and each was in a place that reads as already-checked. (i) An
+`a_m_size` column that does not exist would have entered §2.3 and Додаток Ж. (ii)
+`sensitivity-results.md` claimed N = 30 "is supported in none of the 75 cells"; one cell supports
+it. (iii) The fix for (ii) then said the smallest N₈₀ at four tasks a day is 33 — that is the
+adult-mix minimum; across mixes it is 31, a number the same document's own table printed one
+sentence earlier. **The lesson for the remaining steps: the study documents' prose summaries are
+not a trustworthy source for their own numbers; recompute from `docs/study/results/*.json`.**
+
 **Verification depth: thesis-critical.** Two source sweeps (23 ADRs; seven days of device notes
 plus the checklist) and a fresh-context adversarial pass ran as subagents. The adversarial pass
 returned **three blocking findings and eleven accuracy fixes**, all applied: an `a_m_size` column
@@ -70,14 +79,24 @@ the standard abbreviation for «пункти».
    Розділ 6 «Результати оцінювання та їх обговорення», the device pass as §6.6 and the
    specification-as-hypothesis material as §6.8. Reason on record: that material is strong enough
    to carry its own chapter, and folding it into five would bury the best part of the work.
-2. **Write in the order of §14**, which is now a checklist: (1) the four full-strength statements
-   of §3, (2) Розділ 6 in the order of §9.2, (3) Розділ 5 around §5.1's boundary paragraph,
-   (4) the Розділ 2–4 edits, (5) Розділ 1 §1.1/§1.4–§1.6, (6) Анотація and ВИСНОВКИ,
-   (7) appendices, (8) the reference list and the ВСТУП's structure sentence.
-   **Steps 1–4 are decision-free**; every open decision sits at step 5 or later.
-3. **Eight open decisions D1–D8 are tabled in §14** with a recommendation each: a fifth novelty
-   item, the competitor figures, the unsourced «2–3 години», the orphaned sources, Додаток Г's
-   approach, the test-count recount, the ВСТУП placeholders, and Додаток З's scope.
+2. **Steps 1–3 of §14 are DONE.** §3's four statements; **Розділ 6** written as
+   `docs/thesis/text/rozdil-6.md` (§6.1–§6.9, tables 6.1–6.7); **Розділ 5** written as
+   `text/rozdil-5.md` (§5.1–§5.9, tables 5.1–5.2); and D5 delivered early as `text/dodatok-g.md`
+   (the deployed schema, not an illustration — the owner's push-back was right and the measured
+   cost was ≈ 20 min). **Next is step 4**, the Розділ 2–4 edits, which are anchored fragments and
+   stay in `corrections-rollup.md` (§6, §7, §8). Then step 5 (Розділ 1), step 6 (Анотація and
+   ВИСНОВКИ), step 7 (appendices), step 8 (reference list + the ВСТУП structure sentence).
+
+   **New layout to know about:** `docs/thesis/text/` holds whole chapters and appendices the draft
+   does not have yet, written as continuous Ukrainian to be moved in as a unit; the rollup keeps
+   the anchored edits for chapters that exist. `text/README.md` explains the split and the three
+   rules the prose is written under. **The .docx is the owner's — nothing in this repo touches it.**
+
+3. **D1–D8 are all DECIDED** (owner, 2026-09-09) and recorded in §14 of the rollup: a fifth novelty
+   item **yes**; the competitor figures **dropped**; «2–3 години» **deleted**; of the orphaned
+   sources keep ONNX and PyTorch on the on-device перспективи sentence, delete HF and MiniLM, keep
+   Maestro; Додаток Г **as the real schema**; the test counts **re-run and pasted** at freeze;
+   Додаток З **all 75 cells**; D7 the owner's own (no conference, no publications).
 4. **Re-count the test suites at freeze time** and paste the gate output (D6) — the 583/191 pair in
    #62 and the conclusions is traceable to nothing (the last recorded runs are jest 519/521 and
    Deno 187).
