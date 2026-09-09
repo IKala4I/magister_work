@@ -32,6 +32,7 @@ import InboxScreen from '../../app/(tabs)/inbox';
 import type { TaskRow } from '../db/tasks';
 import { createTaskAction, deleteTaskAction, restoreTaskAction } from '../domain/taskActions';
 import { en } from '../i18n/en';
+import { plural } from '../i18n';
 
 const initialMetrics = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
@@ -183,10 +184,10 @@ describe('delete with undo (File 02 §3 — 6 s window)', () => {
     await render(withSafeArea(<InboxScreen />));
     await fireEvent.press(screen.getByLabelText('Delete write report'));
     expect(deleteTaskAction).toHaveBeenCalledWith('a');
-    expect(screen.getByText(en['inbox.undo.deleted'])).toBeTruthy();
+    expect(screen.getByText(plural('inbox.undo.deleted', 1))).toBeTruthy();
     await fireEvent.press(screen.getByLabelText(en['inbox.undo.action']));
     expect(restoreTaskAction).toHaveBeenCalledWith('a');
-    expect(screen.queryByText(en['inbox.undo.deleted'])).toBeNull();
+    expect(screen.queryByText(plural('inbox.undo.deleted', 1))).toBeNull();
   });
 
   it('the undo window closes by itself after 6 seconds', async () => {
@@ -195,11 +196,11 @@ describe('delete with undo (File 02 §3 — 6 s window)', () => {
       mockUseLiveRows.mockReturnValue([taskRow({ id: 'a', title: 'write report' })]);
       await render(withSafeArea(<InboxScreen />));
       await fireEvent.press(screen.getByLabelText('Delete write report'));
-      expect(screen.getByText(en['inbox.undo.deleted'])).toBeTruthy();
+      expect(screen.getByText(plural('inbox.undo.deleted', 1))).toBeTruthy();
       await act(async () => {
         jest.advanceTimersByTime(6000);
       });
-      expect(screen.queryByText(en['inbox.undo.deleted'])).toBeNull();
+      expect(screen.queryByText(plural('inbox.undo.deleted', 1))).toBeNull();
       expect(restoreTaskAction).not.toHaveBeenCalled();
     } finally {
       jest.useRealTimers();
@@ -224,7 +225,7 @@ describe('delete with undo (File 02 §3 — 6 s window)', () => {
       await act(async () => {
         jest.advanceTimersByTime(600);
       });
-      expect(screen.getByText(en['inbox.undo.deleted'])).toBeTruthy();
+      expect(screen.getByText(plural('inbox.undo.deleted', 1))).toBeTruthy();
       await fireEvent.press(screen.getByLabelText(en['inbox.undo.action']));
       expect(restoreTaskAction).toHaveBeenCalledTimes(1);
       expect(restoreTaskAction).toHaveBeenCalledWith('b');
@@ -241,10 +242,10 @@ describe('delete with undo (File 02 §3 — 6 s window)', () => {
     await render(withSafeArea(<InboxScreen />));
     await fireEvent.press(screen.getByLabelText('Delete write report'));
     await fireEvent.press(screen.getByLabelText('Delete call bank'));
-    expect(screen.getByText(en['inbox.undo.deletedMany'].replace('{count}', '2'))).toBeTruthy();
+    expect(screen.getByText(plural('inbox.undo.deleted', 2))).toBeTruthy();
     await fireEvent.press(screen.getByLabelText(en['inbox.undo.action']));
     expect(restoreTaskAction).toHaveBeenCalledWith('a');
     expect(restoreTaskAction).toHaveBeenCalledWith('b');
-    expect(screen.queryByText(en['inbox.undo.deletedMany'].replace('{count}', '2'))).toBeNull();
+    expect(screen.queryByText(plural('inbox.undo.deleted', 2))).toBeNull();
   });
 });

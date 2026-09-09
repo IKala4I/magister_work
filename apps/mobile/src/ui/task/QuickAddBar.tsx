@@ -17,7 +17,7 @@ import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import type { TaskDraft } from '../../db/tasks';
 import { DAY_END, parseQuickAdd, type QuickAddAmbiguity } from '../../domain/quickAdd';
-import { t } from '../../i18n';
+import { formatDate, formatTime, t } from '../../i18n';
 import { ThemedText } from '../primitives';
 import { useTheme } from '../theme';
 
@@ -33,14 +33,14 @@ export interface QuickAddBarProps {
 }
 
 function formatDeadline(date: Date): string {
-  const day = date.toLocaleDateString(undefined, {
+  const day = formatDate(date, {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
   });
   // 23:59 is the end-of-day convention (quickAdd/TaskForm): day-granular, no clock time.
   if (date.getHours() === DAY_END.hour && date.getMinutes() === DAY_END.minute) return day;
-  return `${day}, ${date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`;
+  return t('common.dayTimeJoin', { day, time: formatTime(date) });
 }
 
 type DateChoice = { key: string; label: string; date: Date };

@@ -16,7 +16,7 @@ import { activeTasksQuery, inboxTasksQuery } from '../db/tasks';
 import type { LocalDb } from '../db/writes';
 import { notificationSettingsOf } from '../domain/notificationSettings';
 import type { MinuteRange, WorkingHours } from '../domain/workingHours';
-import { t } from '../i18n';
+import { formatTime, plural, t } from '../i18n';
 import { track } from '../observability/analytics';
 
 import { dismissStaleReminders } from './dismiss';
@@ -43,7 +43,7 @@ export interface NotificationData {
 }
 
 function timeLabel(ms: number): string {
-  return new Date(ms).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+  return formatTime(new Date(ms), { hour: '2-digit', minute: '2-digit' });
 }
 
 function contentOf(
@@ -74,9 +74,7 @@ function contentOf(
       ? t('notify.ritual.sunday.body')
       : inboxCount === 0
         ? t('notify.ritual.body.empty')
-        : inboxCount === 1
-          ? t('notify.ritual.body.one')
-          : t('notify.ritual.body', { count: inboxCount }),
+        : plural('notify.ritual.body', inboxCount),
     categoryIdentifier: CATEGORY_RITUAL,
     data,
   };

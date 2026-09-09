@@ -18,7 +18,7 @@ import {
   deleteTaskAction,
   restoreTaskAction,
 } from '../../src/domain/taskActions';
-import { t } from '../../src/i18n';
+import { plural, t } from '../../src/i18n';
 import { EmptyState, Screen } from '../../src/ui/primitives';
 import { QuickAddBar } from '../../src/ui/task/QuickAddBar';
 import { TaskListRow } from '../../src/ui/task/TaskListRow';
@@ -95,11 +95,7 @@ export default function InboxScreen() {
       )}
       {pendingUndos.length > 0 ? (
         <UndoSnackbar
-          message={
-            pendingUndos.length === 1
-              ? t('inbox.undo.deleted')
-              : t('inbox.undo.deletedMany', { count: pendingUndos.length })
-          }
+          message={plural('inbox.undo.deleted', pendingUndos.length)}
           onUndo={handleUndo}
         />
       ) : null}

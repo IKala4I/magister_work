@@ -9,7 +9,7 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import type { Belief, BeliefLabel } from '../../domain/heatmap';
-import { t, type MessageKey } from '../../i18n';
+import { plural, t, type MessageKey } from '../../i18n';
 import { GlassPanel, ThemedText } from '../primitives';
 import { useTheme } from '../theme';
 import { confidenceOpacity } from '../tokens/confidence';
@@ -53,7 +53,7 @@ export function BeliefCard({ belief, label, pending = false, onLabel }: BeliefCa
   const statement = beliefStatement(belief);
   const evidence =
     belief.n_effective >= 0.5
-      ? t('beliefs.evidence', { count: Math.round(belief.n_effective) })
+      ? plural('beliefs.evidence', Math.round(belief.n_effective))
       : t('beliefs.evidence.none');
   const labelState =
     label === 'correct'

@@ -13,6 +13,8 @@ export const StorageKeys = {
   deviceId: 'sync.deviceId',
   opCounter: 'sync.opCounter',
   schemePreference: 'ui.schemePreference',
+  /** Language choice: 'system' | 'en' | 'uk' (ADR-0023). Read before the first t() of a launch. */
+  language: 'ui.language',
   /** Last authenticated uid — drives the account-change wipe contract (src/auth). */
   lastUserId: 'auth.lastUserId',
   /** Epoch ms of the last completed sync round trip (P8). */

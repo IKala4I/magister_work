@@ -34,7 +34,7 @@ import {
 } from '../src/domain/notificationActions';
 import { notificationSettingsOf, RITUAL_TIME_PRESETS } from '../src/domain/notificationSettings';
 import { formatRelative } from '../src/domain/relativeTime';
-import { t, type MessageKey } from '../src/i18n';
+import { plural, t, type MessageKey, type PluralKey } from '../src/i18n';
 import type { PermissionState } from '../src/notifications/setup';
 import type { ExactAlarmState } from '../modules/exact-alarm';
 import { isAnalyticsEnabled, setAnalyticsEnabled } from '../src/observability/analytics';
@@ -188,7 +188,7 @@ function SyncSection() {
       </ThemedText>
       {pendingOps > 0 ? (
         <ThemedText variant="caption" tone="secondary">
-          {t('settings.sync.pending', { count: pendingOps })}
+          {plural('settings.sync.pending', pendingOps)}
         </ThemedText>
       ) : null}
       <Button
@@ -506,29 +506,32 @@ function NotificationsSection() {
 }
 
 /** FR-42 / UC-10 (ADR-0014 §7–§9): export to the share sheet; erasure with two confirmations. */
+/** One notice line, either a plain message or a counted one (the export's table count). */
+type DataNotice =
+  | { kind: 'text'; key: MessageKey; params?: Record<string, string | number> }
+  | { kind: 'count'; key: PluralKey; count: number };
+
 function DataSection() {
   const router = useRouter();
-  const [message, setMessage] = useState<MessageKey | null>(null);
-  const [messageParams, setMessageParams] = useState<Record<string, string | number> | undefined>();
+  const [notice, setNotice] = useState<DataNotice | null>(null);
+  const say = (key: MessageKey, params?: Record<string, string | number>) =>
+    setNotice({ kind: 'text', key, params });
+  const sayCount = (key: PluralKey, count: number) => setNotice({ kind: 'count', key, count });
   const [busy, setBusy] = useState<'export' | 'delete' | null>(null);
   const runExport = async () => {
     setBusy('export');
-    setMessage('settings.data.export.working');
-    setMessageParams(undefined);
+    say('settings.data.export.working');
     const r = await exportDataAction();
     setBusy(null);
-    if (r.ok) {
-      setMessage('settings.data.export.done');
-      setMessageParams({ tables: r.tables });
-    } else if (r.code === 'offline') setMessage('settings.data.export.offline');
-    else if (r.code === 'no_session') setMessage('settings.data.export.noSession');
-    else if (r.code === 'share_unavailable') setMessage('settings.data.export.shareUnavailable');
-    else setMessage('settings.data.export.failed');
+    if (r.ok) sayCount('settings.data.export.done', r.tables);
+    else if (r.code === 'offline') say('settings.data.export.offline');
+    else if (r.code === 'no_session') say('settings.data.export.noSession');
+    else if (r.code === 'share_unavailable') say('settings.data.export.shareUnavailable');
+    else say('settings.data.export.failed');
   };
   const runDelete = async () => {
     setBusy('delete');
-    setMessage('settings.data.delete.working');
-    setMessageParams(undefined);
+    say('settings.data.delete.working');
     const r = await deleteAccountAction();
     setBusy(null);
     if (r.ok) {
@@ -538,9 +541,9 @@ function DataSection() {
       });
       return;
     }
-    if (r.code === 'offline') setMessage('settings.data.delete.offline');
-    else if (r.code === 'no_session') setMessage('settings.data.delete.noSession');
-    else setMessage('settings.data.delete.failed');
+    if (r.code === 'offline') say('settings.data.delete.offline');
+    else if (r.code === 'no_session') say('settings.data.delete.noSession');
+    else say('settings.data.delete.failed');
   };
   // Two distinct confirmations (ADR-0014 §9, ADR-0016): a neutral gate, then the destructive one.
   const confirmDelete = async () => {
@@ -582,9 +585,11 @@ function DataSection() {
         disabled={busy !== null}
         onPress={() => void confirmDelete()}
       />
-      {message ? (
+      {notice ? (
         <ThemedText variant="caption" tone="secondary" accessibilityLiveRegion="polite">
-          {t(message, messageParams)}
+          {notice.kind === 'count'
+            ? plural(notice.key, notice.count)
+            : t(notice.key, notice.params)}
         </ThemedText>
       ) : null}
     </View>

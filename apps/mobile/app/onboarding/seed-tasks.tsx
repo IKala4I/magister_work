@@ -8,7 +8,7 @@ import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 
 import { completeOnboardingAction } from '../../src/domain/onboarding';
 import { createTaskAction } from '../../src/domain/taskActions';
-import { t } from '../../src/i18n';
+import { plural, t } from '../../src/i18n';
 import { track } from '../../src/observability/analytics';
 import { useOnboardingStore } from '../../src/state/onboarding';
 import { QuickAddBar } from '../../src/ui/task/QuickAddBar';
@@ -60,7 +60,7 @@ export default function SeedTasksScreen() {
         />
         <View style={styles.counter}>
           <ThemedText variant="caption">
-            {t('onboarding.seedTasks.added', { count: Math.min(seedTasksAdded, SEED_TASK_TARGET) })}
+            {plural('onboarding.seedTasks.added', Math.min(seedTasksAdded, SEED_TASK_TARGET))}
           </ThemedText>
         </View>
 

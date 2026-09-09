@@ -20,7 +20,7 @@ import {
   type Daypart,
   reviewLearnings,
 } from '../../domain/heatmap';
-import { t, type MessageKey } from '../../i18n';
+import { plural, t, type MessageKey } from '../../i18n';
 import { Button, ThemedText } from '../primitives';
 import { useTheme } from '../theme';
 
@@ -94,10 +94,9 @@ export function WeeklyReview({
               <View
                 key={w.week}
                 accessible
-                accessibilityLabel={t('review.adherence.week.a11y', {
+                accessibilityLabel={plural('review.adherence.week.a11y', w.n, {
                   week: w.week,
                   percent,
-                  count: w.n,
                 })}
                 style={styles.weekRow}
               >
@@ -113,7 +112,7 @@ export function WeeklyReview({
                   />
                 </View>
                 <ThemedText variant="caption" mono style={styles.weekValue}>
-                  {t('review.adherence.week', { percent, count: w.n })}
+                  {plural('review.adherence.week', w.n, { percent })}
                 </ThemedText>
               </View>
             );

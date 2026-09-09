@@ -9,8 +9,10 @@
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 jest.mock('react-native-worklets', () => require('react-native-worklets/lib/module/mock'));
 
+// `languageTag` is what a real device always returns; the formatting locale is built from it
+// (src/i18n/locale.ts), so omitting it here would test a device that does not exist.
 jest.mock('expo-localization', () => ({
-  getLocales: () => [{ languageCode: 'en' }],
+  getLocales: () => [{ languageCode: 'en', languageTag: 'en-US', regionCode: 'US' }],
   getCalendars: () => [{ timeZone: 'Europe/Kyiv' }],
 }));
 
