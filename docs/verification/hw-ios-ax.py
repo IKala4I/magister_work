@@ -117,8 +117,12 @@ async def main(argv: list[str]) -> int:
             before = {s.key: s.value for s in await ax.settings()}
             for k, v in pairs:
                 await ax.set_setting(k, _value(v))
+            # the daemon answers this client's own re-read with the value from before the set
+            # (2026-09-09: printed False while a second client — `settings show` — and WDA's
+            # `reduceMotion` both read True); wait a moment, then trust a fresh read
+            await asyncio.sleep(1.0)
             now = {s.key: s.value for s in await ax.settings()}
-            print("holding " + ", ".join(f"{k}={now.get(k)}" for k, _ in pairs) + f" for {seconds:.0f} s", flush=True)
+            print("holding " + ", ".join(f"{k}={now.get(k)} (asked {v})" for k, v in pairs) + f" for {seconds:.0f} s — verify with a second client: `settings show`", flush=True)
             try:
                 await asyncio.sleep(seconds)
             finally:

@@ -66,7 +66,13 @@ const mockBlockActions = {
     task: null,
     diagnosticDue: false,
   })),
-  moveBlockAction: jest.fn(),
+  // returns the row after the write (the screen reads the slot the DAO produced — ADR-0022)
+  moveBlockAction: jest.fn((r: RecommendationRow, toStart: Date): RecommendationRow => ({
+    ...r,
+    status: 'moved',
+    slotStart: toStart,
+    slotEnd: new Date(toStart.getTime() + (r.slotEnd.getTime() - r.slotStart.getTime())),
+  })),
   correctLapseAction: jest.fn(),
   skipDiagnosticAction: jest.fn(),
 };
@@ -76,7 +82,8 @@ jest.mock('../domain/blockActions', () => ({
   startFocusAction: (...a: unknown[]) => mockBlockActions.startFocusAction(...a),
   doneBlockAction: (...a: unknown[]) => mockBlockActions.doneBlockAction(...a),
   skipBlockAction: () => mockBlockActions.skipBlockAction(),
-  moveBlockAction: (...a: unknown[]) => mockBlockActions.moveBlockAction(...a),
+  moveBlockAction: (r: RecommendationRow, toStart: Date) =>
+    mockBlockActions.moveBlockAction(r, toStart),
   correctLapseAction: (...a: unknown[]) => mockBlockActions.correctLapseAction(...a),
   skipDiagnosticAction: (...a: unknown[]) => mockBlockActions.skipDiagnosticAction(...a),
 }));
@@ -96,6 +103,23 @@ jest.mock('../auth/accountTransition', () => ({
   discardPendingWipe: (...a: unknown[]) => mockWipe.discard(...a),
   keepPendingWipe: () => mockWipe.keep(),
 }));
+// ADR-0022: the real Timeline renders; its props are recorded so the settle window and the
+// moved block the screen hands it can be asserted (the list itself is pinned in timeline.test)
+const mockTimelineProps = jest.fn();
+jest.mock('../ui/plan/Timeline', () => {
+  const actual = jest.requireActual('../ui/plan/Timeline') as typeof import('../ui/plan/Timeline');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const React = require('react') as typeof import('react');
+  return {
+    ...actual,
+    Timeline: (props: TimelineProps) => {
+      mockTimelineProps(props);
+      return React.createElement(actual.Timeline, props);
+    },
+  };
+});
+const mockMotion = { reduced: false };
+jest.mock('../ui/useReducedMotion', () => ({ useReducedMotion: () => mockMotion.reduced }));
 
 import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
 import type { ReactElement } from 'react';
@@ -111,6 +135,8 @@ import type { CalendarEventRow } from '../db/calendar';
 import { usePlanStore } from '../state/plan';
 import { useSyncStore } from '../state/sync';
 import { DIALOG_ARM_DELAY_MS, DialogHost, useDialogStore } from '../ui/dialog';
+import { LAYOUT_SETTLE_MS, MOVE_PENDING_MS } from '../ui/motion';
+import type { TimelineProps } from '../ui/plan/Timeline';
 
 const initialMetrics = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
@@ -268,6 +294,7 @@ beforeEach(() => {
   usePlanStore.setState({ status: 'idle', emptyInbox: false });
   mockProfile.workingHours = undefined;
   mockProfile.sleepWindow = null;
+  mockMotion.reduced = false;
   rows({});
 });
 
@@ -887,5 +914,115 @@ describe('Today timeline at 200 % font scale (NFR-A2 / FR-22 — hardware pass #
     const style = StyleSheet.flatten(gutter.props.style) as { minWidth: number };
     expect(style.minWidth).toBeGreaterThanOrEqual(128);
     expect(within(gutter).getByText(/12:00/).props.numberOfLines).toBe(1);
+  });
+});
+
+describe('Today — the settle window and the moved block (ADR-0022, File 02 §3.4)', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+  });
+  const lastTimeline = () =>
+    mockTimelineProps.mock.calls[mockTimelineProps.mock.calls.length - 1]![0] as TimelineProps;
+
+  it.each([
+    ['block.action.done', 'shown'],
+    ['block.action.skip', 'shown'],
+    ['block.action.didIt', 'lapsed'],
+  ] as const)(
+    '%s opens the cell-layout window and a timer closes it after LAYOUT_SETTLE_MS',
+    async (key, status) => {
+      rows({ plans: [plan()], recs: [rec({ status })], tasks: [task()] });
+      await render(withSafeArea(<TodayScreen />));
+      expect(lastTimeline().layoutSettling).toBe(false);
+      expect(lastTimeline().motion?.reduceMotion).toBe(false);
+      await act(async () => {
+        fireEvent.press(screen.getByText(en[key]));
+      });
+      expect(lastTimeline().layoutSettling).toBe(true);
+      await act(async () => {
+        jest.advanceTimersByTime(LAYOUT_SETTLE_MS - 1);
+      });
+      expect(lastTimeline().layoutSettling).toBe(true);
+      await act(async () => {
+        jest.advanceTimersByTime(1);
+      });
+      expect(lastTimeline().layoutSettling).toBe(false);
+    },
+  );
+
+  it('Start opens no window (the screen leaves; nothing on this list changes)', async () => {
+    rows({ plans: [plan()], recs: [rec()], tasks: [task()] });
+    await render(withSafeArea(<TodayScreen />));
+    await act(async () => {
+      fireEvent.press(screen.getByText(en['block.action.start']));
+    });
+    expect(lastTimeline().layoutSettling).toBe(false);
+  });
+
+  it('the move confirm opens the window and names the block with the slot the write produced', async () => {
+    rows({ plans: [plan()], recs: [rec()], tasks: [task()] });
+    await render(withSafeArea(<TodayScreen />));
+    await act(async () => {
+      fireEvent.press(screen.getByText(en['block.action.move']));
+    });
+    expect(lastTimeline().layoutSettling).toBe(false); // the picker is a prompt; the write opens it
+    expect(lastTimeline().moved).toBeNull();
+    const before = Date.now();
+    await act(async () => {
+      fireEvent.press(screen.getByText(en['block.move.confirm']));
+    });
+    const written = mockBlockActions.moveBlockAction.mock.results[0]!.value as RecommendationRow;
+    expect(lastTimeline().layoutSettling).toBe(true);
+    expect(lastTimeline().moved).toEqual({
+      id: 'rec-1',
+      at: expect.any(Number),
+      slotStart: written.slotStart.getTime(),
+    });
+    expect(lastTimeline().moved!.at).toBeGreaterThanOrEqual(before);
+  });
+
+  it('the moved block is dropped after MOVE_PENDING_MS and on a new plan — a remount never re-plays an old move (adversarial #4)', async () => {
+    rows({ plans: [plan()], recs: [rec()], tasks: [task()] });
+    await render(withSafeArea(<TodayScreen />));
+    await act(async () => {
+      fireEvent.press(screen.getByText(en['block.action.move']));
+    });
+    await act(async () => {
+      fireEvent.press(screen.getByText(en['block.move.confirm']));
+    });
+    expect(lastTimeline().moved).not.toBeNull();
+    await act(async () => {
+      jest.advanceTimersByTime(MOVE_PENDING_MS - 1);
+    });
+    expect(lastTimeline().moved).not.toBeNull();
+    await act(async () => {
+      jest.advanceTimersByTime(1);
+    });
+    expect(lastTimeline().moved).toBeNull();
+    // a second move, then a re-plan replaces the plan row: dropped at once
+    await act(async () => {
+      fireEvent.press(screen.getByText(en['block.action.move']));
+    });
+    await act(async () => {
+      fireEvent.press(screen.getByText(en['block.move.confirm']));
+    });
+    expect(lastTimeline().moved).not.toBeNull();
+    rows({ plans: [plan({ id: 'plan-2' })], recs: [rec({ planId: 'plan-2' })], tasks: [task()] });
+    await screen.rerender(withSafeArea(<TodayScreen />));
+    expect(lastTimeline().moved).toBeNull();
+  });
+
+  it('reduced motion reaches the timeline as the still configuration (one listener per screen)', async () => {
+    mockMotion.reduced = true;
+    rows({ plans: [plan()], recs: [rec()], tasks: [task()] });
+    await render(withSafeArea(<TodayScreen />));
+    const motion = lastTimeline().motion!;
+    expect(motion.reduceMotion).toBe(true);
+    expect(motion.springs.standard.duration).toBe(0);
+    expect(motion.springs.emphasized.duration).toBe(0);
   });
 });

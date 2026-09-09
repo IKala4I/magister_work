@@ -2,32 +2,72 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-08 (night) — **the iPhone pass is CLOSED** (days 1–2; PR #57 merged
-> `a3b0a14`; the close-out docs PR from `post-p12/iphone-pass-close`). Read first:
-> `docs/verification/device-pass/ios-20260908-1215/notes.md` (items 50–68 + the fix-batch table
-> with the build-2 results), then the "iOS 2026-09-08" paragraphs and the "Fix-batch rows only
-> hardware can settle" section in `docs/verification/device-checklist.md`.
->
-> **Commits on the branch since day 1:** `8d07c00` day-2 records → `1ed0be0` F3 → `33f8f81` F4 →
-> `607d782` F1 → `415635a` F2/F5/F6/F7 → `5308199` records → `36b297c` adversarial follow-ups →
-> `aaef65e` `persist_plan` migration (pgTAP 7/7 linked) → `1afd4b8` records → the stale-session
-> reward fix (client fact `reason: 'stale'` + the mapping gives it no credit) → the build-2
-> records. **Build 2 = `36b297c` on the phone** (the stale-session fix is not in it — no device
-> check needs it before main).
->
-> **Owner items done 2026-09-08 evening:** brightness restored; migration pushed and verified on
-> the hosted project; the rotor listen ✅; the Larger Text path ✅ (notes item 69); the erasure
-> ✅ with reference `87494f9c-…`, the arming test not deliverable by XCUITest (item 70). **Still
-> ⛔:** Auto-Lock back to the usual value. The phone is free; build 2 stays installed on a
-> welcome screen (no account).
->
-> **Next session (fresh):** ~~the thesis-text support items~~ — **done 2026-09-08 (night):
-> corrections #62 is the hardware-pass section as one argument (six structurally invisible
-> classes, the honest "never exercised" category, cost and yield, the conclusions sentence;
-> the three iOS reward defects live there), the explainer carries the matching Ukrainian
-> defence passage, the rollup indexes #61–#62.** Still open: the Android TalkBack listen (F2
-> by ear) when the Pixel is at hand; optional: the Pixel re-check of F6/F7 (the calendar
-> callback and the first-frame flash) on a build from main.
+> Last update: 2026-09-09 (07:40) — **post-p12/motion is DONE: PR #60 open with auto-merge
+> armed** (`post-p12/motion` → main; merges when the six CI checks pass). File 02 §3.4 is closed
+> on the plan surface (spec-conflicts L42), ADR-0022 accepted with the hardware results from
+> both phones, the adversarial pass's four fixes in (`ac99dea`) and re-verified on the Pixel.
+> Nothing is pending on either phone. Next phase: none decided — the candidates are in
+> `docs/decisions/revisit.md` (the Experiment card's wrapped action row on the iPhone 12 is the
+> newest; the Inbox undo-bar transition was named "next candidate" in ADR-0022's inventory).
+
+## What the motion phase established (2026-09-08 → 09)
+
+**Shipped (`f5fdbe2` + `ac99dea`):** S1 — after Done / Skip / I did it the rows settle on a cell
+`layout` spring registered for a 350 ms window; S2 — a moved block travels, or the list scrolls to
+it and the arrived card plays a transform-only settle once. The rule (no invisible state on a
+control-bearing surface) sits in the card header and the ADR. 26 new jest cases (609 total).
+
+**Measured:** Pixel 7a, the same 13-block plan under a build of main and the motion build —
+NFR-P2 equal (1825 / 1824 frames, 1 janky, p99 10 ms); Done 11 frames, Skip 10, I did it 14,
+on-screen move 12, off-screen move = a 17–19-frame scroll then (fixed build) a 7-frame arrival
+settle; one frame per interaction under reduced motion **on `transition_animation_scale 0`**;
+0 BLANK and correct order after every one; two interrupt tests clean. iPhone 12, a 16-block
+plan — NFR-P2 8 = 8 hitches (847 / 807 frames); every interaction hitch-free; Reduce Motion via
+the daemon hold verified by a second client. Evidence:
+`docs/verification/device-pass/android-20260908-motion/notes.md` (18 items),
+`ios-20260909-motion/notes.md` (13 items); the checklist rows carry the numbers.
+
+**Adversarial pass (fresh-context subagent, 2026-09-09):** MAJOR — the arrival settle could not
+play on the first build (the pending `scrollToIndex` was cancelled by any re-render; the settle
+window closing is one) → fixed (cancel only on unmount / a newer move), pinned by a deferred-
+scroll test, re-verified on the Pixel; plus no shared-value write during render, one arrival per
+stamp (a module-level registry), a stale `moved` dropped after 3 s and on a new plan. The
+reviewer's record mismatches are fixed. iOS build 3 carries the pre-fix code (recorded).
+
+**Findings beside the claim (recorded, not fixed):** React Native reads
+`TRANSITION_ANIMATION_SCALE` for reduce motion on Android — the dialog pass's row used the
+animator scale (revisit.md, checklist row reworded); the Experiment card's action row wraps on
+the iPhone 12 (revisit.md + a checklist row); `hw-account-reads.mjs --latest` means the newest
+auth row, not the newest onboarding.
+
+**Open owner items (none block anything):** (1) look at Move / Done / Skip on each phone and
+say whether the move reads as _that block going there_ — the one judgement no tool makes; (2)
+Auto-Lock back to the usual value on the iPhone (still on the pass's value); (3) the Mac's disk
+— 22 GB free after the session removed 7 GB of xctrace temp files and the owner cleared more;
+`~/Library/Developer/Xcode/iOS DeviceSupport` (14 GB), Xcode caches, simulators remain the big
+items; (4) optional: an iOS build with `ac99dea` if the arrival settle should be seen on the
+iPhone (jest-pinned; no frame tool there).
+
+**Phones' state:** Pixel — the fixed motion build (`82a852023d00a86d…`), account `edc05c5d…`
+with a 12-block Wednesday plan (throwaway; five requests on it), Kyiv zone, auto time, animation
+scales 1, font 1.0, Today on screen. iPhone 12 — build 3 (`7a3063f9…`), account `6c2e88b5…` with
+a 16-block Wednesday plan, Reduce Motion off, WDA runner and forward stopped, unlocked on the
+cable at the handoff.
+
+**Tools this phase left in `docs/verification/`:** `hw-motion-frames.py` (video → change runs
+in a crop), `hw-motion-drive.py` (Android: record + drive + paint/order, foreground guard,
+class-scoped finds, `tapxy`), `hw-scroll-frames.sh` (the gfxinfo series), `hw-set-profile-
+timezone.mjs`, `hw-ios-hitches.sh` (trace → hitches / lifetimes / GPU), `hw-ios-paint.py`,
+`hw-ios-motion-drive.py` (coordinate taps, auto-scroll, settled-rect wait); `hw-ios-wda.py
+session` now turns XCUITest's idle waits off. Gotchas are listed at the end of each notes file
+— the two that bit hardest: never pass driver steps through a double-quoted shell string
+(`$#` and `$` mangle), and delete `$TMPDIR/instruments*.ktrace` after every xctrace run.
+
+**Exact next actions:** none for this branch after PR #60 merges (check `gh pr view 60`; if a
+CI check failed, read its log, fix on the branch, push — auto-merge stays armed). A fresh
+session picks the next item with the owner.
+
+---
 
 ## What happened this session (2026-09-08 — iPhone pass, day 2)
 

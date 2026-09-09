@@ -745,6 +745,20 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     зафіксовано як розбіжність зі специфікацією (L42), а не як рішення.» In the stack row keep
     Reanimated 4 (it is wired: babel через `babel-preset-expo`, jest через мок worklets) but
     replace "фізика перетягу" with «пружинні переходи діалогу; перетягування не реалізовано».
+    **Amended 2026-09-09 (ADR-0022, spec-conflicts L42 closed):** the principle is now realised
+    on the dialog **and on two plan-surface interactions** — the rows settling after
+    Done / Skip / I did it and a moved block travelling (or the list scrolling to it with an
+    arrival settle), chosen by one test: the motion must say what changed and where it went;
+    everything else stays instant by decision. Use instead: «Принцип "фізика замість
+    оздоблення" реалізовано на трьох поверхнях — діалозі підтвердження (ADR-0021) та двох
+    взаємодіях на стрічці «Сьогодні» (ADR-0022): після «Виконано» / «Пропустити» / «Я зробив»
+    рядки нижче з'їжджаються в проміжок (пружина 200 мс), а перенесений блок їде на своє місце
+    або список прокручується до нього з «приземленням» картки (250 мс); під reduced motion
+    перехід не реєструється тим самим шляхом. Заміри: Pixel 7a 11 / 10 / 14 / 12 кадрів при 60 fps (та прокрутка 17 + приземлення 7 для перенесення за межі екрана), 0 порожніх карток, 60 fps без регресії на 13 блоках; iPhone 12 без пропущених
+    кадрів на 16 блоках. Решта переходів (поява плану, повернення в Inbox, шторки) навмисно
+    миттєві — рух, що каже лише "щось сталося", є оздобленням; перетягування не реалізовано
+    (M10).» In the stack row: «пружинні переходи діалогу та стрічки плану; перетягування не
+    реалізовано».
 
 62. **§verification (the hardware pass) / §5 discussion / §6 conclusions — one section for the
     device pass, written as an argument, not a list of incidents (Pixel 7a, 1–5 September 2026,

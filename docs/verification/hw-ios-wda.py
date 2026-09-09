@@ -58,7 +58,15 @@ def _session(create: bool = False) -> str:
     if not create and os.path.exists(SESSION_FILE):
         return open(SESSION_FILE).read().strip()
     out = _http("POST", "/session", {"capabilities": {"alwaysMatch": {"defaultActiveApplication": "auto"}}})
+    # XCUITest waits for the app to become "idle" before every gesture, and Hourwell's Today never
+    # counts as idle for it — a 0.25 s drag blocked for ≈ 22 s (2026-09-09, the motion pass); with
+    # the idle waits off the same drag returns in ≈ 1.9 s. Session-scoped, so set it here once.
     sid = out["sessionId"] if "sessionId" in out else out["value"]["sessionId"]
+    _http(
+        "POST",
+        f"/session/{sid}/appium/settings",
+        {"settings": {"waitForIdleTimeout": 0, "animationCoolOffTimeout": 0, "shouldWaitForQuiescence": False}},
+    )
     with open(SESSION_FILE, "w") as fh:
         fh.write(sid)
     return sid

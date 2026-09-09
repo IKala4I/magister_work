@@ -4,6 +4,7 @@
  * routed to the same handler as the buttons.
  */
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import { getAnimatedStyle } from 'react-native-reanimated';
 
 import type { RecommendationRow } from '../../../db/plans';
 import { en } from '../../../i18n/en';
@@ -125,5 +126,21 @@ describe('RecommendationCard — screen-reader actions and state', () => {
     expect(
       screen.getByLabelText(`d, ${WHEN}, Confidence 71 percent`).props.accessibilityActions,
     ).toBeUndefined();
+  });
+});
+
+describe('RecommendationCard — the settle wrapper (ADR-0022, the rule)', () => {
+  it('wraps the block in a transform-only animated view at rest with no accessibility props of its own', async () => {
+    await render(<RecommendationCard recommendation={rec()} title="deep work" />);
+    const wrapper = screen.getByTestId('block-settle-r1');
+    const style = getAnimatedStyle(wrapper) as Record<string, unknown>;
+    expect(Object.keys(style)).toEqual(['transform']);
+    expect(style).not.toHaveProperty('opacity');
+    expect(wrapper.props.accessible).toBeUndefined();
+    expect(wrapper.props.accessibilityLabel).toBeUndefined();
+    // the accessible leaf is still the block's own view, with the composed label
+    const block = screen.getByLabelText(/deep work/);
+    expect(block.props.accessible).toBe(true);
+    expect(block).not.toBe(wrapper);
   });
 });

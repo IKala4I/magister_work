@@ -2,6 +2,40 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — motion: two transitions on the Today timeline (2026-09-08, post-p12/motion)
+
+- **S1 — Done / Skip / I did it: the list settles instead of jumping.** The tap opens a
+  350 ms window in which every timeline cell carries a `springs.standard` layout spring
+  (200 ms), so the rows below the shrinking card close the gap under the thumb instead of
+  teleporting; caption and action row still switch instantly. Outside the window the cell
+  has no transition — a recycle during scroll animates nothing (NFR-P2).
+- **S2 — Move: the block travels to its slot, or the list scrolls to it.** A move keeps the
+  row id; FlashList v2 keeps the cell for an unchanged stable id across a reorder, so the same
+  layout spring animates the real travel. When the new slot is off screen the list scrolls to
+  it (instant under reduced motion) and the card (re)bound there plays a transform-only
+  arrival settle (`springs.emphasized`, 250 ms) once.
+- **Dropped, recorded:** the plan-applied entrance (decoration — the banner already says it).
+- **The rule** (ADR-0022): a transition on a control-bearing surface never passes through an
+  invisible or non-interactive state — transforms only, never opacity; rest assigned on
+  rebind; no `entering` / `exiting`. Reduced motion collapses every duration to 0 through the
+  same `resolveMotion` path as the dialog — one listener per screen.
+- New: `src/ui/motion.ts` (`layoutTransitionFor`, `useSettle`, the two windows); Timeline's
+  module-scope `TimelineCell` + `CellLayoutContext`, the `moved` prop and the scroll; the
+  card's `settleAt`. 23 new jest cases (motion, timeline, today, card).
+- **Verified on both phones (Pixel 7a 2026-09-08, iPhone 12 2026-09-09):** the transitions
+  fire on Fabric with FlashList's absolute cells — Pixel 11 / 10 / 14 / 12 frames for Done / Skip / I did it / on-screen move, an off-screen move as a 17–19-frame scroll followed (on the fixed build) by a 7-frame arrival settle, one frame each under reduced motion (two single frames for a move), 0 BLANK and correct order after every interaction, NFR-P2 equal before
+  and after on the same 13-block list; iPhone hitch-free through every interaction, 8 = 8
+  hitches on a 16-block scroll series. Two findings recorded: React Native reads
+  `transition_animation_scale` for reduce motion on Android (the dialog pass used the animator
+  scale); the Experiment card's action row wraps on the iPhone 12. Tools: `hw-motion-frames.py`,
+  `hw-motion-drive.py`, `hw-scroll-frames.sh`, `hw-ios-hitches.sh`, `hw-ios-paint.py`,
+  `hw-ios-motion-drive.py`, `hw-set-profile-timezone.mjs`.
+- **Adversarial pass (fresh-context subagent) → `ac99dea`:** the arrival settle after an
+  off-screen move could not play (the pending scroll was cancelled by any re-render, and the
+  settle window closing is one) — fixed and re-verified on the Pixel (a separate 7-frame settle
+  after the 17-frame scroll); no shared-value write during render; one arrival per stamp; a
+  stale `moved` dropped after 3 s and on a new plan. iOS build 3 carried the pre-fix code.
+
 ## Post-P12 — iPhone pass fix batch → build 2 (2026-09-08, post-p12/iphone-pass)
 
 - **Sync — facts beat plans on the client (MAJOR).** A pulled recommendation row that still
