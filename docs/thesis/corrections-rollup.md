@@ -8,7 +8,7 @@
 >
 > **Rule while editing:** where the draft and the system disagree, the system is right and the
 > worklist entry says why (CLAUDE.md working mode). Where a correction weakens a claim the draft
-> makes, the weaker claim is the finding — §2 below lists the sentences that must survive at full
+> makes, the weaker claim is the finding — §3 lists the sentences that must survive at full
 > strength.
 >
 > Built 2026-09-09 against `draft.docx` as committed (1 159 paragraphs, 10 Heading-1 sections),
