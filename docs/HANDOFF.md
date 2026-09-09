@@ -39,6 +39,16 @@ message said a language change returns the user to Today. It does not — expo-r
 route, so Settings stays open and re-renders. Fixed where claimed; the older font-scale claim it
 reasoned from is untouched because this run did not test it.
 
+**Adversarial pass (fresh-context subagent) → `c272d69`:** seventeen findings, five of them
+blocking. Two were real parser defects — «г» read as _hours_ when it is the abbreviation for _gram_
+(«купити 100 г кави» became a 6000-minute task the solver could never place), and «за 30 хвилин»
+read as a 30-minute estimate instead of a deadline, which four records described as a graceful
+fallback. Two were tests that could not fail: the gendered-past-tense tripwire used ASCII `\b`/`\w`
+and matched nothing in Cyrillic, and the region-tag case sliced its own input down to `'uk'` —
+fixing it exposed `resolveLocale` failing on a device reporting `uk-UA`. The fifth was the
+verification directory claiming four passing flows while committing three JUnit files. All fixed;
+the remaining twelve are small and logged in `revisit.md` or addressed in place.
+
 **Verification depth: routine**, as the owner scoped it. No hardware was needed and none is claimed.
 
 ## Exact next actions
