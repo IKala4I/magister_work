@@ -139,9 +139,14 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
 19. **§2 (splittable tasks):** state that a chunk's objective weight is the duration-proportional
     share of the task's weight (spec-conflicts L14) and that chunks number at most four (ADR-0007
     §3); the formal C3 leaves chunk weights implicit.
-20. **§3 (service API):** the propensity is logged as the within-slice value p = ε/m = 0.25 and
-    the service refuses requests whose ε or m differ from the pre-registered constants (L16) —
-    worth one sentence where the OPE substrate is described.
+20. **§3 (service API):** the propensity is logged as the within-slice value and the service
+    refuses requests whose ε or m differ from the pre-registered constants (L16) — worth one
+    sentence where the OPE substrate is described. **Amended 2026-09-09:** this entry was
+    written before the P6 eligibility rule and said «p = ε/m = 0.25». The deployed per-row
+    value is **p = ε/|A_m(x)|** with |A_m(x)| ∈ {2, 3, 4} — 0.5, 1/3 or 0.25 — logged beside
+    `A_m(x)` in a `double precision` column for exactly that reason (ADR-0008 §1/§4;
+    spec-conflicts M9, L22; `services/recsys/src/hourwell_recsys/exploration.py`). Writing
+    0.25 as _the_ propensity would put a wrong constant in §2.3 and Додаток Ж.
 
 ---
 
@@ -364,7 +369,11 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     PostgREST read/write from Node → eu-west-1 82–88 ms p95 (meets), the composite `sync-resolve`
     round trip 477 ms p95 (does not). Do not present the sync round trip as the "core API", and
     do not present any of these as device numbers (the handset adds radio wake-up and mobile
-    TLS; the device pass measures). `p10-manual-verification.md` §2.3.
+    TLS). `p10-manual-verification.md` §2.3. **Amended 2026-09-09:** this entry promised that
+    «the device pass measures» the handset figure. It did not — the device-checklist row for a
+    handset-side latency series (LTE and Wi-Fi, `sync_completed` durations, one timed export)
+    is still open, and no NFR-P3 device number exists. The thesis states the two Node-side
+    numbers with their condition and says plainly that a device figure does not exist.
 48. **§release / §conclusions (store submission, TestFlight, "app published"):** owner
     decision 2026-08-31 — **neither** developer account is purchased (Play $25, Apple
     $99/yr). Wherever the draft implies store submission, TestFlight distribution, or a
@@ -424,7 +433,10 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     verification (`Europe/Kyiv`) passed. State it as evidence for the simulator-vs-device rule
     (item 11): the live verification chain was correct and still blind to a device-only input.
     Fixed the same day (tzdata wheel + build-time assertion; CHANGELOG "Post-P12 — hardware
-    pass fixes"); the field-study framing (#49) is unaffected.
+    pass fixes"); the field-study framing (#49) is unaffected. **Amended 2026-09-09:** the fix
+    was **server-side only** — every account created on the Pixel after it still records
+    `timezone: Europe/Kiev`. Write «the service learned to accept the name the device sends»,
+    never «the device began sending the canonical name».
 51. **§requirements / §verification (NFR-P1 "plan end-to-end ≤ 2.5 s p95 warm") — restate as a
     measured requirement (owner decision 2026-09-03: the 2.5 s was our own pre-deployment
     estimate, seen by nobody outside the project; the thesis states the figure arrived at by
@@ -489,7 +501,7 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     Tensor G2). Scaled with public single-core ratios (Snapdragon 695 ×1.3, Snapdragon 680 ×2.9
     slower) and Opensignal latency ranges (4G 30–58 ms, weak cell 100–150 ms, 3G ≈ 90 ms): a
     2022 mid-range phone on a weak LTE cell ≈ 4.5 s, a 2022 low-end phone on a 3G-grade link ≈ 5.7 s.
-    **DECIDED (owner, 2026-09-04) — final wording: NFR-P1 = "a plan request completes on the device (tap → plan received) in ≤ 6.0 s at p95, warm, on a 2022 low-end Android over a weak-signal link; the reference measurement is 3.7 s p95 on a Pixel 7a over home Wi-Fi (4.6 s before ADR-0018); the server-side `plan-request` ≤ 1.5 s p95; the heuristic fallback bounds the server wait at 1.9 s." Two caveats travel with it: the client timer stops before the SQLite mirror (0.1–0.9 s on the reference device, scaling with the phone) — reported separately, not folded in; and a pre-plan sync carrying a day's backlog costs more than the measured syncs.** This supersedes the 4.5 s wording above (which was set on the reference device alone). **Amended 2026-09-05 (4 Sep export, `android-20260905-0942/notes.md` item 4): the reference is two series of ten, 3.7 s p95 on 3 Sep and 4.1 s on 4 Sep (one 4.7 s request carried a 3.0 s backlog sync — the second caveat, observed); pooled p95 4.0 s (n = 20). State the reference as 3.7–4.1 s, never as one number; the 6.0 s bound and the 1.5 s server bound (function p95 1.28 s on 4 Sep) are unaffected.** **The more useful finding, stated plainly: of the 3.9 s p95 reference sum, 2.6 s — two-thirds — is server-side work (the plan function, its invoke overhead, the sync-resolve call) that scales with nothing on the user's side, not the phone and not the network. That is the share L2 (one RPC for the sync hops) and L3 (ops carried inside the plan request) address; the device and network multipliers act only on the remaining third.** **Network figures — a stated limitation:** the typical-case latency is current (Ookla, Q4 2024: country-wide median mobile latency 32 ms in Europe, 35 ms in the Americas; a 2023 London campaign measured ≈ 25 ms average on 4G LTE); the weak-cell (100–150 ms) and 3G (≈ 90 ms) values are conservative estimates taken from older public measurements (Opensignal country reports, 2018), because current reports publish experience scores rather than milliseconds or could not be retrieved — the derivation errs on the slow side deliberately. **Erratum 2026-09-06:** the before/after fallback pair (1/10 → 0/10) was measured on the 15-task inbox of 3 Sep; the 14-task series of 2 Sep had 1/10 with no "after" — where this item says "14-task" for the pair, read 15-task.
+    **DECIDED (owner, 2026-09-04) — final wording: NFR-P1 = "a plan request completes on the device (tap → plan received) in ≤ 6.0 s at p95, warm, on a 2022 low-end Android over a weak-signal link; the reference measurement is 3.7 s p95 on a Pixel 7a over home Wi-Fi (4.6 s before ADR-0018); the server-side `plan-request` ≤ 1.5 s p95; the heuristic fallback bounds the server wait at 1.9 s." Two caveats travel with it: the client timer stops before the SQLite mirror (0.1–0.9 s on the reference device, scaling with the phone) — reported separately, not folded in; and a pre-plan sync carrying a day's backlog costs more than the measured syncs.** This supersedes the 4.5 s wording above (which was set on the reference device alone). **Amended 2026-09-05 (4 Sep export, `android-20260905-0942/notes.md` item 4): the reference is two series of ten, 3.7 s p95 on 3 Sep and 4.1 s on 4 Sep (one 4.7 s request carried a 3.0 s backlog sync — the second caveat, observed); pooled p95 4.0 s (n = 20). State the reference as 3.7–4.1 s, never as one number; the 6.0 s bound and the 1.5 s server bound (function p95 1.28 s on 4 Sep) are unaffected.** **The more useful finding, stated plainly: of the 3.9 s p95 reference sum, 2.6 s — two-thirds — is server-side work (the plan function, its invoke overhead, the sync-resolve call) that scales with nothing on the user's side, not the phone and not the network. That is the share L2 (one RPC for the sync hops) and L3 (ops carried inside the plan request) address; the device and network multipliers act only on the remaining third.** **Network figures — a stated limitation:** the typical-case latency is current (Ookla, Q4 2024: country-wide median mobile latency 32 ms in Europe, 35 ms in the Americas; a 2023 London campaign measured ≈ 25 ms average on 4G LTE); the weak-cell (100–150 ms) and 3G (≈ 90 ms) values are conservative estimates taken from older public measurements (Opensignal country reports, 2018), because current reports publish experience scores rather than milliseconds or could not be retrieved — the derivation errs on the slow side deliberately. **Erratum 2026-09-06:** the before/after fallback pair (1/10 → 0/10) was measured on the 15-task inbox of 3 Sep; the 14-task series of 2 Sep had 1/10 with no "after" — where this item says "14-task" for the pair, read 15-task. **Amended 2026-09-09 — two internal inconsistencies in this item.** (a) An earlier paragraph still says «the reference measurement on the Pixel 7a over home Wi-Fi is 3.7 s p95» while the 2026-09-05 amendment rules that the reference is stated as **3.7–4.1 s, never as one number**; the amended form governs, and the same applies to «before» (3.84 s p95 on the 2 Sep 14-task series, 4.58 s p95 on the 3 Sep 15-task series — name the series with the number). (b) «of the 3.9 s p95 sum, 2.6 s is server-side» reads as a measurement: 3.9 s is the **sum of the decomposition's component percentiles** (server 2.60 + network 0.90 + device 0.40) against a measured series p95 of 3.68 s, and the day-4 notes state that percentiles do not add and the sum is deliberately conservative. Write it as the decomposition's sum, not as a measured total. `device-checklist.md`'s NFR-P1 row also still runs the 2 Sep and 3 Sep series together («the same inbox») and should be corrected in place.
 
 52. **§verification / §discussion — add the non-working-day finding as the example of what only a
     multi-day run on a real calendar can surface (hardware pass day 4, 2026-09-04; ADR-0019).**
@@ -581,6 +593,12 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     deadlines, heterogeneous tasks and the CP-SAT packing are outside E3; the E2 GLMM is not
     fitted (E2 is a lower bound). Cite the run's `run.json` (commit, timings) and the
     one-command reproduction.
+
+    **Amended 2026-09-09:** this entry still opens with «the learned arm beats the heuristic by
+    2.5 pp». `simulation-results.md` §6a supersedes those figures and #56 replaces them: they
+    are properties of the P11 tanh world, whose intermediate types had no slot pattern and
+    therefore nothing to lose. In the thesis the **first** mention of 2.5 / 5.4 pp carries that
+    qualifier; the E1 and E2 results stand unqualified.
 
 56. **§5 (new main subsection) / §results / §discussion / §limitations — the sensitivity study
     across simulated worlds as the thesis's main quantitative contribution (owner directive
@@ -957,6 +975,28 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     Cross-refs: #11 (the simulator caveat this section closes), #50–#53, #60 (i), ADR-0018,
     ADR-0019, `docs/verification/device-checklist.md` "Pass status" paragraphs, the explainer's
     defence passage of 2026-09-08.
+
+    **Amended 2026-09-09 — four positive claims in the text above overstate their evidence; each is
+    fixed by adding the condition, not by dropping the claim.** (i) «exact reminders within half a
+    second» — the measured set is +109, +147, +335, +345, +377, +471 and **+531 ms**; write
+    «within 0.11–0.53 s of their alarm, on a plugged and on an unplugged phone». (ii) «erasure
+    through the in-app dialogs in 78–180 ms» — the **180 ms** erasure went through the OS alerts
+    (build 5); the in-app dialogs measured **78, 113 and 151 ms**. (iii) «a real thumb scroll with
+    zero hitches on the iPhone and zero janky frames on the Pixel» — true of a **7-block** iPhone
+    list under the owner's thumb and an **8-block** Pixel list; the 13-block Pixel runs show 1
+    janky frame each and the 16-block scripted iPhone runs 8 hitches each, so the list length and
+    the input (thumb vs scripted drag) travel with the claim. (iv) «cold start p90 1.07 s on the
+    Pixel 7a … and 0.50 s on the iPhone 12» compares **different intervals** — Android's
+    `am start -W` is process start → first frame, the iPhone's 488/503 ms is initial frame →
+    foreground-active and excludes the 413 ms of process creation the same trace reports; the
+    defensible cross-platform statement is the post-reboot pair, 0.95 s (iPhone 12) vs 1.07 s
+    (Pixel 7a). Also: on 7 September the fifth notification of the day **was the duplicated
+    ritual**, so the clean cap demonstration is the Android day of 5 September and the iOS day of
+    8 September; the stale-session reward fix is on the branch and **was not re-checked on
+    hardware** (and the Android session of 2026-09-02, 164.5 wall-clock minutes, had the same shape
+    and its tuple was never checked); and the build and PR counts in «Cost, attendance and yield»
+    include the dialog pass (6 Sep), the motion pass (8–9 Sep) and the simulator i18n sweep
+    (9 Sep), which lie outside the scope sentence — say which passes they count.
 
 63. **§implementation (the interface language) / §verification (FR-11) / §method (cold start):**
     the draft assumes a Ukrainian-facing product throughout — correction #7 already notes that

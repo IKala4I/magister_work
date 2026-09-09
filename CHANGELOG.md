@@ -2,6 +2,49 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — the corrections rollup becomes the thesis's working document (2026-09-09, post-p12/corrections-rollup)
+
+- **All 63 items carry finished Ukrainian sentences.** `docs/thesis/corrections-rollup.md` was an
+  index — "item 17 concerns §2.4". It now carries, per item, the text the draft should read,
+  anchored to the draft's own numbering and tagged **Ф / П / С**: replace a phrase, rewrite a
+  passage, or rebuild a section that no longer holds. `thesis-corrections.md` stays the
+  chronological worklist and the reasoning.
+- **Every number carries the condition it is only true under.** A ledger of the measured numbers
+  the thesis may quote — each with its device, build, box, date and series size — and a second list
+  of the draft's numbers that cannot be traced: the 583/191 test counts appear nowhere outside the
+  corrections and the explainer (the last recorded gate runs are 519/521 jest and 187 Deno), «2–3
+  продуктивні години на день» has no source, and Додаток Ж's `propensity: 0.25` is a constant from
+  a rule superseded on 2026-08-26. Two collisions are called out: 1075 ms (simulator) against
+  1.07 s (Pixel 7a), and three different latencies all called "the plan time".
+- **The weakened claims are written at full strength.** The learned policy only **ties** in the
+  world its own cold-start prior describes; the rule beaten is **one** — earliest-free-slot — and
+  the competitors were never compared; the field study is **out of scope** and simulation does not
+  stand in for it; the personalisation gap **does not compound**. Each with the numbers that make
+  it true and a list of hedges to delete on sight.
+- **Three chapters are rebuilt, not edited.** Розділ 5 (it describes a study in the future tense
+  and contains none of the evaluation that was performed), a new Розділ 6 (results, device
+  verification, discussion — everything the corrections address to «§6» or «§verification» has no
+  referent today), and §1.4, whose research-gap argument rests on the work occupying all seven
+  dimensions including a deployed field evaluation.
+- **Forty findings no correction covered (U1–U40).** Among them: the five nightly Maestro paths in
+  §4.6 do not exist (no scheduled workflow; one of the five is the drag interaction the system does
+  not have; on real Android all 11 tab selectors matched nothing and a date assertion had never
+  passed since it was added); the nightly training pipeline is a systemd timer on the EU VM, while
+  `train.yml` runs the same code on synthetic data only; лістинг 4.1 logs `skipEvent` where the
+  client logs `lapse_observed` and writes a status the database refuses from clients; the
+  "pixel-identical UI" blinding claim has a hole — the trade-off sheet's consequence is computed in
+  the learned arm and generic in the heuristic one; the free tier costs an hourly synthetic load to
+  stop the provider reclaiming the instance; and the reference list orphans five sources while
+  eleven arguments in the corrections cite none.
+- **Six worklist entries amended with dated lines**, because they were stale or overstated: #20
+  (a propensity constant from the superseded eligibility rule), #47 (the device measurement it
+  promised was never taken — NFR-P3 still has no handset number), #50 (the fix was server-side; the
+  device still sends `Europe/Kiev`), #51 (self-contradictory reference figure, and a modelled
+  decomposition sum presented as a measurement), #55 (E3's effects are properties of one world),
+  #62 (four positive claims overstate their evidence — reminders to +531 ms not "half a second",
+  180 ms erasure through OS alerts not the in-app dialogs, jank claims true of 7–8-block lists, and
+  two cold-start figures measuring different intervals).
+
 ## Post-P12 — Ukrainian localisation and the English boundary (2026-09-09, post-p12/i18n-uk)
 
 - **A second catalog, and a switch.** `Системна / English / Українська` in Settings, built on the
