@@ -30,3 +30,8 @@ supabase/functions/
 .claude/
 docs/verification/device-pass/android-20260903-1020/*.json
 apps/mobile/modules/*/android/build
+
+# generated thesis text — assemble.py owns it byte for byte, and prettier corrupts it:
+# it reads «E(x~D) E(a~π(·|x))» in formula (2.15) as strikethrough and rewrites it to
+# «E(x~~D)», and it strips the alignment from the code listings in §4.2/§4.4.
+docs/thesis/text/full.md

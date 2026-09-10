@@ -21,6 +21,7 @@ from __future__ import annotations
 import io
 import json
 import re
+import unicodedata
 import sys
 import zipfile
 from xml.etree import ElementTree as ET
@@ -144,6 +145,148 @@ def load_quoted_payloads(name: str) -> list[list[str]]:
     return out
 
 
+
+ROLLUP = "docs/thesis/corrections-rollup.md"
+
+
+def load_rollup_payloads(path: str = ROLLUP) -> dict[str, list[list[str]]]:
+    """The approved Ukrainian payloads, read from the rollup itself so the rollup stays the
+    single source of truth: retyping them here is exactly the transcription step this program
+    exists to remove. Keyed by the leading token of the heading they sit under; each payload is
+    one contiguous blockquote, split into paragraphs on its blank quote lines."""
+    raw = io.open(path, encoding="utf-8").read().split("\n")
+    out: dict[str, list[list[str]]] = {}
+    key, run = None, None
+
+    def close():
+        nonlocal run
+        if run is not None and key:
+            paras, cur = [], []
+            for ln in run:
+                if not ln.strip():
+                    if cur:
+                        paras.append(" ".join(cur))
+                        cur = []
+                else:
+                    cur.append(ln)
+            if cur:
+                paras.append(" ".join(cur))
+            paras = [x.strip() for x in paras if x.strip()]
+            if paras:
+                # the outer guillemets wrap the whole payload, not each paragraph
+                if paras[0].startswith("\u00ab") and paras[0].count("\u00ab") > paras[0].count("\u00bb"):
+                    paras[0] = paras[0][1:]
+                if paras[-1].endswith("\u00bb") and paras[-1].count("\u00bb") > paras[-1].count("\u00ab"):
+                    paras[-1] = paras[-1][:-1]
+                if len(paras) == 1:
+                    paras[0] = re.sub(r"^\u00ab(.*)\u00bb$", r"\1", paras[0])
+                out.setdefault(key, []).append([x.strip() for x in paras])
+        run = None
+
+    for ln in raw:
+        m = re.match(r"^#{2,4}\s+(.*)", ln)
+        if m:
+            close()
+            key = m.group(1).strip().split()[0]
+            continue
+        if ln.startswith(">"):
+            if run is None:
+                run = []
+            run.append(ln[1:].strip())
+        else:
+            close()
+    close()
+    return out
+
+
+# Each row: (rollup key, payload index, op, anchor, marker).
+#   replace  the anchor paragraph becomes the payload (extra paragraphs follow it)
+#   from     the anchor keeps its text up to `marker`, then the payload replaces the rest
+#   after / before   the payload is inserted after / before the anchor paragraph
+#   append   the payload is appended to the anchor paragraph
+# Anchors are draft prose; a miss is reported in SKIPPED rather than guessed at.
+ROLLUP_EDITS: list[tuple] = [
+    # --- ВСТУП -----------------------------------------------------------------------------
+    ("4.3", 0, "from", "Актуальність теми. Керування особистим часом", "Керування особистим часом"),
+    ("4.3", 1, "from", "3. удосконалено метод холодного старту рекомендаційної", "забезпечує узгоджений перехід"),
+    ("4.3", 2, "after", "4. набули подальшого розвитку методи офлайн-оцінювання", None),
+    ("4.3", 3, "from", "Практичне значення одержаних результатів.", "Розроблений програмний комплекс Kairos"),
+    ("4.3", 4, "replace", "6. розроблено методику експериментального оцінювання ефективності системи у формі", None),
+    # --- Розділ 1 --------------------------------------------------------------------------
+    ("§1.1", 0, "from", "починаючи з класичного опитувальника", "Із цього випливає безпосередній практичний висновок"),
+    ("§1.2", 0, "from", "Узагальнене порівняння можливостей наведено", "Узагальнене порівняння можливостей наведено"),
+    ("§1.2", 1, "replace", "З таблиці 1.1 випливає, що жодне з наявних рішень", None),
+    ("§1.4", 1, "replace", "З матриці випливає формулювання наукового розриву", None),
+    ("§1.4", 0, "before", "З матриці випливає формулювання наукового розриву", None),
+    ("§1.4", 2, "append", "У розділі проаналізовано предметну область персонального планування", None),
+    ("§1.5", 0, "from", "Хоча робота є науково-прикладною", "По-перше, дозріло он-девайс машинне навчання"),
+    ("§1.5", 1, "replace", "Конкурентна перевага, що накопичується", None),
+    ("§1.6", 0, "after", "потребує математичної формалізації задачі та методів", None),
+    # --- Розділ 2 --------------------------------------------------------------------------
+    ("§2.3", 2, "replace", "Незалежно від цього, для забезпечення оцінюваності", None),
+    ("§2.3", 1, "after", "(C3) τ → {τ(1), …, τ(m)}", None),
+    ("§2.3", 0, "after", "Практична реалізація використовує рідну мову моделювання CP-SAT", None),
+    ("§2.4", 0, "after", "Підказка CP-SAT лише засіває пошук", None),
+    ("§2.5", 0, "before", "Інші категорії задач отримуються логіт-афінним перетворенням", None),
+    ("§2.5", 2, "after", "Сила приору n₀ (у псевдоспостереженнях) становить 8", None),
+    ("§2.5", 1, "after", "тобто таблиця 2.4 є нульовою версією навчуваного об", None),
+    ("§2.6.2", 0, "replace", "і є незміщеним тоді й лише тоді, коли політика логування", None),
+    ("§2.7", 0, "from", "Поведінкові сигнали перетворюються на винагороди", "Базові правила: виконаний за розкладом блок"),
+    # --- Розділ 3 --------------------------------------------------------------------------
+    ("§3.6", 0, "after", "Конфлікти поділяються на три класи", None),
+    ("§3.6", 1, "after", "Принципове проєктне рішення: виявлення пропусків є лінивим", None),
+    ("§3.7", 0, "after", "Модель загроз і відповідні контрзаходи", None),
+    ("§3.7", 1, "after", "Обробниками є: Oracle Cloud Infrastructure", None),
+    ("§3.7", 2, "after", "Розміщення даних у ЄС не робить обробку вільною від передавання", None),
+    # --- Розділ 4 --------------------------------------------------------------------------
+    ("§4.1", (0, 1), "replace", "Взаємодія «перетягнути — значить навчити» (UC-07) реалізована", None),
+    ("§4.1", (0, 2), "replace", "Природномовне швидке додавання задач (FR-11) реалізовано бібліотекою", None),
+    ("§3.1.3", 0, "after", "Edge Functions реалізовано на Deno/TypeScript", None),
+    ("§4.5", 1, "after", "Нічний конвеєр виконується", None),
+    # --- Додаток Д -------------------------------------------------------------------------
+    ("10.4", 0, "replace", "Опитувальник", None),
+]
+
+# The rollup writes «[nn]» wherever it had found no verified entry at the time. Each one is
+# resolved to a symbolic key, so the number is filled in after the list is renumbered.
+NN_PLACEHOLDERS: list[tuple[str, str, str]] = [
+    ("систематичний огляд", "[nn]", "[@chauhan]"),
+    ("Senyk, Jankowski & Cholii", "[nn]", "[@senyk]"),
+]
+
+# Citation sites the rollup names in its "arguments that currently cite nothing" table but
+# does not write out as replacement prose. Each adds the source to a sentence already there.
+CITE_SITES: list[tuple[str, str, str, str]] = [
+    ("Обробник /feedback застосовує кортежі винагород",
+     "кроки стохастичного градієнта River для вагових коефіцієнтів",
+     "кроки стохастичного градієнта River для вагових коефіцієнтів змішування з проєкцією на "
+     "ймовірнісний симплекс [@duchi] після кожного кроку",
+     "§4.3 blend projection (Duchi)"),
+    ("За Настановами EDPB 05/2021", "За Настановами EDPB 05/2021 (v2.0)",
+     "За Настановами EDPB 05/2021 (v2.0) [@edpb]", "§3.7 transfer analysis (EDPB)"),
+    ("за Законом України № 2297-VI, ст. 29", "за Законом України № 2297-VI, ст. 29",
+     "за Законом України № 2297-VI [@zakon], ст. 29", "§3.7 Art. 29 of the Ukrainian law"),
+]
+
+# Sentences the rollup approves inline rather than as a blockquote payload.
+LITERAL_EDITS: list[tuple] = [
+    ("append", "Північною зіркою продуктових метрик обрано саме рівень дотримання плану",
+     "PAR обчислюється зареєстрованим кодом виключно з фактів (`events` + `recommendations`) і "
+     "ніколи з таблиці винагород; спільними в них є рівно дві константи — вікно ±15 хв і поріг 50 %.",
+     "§1.5 PAR provenance"),
+    ("append", "Незалежно від цього, для забезпечення оцінюваності",
+     "Цей рандомізований зріз є субстратом незміщеного офлайн-оцінювання. Частота дослідницьких "
+     "блоків становить ≈ 4,3 експерименти на користувача за тиждень на звичайних тижнях і 1,1–2,4 "
+     "на завантажених, **пораховані на коді придатності, а не спостережені** (підрозділ 6.2).",
+     "§2.3 slice frequency"),
+    ("append", "і оцінки з ESS < 100 трактуються як недоказові",
+     "Оцінки з ESS < 100 позначаються як недоказові, але **ніколи не вилучаються з подання**: "
+     "приховування слабкої оцінки є тим самим ступенем свободи дослідника, проти якого спрямована "
+     "попередня реєстрація.",
+     "§2.6.3 ESS reporting"),
+]
+
+
 # ----------------------------------------------------------------- locating
 def find(blocks: list[dict], needle: str, start: int = 0) -> int:
     for i in range(start, len(blocks)):
@@ -153,6 +296,12 @@ def find(blocks: list[dict], needle: str, start: int = 0) -> int:
 
 
 # ----------------------------------------------------------------- rendering
+def _w(text: str) -> int:
+    """Display width: East-Asian wide characters count double, combining marks zero."""
+    return sum(0 if unicodedata.combining(c) else
+               (2 if unicodedata.east_asian_width(c) in "WF" else 1) for c in text)
+
+
 def render(blocks: list[dict]) -> str:
     out: list[str] = []
     for b in blocks:
@@ -161,11 +310,18 @@ def render(blocks: list[dict]) -> str:
             if not rows:
                 continue
             width = max(len(r) for r in rows)
-            rows = [r + [""] * (width - len(r)) for r in rows]
-            out.append("| " + " | ".join(rows[0]) + " |")
-            out.append("| " + " | ".join("---" for _ in range(width)) + " |")
+            rows = [[c.replace("|", "\\|") for c in r] + [""] * (width - len(r)) for r in rows]
+            # Pad to the widest cell per column: `prettier --check` runs over the repository,
+            # and a generated file has to come out of the generator already formatted, or
+            # every assemble run leaves the tree dirty. Width is counted in display columns.
+            col = [max(3, max(_w(r[i]) for r in rows)) for i in range(width)]  # readable
+            def line(cells: list[str], fill: str = " ") -> str:
+                return "| " + " | ".join(
+                    c + fill * (col[i] - _w(c)) for i, c in enumerate(cells)) + " |"
+            out.append(line(rows[0]))
+            out.append(line(["-" * col[i] for i in range(width)], "-"))
             for r in rows[1:]:
-                out.append("| " + " | ".join(c.replace("|", "\\|") for c in r) + " |")
+                out.append(line(r))
             out.append("")
             continue
         text = b["text"]
@@ -175,12 +331,15 @@ def render(blocks: list[dict]) -> str:
             # headings are wholly bold in the source; the marks are styling, not emphasis
             out.append("#" * level + " " + re.sub(r"^\*\*(.*)\*\*$", r"\1", text).strip())
         elif text.startswith("\t"):
-            # a numbered formula: tabs are Word tab stops, flattened here
+            # A numbered formula: tabs are Word tab stops, flattened to spaces. The spacing
+            # is kept exactly as the draft has it — `prettier` would collapse it, and worse,
+            # would read «E(x~D) E(a~π» in (2.15) as strikethrough and rewrite the formula.
+            # That is why this file is in `.prettierignore`.
             out.append(re.sub(r"\t+", "    ", text).strip())
         else:
             out.append(text)
         out.append("")
-    return "\n".join(out).replace("\n\n\n", "\n\n").strip() + "\n"
+    return re.sub(r"\n{3,}", "\n\n", "\n".join(out)).strip() + "\n"
 
 
 # ----------------------------------------------------------------- edit ops
@@ -241,6 +400,83 @@ def run_sub(blocks, locator, old, new, label):
     APPLIED.append(label)
 
 
+def para_before(blocks, locator, new, label):
+    i = find(blocks, locator)
+    blocks.insert(i, {"kind": "p", "style": "", "text": new, "origin": "inserted"})
+    APPLIED.append(label)
+
+
+def para_append(blocks, locator, new, label):
+    try:
+        i = find(blocks, locator)
+    except LookupError:
+        SKIPPED.append(f"{label} (locator not found: {locator[:40]!r})")
+        return
+    blocks[i] = {**blocks[i], "text": blocks[i]["text"].rstrip() + " " + new, "origin": "edited"}
+    APPLIED.append(label)
+
+
+def para_from(blocks, locator, marker, new, label):
+    """Keep the anchor paragraph up to `marker`, then let the payload replace the rest."""
+    try:
+        i = find(blocks, locator)
+    except LookupError:
+        SKIPPED.append(f"{label} (locator not found: {locator[:40]!r})")
+        return
+    text = blocks[i]["text"]
+    at = fold(text).find(fold(marker))
+    if at < 0:
+        SKIPPED.append(f"{label} (marker not found: {marker[:40]!r})")
+        return
+    blocks[i] = {**blocks[i], "text": (text[:at] + new).strip(), "origin": "edited"}
+    APPLIED.append(label)
+
+
+def apply_rollup_edits(blocks) -> None:
+    """Apply every approved payload the rollup carries for Розділи 1-4 and Додаток Д."""
+    pay = load_rollup_payloads()
+    for key, idx, op, anchor, marker in ROLLUP_EDITS:
+        label = f"{key}[{idx}] {op}"
+        try:
+            paras = pay[key][idx[0]][idx[1]:idx[1] + 1] if isinstance(idx, tuple) else pay[key][idx]
+        except (KeyError, IndexError):
+            SKIPPED.append(f"{label} (no such payload in the rollup)")
+            continue
+        head, rest = paras[0], paras[1:]
+        try:
+            if op == "replace":
+                para_replace(blocks, anchor, head, label)
+            elif op == "from":
+                para_from(blocks, anchor, marker, head.lstrip("\u2026").strip(), label)
+            elif op == "after":
+                para_insert_after(blocks, anchor, head, label)
+            elif op == "before":
+                para_before(blocks, anchor, head, label)
+            elif op == "append":
+                para_append(blocks, anchor, head, label)
+            else:
+                raise ValueError(op)
+        except LookupError:
+            SKIPPED.append(f"{label} (anchor not found: {anchor[:44]!r})")
+            continue
+        prev = head[:60]
+        for extra in rest:
+            para_insert_after(blocks, prev, extra, f"{label} +para")
+            prev = extra[:60]
+    for op, anchor, text, label in LITERAL_EDITS:
+        if op == "append":
+            para_append(blocks, anchor, text, label)
+    # the payload was written before D2 removed the HF Hub entry; the sentence it supports
+    # is precisely that this precondition did not hold, so the citation goes with it
+    run_sub(blocks, "безоплатні тарифи хмарних платформ на момент проєктування",
+            "за нульової вартості на ранньому масштабі [60, 30, 23]",
+            "за нульової вартості на ранньому масштабі [60, 23]", "§1.5 dropped HF Hub citation")
+    for anchor, old, new in NN_PLACEHOLDERS:
+        run_sub(blocks, anchor, old, new, f"[nn] -> {new}")
+    for anchor, old, new, label in CITE_SITES:
+        run_sub(blocks, anchor, old, new, label)
+
+
 def replace_range(blocks, start_locator, end_locator, new_blocks, label):
     a = find(blocks, start_locator)
     b = find(blocks, end_locator, a + 1)
@@ -257,6 +493,53 @@ def cell_set(blocks, table_index, row, col, new, label):
 
 
 # ----------------------------------------------------------------- references
+# Ukrainian-language entries the draft carried without authors or pages. Verified 2026-09-10
+# against each journal's own record; all five are Ukrainian-language, as the source-language
+# constraint requires. Author names are given in Cyrillic per ДСТУ 8302 for Ukrainian sources.
+REPLACE_REFS = {
+    "Дослідження робастності рекомендаційних систем":
+        "Мелешко Є., Хох В., Улічев О. Дослідження робастності рекомендаційних систем з колаборативною фільтрацією до інформаційних атак. Кібербезпека: освіта, наука, техніка. 2019. Т. 1, № 5. С. 95–104. DOI: 10.28925/2663-4023.2019.5.95104.",
+    "Метод роботи рекомендаційної системи у комп":
+        "Міхав В., Мелешко Є. Метод роботи рекомендаційної системи у комп'ютерній мережі типу peer to peer. Системи управління, навігації та зв'язку. 2023. Т. 1, № 71. С. 112–117. DOI: 10.26906/SUNZ.2023.1.112.",
+    "Моделі і методи прогнозування рекомендацій":
+        "Лобур М. В., Шварц М. Є., Стех Ю. В. Моделі і методи прогнозування рекомендацій для колаборативних рекомендаційних систем. Вісник Національного університету «Львівська політехніка». Інформаційні системи та мережі. 2018. Вип. 901. С. 68–75.",
+    "Покращення якості рекомендаційних систем":
+        "Кучерук В., Глушко М. Покращення якості рекомендаційних систем на основі кваліметричних методів вимірювання. Вимірювальна та обчислювальна техніка в технологічних процесах. 2022. № 2. С. 65–72. DOI: 10.31891/2219-9365-2022-70-2-9.",
+    "Проблеми сучасних рекомендаційних систем":
+        "Мелешко Ю. Проблеми сучасних рекомендаційних систем та методи їх рішення. Системи управління, навігації та зв'язку. 2018. Т. 4, № 50. С. 120–124. DOI: 10.26906/SUNZ.2018.4.120.",
+    # Verified 2026-09-10 against the publishers' own records; see docs/thesis/reference-audit.md.
+    "ДСТУ 3008:2015":
+        "ДСТУ 3008:2015. Інформація та документація. Звіти у сфері науки і техніки. Структура та правила оформлювання. Чинний від 2017-07-01. Київ : ДП «УкрНДНЦ», 2016.",
+    "ДСТУ 8302:2015":
+        "ДСТУ 8302:2015. Інформація та документація. Бібліографічне посилання. Загальні положення та правила складання. Чинний від 2016-07-01. Київ : ДП «УкрНДНЦ», 2016.",
+    "Kuliahin A., Narozhnyi V.":
+        "Kuliahin A., Narozhnyi V., Tkachov V., Kuchuk H. Дослідження методів побудови рекомендаційних систем для розв'язання задачі вибору найбільш релевантного відео при створенні віртуальних арт-композицій. Системи управління, навігації та зв'язку. 2022. Т. 4, № 70. С. 94–99. DOI: 10.26906/SUNZ.2022.4.094.",
+    "Meleshko Ye., Khokh V., Ulichev O. Дослідження відомих":
+        "Meleshko Ye., Khokh V., Ulichev O. Дослідження відомих моделей атак на рекомендаційні системи з колаборативною фільтрацією. Системи управління, навігації та зв'язку. 2019. Т. 5, № 57. С. 67–71. DOI: 10.26906/SUNZ.2019.5.067.",
+    "The Netflix Recommender System":
+        "Gomez-Uribe C. A., Hunt N. The Netflix Recommender System: Algorithms, Business Value, and Innovation. ACM Transactions on Management Information Systems. 2015. Vol. 6, No. 4. Article 13. 19 p. DOI: 10.1145/2843948.",
+    "Guidelines 05/2021":
+        "Guidelines 05/2021 on the Interplay between the application of Article 3 and the provisions on international transfers as per Chapter V of the GDPR. Version 2.0. European Data Protection Board, adopted 24 February 2023. 24 p.",
+}
+
+# Symbolic citation keys: the text files write [@key] and the assembler resolves them to the
+# final number after renumbering, so adding or removing a reference cannot silently break a
+# citation. The value is a substring that identifies the entry uniquely.
+CITE_KEYS = {
+    "chauhan": "Chronotype and synchrony effects",
+    "duchi": "Efficient Projections onto",
+    "graham": "Bounds for Certain Multiprocessing",
+    "edpb": "Guidelines 05/2021",
+    "liulayland": "Scheduling Algorithms for Multiprogramming",
+    "nielsen": "Usability Engineering",
+    "roenneberg": "Epidemiology of the human circadian clock",
+    "senyk": "Ukrainian versions of the Composite Scale",
+    "taillard": "Validation of Horne and Ostberg",
+    "lewis": "UMUX-LITE",
+    "zakon": "Про захист персональних даних",
+    "adan": "Horne & Östberg Morningness-Eveningness Questionnaire: A reduced scale",
+}
+
 DELETE_REFS = ["Hugging Face Hub Documentation", "ONNX Runtime Documentation",
                "PyTorch Documentation", "Sentence-Transformers Documentation"]
 ADD_REFS = [
@@ -268,7 +551,6 @@ ADD_REFS = [
     "Nielsen J. Usability Engineering. San Francisco : Morgan Kaufmann, 1993. 362 p.",
     "Roenneberg T., Kuehnle T., Juda M., Kantermann T., Allebrandt K., Gordijn M., Merrow M. Epidemiology of the human circadian clock. Sleep Medicine Reviews. 2007. Vol. 11, No. 6. P. 429–438.",
     "Senyk O., Jankowski K. S., Cholii S. Ukrainian versions of the Composite Scale of Morningness and Munich Chronotype Questionnaire. Biological Rhythm Research. 2022. Vol. 53, No. 6. P. 878–896. DOI: 10.1080/09291016.2020.1788807.",
-    "Speedtest Global Index: Q4 2024. Ookla. URL: https://www.speedtest.net/global-index (дата звернення: 10.09.2026).",
     "Taillard J., Philip P., Chastang J.-F., Bioulac B. Validation of Horne and Ostberg Morningness-Eveningness Questionnaire in a Middle-Aged Population of French Workers. Journal of Biological Rhythms. 2004. Vol. 19, No. 1. P. 76–86. DOI: 10.1177/0748730403259849.",
 ]
 
@@ -282,6 +564,9 @@ def sort_key(entry: str) -> tuple:
     return (1, body.lower()) if "А" <= first <= "я" or first in "ІЇЄҐіїєґ" else (2, body.lower())
 
 
+DRAFT_REF_NUMBERS: set[int] = set()
+
+
 def rebuild_references(blocks: list[dict]) -> dict[int, int]:
     head = find(blocks, "СПИСОК ВИКОРИСТАНИХ ДЖЕРЕЛ")
     end = find(blocks, "ДОДАТКИ", head + 1)
@@ -290,7 +575,17 @@ def rebuild_references(blocks: list[dict]) -> dict[int, int]:
         if blocks[i]["kind"] == "p" and re.match(r"^\d+\.\s", blocks[i]["text"]):
             n = int(re.match(r"^(\d+)\.", blocks[i]["text"]).group(1))
             entries.append((n, re.sub(r"^\d+\.\s*", "", blocks[i]["text"])))
-    kept = [(n, b) for n, b in entries if not any(d in b for d in DELETE_REFS)]
+    DRAFT_REF_NUMBERS.clear()
+    DRAFT_REF_NUMBERS.update(n for n, _ in entries)
+    kept = []
+    for n, b in entries:
+        if any(d in b for d in DELETE_REFS):
+            continue
+        for needle, full in REPLACE_REFS.items():
+            if needle in b:
+                b = full
+                break
+        kept.append((n, b))
     merged = [(None, a) for a in ADD_REFS] + kept
     merged.sort(key=lambda x: sort_key(x[1]))
     mapping: dict[int, int] = {}
@@ -306,17 +601,19 @@ def rebuild_references(blocks: list[dict]) -> dict[int, int]:
 
 
 def renumber_citations(blocks: list[dict], mapping: dict[int, int], stop_at: int) -> int:
-    """Rewrite [n] and [n, m] citations in the body. Deleted refs leave a marker."""
+    """Rewrite [n] and [n, m] citations in the body. Deleted refs leave a marker.
+
+    A bracketed group is a citation only if every number in it is a reference number the
+    draft's own list used — otherwise it is left untouched, because «clip[0, 1]» and «[0, 1]»
+    are mathematics, not citations, and rewriting them corrupts a formula silently.
+    """
     changed = 0
 
     def one(m: re.Match) -> str:
         nums = [x.strip() for x in m.group(1).split(",")]
-        out = []
-        for x in nums:
-            if not x.isdigit():
-                return m.group(0)
-            out.append(str(mapping[int(x)]) if int(x) in mapping else "‹?›")
-        return "[" + ", ".join(out) + "]"
+        if not all(x.isdigit() and int(x) in DRAFT_REF_NUMBERS for x in nums):
+            return m.group(0)
+        return "[" + ", ".join(str(mapping[int(x)]) if int(x) in mapping else "‹?›" for x in nums) + "]"
 
     for i in range(stop_at):
         b = blocks[i]
@@ -336,6 +633,44 @@ def renumber_citations(blocks: list[dict], mapping: dict[int, int], stop_at: int
                     b["origin"] = "renumbered"
                 changed += 1
     return changed
+
+
+def resolve_cite_keys(blocks: list[dict], head: int) -> tuple[int, list[str]]:
+    """Turn [@key] into the entry's final number, so citations survive renumbering."""
+    numbers: dict[str, int] = {}
+    for i in range(head + 1, len(blocks)):
+        b = blocks[i]
+        if b["kind"] != "p":
+            continue
+        m = re.match(r"^(\d+)\.\s", b["text"])
+        if not m:
+            continue
+        for key, needle in CITE_KEYS.items():
+            if needle in b["text"]:
+                numbers[key] = int(m.group(1))
+    resolved, missing = 0, set()
+
+    def one(m: re.Match) -> str:
+        key = m.group(1)
+        if key in numbers:
+            return f"[{numbers[key]}]"
+        missing.add(key)
+        return m.group(0)
+
+    for b in blocks:
+        if b["kind"] == "table":
+            for r in b["rows"]:
+                for j, c in enumerate(r):
+                    new = re.sub(r"\[@([a-z]+)\]", one, c)
+                    if new != c:
+                        r[j] = new
+                        resolved += 1
+        elif b["kind"] == "p":
+            new = re.sub(r"\[@([a-z]+)\]", one, b["text"])
+            if new != b["text"]:
+                b["text"] = new
+                resolved += 1
+    return resolved, sorted(missing)
 
 
 # ----------------------------------------------------------------- the pass
@@ -364,15 +699,7 @@ def build() -> tuple[list[dict], dict]:
 
     # --- Розділи 1–4: anchored edits (steps 9–18) --------------------------------------
     # §1.5 — the falsified market preconditions
-    run_sub(blocks, "По-перше, дозріло он-девайс машинне навчання",
-            "По-перше, дозріло он-девайс машинне навчання: середовища виконання ONNX Runtime роблять персоналізовані ранкери обсягом до 10 МБ практичними на телефонах середнього класу [44]. По-друге, безоплатні тарифи хмарних платформ стали справді придатними для промислової експлуатації: Supabase, Hugging Face Spaces та GitHub Actions покривають базу даних, інференс і навчання за нульової вартості на ранньому масштабі [60, 30, 23].",
-            "По-перше, безоплатні тарифи хмарних платформ на момент проєктування (початок 2026 р.) покривали базу даних, інференс і навчання за нульової вартості на ранньому масштабі [60, 23]. Ця передумова **не втрималася під час реалізації**: у липні 2026 р. постачальник закрив безоплатний тариф, на якому мав працювати сервіс рекомендацій, і систему перенесено на контейнер у власному керуванні на віртуальній машині безстрокового безоплатного рівня Oracle Cloud у регіоні ЄС (підрозділ 3.3). Сама подія є результатом роботи: залежність від безоплатних тарифів є окремим ризиком дослідницьких систем, і його пом'якшує лише інфраструктурно-незалежний контейнер.",
-            "§1.5 market preconditions")
     # §2.4 — the degradation ladder constant
-    run_sub(blocks, "Каскад деградації: за перевищення",
-            "Каскад деградації: за перевищення 4·10⁴ літералів гранулярність збільшується до 30 хв",
-            "Каскад деградації спрацьовує за **виміряним практичним порогом 3·10³ літералів на машині розгортання** (специфікований 4·10⁴ лишається зовнішньою межею): гранулярність збільшується до 30 хв",
-            "§2.4 degradation threshold")
     # §3.3 — stack prose
     run_sub(blocks, "Серверна частина: Supabase у регіоні ЄС",
             "сервіс рекомендацій — FastAPI на Python 3.12 [21] на безоплатному CPU-тарифі Hugging Face Spaces з реєстром моделей на HF Hub [30]",
@@ -405,10 +732,6 @@ def build() -> tuple[list[dict], dict]:
             "реактивні живі запити Drizzle useLiveQuery до локальної бази Expo SQLite",
             "реактивні живі запити до локальної бази Expo SQLite власним хуком `useLiveRows`",
             "§4.1 live queries")
-    run_sub(blocks, "Взаємодія «перетягнути — значить навчити»",
-            "Взаємодія «перетягнути — значить навчити» (UC-07) реалізована ворклетами react-native-reanimated у поєднанні з gesture-handler: уся фізика перетягування виконується в потоці інтерфейсу, не торкаючись потоку JavaScript, що гарантує 60 кадрів/с навіть під час фонової синхронізації. Після «прилипання» блоку до нового інтервалу клієнт журналює",
-            "Ручне перевизначення (UC-07) реалізовано вибором часу на сітці 15 хв; фізику перетягування не реалізовано. Після застосування нового часу клієнт журналює",
-            "§4.1 drag interaction")
     run_sub(blocks, "Теплокарта енергії, кільце фокус-таймера",
             "Теплокарта енергії, кільце фокус-таймера та «скляні» блоки з кодуванням упевненості намальовані декларативним канвасом react-native-skia.",
             "Теплокарту енергії намальовано нативними View з інтерполяцією в OKLCH, а кільце фокус-таймера — канвасом react-native-skia.",
@@ -428,6 +751,32 @@ def build() -> tuple[list[dict], dict]:
             "Наскрізні тести виконуються щоночі: потоки Maestro [40] для п'яти критичних шляхів — онбординг, швидке додавання, прийняття плану, перетягування-перевизначення, офлайн-виконання з подальшою синхронізацією.",
             "Наскрізні перевірки виконуються десятьма потоками Maestro [40] на вимогу — онбординг, робота із задачами, огляди доступності на найбільшому масштабі шрифту, діалоги підтвердження та українські потоки.",
             "§4.6 e2e flows")
+
+    # --- Розділи 1-4: the rollup's own approved payloads (steps 9-18) -------------------
+    apply_rollup_edits(blocks)
+
+    # §2.1 — the formal statement forbade (C3) two pages later (spec-conflicts M6)
+    run_sub(blocks, "у якому кожна задача отримує не більше одного інтервалу",
+            "у якому кожна задача отримує не більше одного інтервалу",
+            "у якому кожен фрагмент задачі отримує не більше одного інтервалу, а кожен інтервал — "
+            "не більше одного фрагмента (для неподільних задач фрагмент збігається із задачею)",
+            "§2.1 fragment-level assignment")
+    # §2.2 — |C| is 14 in the implementation, not 12–18 (spec-conflicts M3)
+    run_sub(blocks, "Ключовим розв", "|C| ≈ 12–18. Бандит опитується один раз для кожної пари (τ, c): "
+            "щонайбільше |T|·|C| ≈ 50 × 15 = 750 скалярних добутків незалежно від довжини горизонту.",
+            load_rollup_payloads()["§2.2"][0][0].lstrip("\u2026").strip().split("(частина доби × тип дня × клас відносної позиції). ", 1)[1],
+            "§2.2 context buckets")
+    # §2.4 — the two design facts the measurement refuted, and the free-tier NFR-P1 claim (U10)
+    run_sub(blocks, "Практична реалізація використовує рідну мову моделювання CP-SAT",
+            "Оцінка розміру: у найгіршому разі Σ(τ)|F(τ)| ≤ 50 × 300 ≈ 1,5·10⁴ літералів, що для CP-SAT є малою задачею. ",
+            "", "§2.4 size estimate (superseded by the measurement)")
+    run_sub(blocks, "Практична реалізація використовує рідну мову моделювання CP-SAT",
+            ", що забезпечує вимогу NFR-P1 на двох віртуальних ядрах безоплатного тарифу", "",
+            "§2.4 NFR-P1 on the free tier (U10)")
+    run_sub(blocks, "Практична реалізація використовує рідну мову моделювання CP-SAT",
+            " Каскад деградації: за перевищення 4·10⁴ літералів гранулярність збільшується до 30 хв; "
+            "якщо задача досі «гаряча» — застосовується ковзна поденна декомпозиція тижня; обидва режими "
+            "фіксуються в телеметрії.", "", "§2.4 cascade sentence (superseded)")
 
     # --- tables (steps 10, 16, 23, 26) --------------------------------------------------
     # табл. 3.2 — the requirement rows measurement changed
@@ -539,6 +888,10 @@ def build() -> tuple[list[dict], dict]:
     head = find(blocks, "СПИСОК ВИКОРИСТАНИХ ДЖЕРЕЛ")
     changed = renumber_citations(blocks, mapping, head)
     APPLIED.append(f"citations renumbered in {changed} blocks")
+    resolved, unresolved = resolve_cite_keys(blocks, head)
+    APPLIED.append(f"symbolic citations resolved: {resolved}")
+    for u in unresolved:
+        SKIPPED.append(f"unresolved citation key [@{u}]")
 
     # --- global sweeps -------------------------------------------------------------------
     sweeps = 0

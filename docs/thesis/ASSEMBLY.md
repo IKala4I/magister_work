@@ -114,3 +114,21 @@ publications, keep both minimal).
 - **The four unproducible citations** (rollup §12.3 c) are the only open blocker in the text. Two of
   them — the 2025 synchrony review and the MEQ 28/52/20 split — are load-bearing in §1.1, §6.4, the
   abstract and ВИСНОВКИ, and §12.3 (c) states the fallback if they cannot be found.
+
+## What the 2026-09-10 pass changed
+
+`assemble.py` previously encoded only a subset of the rollup's approved payloads — the Розділ 3–4
+anchored fixes, the Анотація/ВИСНОВКИ splices and the whole-chapter replacements. **Twenty-six of
+the rollup's approved Ukrainian payloads for Розділи 1–4 and Додаток Д were not applied at all**,
+including the §1.4 rebuilt gap argument, the §2.4 measured solver result, the §2.6.2 replay-bias
+paragraph, the §2.7 attribution rules and the three §3.7 privacy paragraphs.
+
+They are applied now, and the mechanism changed so this cannot recur quietly: the payloads are
+**read out of `corrections-rollup.md`** by `load_rollup_payloads()` and placed by a declarative
+table (`ROLLUP_EDITS`), keyed by the rollup heading and the payload's position under it. The
+approved Ukrainian is never retyped into the program, an anchor that no longer matches is reported
+in `SKIPPED` rather than guessed at, and editing the rollup changes the output.
+
+Citations in the chapter files are written symbolically — `[@chauhan]`, `[@liulayland]` — and
+resolved to numbers after the list is renumbered, so adding or dropping a reference cannot leave a
+citation pointing at the wrong entry. See `reference-audit.md` for the reference list itself.
