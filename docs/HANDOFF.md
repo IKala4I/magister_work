@@ -99,28 +99,17 @@ the standard abbreviation for «пункти».
    **The writing is complete. `docs/thesis/ASSEMBLY.md` is the next thing to read** — thirty steps
    in document order for moving the text into the .docx in one sitting.
 
-   **One open blocker, for the owner (rollup §12.3 c): four citations cannot be produced from the
-   repository, and two are load-bearing.** The 2025 synchrony-effect systematic review (the repo
-   records only «Chronobiology International, 65 studies») justifies §1.1's statement of the
-   literature's strength _and_ the s-range of the frozen sensitivity grid; the MEQ 28/52/20 worker
-   split (recorded as «cited in the MEQ literature») is the grid's adult class mix and the
-   «52 % / 28 %» of the abstract, §6.4 and ВИСНОВКИ. §12.3 (c) states the fallback if neither can be
-   found: demote both from literature to stated assumption, which the sensitivity study survives but
-   which weakens §1.1's argument. The other two are smaller — the Senyk et al. title, and the
-   Opensignal figures that item 51 already labels as estimates.
-
-   **The number checker is a CI gate.** `docs/thesis/verify-numbers.py` — **144 checks** recomputed
-   from `docs/study/results/*.json`, run by the `thesis-numbers` job on every push and pull request,
-   so a drifted number fails the build. Owner rule 2026-09-09: a number that cannot be reproduced
-   from the JSON does not go into the thesis until it can.
-
-   **It has now caught four roundings — and they are not all flattering** — the morning-type loss
-   (0.85 written as 0.9), the recruitment burden (172 written as 170), the evening gain being
-   cancelled (4.8 written as 5), and the K = 4 minimum N₈₀ (31 written as 33). None changed a
-   conclusion, and two of them made the work look **worse** (a loss rounded up, a sample size rounded
-   up). What they share is the pull of the sentence being written, not a preferred result — so the
-   guard has to be indifferent to direction. The checker asserts the exact bounds of every range the
-   chapters quote, and `gen-dodatok-z.py --check` holds Додаток З to the run it reports.
+   **The citation blocker is closed (2026-09-10).** All three were found and confirmed against the
+   publishers' records, so nothing was demoted to «stated assumption»: the 2025 synchrony review is
+   Chauhan et al., _Chronobiology International_ 42(4):463–499 — and every figure the repository had
+   summarised from it was right; the 28/52/20 MEQ split is Taillard et al., _Journal of Biological
+   Rhythms_ 19(1):76–86; Senyk et al.'s title is _Ukrainian versions of the Composite Scale of
+   Morningness and Munich Chronotype Questionnaire_. **One qualification came with the second and
+   must travel with the number:** 28.1/51.7/20.2 holds under cutoffs Taillard et al. adapted for
+   their sample (566 French workers, mean age 51.2); under the original Horne–Östberg cutoffs the
+   same people split 62.1/36.6/2.2, and the system uses the standard rMEQ cutoffs, which are
+   neither. The frozen grid carries a dated erratum for the misattribution. Only the Opensignal
+   weak-cell figures remain uncited, and item 51 already labels them as estimates.
 
    **New layout to know about:** `docs/thesis/text/` holds whole chapters and appendices the draft
    does not have yet, written as continuous Ukrainian to be moved in as a unit; the rollup keeps
