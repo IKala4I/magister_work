@@ -132,3 +132,22 @@ in `SKIPPED` rather than guessed at, and editing the rollup changes the output.
 Citations in the chapter files are written symbolically — `[@chauhan]`, `[@liulayland]` — and
 resolved to numbers after the list is renumbered, so adding or dropping a reference cannot leave a
 citation pointing at the wrong entry. See `reference-audit.md` for the reference list itself.
+
+## Coverage, and what CI can and cannot prove
+
+`verify-payloads.py` reads every blockquote payload out of `corrections-rollup.md` and asks
+whether it reached `full.md`. **55 of 55 accounted for.** A payload with no verbatim placement
+must be listed by name in one of two tables in that file, and the second of them —
+`CARRIED_ELSEWHERE` — requires a _witness_: a sentence that must be present instead. An exemption
+is therefore a claim about the text, and the claim is checked. "Not placed" cannot be a silent
+default.
+
+`verify-brief.py` does the same for `formatter-brief.md`: every string the brief quotes as
+verbatim must still be in the text, so the do-not-touch list cannot drift into describing a
+document that no longer exists.
+
+**What CI cannot check.** `assemble.py` reads `docs/thesis/draft.docx`, which is git-ignored and
+never published from this public repo. So CI checks the product — `full.md` itself — and not the
+process. Re-running the assembler and committing the result stays a local step. If someone edits
+`full.md` by hand, `verify-payloads`, `verify-brief` and `verify-docx` will usually catch it,
+but the authority is still: change `assemble.py`, re-run, commit.

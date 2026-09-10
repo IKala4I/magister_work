@@ -38,7 +38,12 @@ BANNED = [
     ("deep_work", "item 7 — the category enum is deep"),
     ("живі запити Drizzle useLiveQuery", "item 13 — the client uses its own useLiveRows hook;\n     # a bare «useLiveQuery» also matches табл. 3.3, which names it to explain the deviation"),
     ("onnxruntime", "item 60 (d) — the on-device ranker was not built"),
-    ("SASRec-lite", "item 9 — deferred, and not in перспективи either"),
+    # Narrowed 2026-09-10. The needle used to be the bare name, written when the draft
+    # claimed the model had been trained. The rollup's approved §3.3/§4.5 text names it in
+    # order to say it was not built — which is stronger than silence — so what must stay
+    # banned is the build claim, not the word.
+    ("SASRec-lite на PyTorch", "item 9 — the model was never trained"),
+    ("навчання послідовнісної моделі SASRec", "item 9 — the nightly pipeline has no such step"),
     ("no_feasible_slot", "item 7 — the service returns no_feasible_start"),
     ("10 тис. MAU", "item 3 — the audited figure is ≈ 3 тис."),
     ("≤ 2,5 с (95-й перцентиль, прогрітий бекенд)", "item 51 — NFR-P1 is ≤ 6,0 с on the device;\n     # «2,5 с» alone also matches Розділ 6, where the superseded figure is quoted on purpose"),
@@ -62,6 +67,8 @@ PRESENT = [
     ("clip[0,1]( x(τ,c)", "формула (2.9) — the clip bounds, not a citation"),
     ("E(x~D) E(a~π(·|x))", "формула (2.15) — the tildes are expectations, not strikethrough"),
     ("clip[0,1]( xᵀθ̂(g)", "формула (2.10) — the clip bounds, not a citation"),
+    ("SASRec-lite, он-девайс ONNX-ранжувальник і текстові вкладення MiniLM у v1 **не реалізовані**",
+     "§3.3 — the three unbuilt components are named as unbuilt, not omitted"),
     ("шести розділів", "ВСТУП structure sentence (assembly step 30)"),
     ("поза межами роботи", "the standing scope phrase (ADR-0020)"),
     ("цінювання виконано в симуляції", "the standing scope phrase, second half"),
