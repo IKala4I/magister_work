@@ -88,11 +88,11 @@ pull of the sentence being written at that moment**: each rounding made _that_ s
 emphatic. A loss being described wants to be a rounder loss; a burden being conceded wants to be a
 rounder burden; a cancellation being demonstrated wants a rounder thing cancelled.
 
-This matters for how to guard against it. Guarding against self-flattery means asking "did I want
-this result?" — a question that returns "no" for half of these and lets them through. The guard that
-works is indifferent to direction: **check every number against its source regardless of which way
-it points**, because the bias is introduced by the act of writing a sentence, not by the writer's
-hopes for the finding. That is why the checker asserts exact bounds rather than plausible ones, and
+This matters for how to guard against it. **"Did I want this?" is a filter that passes half the
+cases** — it returns "no" for the two that make the work look worse, and lets them through. The
+guard that works is indifferent to direction: **check every number against its source regardless of
+which way it points**, because the bias is introduced by the act of writing a sentence, not by the
+writer's hopes for the finding. That is why the checker asserts exact bounds rather than plausible ones, and
 why it runs in CI instead of on request.
 
 **The rule that follows** (owner directive 2026-09-09, applies from here without asking): a
