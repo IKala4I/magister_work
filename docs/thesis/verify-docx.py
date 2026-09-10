@@ -26,6 +26,7 @@ DEFAULT = "docs/thesis/draft.docx"
 # --- (1) strings that must be GONE after assembly ------------------------------------------------
 # each is (needle, why it must go)
 BANNED = [
+    ("E(x~~D)", "prettier read формула (2.15) as strikethrough — full.md must stay in .prettierignore"),
     ("‹?›", "an unresolved citation — a deleted reference is still cited somewhere"),
     ("[nn", "an unresolved rollup citation placeholder"),
     ("[@", "an unresolved symbolic citation key"),
@@ -59,6 +60,7 @@ PRESENT = [
     # The renumberer once rewrote «clip[0, 1]» as a citation and silently broke (2.9)/(2.10);
     # the formulas are asserted here so it can never happen unnoticed again.
     ("clip[0,1]( x(τ,c)", "формула (2.9) — the clip bounds, not a citation"),
+    ("E(x~D) E(a~π(·|x))", "формула (2.15) — the tildes are expectations, not strikethrough"),
     ("clip[0,1]( xᵀθ̂(g)", "формула (2.10) — the clip bounds, not a citation"),
     ("шести розділів", "ВСТУП structure sentence (assembly step 30)"),
     ("поза межами роботи", "the standing scope phrase (ADR-0020)"),

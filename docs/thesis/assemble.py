@@ -21,6 +21,7 @@ from __future__ import annotations
 import io
 import json
 import re
+import unicodedata
 import sys
 import zipfile
 from xml.etree import ElementTree as ET
@@ -295,6 +296,12 @@ def find(blocks: list[dict], needle: str, start: int = 0) -> int:
 
 
 # ----------------------------------------------------------------- rendering
+def _w(text: str) -> int:
+    """Display width: East-Asian wide characters count double, combining marks zero."""
+    return sum(0 if unicodedata.combining(c) else
+               (2 if unicodedata.east_asian_width(c) in "WF" else 1) for c in text)
+
+
 def render(blocks: list[dict]) -> str:
     out: list[str] = []
     for b in blocks:
@@ -303,11 +310,18 @@ def render(blocks: list[dict]) -> str:
             if not rows:
                 continue
             width = max(len(r) for r in rows)
-            rows = [r + [""] * (width - len(r)) for r in rows]
-            out.append("| " + " | ".join(rows[0]) + " |")
-            out.append("| " + " | ".join("---" for _ in range(width)) + " |")
+            rows = [[c.replace("|", "\\|") for c in r] + [""] * (width - len(r)) for r in rows]
+            # Pad to the widest cell per column: `prettier --check` runs over the repository,
+            # and a generated file has to come out of the generator already formatted, or
+            # every assemble run leaves the tree dirty. Width is counted in display columns.
+            col = [max(3, max(_w(r[i]) for r in rows)) for i in range(width)]  # readable
+            def line(cells: list[str], fill: str = " ") -> str:
+                return "| " + " | ".join(
+                    c + fill * (col[i] - _w(c)) for i, c in enumerate(cells)) + " |"
+            out.append(line(rows[0]))
+            out.append(line(["-" * col[i] for i in range(width)], "-"))
             for r in rows[1:]:
-                out.append("| " + " | ".join(c.replace("|", "\\|") for c in r) + " |")
+                out.append(line(r))
             out.append("")
             continue
         text = b["text"]
@@ -317,12 +331,15 @@ def render(blocks: list[dict]) -> str:
             # headings are wholly bold in the source; the marks are styling, not emphasis
             out.append("#" * level + " " + re.sub(r"^\*\*(.*)\*\*$", r"\1", text).strip())
         elif text.startswith("\t"):
-            # a numbered formula: tabs are Word tab stops, flattened here
+            # A numbered formula: tabs are Word tab stops, flattened to spaces. The spacing
+            # is kept exactly as the draft has it — `prettier` would collapse it, and worse,
+            # would read «E(x~D) E(a~π» in (2.15) as strikethrough and rewrite the formula.
+            # That is why this file is in `.prettierignore`.
             out.append(re.sub(r"\t+", "    ", text).strip())
         else:
             out.append(text)
         out.append("")
-    return "\n".join(out).replace("\n\n\n", "\n\n").strip() + "\n"
+    return re.sub(r"\n{3,}", "\n\n", "\n".join(out)).strip() + "\n"
 
 
 # ----------------------------------------------------------------- edit ops

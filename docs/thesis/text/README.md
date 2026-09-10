@@ -126,7 +126,7 @@ was sitting in the file.
 The failures are not "the checker was wrong". Each checker did exactly what it was told. The
 lesson is narrower and more useful: **a check that can only report "found nothing" has two
 readings, and the wrong one is the comfortable one.** So a checker gets an assertion in both
-directions where that is possible — `verify-docx.py` now asserts the clip bounds are *present*,
+directions where that is possible — `verify-docx.py` now asserts the clip bounds are _present_,
 not merely that no marker is absent — and a needle written against remembered text is verified
 against the actual bytes before it is trusted.
 
