@@ -52,6 +52,17 @@ logit q(u, c, d) = logit(p₀) + s · T(k_u, c) + δ_{u,c} + ε_{u,d}
 > them are unaffected — the range they were chosen to span is if anything wider than the citation
 > claimed. Recorded here rather than edited into the frozen text, per the ADR-0020 discipline.
 
+> **Erratum 2026-09-10 (citation only; no factor, level, criterion or prediction changes).** The
+> class-mix row attributes the 28/52/20 split to "MEQ in a middle-aged worker sample (Horne–Östberg
+> validation, cited in the MEQ literature)". That is the wrong study: Horne and Östberg's own 1976
+> sample was students. The figures are **Taillard J., Philip P., Chastang J.-F., Bioulac B.,
+> _Journal of Biological Rhythms_ 19(1):76–86, 2004** — 566 non-shift French workers, mean age
+> 51.2 ± 3.2 — and they hold under **cutoffs those authors adapted for that sample**; under the
+> original Horne–Östberg cutoffs the same sample splits 62.1 / 36.6 / 2.2. The system classifies
+> with the standard rMEQ cutoffs, which are neither, so the "adult" mix is an assumption about the
+> user population rather than a prediction of how it would classify — which is why mix is a swept
+> factor. The levels are unchanged.
+
 **What the world cannot represent (limitations to carry into the thesis):** people do not change
 (no habit formation, no carry-over between phases, no Hawthorne/novelty effect — File 06 H4's
 mechanism as a _human_ claim is outside the model); tasks are identical (no deadlines, values,

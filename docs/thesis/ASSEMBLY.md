@@ -18,8 +18,30 @@ python3 docs/thesis/gen-dodatok-z.py --check # Додаток З still matches t
 ```
 
 Both also run in CI as the `thesis-numbers` job, so a green branch means the numbers in the text
-files are the numbers in the results. They do **not** check the .docx — once text is inside Word,
-the guard is gone, so paste rather than retype.
+files are the numbers in the results.
+
+**After assembly, run the third one against the Word file itself:**
+
+```
+python3 docs/thesis/verify-docx.py            # defaults to docs/thesis/draft.docx
+```
+
+Paste-don't-retype is still the main defence — it is what keeps the _numbers_ right, and no script
+can check prose or argument. But pasting does not catch **an edit that was skipped entirely**, and
+it does not catch **a stale sentence nobody re-read**, which are the two things that actually go
+wrong in a thirty-step pass. `verify-docx.py` catches exactly those: 52 checks over strings that
+must be gone, landmarks that must be present, five corrected values with their superseded forms, and
+the reference deletions and additions.
+
+**Run it before you start, too.** On the un-assembled draft it fails 49 of 52, and that failure list
+is a live progress bar for the table below — work down the list and watch it shrink. A clean run
+means "no known-stale string survived and every checked landmark is present"; it does **not** mean
+the chapter is right.
+
+One thing it taught us about itself: it first reported «п'яти розділів» as already absent, because
+Word stores the Ukrainian apostrophe as U+2019 and the needle used U+0027. It now normalises
+apostrophes and dashes on both sides. A checker that silently passes is worse than none, so if you
+add a needle, add it in the form the draft actually uses.
 
 ---
 
