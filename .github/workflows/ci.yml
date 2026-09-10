@@ -35,6 +35,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: python3 docs/thesis/verify-numbers.py
+      - name: Додаток З matches the run it is generated from
+        run: python3 docs/thesis/gen-dodatok-z.py --check
 
   db:
     name: Database gates (pgTAP + contract sync)

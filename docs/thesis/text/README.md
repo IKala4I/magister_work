@@ -17,12 +17,14 @@ Word file.**
 
 ## Contents
 
-| File                       | Draft destination                             | Status                                                              |
-| -------------------------- | --------------------------------------------- | ------------------------------------------------------------------- |
-| `rozdil-6.md`              | **РОЗДІЛ 6** (new; owner decision 2026-09-09) | ✅ written — 6.1–6.9, tables 6.1–6.7                                |
-| `dodatok-g.md`             | **Додаток Г** (replaces the existing one)     | ✅ written — the deployed schema, not an illustration (decision D5) |
-| `rozdil-5.md`              | **РОЗДІЛ 5** (rebuilt)                        | ✅ written — 5.1–5.9, tables 5.1–5.2                                |
-| `anotaciya-ta-vysnovky.md` | **АНОТАЦІЯ**, **ANNOTATION**, **ВИСНОВКИ**    | ✅ written — all four §3 statements carried without softening       |
+| File                       | Draft destination                             | Status                                                                     |
+| -------------------------- | --------------------------------------------- | -------------------------------------------------------------------------- |
+| `rozdil-6.md`              | **РОЗДІЛ 6** (new; owner decision 2026-09-09) | ✅ written — 6.1–6.9, tables 6.1–6.7                                       |
+| `dodatok-g.md`             | **Додаток Г** (replaces the existing one)     | ✅ written — the deployed schema, not an illustration (decision D5)        |
+| `rozdil-5.md`              | **РОЗДІЛ 5** (rebuilt)                        | ✅ written — 5.1–5.9, tables 5.1–5.2                                       |
+| `anotaciya-ta-vysnovky.md` | **АНОТАЦІЯ**, **ANNOTATION**, **ВИСНОВКИ**    | ✅ written — all four §3 statements carried without softening              |
+| `dodatok-z.md`             | **Додаток З** (new)                           | ✅ **generated** from the results JSON by `gen-dodatok-z.py`; CI checks it |
+| `dodatok-y.md`             | **Додаток И** (new)                           | ✅ written — registered predictions, criteria, the four dating commits     |
 
 ## Rules these files were written under
 
@@ -70,9 +72,28 @@ direction the reader already wanted:
   "I did exactly what I warned you about — read a recomputation as strengthening the claim because
   that's the direction I wanted."
 
-The pattern is that a number which has just been checked feels more solid than it is, and the
-feeling attaches to whatever the checker hoped the number would say. It is the same mechanism the
-pre-registration discipline exists to block, arriving after the fact instead of before it.
+The obvious reading is self-flattery — reading results in the direction you hoped for. **That
+reading is wrong here, and believing it is what leaves you unguarded.** Four roundings have now been
+caught, and they do not point the same way about the method:
+
+| Rounding                         | Direction          | What it made look better             |
+| -------------------------------- | ------------------ | ------------------------------------ |
+| morning-type loss 0,85 → «0,9»   | loss larger        | nothing — the method looks **worse** |
+| smallest N₈₀ at K = 4, 31 → «33» | sample size larger | nothing — the study looks **harder** |
+| recruitment 172 → «170»          | burden smaller     | the protocol's feasibility           |
+| evening gain 4,8 → «5»           | gain larger        | the cancellation argument's drama    |
+
+Two of the four make the work look worse. What they share is not a preferred conclusion but **the
+pull of the sentence being written at that moment**: each rounding made _that_ sentence more
+emphatic. A loss being described wants to be a rounder loss; a burden being conceded wants to be a
+rounder burden; a cancellation being demonstrated wants a rounder thing cancelled.
+
+This matters for how to guard against it. Guarding against self-flattery means asking "did I want
+this result?" — a question that returns "no" for half of these and lets them through. The guard that
+works is indifferent to direction: **check every number against its source regardless of which way
+it points**, because the bias is introduced by the act of writing a sentence, not by the writer's
+hopes for the finding. That is why the checker asserts exact bounds rather than plausible ones, and
+why it runs in CI instead of on request.
 
 **The rule that follows** (owner directive 2026-09-09, applies from here without asking): a
 recomputation is reported in its own direction, whichever way it goes. And more strongly — **if a
