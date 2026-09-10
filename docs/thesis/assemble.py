@@ -242,7 +242,18 @@ ROLLUP_EDITS: list[tuple] = [
     ("§4.1", (0, 1), "replace", "Взаємодія «перетягнути — значить навчити» (UC-07) реалізована", None),
     ("§4.1", (0, 2), "replace", "Природномовне швидке додавання задач (FR-11) реалізовано бібліотекою", None),
     ("§3.1.3", 0, "after", "Edge Functions реалізовано на Deno/TypeScript", None),
-    ("§4.5", 1, "after", "Нічний конвеєр виконується", None),
+    # §3.2 — the figure caption: three components moved and the deployment route is new
+    ("§3.2", 0, "from", "МІСЦЕ ДЛЯ РИСУНКА 3.1", ("Блок-схема чотирьох рівнів", "_")),
+    # §3.3 — the stack prose: River is a test oracle, not the online updater
+    ("§3.3", 0, "from", "Серверна частина: Supabase у регіоні ЄС", "сервіс рекомендацій — FastAPI"),
+    # §3.3 — the operational cost of the free tier (a paragraph, not an edit)
+    ("§3.3", 1, "after", "Серверна частина: Supabase у регіоні ЄС", None),
+    # §3.8 — the interaction principles, the typography reason and the honest contrast claim
+    ("§3.8", 0, "from", "Візуальний напрям «спокійна точність»", "Принципи взаємодії:"),
+    # §4.5 / §4.6 — the full replacements; the earlier run_subs only patched fragments
+    ("§4.5", 0, "replace", "Нічний конвеєр реалізовано робочим процесом GitHub Actions", None),
+    ("§4.5", 1, "after", "Монте-Карло-оцінювання пропенсіті для трафіку семплінгу Томпсона", None),
+    ("§4.6", 0, "from", "Конвеєр перевірки кожного pull-request", "Наскрізні перевірки виконуються"),
     # --- Додаток Д -------------------------------------------------------------------------
     ("10.4", 0, "replace", "Опитувальник", None),
 ]
@@ -279,6 +290,14 @@ LITERAL_EDITS: list[tuple] = [
      "блоків становить ≈ 4,3 експерименти на користувача за тиждень на звичайних тижнях і 1,1–2,4 "
      "на завантажених, **пораховані на коді придатності, а не спостережені** (підрозділ 6.2).",
      "§2.3 slice frequency"),
+    ("append", "Принципи взаємодії: **«фізика замість оздоблення» реалізовано",
+     "Досяжність одним пальцем: основні дії розміщено в нижніх 60 % екрана. Кольорову систему "
+     "та типографіку винесено в додаток В.",
+     "§3.8 carried forward: reachability + the Додаток В pointer"),
+    ("append", "Нічний конвеєр виконується **системним таймером",
+     "Щоквартальний крок емпіричного Байєса (2.14) переоцінює апріорні таблиці та публікує їх "
+     "як версію з `kind = 'priors'`.",
+     "§4.5 carried forward: the quarterly empirical-Bayes step"),
     ("append", "і оцінки з ESS < 100 трактуються як недоказові",
      "Оцінки з ESS < 100 позначаються як недоказові, але **ніколи не вилучаються з подання**: "
      "приховування слабкої оцінки є тим самим ступенем свободи дослідника, проти якого спрямована "
@@ -288,6 +307,21 @@ LITERAL_EDITS: list[tuple] = [
 
 
 # ----------------------------------------------------------------- locating
+AMBIGUOUS: list[str] = []
+
+
+def find_one(blocks: list[dict], needle: str, label: str) -> int:
+    """find(), but an anchor that matches more than one paragraph is an error, not a coin toss."""
+    hits = [i for i in range(len(blocks))
+            if blocks[i]["kind"] == "p" and fold(needle) in fold(blocks[i].get("text", ""))]
+    if len(hits) > 1:
+        AMBIGUOUS.append(f"{label}: anchor {needle[:44]!r} matches {len(hits)} paragraphs")
+        raise LookupError(f"ambiguous anchor: {needle!r}")
+    if not hits:
+        raise LookupError(needle)
+    return hits[0]
+
+
 def find(blocks: list[dict], needle: str, start: int = 0) -> int:
     for i in range(start, len(blocks)):
         if blocks[i]["kind"] == "p" and fold(needle) in fold(blocks[i]["text"]):
@@ -368,7 +402,7 @@ def fold(t: str) -> str:
 
 
 def para_replace(blocks, locator, new, label):
-    i = find(blocks, locator)
+    i = find_one(blocks, locator, label)
     blocks[i] = {**blocks[i], "text": new, "origin": "edited"}
     APPLIED.append(label)
 
@@ -401,7 +435,7 @@ def run_sub(blocks, locator, old, new, label):
 
 
 def para_before(blocks, locator, new, label):
-    i = find(blocks, locator)
+    i = find_one(blocks, locator, label)
     blocks.insert(i, {"kind": "p", "style": "", "text": new, "origin": "inserted"})
     APPLIED.append(label)
 
@@ -447,7 +481,11 @@ def apply_rollup_edits(blocks) -> None:
             if op == "replace":
                 para_replace(blocks, anchor, head, label)
             elif op == "from":
-                para_from(blocks, anchor, marker, head.lstrip("\u2026").strip(), label)
+                marker, tail = marker if isinstance(marker, tuple) else (marker, "")
+                body = head.lstrip("\u2026").strip()
+                for lead in ("[РИСУНОК 3.1] ",):
+                    body = body.removeprefix(lead)
+                para_from(blocks, anchor, marker, body + tail, label)
             elif op == "after":
                 para_insert_after(blocks, anchor, head, label)
             elif op == "before":
@@ -701,13 +739,6 @@ def build() -> tuple[list[dict], dict]:
     # §1.5 — the falsified market preconditions
     # §2.4 — the degradation ladder constant
     # §3.3 — stack prose
-    run_sub(blocks, "Серверна частина: Supabase у регіоні ЄС",
-            "сервіс рекомендацій — FastAPI на Python 3.12 [21] на безоплатному CPU-тарифі Hugging Face Spaces з реєстром моделей на HF Hub [30]",
-            "сервіс рекомендацій — FastAPI на Python 3.12 [21] у контейнері на віртуальній машині Oracle Cloud «Always Free» (Ampere A1, 2 OCPU / 12 ГБ, регіон eu-marseille-1) з реєстром моделей у Supabase Storage (ЄС)",
-            "§3.3 hosting prose")
-    run_sub(blocks, "Серверна частина: Supabase у регіоні ЄС",
-            "послідовнісна модель SASRec-lite на PyTorch [46] з експортом в ONNX [44]; текстові вкладення — sentence-transformers MiniLM [56]; ",
-            "", "§3.3 unbuilt components")
     # §3.7 — the on-device roadmap sentence
     run_sub(blocks, "Модель загроз і відповідні контрзаходи",
             " Дорожня карта передбачає перенесення персонального ранкера на пристрій через onnxruntime-react-native — ті самі ONNX-артефакти дають одночасний виграш приватності та латентності.",
@@ -737,13 +768,6 @@ def build() -> tuple[list[dict], dict]:
             "Теплокарту енергії намальовано нативними View з інтерполяцією в OKLCH, а кільце фокус-таймера — канвасом react-native-skia.",
             "§4.1 heatmap")
     # §4.5 — the nightly pipeline
-    run_sub(blocks, "Нічний конвеєр реалізовано робочим процесом GitHub Actions",
-            "Нічний конвеєр реалізовано робочим процесом GitHub Actions за розкладом cron у публічному репозиторії (безоплатні хвилини standard-runner)",
-            "Нічний конвеєр виконується системним таймером на тій самій віртуальній машині в ЄС (щодня о 00:30 UTC), у тому самому закріпленому контейнері, що обслуговує запити",
-            "§4.5 nightly runner")
-    run_sub(blocks, "Нічний конвеєр", "(3) навчання послідовнісної моделі SASRec-lite на PyTorch з експортом в ONNX; ", "", "§4.5 SASRec step")
-    run_sub(blocks, "Нічний конвеєр", "(5) публікація артефактів на Hugging Face Hub",
-            "(5) публікація артефактів у Supabase Storage (ЄС)", "§4.5 registry")
     # §4.6 — tool versions and the e2e claim
     run_sub(blocks, "Конвеєр перевірки кожного pull-request", "ESLint 9 (flat config", "ESLint 10 (flat config", "§4.6 ESLint")
     run_sub(blocks, "Конвеєр перевірки кожного pull-request", "Jest 30 із React Native Testing Library", "Jest 29.7 із React Native Testing Library", "§4.6 Jest")
@@ -777,6 +801,58 @@ def build() -> tuple[list[dict], dict]:
             " Каскад деградації: за перевищення 4·10⁴ літералів гранулярність збільшується до 30 хв; "
             "якщо задача досі «гаряча» — застосовується ковзна поденна декомпозиція тижня; обидва режими "
             "фіксуються в телеметрії.", "", "§2.4 cascade sentence (superseded)")
+
+    # --- edits the rollup states in tables and inline, not as blockquote payloads -------
+    # табл. 1.1 (§1.2 b) — two claims the evidence changed
+    cell_set(blocks, 0, 2, 1,
+             "так (байєсівська погодинна модель на рівні людини; виміряний внесок популяційної таблиці приорів — ±0,4 в. п.)",
+             "табл. 1.1 learned energy profile")
+    cell_set(blocks, 0, 8, 1,
+             "частково: обробка в ЄС, RLS, мінімізація; он-девайс ранжування не реалізовано",
+             "табл. 1.1 privacy / on-device")
+    # табл. 1.3 (§1.5 c) — one mitigation is weaker than claimed, one risk materialised
+    cell_set(blocks, 2, 1, 1,
+             "Чесний «режим навчання» в інтерфейсі та навчання на рівні людини. Хронотипні приори **не знижують ризик першого тижня вимірно**: їхній внесок у симуляції становить ±0,4 в. п. (підрозділ 6.4)",
+             "табл. 1.3 cold-start risk")
+    cell_set(blocks, 2, 2, 1,
+             "Ризик **реалізувався** під час виконання роботи — постачальник скасував безоплатний тариф сервісу (підрозділ 3.3). Пом'якшення: інфраструктурно-незалежний контейнер і постачальник із договірним, а не промоційним безоплатним рівнем",
+             "табл. 1.3 free-tier risk")
+    # §3.9 UC-03 — 06:00 is a day boundary, not a scheduled job (ADR-0019)
+    run_sub(blocks, "UC-03. Генерація денного плану",
+            "Система (о 06:00 локального часу або за першого відкриття)",
+            "Система за першого відкриття або переходу на передній план у плановий день, для якого плану ще немає (06:00 місцевого часу — межа планового дня, а не заплановане завдання: жодна коректність не залежить від фонового виконання; о 06:00 надсилається лише сповіщення)",
+            "§3.9 UC-03 day boundary")
+    para_append(blocks, "UC-03. Генерація денного плану",
+                "Альтернатива: **день без робочого вікна** — запиту не надсилається, план не зберігається, вечірній ритуал не планується; екран пояснює причину (ADR-0019).",
+                "§3.9 UC-03 no-working-window flow")
+    # §3.9 UC-05 — the consequence of each option is computed, and only by the learned engine
+    para_append(blocks, "UC-05. Розв",
+                "Наслідок кожної опції обчислюється рушієм: для скорочення — оцінка падіння ймовірності виконання, для перенесення за дедлайн — величина зсуву в хвилинах; евристичне плече повертає лише узагальнений наслідок.",
+                "§3.9 UC-05 option consequences")
+    # §3.9 UC-07 — v1 has a time picker, not a drag
+    run_sub(blocks, "UC-07. Ручне перевизначення як навчання",
+            "Перетягування запропонованого блоку: гаптичне «прилипання» → оновлення розміщення → парний сигнал (негатив для початкового інтервалу, слабкий позитив для цільового)",
+            "Виклик «Перенести…» на блоці: вибір нового часу на сітці 15 хв → оновлення розміщення → парний сигнал (негатив для початкового інтервалу 0,1 / слабкий позитив для цільового 0,7, одна пара на розміщення; цільовий контекст обчислюється на сервері тим самим кодом сітки та ознак). Жест перетягування є пізнішим удосконаленням інтерфейсу й не є частиною навчального сигналу",
+            "§3.9 UC-07 move picker")
+    # §3.9 UC-09 — no displacement notification exists
+    run_sub(blocks, "UC-09. Синхронізація календаря",
+            "витіснена задача автоматично повертається в планування → сповіщення з пропозицією заміни (з дотриманням ліміту FR-50)",
+            "витіснена задача автоматично повертається в планування → **пристрій дізнається про витіснення під час наступного переходу на передній план, і поверхнею повідомлення є повідомлення на екрані «Сьогодні»** (окремого сповіщення про витіснення не надсилається)",
+            "§3.9 UC-09 displacement surface")
+    # §3.8 item 25 — the timeline is a row list, not a proportional canvas
+    run_sub(blocks, "Візуальний напрям «спокійна точність»",
+            "Today (таймлайн зі «скляними» блоками рекомендацій)",
+            "Today (**стрічка рядків із часовою колонкою та маркером «зараз»**, а не пропорційний канвас — вибір продиктовано масштабуванням шрифту до 200 % і читачами екрана; блоки з високою впевненістю щільніші, евристичні рядки відображаються зі сталою щільністю без заявленого відсотка)",
+            "§3.8 timeline sentence (item 25)")
+    # FR-50 — the reminder lead time is static in v1
+    cell_set(blocks, 9, 9, 2,
+             "Нагадування про початок блоку зі статичним випередженням 10 хв (навчене випередження — вимога FR-51, поза обсягом v1); поденний ліміт сповіщень (≤5)",
+             "FR-50 reminder lead time")
+    # §4.6 (c) — no store submission was made
+    run_sub(blocks, "Збірка та випуск: EAS Build",
+            "Збірка та випуск: EAS Build для магазинних бінарників",
+            "Збірка та випуск: профілі EAS Build і EAS Update підготовлено та перевірено; жодного подання до магазинів не виконано (підрозділ 6.7): облікові записи розробника не придбано за рішенням власника, а розповсюдження для дослідження є безобліковим — збірка APK для Android; каналу для учасників з iOS не існує. EAS Build для магазинних бінарників",
+            "§4.6 release claim (item 48)")
 
     # --- tables (steps 10, 16, 23, 26) --------------------------------------------------
     # табл. 3.2 — the requirement rows measurement changed
@@ -832,11 +908,6 @@ def build() -> tuple[list[dict], dict]:
             "лістинг 4.1 event type")
 
     # рис. 3.1 caption — three components moved
-    run_sub(blocks, "МІСЦЕ ДЛЯ РИСУНКА 3.1",
-            "сервіс RecSys: FastAPI (Python 3.12) на Hugging Face Spaces, ендпоїнти /plan, /feedback, /insights; передобчислення допустимих стартів; бандитно-зважений CP-SAT; реєстр моделей на HF Hub; (4) конвеєр навчання: нічний cron GitHub Actions",
-            "сервіс RecSys: FastAPI (Python 3.12) у контейнері на віртуальній машині Oracle Cloud «Always Free» (Ampere A1, 2 OCPU / 12 ГБ) у регіоні ЄС eu-marseille-1, за Caddy з автоматичним TLS; ендпоїнти /plan, /feedback, /insights, /parse-preview; передобчислення допустимих стартів; бандитно-зважений CP-SAT; реєстр моделей у Supabase Storage (ЄС); (4) конвеєр навчання: нічний системний таймер на тій самій машині",
-            "рис. 3.1 caption")
-    run_sub(blocks, "МІСЦЕ ДЛЯ РИСУНКА 3.1", "нічний конвеєр → HF Hub → реєстр", "конвеєр навчання → Supabase Storage → реєстр", "рис. 3.1 arrows")
     # §3.10 — the chapter conclusion still names the withdrawn host
     run_sub(blocks, "У розділі систематизовано вимоги до системи",
             "(React Native + Expo, Supabase, FastAPI на Hugging Face Spaces, GitHub Actions)",
@@ -846,7 +917,6 @@ def build() -> tuple[list[dict], dict]:
     run_sub(blocks, "Поведінкові сигнали перетворюються на винагороди",
             "оцінка енергії, перетягування блоку", "оцінка енергії, перенесення блоку", "§2.7 signal name")
 
-    run_sub(blocks, "МІСЦЕ ДЛЯ РИСУНКА 3.1", "chrono-node; у перспективі onnxruntime-react-native", "chrono-node", "рис. 3.1 on-device")
     run_sub(blocks, "Сервіс рекомендацій — застосунок FastAPI",
             "у Docker-контейнері на безоплатному CPU-тарифі Hugging Face Spaces",
             "у Docker-контейнері на віртуальній машині Oracle Cloud «Always Free» (Ampere A1, 2 OCPU / 12 ГБ, регіон eu-marseille-1)",
@@ -892,6 +962,7 @@ def build() -> tuple[list[dict], dict]:
     APPLIED.append(f"symbolic citations resolved: {resolved}")
     for u in unresolved:
         SKIPPED.append(f"unresolved citation key [@{u}]")
+    SKIPPED.extend(AMBIGUOUS)
 
     # --- global sweeps -------------------------------------------------------------------
     sweeps = 0

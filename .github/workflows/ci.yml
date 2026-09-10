@@ -39,6 +39,14 @@ jobs:
         run: python3 docs/thesis/gen-dodatok-z.py --check
       - name: The assembled thesis passes the needle list
         run: python3 docs/thesis/verify-docx.py docs/thesis/text/full.md
+      - name: Every approved rollup payload has a placement in full.md
+        run: python3 docs/thesis/verify-payloads.py
+      - name: The formatter brief still quotes the text verbatim
+        run: python3 docs/thesis/verify-brief.py
+      # assemble.py cannot run here: it reads docs/thesis/draft.docx, which is git-ignored and
+      # is never published from this public repo. So CI checks the product, not the process —
+      # the three checkers above all read full.md itself. Re-running the assembler and
+      # committing the result stays a local step; ASSEMBLY.md says so.
 
   db:
     name: Database gates (pgTAP + contract sync)
