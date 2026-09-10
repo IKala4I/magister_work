@@ -91,20 +91,24 @@ the standard abbreviation for «пункти».
    constant verified against the code that defines it (rollup §2.0). Step 5: §1.4's gap argument
    **rebuilt, not patched** — it no longer claims a completed seven-dimension row but asks why the
    row is empty and answers with a measured cost; §1.1/§1.5/§1.6 edits are in the rollup §5. Step 6:
-   `text/anotaciya-ta-vysnovky.md`, with all four §3 statements carried without softening. Next is
-   **step 7**, the appendices (Додаток Г is already written), then step 8, the reference list and
-   the ВСТУП structure sentence.
+   `text/anotaciya-ta-vysnovky.md`, with all four §3 statements carried without softening. Step 7:
+   `text/dodatok-z.md` — **generated** from the results JSON and CI-checked — plus
+   `text/dodatok-y.md`, and rollup §10.7a decides print-vs-pointer for every appendix. Next is
+   **step 8**: the reference list (D4) and the ВСТУП structure sentence, last because the list
+   renumbers every citation in the draft.
 
    **The number checker is a CI gate.** `docs/thesis/verify-numbers.py` — **144 checks** recomputed
    from `docs/study/results/*.json`, run by the `thesis-numbers` job on every push and pull request,
    so a drifted number fails the build. Owner rule 2026-09-09: a number that cannot be reproduced
    from the JSON does not go into the thesis until it can.
 
-   **It has now caught four roundings, all in the flattering direction** — the morning-type loss
+   **It has now caught four roundings — and they are not all flattering** — the morning-type loss
    (0.85 written as 0.9), the recruitment burden (172 written as 170), the evening gain being
    cancelled (4.8 written as 5), and the K = 4 minimum N₈₀ (31 written as 33). None changed a
-   conclusion; all four moved the same way. The checker now asserts the exact bounds of every range
-   the chapters quote, so the next one fails the build instead of reaching the page.
+   conclusion, and two of them made the work look **worse** (a loss rounded up, a sample size rounded
+   up). What they share is the pull of the sentence being written, not a preferred result — so the
+   guard has to be indifferent to direction. The checker asserts the exact bounds of every range the
+   chapters quote, and `gen-dodatok-z.py --check` holds Додаток З to the run it reports.
 
    **New layout to know about:** `docs/thesis/text/` holds whole chapters and appendices the draft
    does not have yet, written as continuous Ukrainian to be moved in as a unit; the rollup keeps
