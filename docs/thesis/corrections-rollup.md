@@ -356,8 +356,10 @@ the literature at its real strength — which is the argument for learning per p
 > ранковості–вечірності Горна й Остберга [28] та його скороченої версії rMEQ [11], фіксують
 > стійкі індивідуальні відмінності в розподілі когнітивної працездатності протягом доби. Проте
 > сила популяційного ефекту синхронності в літературі помірна й неоднорідна: систематичний огляд
-> 2025 року (65 досліджень) знаходить ефект синхронності приблизно в 45 % досліджень на
-> дорослих, а головний ефект хронотипу — менш ніж у 20 %. Саме ця неоднорідність, а не сила
+> 2025 року [nn] знаходить ефект синхронності у 29 з 64 досліджень на дорослих віком 18–45 років
+> (45 %), а понад 80 % із 65 розглянутих досліджень не виявляють головного ефекту хронотипу
+> взагалі. Показово, що серед досліджень на людях старшого віку ефект синхронності виявлено у
+> 10 з 12: ефект реальний, але його наявність залежить від того, кого вимірюють. Саме ця неоднорідність, а не сила
 > популяційного візерунка, є підставою для системи, яка вчиться на рівні окремої людини: якщо
 > ефект стабільний і однаковий для класу, його вистачає закодувати правилом; якщо він
 > індивідуальний, його треба вивчити з поведінки.»
@@ -1291,8 +1293,9 @@ Resolve the placeholder rather than leaving it:
 > «Опитувальник **не перекладено**. П'ять пунктів і варіанти відповідей лишаються англійською в
 > будь-якій мові інтерфейсу, і на екрані сказано чому: межі класів 22/18/12/8 валідовано саме для
 > цього формулювання, валідованої української версії rMEQ не існує, а валідованими українськими
-> інструментами хронотипу є CSM і MCTQ (Senyk, Jankowski & Cholii, _Biological Rhythm Research_,
-> 53(6):878–896) — інший набір пунктів із власними межами (≤ 23 / ≥ 42), який потребував би
+> інструментами хронотипу є CSM і MCTQ (Senyk, Jankowski & Cholii [nn], _Ukrainian versions of the
+> Composite Scale of Morningness and Munich Chronotype Questionnaire_, _Biological Rhythm Research_,
+> 2022, т. 53, № 6, с. 878–896) — інший набір пунктів із власними межами (≤ 23 / ≥ 42), який потребував би
 > власного виведення «бал → клас → приор». Ціну названо прямо: україномовний користувач частіше
 > пропустить опитування, а пропуск є **спроєктованим шляхом** (клас INT з удвічі меншою силою
 > приору), а не збоєм.»
@@ -1548,25 +1551,54 @@ Fully specifiable; insert and renumber:
 Two need no new entry: the Ukrainian data-protection law is already **[4]** (cite Art. 29
 explicitly in §3.7), and the rMEQ cut-offs are already **[11]**.
 
-#### (c) **Cannot be produced from the repository — four blockers**
+#### (c) Found — the three that were blockers are now citable
 
-These are the reference-list equivalent of an unverifiable number, and they are listed separately
-because three of them are load-bearing. The repository records the claim but not enough of the
-source to cite it.
+Searched and confirmed 2026-09-10 against the publishers' own records. All three move into (b).
 
-| What the text needs it for                                                                                                                                                                                                                                                                     | What the repo actually records                                                                                                                         | Consequence if it cannot be found                                                                                                                                                                                                                                                                    |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **The 2025 systematic review of synchrony effects.** Justifies §1.1's honest statement of the literature's strength («ефект синхронності ≈ у 45 % досліджень на дорослих, головний ефект хронотипу — менш ніж у 20 %») **and the whole s-range of the frozen grid** (`sensitivity-grid.md` §1) | «the 2025 synchrony-effect systematic review», «Chronobiology International, 65 studies» — no authors, no title, no volume, no pages                   | **The most serious of the four.** Without it §1.1's paragraph loses its source and must say the literature is mixed without quantifying it; and the grid's s-range stops being literature-derived and becomes a stated assumption. The grid is frozen, so this would be a dated erratum, not an edit |
-| **The MEQ 28/52/20 worker split.** The «adult» class mix of the grid, and the «52 % проміжних, 28 % ранкових» in the abstract, §6.4 and ВИСНОВКИ                                                                                                                                               | «MEQ in a middle-aged worker sample (Horne–Östberg validation, cited in the MEQ literature)» — that is a description, not a citation                   | The mix must be attributed to a specific study or relabelled as an assumed distribution. The percentages are used in three chapters, so the relabelling would touch all three                                                                                                                        |
-| **Senyk, Jankowski & Cholii (2022).** Додаток Д and §2.5 — why the rMEQ stays English                                                                                                                                                                                                          | authors, journal, volume 53(6), pages 878–896, year — **no title**                                                                                     | Cheapest to fix: the title is one lookup. Until then Додаток Д cannot carry a complete entry                                                                                                                                                                                                         |
-| **Opensignal weak-cell and 3G latency.** The NFR-P1 derivation's network component (item 51)                                                                                                                                                                                                   | «Opensignal country reports, 2018», already labelled in item 51 as conservative estimates from older public measurements that «could not be retrieved» | Least serious, because item 51 already states the limitation. Either cite a specific retrievable report or keep the figures as explicitly stated estimates with no citation — which is what the text already does                                                                                    |
+| Was blocked                   | Full entry                                                                                                                                                                                                                                                                             |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **The 2025 synchrony review** | Chauhan S., Vanova M., Tailor U., Asad M., Faßbender K., Norbury R., Ettinger U., Kumari V. Chronotype and synchrony effects in human cognitive performance: a systematic review. _Chronobiology International_. 2025. Vol. 42, No. 4. P. 463–499. DOI: 10.1080/07420528.2025.2490495. |
+| **The MEQ worker split**      | Taillard J., Philip P., Chastang J.-F., Bioulac B. Validation of Horne and Ostberg Morningness-Eveningness Questionnaire in a Middle-Aged Population of French Workers. _Journal of Biological Rhythms_. 2004. Vol. 19, No. 1. P. 76–86. DOI: 10.1177/0748730403259849.                |
+| **Senyk et al. (the title)**  | Senyk O., Jankowski K. S., Cholii S. Ukrainian versions of the Composite Scale of Morningness and Munich Chronotype Questionnaire. _Biological Rhythm Research_. 2022. Vol. 53, No. 6. P. 878–896. DOI: 10.1080/09291016.2020.1788807.                                                 |
 
-**⛔ For the owner: the first two need a decision or a lookup before §1.1, §6.4, the abstract and
-ВИСНОВКИ can be frozen.** The honest fallback, if neither source can be produced, is to demote both
-from «літературa показує» to «припущення, зафіксоване в моделі світу» — which the sensitivity study
-survives (its whole point is that the world is an object of study, and s is swept from 0 to 2), but
-which weakens §1.1's argument for learning per person, because that argument leans on the
-literature being mixed.
+**The review's figures check out exactly, and §1.1 needs no change beyond the citation.** The paper
+reviews **65 studies**; a synchrony effect appears in **29 of 64 studies (45,31 %)** of adults aged
+18–45, and **more than 80 %** of the reviewed studies indicate **no main effect of chronotype** on
+cognition. The repository's summary — «65 studies», «≈ 45 % of adult studies», «no chronotype main
+effect in > 80 %» — was right on all three. §1.1's paragraph (rollup §4.3 a) stands as written; add
+the citation and, if you want the sharper version, the older-adult contrast: the same review finds a
+synchrony effect in **10 of 12 studies (83,33 %)** of older adults, which strengthens the
+per-person argument — the effect is real but its presence depends on who is being measured.
+
+**The MEQ split carries a qualification that must travel with it.** Taillard et al.'s
+28,1 / 51,7 / 20,2 comes from **cutoffs the authors adapted for that sample** — 566 non-shift French
+workers, mean age 51,2 ± 3,2 years. Under the **original** Horne–Östberg cutoffs the same sample
+splits 62,1 / 36,6 / 2,2. The system classifies with the standard rMEQ cutoffs (Adan & Almirall,
+[11]), which are neither. So the sentence that introduces the «adult» class mix must say what it is:
+
+> «Склад класів «дорослий» (28 % ранкових, 52 % проміжних, 20 % вечірніх) узято з валідації MEQ на
+> вибірці 566 французьких працівників середнього віку (51,2 ± 3,2 року) **за межами класів, які
+> автори адаптували саме для цієї вибірки**; за первинними межами Горна–Остберга та сама вибірка
+> ділиться як 62,1 / 36,6 / 2,2. Система класифікує за стандартними межами rMEQ, тож наведений
+> розподіл є **припущенням про склад популяції користувачів**, а не передбаченням того, як ця
+> популяція розподілиться. Саме тому склад класів є фактором сітки й розгортається (дорослий,
+> рівномірний, студентський): чутливість результату до цього припущення виміряна (підрозділ 6.4).»
+
+This is the instrument-discipline rule applied to a citation: the number is real, and it means
+something only together with the cutoffs that produced it.
+
+**`docs/study/sensitivity-grid.md` needs a dated erratum**, not an edit — the file is frozen. Its
+class-mix row attributes the split to «Horne–Östberg validation, cited in the MEQ literature», which
+is the wrong study: Horne and Östberg's own 1976 sample was students, and the 28/52/20 figures are
+Taillard et al. 2004 under adapted cutoffs.
+
+#### (d) Still not fully citable — one, and it is already labelled as such
+
+**Opensignal weak-cell and 3G latency** (item 51's network component). Item 51 already states that
+these are conservative estimates taken from older public measurements which «could not be
+retrieved», and the NFR-P1 derivation deliberately errs slow. No change: the figures stay as
+explicitly stated estimates without a citation, which is what the text already does. The typical-case
+latency does get a citation (Ookla, above), so the two are distinguishable in the text.
 
 ## 13. The four sources — does the draft have a home for each?
 
