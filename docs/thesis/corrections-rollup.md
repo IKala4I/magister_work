@@ -236,7 +236,7 @@ substantive-failure test fired, and the reason is known per class.
 > денного шуму — є зареєстрованим тестом на змістовну невдачу, і він спрацював; сусідні комірки
 > денного шуму 0,6 і 0,9 підтверджують результат (−0,1 і +0,0 в. п.). Це не невизначеність
 > вимірювання, а передбачений заздалегідь критерій, який справдився. Причина видима за класами: 52 % проміжних типів втрачають по 1,4–1,9 в. п. і 28 %
-> ранкових — по 0,8–2,1 в. п., і це гасить виграш 20 % вечірніх типів у 5–10 в. п. Розклад втрати
+> ранкових — по 0,8–2,1 в. п., і це гасить виграш 20 % вечірніх типів у 4,8–10,2 в. п. Розклад втрати
 > на сорока парних сидах: дисперсія семплера Томпсона пояснює близько половини втрати виразно
 > ранкових типів, чверть — помірно ранкових і шосту частину — проміжних; зміщення рівня приору
 > (він на 0,12–0,14 оптимістичніший за світ при p₀ = 0,45) — близько чверті кожної; решта —
@@ -1185,7 +1185,24 @@ the claim (from "no cell" to "one"); what survives is the conclusion, not a stre
 
 ## 10. ВИСНОВКИ і ДОДАТКИ
 
-### 10.1 ВИСНОВКИ — **С**, items 48, 49, 54, 56, 57, 58, 59, 62
+### 10.1 АНОТАЦІЯ, ANNOTATION і ВИСНОВКИ — **written; live in `text/anotaciya-ta-vysnovky.md`**
+
+Items 3, 36, 48, 49, 54, 56, 57, 58, 59, 62. Written in one file because the three texts share a
+vocabulary: everything they assert repeats §3's wording rather than reaching for a stronger version
+of it, which is the specific way a summary goes wrong.
+
+**Could all four §3 statements survive an abstract without softening? Yes.** The hardest was §3.1 —
+«навчена політика лише грає внічию у світі, який описує її власний приор» — because the genre of an
+abstract is to state what was achieved, and that sentence describes the boundary of what was
+achieved. What made it hold at full strength: **the conclusion leads, not the number.** The
+paragraph says first what the method needs in order to be worth its complexity, and only then gives
+both facts — 58 wins and the tie in the prior's own world — in one sentence and at equal standing.
+Leading with «виграє у 58 світах» invites the reader to stop there; leading with «лише внічию» reads
+as a failure report, which it is not. No statement needed a hedge.
+
+The block below is superseded by that file and kept only as the item→destination map.
+
+### 10.1a ВИСНОВКИ — the item map, items 48, 49, 54, 56, 57, 58, 59, 62
 
 **п. 1 — Ф.** Add the honest strength of the literature and the D7 consequence:
 «…а побудована семивимірна порівняльна матриця наукових напрямів довела наявність незайнятого
@@ -1217,7 +1234,7 @@ the claim (from "no cell" to "one"); what survives is the conclusion, not a stre
 > навчена політика перемагає евристику «найраніший вільний слот» у 58 світах, грає внічию у 17 і
 > не програє в жодному, **проте у світі, для якого писався приор холодного старту, — лише
 > внічию**: 52 % проміжних типів втрачають по 1,4–1,9 в. п., а 28 % ранкових — по 0,8–2,1 в. п.
-> через шум навчання на людину, і це гасить виграш вечірніх типів у 5–10 в. п. Головний висновок:
+> через шум навчання на людину, і це гасить виграш вечірніх типів у 4,8–10,2 в. п. Головний висновок:
 > **метод потребує індивідуальної варіації, щоб бути вартим своєї складності; там, де поведінка
 > йде за популяційним хронотипним візерунком за припущеної сили, достатньо правила «найраніший
 > вільний слот»**. Внесок популяційної таблиці приорів становить ±0,4 в. п.; розрив у
@@ -1607,12 +1624,15 @@ decision sits in step 5 and later, which is why the back matter is written last.
 | **D7** | ВСТУП «Апробація» / «Публікації»                                          | **Owner's own.** No conference, no publications — both stay minimal                                                                                                                                                                                                               |
 | **D8** | Додаток З scope                                                           | **All 75 cells.** The claim is "every cell reported, including losses and ties"                                                                                                                                                                                                   |
 
-**Progress:** steps 1–4 are done. §3's four statements; `text/rozdil-6.md`; `text/rozdil-5.md`;
+**Progress:** steps 1–6 are done. §3's four statements; `text/rozdil-6.md`; `text/rozdil-5.md`;
 D5 as `text/dodatok-g.md`; and the Розділ 2–4 edits, which are anchored fragments and stay in this
 file (§6, §7, §8) — every constant they quote is now verified against the code that defines it
 (§2.0), and every study-derived number in §2.1 against the results JSON by
-`docs/thesis/verify-numbers.py`. Next is **step 5**, Розділ 1 §1.1 and §1.4–§1.6, which needs
-D2 and D3 (both decided) and Розділ 6's numbers (now machine-checked).
+`docs/thesis/verify-numbers.py` — which now runs in CI as the `thesis-numbers` job, so a drifted
+number fails the build. Step 5: Розділ 1's §1.4 argument rebuilt (§5 of this file), §1.1/§1.5/§1.6
+edits in place. Step 6: `text/anotaciya-ta-vysnovky.md`. Next is **step 7**, the appendices —
+Додаток В, Д, Е, Ж plus the two new ones (Додаток Г is already written), needing D8 (decided: all
+75 cells).
 
 ### Sanity checks before freeze
 

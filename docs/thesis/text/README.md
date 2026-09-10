@@ -17,11 +17,12 @@ Word file.**
 
 ## Contents
 
-| File           | Draft destination                             | Status                                                              |
-| -------------- | --------------------------------------------- | ------------------------------------------------------------------- |
-| `rozdil-6.md`  | **РОЗДІЛ 6** (new; owner decision 2026-09-09) | ✅ written — 6.1–6.9, tables 6.1–6.7                                |
-| `dodatok-g.md` | **Додаток Г** (replaces the existing one)     | ✅ written — the deployed schema, not an illustration (decision D5) |
-| `rozdil-5.md`  | **РОЗДІЛ 5** (rebuilt)                        | ✅ written — 5.1–5.9, tables 5.1–5.2                                |
+| File                       | Draft destination                             | Status                                                              |
+| -------------------------- | --------------------------------------------- | ------------------------------------------------------------------- |
+| `rozdil-6.md`              | **РОЗДІЛ 6** (new; owner decision 2026-09-09) | ✅ written — 6.1–6.9, tables 6.1–6.7                                |
+| `dodatok-g.md`             | **Додаток Г** (replaces the existing one)     | ✅ written — the deployed schema, not an illustration (decision D5) |
+| `rozdil-5.md`              | **РОЗДІЛ 5** (rebuilt)                        | ✅ written — 5.1–5.9, tables 5.1–5.2                                |
+| `anotaciya-ta-vysnovky.md` | **АНОТАЦІЯ**, **ANNOTATION**, **ВИСНОВКИ**    | ✅ written — all four §3 statements carried without softening       |
 
 ## Rules these files were written under
 

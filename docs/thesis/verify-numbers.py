@@ -227,6 +227,37 @@ def sens() -> None:
     # the s=2 stress level is shared, so "least plausible world" would be unsupported
     check("cells at s=2 (the superlative check)", 17, sum(1 for c in cells if c["s"] == 2.0))
 
+    # the "gap does not compound" statement (§3.4, abstract, ВИСНОВКИ п.7). The informative-prior
+    # range is written "0,3-1,4": 1.38 rounds up, which is the conservative direction for a claim
+    # that the gap does NOT compound, and the exact bounds are asserted here so a drift shows.
+    def growth(c):
+        return c["growth"]["mean"] * 100
+    inf0 = [c for c in cells if c["prior"] == "informative" and c["sigma_shape"] == 0.0 and c["s"] >= 1.0]
+    check("gap growth, informative prior: low", 0.30, round(min(map(growth, inf0)), 2), 6e-3)
+    check("gap growth, informative prior: high", 1.38, round(max(map(growth, inf0)), 2), 6e-3)
+    loose = [c for c in cells if c["prior"] == "flat" or c["sigma_shape"] == 0.6]
+    check("gap growth, flat prior or strong deviation: low", 0.28, round(min(map(growth, loose)), 2), 6e-3)
+    check("gap growth, flat prior or strong deviation: high", 1.80, round(max(map(growth, loose)), 2), 6e-3)
+
+    # the per-class ranges the abstract and ВИСНОВКИ п.7 quote, over the prior's own world
+    # (s = 1, sigma_shape = 0) across the three day-noise levels
+    own = [cell(s=1.0, sigma_shape=0.0, sigma_day=sd, **base) for sd in (0.0, 0.6, 0.9)]
+
+    def per(cls):
+        return [c["per_class_effect"][cls]["mean"] * 100 for c in own]
+
+    intermediate = per("INT")
+    check("prior's world INT loss: low", 1.41, round(-max(intermediate), 2), 6e-3)
+    check("prior's world INT loss: high", 1.88, round(-min(intermediate), 2), 6e-3)
+    morning = per("DM") + per("MM")
+    check("prior's world morning loss: low", 0.80, round(-max(morning), 2), 6e-3)
+    check("prior's world morning loss: high", 2.11, round(-min(morning), 2), 6e-3)
+    # the evening gain is written 4,8-10,2: "5-10" rounded the low bound UP, which overstates
+    # the gain being cancelled — the direction that makes the cancellation argument look stronger
+    evening = per("ME") + per("DE")
+    check("prior's world evening gain: low", 4.80, round(min(evening), 2), 6e-3)
+    check("prior's world evening gain: high", 10.22, round(max(evening), 2), 6e-3)
+
     # rozdil-1 §1.4's rebuilt gap argument rests on these two, so they are checked here too
     check("§1.4: cells needing N > 120", 48, sum(1 for c in cells if c["n80_over_grid_max"]))
     check("§1.4: enrolment at 30 % attrition from 120", 172, math.ceil(120 / 0.7))

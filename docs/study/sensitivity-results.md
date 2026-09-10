@@ -25,7 +25,8 @@ p₀ = 0.45, see §5.1), the learned policy only ties with the earliest-first he
 52 % intermediate users lose 1.4–1.9 pp and the 28 % morning types 0.8–2.1 pp — to the sampler's
 variance (about half of the morning-type loss, a sixth of the intermediates'), to the prior's
 level bias at p₀ = 0.45 (about a quarter of each) and to the variance of the per-user estimates
-themselves (the rest; §5.1) — cancelling the 20 % evening types' +5 to +10 pp gains.
+themselves (the rest; §5.1) — cancelling the 20 % evening types' **+4.8 to +10.2 pp** gains. _(Corrected 2026-09-10: the earlier
+"+5 to +10" rounded the low bound 4.80 up, which overstates the gain being cancelled.)_
 
 **What drives the wins is individual deviation from the class profile, not the population
 chronotype pattern.** With no population pattern at all (s = 0) but individual deviations of

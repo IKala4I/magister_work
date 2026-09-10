@@ -87,13 +87,24 @@ the standard abbreviation for «пункти».
    stay in `corrections-rollup.md` (§6, §7, §8). Then step 5 (Розділ 1), step 6 (Анотація and
    ВИСНОВКИ), step 7 (appendices), step 8 (reference list + the ВСТУП structure sentence).
 
-   **Step 4 is done too:** the Розділ 2–4 fragments stay in the rollup (§6–§8) and every constant
-   they quote is verified against the code that defines it (rollup §2.0). Next is **step 5**,
-   Розділ 1 §1.1 and §1.4–§1.6.
+   **Steps 4–6 are done too.** Step 4: the Розділ 2–4 fragments stay in the rollup (§6–§8), every
+   constant verified against the code that defines it (rollup §2.0). Step 5: §1.4's gap argument
+   **rebuilt, not patched** — it no longer claims a completed seven-dimension row but asks why the
+   row is empty and answers with a measured cost; §1.1/§1.5/§1.6 edits are in the rollup §5. Step 6:
+   `text/anotaciya-ta-vysnovky.md`, with all four §3 statements carried without softening. Next is
+   **step 7**, the appendices (Додаток Г is already written), then step 8, the reference list and
+   the ВСТУП structure sentence.
 
-   **Run `python3 docs/thesis/verify-numbers.py` before quoting any study number.** 132 checks,
-   recomputed from `docs/study/results/*.json`, exit 1 on a mismatch. Owner rule 2026-09-09: a
-   number that cannot be reproduced from the JSON does not go into the thesis until it can.
+   **The number checker is a CI gate.** `docs/thesis/verify-numbers.py` — **144 checks** recomputed
+   from `docs/study/results/*.json`, run by the `thesis-numbers` job on every push and pull request,
+   so a drifted number fails the build. Owner rule 2026-09-09: a number that cannot be reproduced
+   from the JSON does not go into the thesis until it can.
+
+   **It has now caught four roundings, all in the flattering direction** — the morning-type loss
+   (0.85 written as 0.9), the recruitment burden (172 written as 170), the evening gain being
+   cancelled (4.8 written as 5), and the K = 4 minimum N₈₀ (31 written as 33). None changed a
+   conclusion; all four moved the same way. The checker now asserts the exact bounds of every range
+   the chapters quote, so the next one fails the build instead of reaching the page.
 
    **New layout to know about:** `docs/thesis/text/` holds whole chapters and appendices the draft
    does not have yet, written as continuous Ukrainian to be moved in as a unit; the rollup keeps
