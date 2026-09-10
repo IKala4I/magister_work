@@ -1320,7 +1320,41 @@ column → «anytime CP-SAT 1,5 с з критеріями зупинки за �
   is `no_feasible_start | deferred | infeasible` (`schemas.py:36`, `_shared/types.ts:15`), and
   `no_feasible_start` is the value every task returned on the Friday-evening Saturday plan (#52).
 
-### 10.7 Нові додатки — **С**
+### 10.7 Нові додатки — **written**: `text/dodatok-z.md`, `text/dodatok-y.md`
+
+**Додаток З — generated, not written.** `docs/thesis/gen-dodatok-z.py` emits it from
+`docs/study/results/sensitivity.json`, and CI runs `--check` on every push: the appendix cannot
+drift from the run it claims to report. That is the mechanism behind the claim «наведено кожну
+комірку, включно з програшами й нічиями» — the claim is now enforced rather than asserted.
+
+**All 75 cells are printed, and they are scannable** because the appendix follows the grid's own
+block structure instead of dumping one wide table: each block shows only the factors that vary
+inside it, with five value columns (ефект ± MC SE, вердикт, ефективність, N₈₀, частка «> 0»). З.1
+Блок A carries 45 rows, З.2–З.5 the other four blocks, З.6 the two cells the text singles out.
+The check was verified to fail on a changed value and on a dropped row.
+
+**Додаток И — the registered predictions with their criteria and the four commits that date them.**
+Its purpose is narrow and stated in the file: to let a reader verify that the predictions were fixed
+before the outcomes were known.
+
+### 10.7a Which appendices belong in the repository rather than on the page
+
+| Appendix              | Verdict                      | Why                                                                                                                                                                                                            |
+| --------------------- | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **В** колірні токени  | print in full                | twelve rows; the `danger-text` addition matters and the table is the artefact                                                                                                                                  |
+| **Г** SQL-фрагмент    | print in full                | already written; it is one of the few things a reader can check against the public repository                                                                                                                  |
+| **Д** rMEQ            | print in full                | five items; a committee reading a chronotype claim wants the instrument in front of it                                                                                                                         |
+| **Ж** приклад /plan   | print in full                | one response; carries the propensity and the engine tag                                                                                                                                                        |
+| **З** сітка світів    | **print in full** (75 rows)  | it _is_ the "every cell reported" claim; abridging it would retract the claim                                                                                                                                  |
+| **Е** простежуваність | **print abridged + pointer** | the complete matrix is 40+ requirements; print the ~15 that carry the argument and cite `docs/traceability.md` for the rest. The draft already abridges it — what changes is that the pointer becomes explicit |
+| **И** пре-реєстрації  | **print abridged + pointer** | print the predictions with their criteria and the commit hashes (≈ 2,5 pages); the full texts are ≈ 8 pages that do not become more checkable by being printed — the commits are what makes them checkable     |
+| **А, Б** діаграми     | print                        | figures, unchanged                                                                                                                                                                                             |
+
+The general rule the two abridgements follow: **print what a reader must weigh, cite what a reader
+must be able to check.** A prediction table is weighed; a generative model's parameter list is
+checked, and a commit hash checks it better than a printed page does.
+
+### 10.7b Superseded plan for the new appendices
 
 - **Додаток З** — the full 75-cell sensitivity table (generated from
   `docs/study/results/sensitivity.json`; the appendix table in `sensitivity-results.md` is
@@ -1624,15 +1658,16 @@ decision sits in step 5 and later, which is why the back matter is written last.
 | **D7** | ВСТУП «Апробація» / «Публікації»                                          | **Owner's own.** No conference, no publications — both stay minimal                                                                                                                                                                                                               |
 | **D8** | Додаток З scope                                                           | **All 75 cells.** The claim is "every cell reported, including losses and ties"                                                                                                                                                                                                   |
 
-**Progress:** steps 1–6 are done. §3's four statements; `text/rozdil-6.md`; `text/rozdil-5.md`;
+**Progress:** steps 1–7 are done. §3's four statements; `text/rozdil-6.md`; `text/rozdil-5.md`;
 D5 as `text/dodatok-g.md`; and the Розділ 2–4 edits, which are anchored fragments and stay in this
 file (§6, §7, §8) — every constant they quote is now verified against the code that defines it
 (§2.0), and every study-derived number in §2.1 against the results JSON by
 `docs/thesis/verify-numbers.py` — which now runs in CI as the `thesis-numbers` job, so a drifted
 number fails the build. Step 5: Розділ 1's §1.4 argument rebuilt (§5 of this file), §1.1/§1.5/§1.6
-edits in place. Step 6: `text/anotaciya-ta-vysnovky.md`. Next is **step 7**, the appendices —
-Додаток В, Д, Е, Ж plus the two new ones (Додаток Г is already written), needing D8 (decided: all
-75 cells).
+edits in place. Step 6: `text/anotaciya-ta-vysnovky.md`. Step 7: `text/dodatok-z.md` (generated, CI-checked) and
+`text/dodatok-y.md`, with §10.7a deciding which appendices are printed and which become repository
+pointers. Next is **step 8** — the reference list (D4) and the ВСТУП structure sentence, both of
+which are last because the list renumbers every citation in the draft.
 
 ### Sanity checks before freeze
 
