@@ -1,49 +1,52 @@
-# Assembly order for `draft.docx`
+# Assembly of `draft.docx`
 
-Everything below is in **document order**, top to bottom, so it can be done in one sitting without
-jumping between files. Two sources only:
+**The thirty-step manual pass is superseded.** `docs/thesis/text/full.md` is the whole thesis in
+document order with every correction already applied — six chapters, references renumbered,
+citations rewritten, appendices in place. Your job is moving continuous text into a formatted
+template, not executing patches.
 
-- **`text/*.md`** — whole chapters and appendices that do not exist in the draft. Move them in as a
-  unit; they are continuous prose, already in Ukrainian.
-- **`corrections-rollup.md`** — anchored edits to sections that do exist. Each carries the exact
-  replacement text under its own §.
-
-**The .docx is yours. Nothing in this repository touches it**, which is why this file exists.
-
-Before you start, run once from the repository root:
+It is **generated**, never hand-edited:
 
 ```
-python3 docs/thesis/verify-numbers.py        # 144 checks against docs/study/results/*.json
-python3 docs/thesis/gen-dodatok-z.py --check # Додаток З still matches the run it reports
+python3 docs/thesis/assemble.py          # rebuilds text/full.md from draft.docx + text/*.md
+python3 docs/thesis/verify-numbers.py    # 144 study numbers, recomputed from the results JSON
+python3 docs/thesis/gen-dodatok-z.py --check
+python3 docs/thesis/verify-docx.py docs/thesis/text/full.md   # 52 needles; 0 failures
 ```
 
-Both also run in CI as the `thesis-numbers` job, so a green branch means the numbers in the text
-files are the numbers in the results.
+## The guarantee, and its exact limit
 
-**After assembly, run the third one against the Word file itself:**
+The assembler copies every paragraph the corrections do not touch **verbatim** from `draft.docx`
+and reports the counts: 400 from the draft untouched, 37 edited, 15 inserted, 90 renumbered, 254
+from the `text/*.md` chapters. It then asserts that **every block still marked "from draft" is
+byte-identical to the source** — `untouched_drift 0`. A silent alteration of your prose cannot
+happen without that number moving.
 
-```
-python3 docs/thesis/verify-docx.py            # defaults to docs/thesis/draft.docx
-```
+What it does **not** guarantee: that the 37 edits are the _right_ edits. Those are checked by the
+needle list and by having been written against the rollup, not by the assembler.
 
-Paste-don't-retype is still the main defence — it is what keeps the _numbers_ right, and no script
-can check prose or argument. But pasting does not catch **an edit that was skipped entirely**, and
-it does not catch **a stale sentence nobody re-read**, which are the two things that actually go
-wrong in a thirty-step pass. `verify-docx.py` catches exactly those: 52 checks over strings that
-must be gone, landmarks that must be present, five corrected values with their superseded forms, and
-the reference deletions and additions.
+## What markdown cannot carry — all of it formatting
 
-**Run it before you start, too.** On the un-assembled draft it fails 49 of 52, and that failure list
-is a live progress bar for the table below — work down the list and watch it shrink. A clean run
-means "no known-stale string survived and every checked landmark is present"; it does **not** mean
-the chapter is right.
+Verified against the file rather than assumed: the draft has **no** equations (formulas are plain
+text), **no** footnotes, endnotes, comments, tracked changes, hyperlinks or images. So the losses
+are exactly:
 
-One thing it taught us about itself: it first reported «п'яти розділів» as already absent, because
-Word stores the Ukrainian apostrophe as U+2019 and the needle used U+0027. It now normalises
-apostrophes and dashes on both sides. A checker that silently passes is worse than none, so if you
-add a needle, add it in the form the draft actually uses.
+| Lost                                                                                        | Consequence                                                 |
+| ------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| Paragraph styling: indents, 1.5 spacing, justification, ДСТУ margins, Times New Roman 14 pt | re-apply by template                                        |
+| The 44 tab stops that right-align formula numbers                                           | formula lines come across as text; `(2.1)` needs re-tabbing |
+| Table column widths, borders, the 8 dashed figure-placeholder boxes                         | re-apply by template                                        |
+| The generated ЗМІСТ                                                                         | Word rebuilds it                                            |
+| Run-level bold/italic **is** carried (`**`/`_`), but heading bold is dropped as styling     | intended                                                    |
 
----
+Two things markdown cannot do anything about, which the step-by-step could not either: the figures
+themselves (still placeholders) and the two ВСТУП items that are yours (D7).
+
+## If you would rather do it by hand
+
+The per-anchor mapping still exists — `corrections-rollup.md` §§4–12 — and the table below is the
+document-order list it was built from. Nothing has been deleted; the assembler is a faster route to
+the same result, with a fidelity check the manual route does not have.
 
 ## The order
 

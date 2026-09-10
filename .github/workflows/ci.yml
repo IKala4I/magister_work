@@ -37,6 +37,8 @@ jobs:
       - run: python3 docs/thesis/verify-numbers.py
       - name: Додаток З matches the run it is generated from
         run: python3 docs/thesis/gen-dodatok-z.py --check
+      - name: The assembled thesis passes the needle list
+        run: python3 docs/thesis/verify-docx.py docs/thesis/text/full.md
 
   db:
     name: Database gates (pgTAP + contract sync)
