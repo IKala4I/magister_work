@@ -1501,32 +1501,72 @@ U17, U18, U19, U20, U23 and U34 are the ones worth acting on first.**
 | **U39** | **A root cause was held as «probable» for a day because the owner's recollection contradicted the code history**, and flipped only when an artefact (the owner's own screenshots) settled it                                                                                                                                                                                                                                                                                                                                                                       | §6.6, methodology                                     | low    |
 | **U40** | Smaller ones worth a sentence each: an `Animated.View` per cell costs nothing measurable (1825 vs 1824 frames, 1 janky each); the arrival settle **never played on the first motion build and the frame tool could not tell** — a fresh-context review found it in code; VoiceOver's "Activate" does not fire RN Pressables, which is why the iOS pass needed WebDriverAgent for every touch; one native error appeared once per sync for 90 minutes and was never diagnosed                                                                                       | §6.6                                                  | low    |
 
-### 12.3 The reference list (U20)
+### 12.3 The reference list (U20) — **step 8**
 
-**Orphaned if the corrections are applied:** [30] Hugging Face, [44] ONNX Runtime, [46] PyTorch,
-[56] sentence-transformers, and [40] Maestro if §4.6 is rewritten as proposed. Either delete them
-or keep them attached to the "перспективи" sentences that still name the technology.
+Last, because every deletion and insertion renumbers every citation in the draft.
 
-**Needed and currently absent** (each is already used as an argument in the corrections):
+#### (a) Delete — cited for something the work does not do
 
-1. Liu & Layland (1973) — EDF, for arm A (item 22).
-2. Graham (1966) — list scheduling, for arm A (item 22).
-3. Duchi et al. (2008) — projection onto the simplex, for the blend step (item 29).
-4. EDPB Guidelines 05/2021 v2.0 — the transfer analysis, Example 10 (items 34, 35).
-5. Закон України № 2297-VI, ст. 29 — transfers (item 35).
-6. Senyk, Jankowski & Cholii (2022), _Biological Rhythm Research_ 53(6):878–896 — the validated
-   Ukrainian CSM/MCTQ, for Додаток Д (item 63).
-7. Adan & Almirall (1991) — the rMEQ cut-offs the appendix relies on (spec-conflicts L7).
-8. The 2025 systematic review of synchrony effects (Chronobiology International, 65 studies) — the
-   world model's own source for s (grid §1; U3).
-9. Roenneberg et al. (2007) — chronotype by age, for the student class mix (grid §1).
-10. Horne & Östberg's MEQ validation sample — the 28/52/20 worker split (grid §1).
-11. Nielsen's response-time limits — the acceptability argument in NFR-P1 (item 51 c).
-12. Ookla Speedtest Q4 2024 and the Opensignal country reports — the network figures in the
-    NFR-P1 derivation, **with the caveat item 51 already states**: the weak-cell and 3G values are
-    conservative estimates from older public measurements.
+D4 as decided kept [44] and [46] «on the on-device перспективи sentence». **That decision is
+revised here, and the reason is the owner's own test: a reference to something we removed is the
+same class of problem as a number nobody rechecked.** When the перспективи paragraph was actually
+written (`text/anotaciya-ta-vysnovky.md`), it named neither ONNX Runtime nor PyTorch — it names the
+substance, «перенесення персонального ранжувальника на пристрій», which is stronger without a tool
+name. So both references have **no citation site left**, and keeping them would mean adding tool
+names to a sentence that reads better without them, purely to justify the entries.
 
----
+| №        | Джерело                        | Why it goes                                                                                                                                   |
+| -------- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| **[30]** | Hugging Face Hub Documentation | the service moved to a self-managed EU deployment and the model registry to Supabase Storage; nothing in the corrected text cites it          |
+| **[44]** | ONNX Runtime Documentation     | the on-device ranker was never built; its §1.5 market-precondition citation is deleted (D2/U7), and the перспективи sentence names no runtime |
+| **[46]** | PyTorch Documentation          | SASRec-lite is not trained and is not in перспективи either (item 9); no citation site remains                                                |
+| **[56]** | Sentence-Transformers          | text embeddings were never built                                                                                                              |
+
+**Kept, but with a narrowed citation site — check each when renumbering:** [50] Skia (the heatmap
+moved to native Views; Skia remains for the focus-timer ring only), [23] GitHub Actions (no longer
+the nightly training runner; still CI and the synthetic pipeline), [18] Drizzle (the ORM stands;
+only `useLiveQuery` was replaced), [40] Maestro (§4.6 still names the flows), [42] [51] [58] [63]
+the four products (D2 removes their prices and user counts, not the products).
+
+**Kept without change:** [32] SASRec and [27] GRU4Rec are literature citations in §1.3.1, not
+implementation tools — deleting [46] does not touch them.
+
+#### (b) Add — arguments that currently cite nothing
+
+Fully specifiable; insert and renumber:
+
+| Argument                                          | Reference                                                                                                                                                                                                                                  |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| arm A's EDF rule (item 22, §5.2.1)                | Liu C. L., Layland J. W. Scheduling Algorithms for Multiprogramming in a Hard-Real-Time Environment. _Journal of the ACM_. 1973. Vol. 20, No. 1. P. 46–61.                                                                                 |
+| arm A's list scheduling (item 22)                 | Graham R. L. Bounds for Certain Multiprocessing Anomalies. _Bell System Technical Journal_. 1966. Vol. 45, No. 9. P. 1563–1581.                                                                                                            |
+| the blend's simplex projection (item 29, §2.x)    | Duchi J., Shalev-Shwartz S., Singer Y., Chandra T. Efficient Projections onto the ℓ₁-Ball for Learning in High Dimensions. _Proceedings of the 25th International Conference on Machine Learning (ICML 2008)_. Helsinki, 2008. P. 272–279. |
+| the transfer analysis (items 34–35, §3.7)         | Guidelines 05/2021 on the Interplay between the application of Article 3 and the provisions on international transfers as per Chapter V of the GDPR. Version 2.0. European Data Protection Board, adopted 14 February 2023.                |
+| the acceptability argument for NFR-P1 (item 51 c) | Nielsen J. _Usability Engineering_. San Francisco : Morgan Kaufmann, 1993. 362 p. (розділ про час відгуку: межі 0,1 / 1 / 10 с).                                                                                                           |
+| chronotype by age, the student mix (grid §1)      | Roenneberg T., Kuehnle T., Juda M., Kantermann T., Allebrandt K., Gordijn M., Merrow M. Epidemiology of the human circadian clock. _Sleep Medicine Reviews_. 2007. Vol. 11, No. 6. P. 429–438.                                             |
+| typical mobile latency (item 51)                  | Speedtest Global Index: Q4 2024. Ookla. URL: … (дата звернення: …).                                                                                                                                                                        |
+
+Two need no new entry: the Ukrainian data-protection law is already **[4]** (cite Art. 29
+explicitly in §3.7), and the rMEQ cut-offs are already **[11]**.
+
+#### (c) **Cannot be produced from the repository — four blockers**
+
+These are the reference-list equivalent of an unverifiable number, and they are listed separately
+because three of them are load-bearing. The repository records the claim but not enough of the
+source to cite it.
+
+| What the text needs it for                                                                                                                                                                                                                                                                     | What the repo actually records                                                                                                                         | Consequence if it cannot be found                                                                                                                                                                                                                                                                    |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **The 2025 systematic review of synchrony effects.** Justifies §1.1's honest statement of the literature's strength («ефект синхронності ≈ у 45 % досліджень на дорослих, головний ефект хронотипу — менш ніж у 20 %») **and the whole s-range of the frozen grid** (`sensitivity-grid.md` §1) | «the 2025 synchrony-effect systematic review», «Chronobiology International, 65 studies» — no authors, no title, no volume, no pages                   | **The most serious of the four.** Without it §1.1's paragraph loses its source and must say the literature is mixed without quantifying it; and the grid's s-range stops being literature-derived and becomes a stated assumption. The grid is frozen, so this would be a dated erratum, not an edit |
+| **The MEQ 28/52/20 worker split.** The «adult» class mix of the grid, and the «52 % проміжних, 28 % ранкових» in the abstract, §6.4 and ВИСНОВКИ                                                                                                                                               | «MEQ in a middle-aged worker sample (Horne–Östberg validation, cited in the MEQ literature)» — that is a description, not a citation                   | The mix must be attributed to a specific study or relabelled as an assumed distribution. The percentages are used in three chapters, so the relabelling would touch all three                                                                                                                        |
+| **Senyk, Jankowski & Cholii (2022).** Додаток Д and §2.5 — why the rMEQ stays English                                                                                                                                                                                                          | authors, journal, volume 53(6), pages 878–896, year — **no title**                                                                                     | Cheapest to fix: the title is one lookup. Until then Додаток Д cannot carry a complete entry                                                                                                                                                                                                         |
+| **Opensignal weak-cell and 3G latency.** The NFR-P1 derivation's network component (item 51)                                                                                                                                                                                                   | «Opensignal country reports, 2018», already labelled in item 51 as conservative estimates from older public measurements that «could not be retrieved» | Least serious, because item 51 already states the limitation. Either cite a specific retrievable report or keep the figures as explicitly stated estimates with no citation — which is what the text already does                                                                                    |
+
+**⛔ For the owner: the first two need a decision or a lookup before §1.1, §6.4, the abstract and
+ВИСНОВКИ can be frozen.** The honest fallback, if neither source can be produced, is to demote both
+from «літературa показує» to «припущення, зафіксоване в моделі світу» — which the sensitivity study
+survives (its whole point is that the world is an object of study, and s is swept from 0 to 2), but
+which weakens §1.1's argument for learning per person, because that argument leans on the
+literature being mixed.
 
 ## 13. The four sources — does the draft have a home for each?
 
@@ -1658,7 +1698,7 @@ decision sits in step 5 and later, which is why the back matter is written last.
 | **D7** | ВСТУП «Апробація» / «Публікації»                                          | **Owner's own.** No conference, no publications — both stay minimal                                                                                                                                                                                                               |
 | **D8** | Додаток З scope                                                           | **All 75 cells.** The claim is "every cell reported, including losses and ties"                                                                                                                                                                                                   |
 
-**Progress:** steps 1–7 are done. §3's four statements; `text/rozdil-6.md`; `text/rozdil-5.md`;
+**Progress:** steps 1–8 are done — the writing is complete. §3's four statements; `text/rozdil-6.md`; `text/rozdil-5.md`;
 D5 as `text/dodatok-g.md`; and the Розділ 2–4 edits, which are anchored fragments and stay in this
 file (§6, §7, §8) — every constant they quote is now verified against the code that defines it
 (§2.0), and every study-derived number in §2.1 against the results JSON by
@@ -1666,8 +1706,9 @@ file (§6, §7, §8) — every constant they quote is now verified against the c
 number fails the build. Step 5: Розділ 1's §1.4 argument rebuilt (§5 of this file), §1.1/§1.5/§1.6
 edits in place. Step 6: `text/anotaciya-ta-vysnovky.md`. Step 7: `text/dodatok-z.md` (generated, CI-checked) and
 `text/dodatok-y.md`, with §10.7a deciding which appendices are printed and which become repository
-pointers. Next is **step 8** — the reference list (D4) and the ВСТУП structure sentence, both of
-which are last because the list renumbers every citation in the draft.
+pointers. Step 8: the reference list audited (§12.3) — four entries deleted, seven added, and **four
+citations that cannot be produced from the repository, two of them load-bearing**. The assembly
+order for the .docx is `docs/thesis/ASSEMBLY.md`: thirty steps in document order.
 
 ### Sanity checks before freeze
 

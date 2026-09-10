@@ -93,9 +93,21 @@ the standard abbreviation for «пункти».
    row is empty and answers with a measured cost; §1.1/§1.5/§1.6 edits are in the rollup §5. Step 6:
    `text/anotaciya-ta-vysnovky.md`, with all four §3 statements carried without softening. Step 7:
    `text/dodatok-z.md` — **generated** from the results JSON and CI-checked — plus
-   `text/dodatok-y.md`, and rollup §10.7a decides print-vs-pointer for every appendix. Next is
-   **step 8**: the reference list (D4) and the ВСТУП structure sentence, last because the list
-   renumbers every citation in the draft.
+   `text/dodatok-y.md`, and rollup §10.7a decides print-vs-pointer for every appendix. Step 8: the
+   reference list audited (rollup §12.3).
+
+   **The writing is complete. `docs/thesis/ASSEMBLY.md` is the next thing to read** — thirty steps
+   in document order for moving the text into the .docx in one sitting.
+
+   **One open blocker, for the owner (rollup §12.3 c): four citations cannot be produced from the
+   repository, and two are load-bearing.** The 2025 synchrony-effect systematic review (the repo
+   records only «Chronobiology International, 65 studies») justifies §1.1's statement of the
+   literature's strength _and_ the s-range of the frozen sensitivity grid; the MEQ 28/52/20 worker
+   split (recorded as «cited in the MEQ literature») is the grid's adult class mix and the
+   «52 % / 28 %» of the abstract, §6.4 and ВИСНОВКИ. §12.3 (c) states the fallback if neither can be
+   found: demote both from literature to stated assumption, which the sensitivity study survives but
+   which weakens §1.1's argument. The other two are smaller — the Senyk et al. title, and the
+   Opensignal figures that item 51 already labels as estimates.
 
    **The number checker is a CI gate.** `docs/thesis/verify-numbers.py` — **144 checks** recomputed
    from `docs/study/results/*.json`, run by the `thesis-numbers` job on every push and pull request,
