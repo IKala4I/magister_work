@@ -32,16 +32,16 @@ BANNED = [
     ("Hugging Face", "item 26 — the service moved to a self-managed EU deployment"),
     ("bandit_cpsat", "item 7 — engine is learned | heuristic"),
     ("deep_work", "item 7 — the category enum is deep"),
-    ("useLiveQuery", "item 13 — the client uses its own useLiveRows hook"),
+    ("живі запити Drizzle useLiveQuery", "item 13 — the client uses its own useLiveRows hook;\n     # a bare «useLiveQuery» also matches табл. 3.3, which names it to explain the deviation"),
     ("onnxruntime", "item 60 (d) — the on-device ranker was not built"),
     ("SASRec-lite", "item 9 — deferred, and not in перспективи either"),
     ("no_feasible_slot", "item 7 — the service returns no_feasible_start"),
     ("10 тис. MAU", "item 3 — the audited figure is ≈ 3 тис."),
-    ("2,5 с", "item 51 — NFR-P1 is ≤ 6,0 с on the device"),
+    ("≤ 2,5 с (95-й перцентиль, прогрітий бекенд)", "item 51 — NFR-P1 is ≤ 6,0 с on the device;\n     # «2,5 с» alone also matches Розділ 6, where the superseded figure is quoted on purpose"),
     ("підтвердженням листом", "item 43 — erasure is confirmed in-app"),
     ("анонімізований датасет", "item 36 — the released dataset is synthetic"),
     ("Анонімізований датасет", "item 36 — the released dataset is synthetic"),
-    ("4·10⁴", "item 17 — the measured threshold is 3·10³ on the deployment box"),
+    ("за перевищення 4·10⁴ літералів", "item 17 — the measured threshold is 3·10³;\n     # «4·10⁴» alone also matches §2.4 and §6.8, which cite it as the outer bound"),
     ("реєстрація OSF", "item 54 — no OSF registration"),
     ("реєстрацію OSF", "item 54 — no OSF registration"),
     ("сумлінна репліка", "item 8 (a) — arm A is heuristic + matched randomization"),
@@ -55,13 +55,13 @@ BANNED = [
 PRESENT = [
     ("шести розділів", "ВСТУП structure sentence (assembly step 30)"),
     ("поза межами роботи", "the standing scope phrase (ADR-0020)"),
-    ("оцінювання виконано в симуляції", "the standing scope phrase, second half"),
+    ("цінювання виконано в симуляції", "the standing scope phrase, second half"),
     ("найраніший вільний слот", "§3.2 — the one rule compared against"),
     ("індивідуальної варіації", "the headline finding"),
     ("РОЗДІЛ 6", "the new chapter (assembly step 20)"),
     ("Додаток З", "the 75-cell grid (assembly step 28)"),
     ("Додаток И", "the registered predictions (assembly step 29)"),
-    ("lapse_observed", "лістинг 4.1 (U15)"),
+    ("lapseObservedEvent", "лістинг 4.1 (U15)"),
     ("Taillard", "the MEQ class-mix citation"),
     ("Chauhan", "the 2025 synchrony review"),
     ("Senyk", "the Ukrainian CSM/MCTQ instruments"),
@@ -73,7 +73,7 @@ PRESENT = [
 # --- (3) numbers that must appear with their corrected value -------------------------------------
 # (needle that must be present, needle that must be absent, why)
 NUMBER_PAIRS = [
-    ("6,0 с", "≤ 2,5 с", "NFR-P1 restated from device measurement (item 51)"),
+    ("6,0 с", "≤ 2,5 с (95-й перцентиль", "NFR-P1 restated from device measurement (item 51);\n     # «≤ 2,5 с» alone matches §6.8, which cites the superseded figure as the refuted assumption"),
     ("3,7–4,1", "3,7 с p95", "the reference is a range, never one number (item 51 amended)"),
     ("172", "набір 170", "120 / 0,7 = 172; «170» rounds the recruitment burden down"),
     ("4,8", "виграш вечірніх типів у 5–10", "the evening gain is 4,8–10,2, not 5–10"),
@@ -88,6 +88,16 @@ REF_PRESENT = ["Journal of the ACM", "Bell System Technical Journal", "Chronobio
 
 
 def extract(path: str) -> str:
+    if path.endswith(".md"):
+        # the assembled markdown, checked before it ever reaches Word.
+        # It goes through the same normalisation as the .docx path below — folding only the
+        # needles and not the text was a real bug: «3,7–4,1» never matched its own en-dash.
+        text = open(path, encoding="utf-8").read()
+        for variant in "\u2019\u02bc\u2018\u00b4":
+            text = text.replace(variant, "'")
+        for variant in "\u2013\u2014\u2212":
+            text = text.replace(variant, "-")
+        return text
     with zipfile.ZipFile(path) as z:
         xml = z.read("word/document.xml").decode("utf-8")
     text = "".join(re.findall(r"<w:t[^>]*>(.*?)</w:t>", xml, re.S))
