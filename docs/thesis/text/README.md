@@ -110,3 +110,29 @@ direction: **numerically the recomputation weakens the claim** (from "no cell" t
 survives is the conclusion, because the single supporting world sits on the grid's own
 implausibility bound. An earlier draft said the correction "strengthens" the conclusion — it does
 not, and that overstatement was itself caught by the adversarial pass.
+
+### A needle that is too narrow is a silent pass, not a warning
+
+Three times now the same shape: a check ran, reported clean, and the thing it was meant to catch
+was sitting in the file.
+
+- `verify-docx.py` folded apostrophes in its needles but not in the text it searched, so
+  «3,7–4,1» never matched its own en-dash.
+- A scan for `[nn]` reported zero unresolved citation placeholders. The placeholders in
+  `rozdil-5.md` read `[nn — Liu & Layland, 1973]`; the needle matched neither.
+- The reference renumberer matched `[0,1]` inside `clip[0,1]` and rewrote formula (2.9) to
+  `clip[‹?›, 1]`. Nothing failed. The corrupted formula was committed and stayed committed.
+
+The failures are not "the checker was wrong". Each checker did exactly what it was told. The
+lesson is narrower and more useful: **a check that can only report "found nothing" has two
+readings, and the wrong one is the comfortable one.** So a checker gets an assertion in both
+directions where that is possible — `verify-docx.py` now asserts the clip bounds are *present*,
+not merely that no marker is absent — and a needle written against remembered text is verified
+against the actual bytes before it is trusted.
+
+The same reasoning retired a whole class of manual work in this pass. Sixteen `run_sub` calls were
+deleted by a multiline regex meant to remove three; the program's own fidelity report did not
+notice, because deleted edits leave paragraphs looking untouched. `verify-docx.py` caught it —
+seven banned strings had reappeared. The edits are now driven from a table read out of
+`corrections-rollup.md` itself, so the approved Ukrainian is never retyped, and the checker is
+what stands between a lost edit and the defence.
