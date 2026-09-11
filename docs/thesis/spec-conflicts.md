@@ -464,6 +464,20 @@ amended accordingly.
   inventory. Measured: Pixel 7a 11 / 10 / 14 / 12 frames (Done / Skip / I did it / on-screen move) and 17 + 7 for an off-screen move (the scroll, then the arrival settle — established on the fixed build after the adversarial pass), 0 BLANK, NFR-P2 equal before/after on a 13-block
   list; iPhone 12 hitch-free through every interaction, NFR-P2 8 = 8 hitches on a 16-block list;
   reduced motion → one frame (Android) / no transition (both). §3.4 carries the amendment line.
+- **L43.** (2026-09-11, iPhone pass 2026-09-08 items 53–56) File 05 §1's diagram shows one status
+  for a lapsed block. There are two, and for hours they differ: the lazy scan writes `lapsed`
+  **locally** and logs `lapse_observed` with **no status op** — L11 keeps `lapsed` out of the
+  client-writable set — while the server row stays `shown`/`accepted` until the 23:55-local
+  authority reads the facts. Measured: five `lapse_observed` pushed at 09:22 and the server still
+  holding 11 × `shown` with no reward rows at 09:25 (`server-q-first-fg.json`); the day's lapse
+  tuples stamped 21:00:03Z, the `*/15` sweep's first tick past the boundary. The gap is a real
+  state, not a race to be designed away, and the client must survive it: a pulled provisional
+  status re-lowering a local fact double-counted the skip streak and fired the third-skip
+  diagnostic on a task that had missed twice. Normative: a status lattice on pull — a
+  fact-derived local status (`lapsed`, `completed`) is never lowered by a pulled plan status, the
+  server's terminal statuses still win, and a rec with a local `lapse_observed` is never lapsed
+  twice (`sync/pull.ts` `LOCAL_FACT_STATUSES`, `db/feedback.ts` `lapseScan`). Додаток А's diagram
+  shows both statuses and the lattice step; File 05 §1 stays as design history.
 
 ## Post-P12 status overlay (2026-09-01) — File 06 is design, not report
 
