@@ -1,0 +1,50 @@
+%% Рисунок Б.1 — offline-first синхронізація із семантичним конфліктом «план проти реальності»
+%% Джерело істини: apps/mobile/src/sync/{engine,pull,merge}.ts, supabase/functions/sync-resolve/,
+%% supabase/functions/gcal-webhook/, supabase/functions/_shared/rewards.ts (гілка displaced_pending),
+%% supabase/migrations/20260824120200_m02_displacement.sql.
+sequenceDiagram
+    autonumber
+    actor K as Користувач
+    participant App as Застосунок RN (Expo)
+    participant DB as Expo SQLite та outbox
+    participant GC as Google Calendar
+    participant WH as Edge Fn gcal-webhook
+    participant PG as Supabase Postgres
+    participant SR as Edge Fn sync-resolve
+
+    Note over K,DB: Пристрій офлайн. Outbox чекає — «нічого не відправлено» і є режимом офлайн
+
+    par Користувач працює офлайн
+        K->>App: починає фокус-сесію на блоці
+        App->>DB: факти focus_start, потім focus_end у outbox
+        DB-->>App: локальний статус completed
+    and Сервер тим часом витісняє те саме розміщення
+        GC->>WH: сповіщення про нову зустріч
+        WH->>PG: інкрементальна синхронізація calendar_events
+        PG-->>WH: відкриті блоки, що перетнулися із зайнятим інтервалом
+        WH->>PG: статус displaced_pending — сервер позначив, але пристрій може тримати факти
+    end
+
+    K->>App: зʼєднання відновлено
+    App->>SR: push операцій за seq з курсором MMKV, ідемпотентний op_id, base_version
+    SR->>PG: відтворення операцій, журнал подій доповнюється
+    SR->>PG: семантичний конфлікт — displaced_pending проти факту виконання
+
+    alt Факт виконання є — панівне правило «факти важливіші за плани»
+        SR->>PG: статус completed із conflict_flag
+        SR->>PG: кортеж r = 1 записано з excluded = true та excluded_reason concurrent_external_conflict
+        Note over SR,PG: Рядок є, оновлення бандита немає — неоднозначну винагороду не вгадують
+    else Фактів немає і інтервал уже не відновити
+        SR->>PG: статус displaced, задача повертається у Вхідні
+        Note over SR,PG: Зовнішнє витіснення не породжує кортежа взагалі — ані рядка, ані оновлення
+    end
+
+    opt Перевірка версії не пройшла
+        SR-->>App: квитанція conflict із серверною версією рядка
+        App->>DB: польове злиття, черга операцій сутності згортається в одну переписану операцію
+        App->>SR: повторне відтворення наступним раундом
+    end
+
+    SR-->>App: pull зміненими рядками понад курсором
+    App->>DB: атомарне застосування в одній транзакції, курсор MMKV просувається
+    App-->>K: план перемальовано, витіснений блок показано на «Сьогодні» без окремого сповіщення

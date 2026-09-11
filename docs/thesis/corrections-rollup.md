@@ -1355,7 +1355,7 @@ before the outcomes were known.
 | **З** сітка світів    | **print in full** (75 rows)  | it _is_ the "every cell reported" claim; abridging it would retract the claim                                                                                                                                  |
 | **Е** простежуваність | **print abridged + pointer** | the complete matrix is 40+ requirements; print the ~15 that carry the argument and cite `docs/traceability.md` for the rest. The draft already abridges it — what changes is that the pointer becomes explicit |
 | **И** пре-реєстрації  | **print abridged + pointer** | print the predictions with their criteria and the commit hashes (≈ 2,5 pages); the full texts are ≈ 8 pages that do not become more checkable by being printed — the commits are what makes them checkable     |
-| **А, Б** діаграми     | print                        | figures, unchanged                                                                                                                                                                                             |
+| **А, Б** діаграми     | print                        | figures, **corrected** — see 10.8 and 10.9: the draft's narratives describe the pre-build design and both point at `specs/05`                                                                                                                                                                                             |
 
 The general rule the two abridgements follow: **print what a reader must weigh, cite what a reader
 must be able to check.** A prediction table is weighed; a generative model's parameter list is
@@ -1373,6 +1373,75 @@ checked, and a commit hash checks it better than a printed page does.
   claim the reader cannot check.
 
 ---
+
+### 10.8 Додаток А — **П**, item 64 _(no worklist row at the time it was written)_
+
+The draft's scenario list is the design of three months ago, and it is wrong in three places: it
+calls the outbox entry a **skip** event (the lapse path appends `lapse_observed` and creates **no
+status op** at all), it has the row reach `lapsed` at the scan (the server keeps the plan status
+until the nightly authority), and it omits the River step the text states elsewhere. The figure
+note also points the reader at `specs/05_sequence_diagrams_RN.md` — a pre-build document whose
+Mermaid is English and, in these three places, no longer describes the system. Replace both
+paragraphs. The corrected Mermaid lives in the repository at
+`docs/thesis/text/diagrams/a1-uc04.mmd` and parses under mermaid 10.
+
+Replace «Сценарій охоплює: пропуск блоку без фокус-сесії…» with:
+
+> «Сценарій охоплює: непрожитий блок без фокус-сесії; лінивий сканер під час переходу застосунку
+> на передній план; локальне позначення `lapsed`, повернення задачі у Вхідні та нейтральну картку
+> «Не зроблено — повернулося у Вхідні» без інтерфейсу провини; дописування факту `lapse_observed`
+> до журналу — без операції зміни статусу, оскільки `lapsed` клієнт на сервері не встановлює;
+> push-синхронізацію з ідемпотентним `op_id`, під час якої миттєвий прохід атрибуції кортежа не
+> породжує, рядок рекомендації повертається з плановим статусом, а ґратка статусів утримує
+> локальний факт; нічну авторитетну атрибуцію о 23:55 за місцевим часом користувача (Edge Function
+> `attribute-rewards` → POST `/feedback`), де і виникає єдиний кортеж r = 0; ранг-один оновлення
+> Шермана–Моррісона стану лінійного бандита, інкремент лічильника невдач Beta-комірки з піврозпадом
+> 28 днів і крок River для ваг змішування з проєкцією на симплекс; наступного дня — знижену оцінку
+> q̂ контексту, перебудову плану CP-SAT і раціоналію «Пообідній час для цієї задачі не спрацьовує —
+> пробуємо ваш ранковий пік»; альтернативний потік пізньої корекції «насправді зробив» у вікні
+> 7 днів, який переписує збережений кортеж на r = 1 зі збереженням початкового моменту атрибуції і
+> запускає повну перебудову стану з кортежів винагород, а не ранг-один пониження.»
+
+Replace the figure note «**[МІСЦЕ ДЛЯ РИСУНКА А.1]** _Вставити: …_» with:
+
+> «**[МІСЦЕ ДЛЯ РИСУНКА А.1]** _Вставити: діаграма послідовності з учасниками: Користувач,
+> застосунок RN (Expo), Expo SQLite та outbox, Edge Fn `sync-resolve`, Supabase Postgres, Edge Fn
+> `attribute-rewards`, FastAPI RecSys, `user_model_state`. Вихідний код діаграми —
+> `docs/thesis/text/diagrams/a1-uc04.mmd` у репозиторії системи; діаграму слід відрендерити та
+> вставити зображенням._»
+
+### 10.9 Додаток Б — **П**, item 64
+
+The scenario itself survives — the displacement branch is as built. One clause is misleading and
+the pointer is the same stale one. «Виключення неоднозначної винагороди з оновлення бандита» reads
+as though nothing is written: the tuple **is** written, with `excluded = true` and
+`excluded_reason: concurrent_external_conflict`, and it is the *update* that never happens. The
+distinction is the whole of invariant 3 and it is what makes the row auditable later, so the
+appendix should carry it. An external displacement with no completion evidence is the other case —
+there no tuple exists at all.
+
+Replace «Сценарій охоплює: паралельне вікно…» with:
+
+> «Сценарій охоплює: паралельне вікно — офлайн-виконання блоку користувачем (події `focus_start` і
+> `focus_end` в outbox) та одночасне серверне витіснення тієї самої рекомендації новою зустріччю з
+> Google Calendar (вебхук → інкрементальна синхронізація → статус `displaced_pending`); відновлення
+> зʼєднання; push операцій із курсором MMKV, миттєвий прохід атрибуції та pull в одному зверненні
+> до `sync-resolve`; виявлення семантичного конфлікту; застосування панівного правила «факти
+> важливіші за плани» — статус `completed` із прапорцем `conflict_flag`, а кортеж r = 1 записується
+> з `excluded = true` і причиною `concurrent_external_conflict`: рядок у таблиці винагород є, а
+> оновлення бандита немає, бо неоднозначну винагороду не вгадують; контрфактичну гілку — фактів
+> немає, інтервал уже не відновити, статус `displaced`, задача повертається у Вхідні, і кортежа не
+> виникає взагалі; гілку невдалої перевірки версії з польовим злиттям, у якому черга операцій
+> сутності згортається в одну переписану операцію; pull-фазу з атомарним застосуванням змін і
+> просуванням курсора.»
+
+Replace the figure note «**[МІСЦЕ ДЛЯ РИСУНКА Б.1]** _Вставити: …_» with:
+
+> «**[МІСЦЕ ДЛЯ РИСУНКА Б.1]** _Вставити: діаграма послідовності з учасниками: Користувач,
+> застосунок RN (Expo), Expo SQLite та outbox, Google Calendar, Edge Fn `gcal-webhook`, Supabase
+> Postgres, Edge Fn `sync-resolve`. Вихідний код діаграми —
+> `docs/thesis/text/diagrams/b1-sync.mmd` у репозиторії системи; діаграму слід відрендерити та
+> вставити зображенням._»
 
 ## 11. Amendments to the worklist itself
 
