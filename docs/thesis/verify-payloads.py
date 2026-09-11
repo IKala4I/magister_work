@@ -182,7 +182,10 @@ def check_inline(full: str, full_tight: str) -> tuple[list, list]:
     return ok, bad
 
 
-def main() -> int:
+def classify() -> dict:
+    """Every payload and inline correction, sorted into outcomes. Returned rather than printed so
+    `verify-state.py` can check the counts the prose in ASSEMBLY.md claims against the live ones —
+    a documented state claim drifts as quietly as a thesis sentence does, and twice already has."""
     raw = io.open(FULL, encoding="utf-8").read()
     full = norm(raw)
     payloads = A.load_rollup_payloads()
@@ -209,7 +212,23 @@ def main() -> int:
             else:
                 missing.append((ref, cov, paras[0][:66]))
 
-    total = sum(len(v) for v in payloads.values())
+    inline_ok, inline_bad = check_inline(full, tight(raw))
+    return {
+        "placed": placed, "carried": carried, "excluded": excluded,
+        "partial": partial, "missing": missing, "broken": broken,
+        "inline_ok": inline_ok, "inline_bad": inline_bad,
+        "total": sum(len(v) for v in payloads.values()),
+        "accounted": len(placed) + len(carried) + len(excluded),
+        "inline_total": len(inline_ok) + len(inline_bad),
+    }
+
+
+def main() -> int:
+    c = classify()
+    placed, carried, excluded = c["placed"], c["carried"], c["excluded"]
+    partial, missing, broken = c["partial"], c["missing"], c["broken"]
+    inline_ok, inline_bad, total = c["inline_ok"], c["inline_bad"], c["total"]
+
     print(f"corrections-rollup.md carries {total} blockquote payloads.\n")
     print(f"  placed verbatim in full.md              {len(placed):3}")
     print(f"  carried elsewhere, witness present      {len(carried):3}")
@@ -229,8 +248,7 @@ def main() -> int:
         for ref, cov, head in rows:
             print(f"      {ref:12} {cov:4.0%}  {head}…")
 
-    inline_ok, inline_bad = check_inline(full, tight(raw))
-    n_in = len(inline_ok) + len(inline_bad)
+    n_in = c["inline_total"]
     print(f"\n  inline `X` → `Y` corrections placed     {len(inline_ok):3} of {n_in}")
     for n, lhs, rhs, witness, why in inline_ok:
         if witness:
@@ -240,7 +258,7 @@ def main() -> int:
         for n, lhs, rhs, witness, why in inline_bad:
             print(f"      rollup:{n:<6} {lhs[:30]} → {rhs[:30]}  — {why}")
 
-    ok = len(placed) + len(carried) + len(excluded)
+    ok = c["accounted"]
     bad = len(partial) + len(missing) + len(broken) + len(inline_bad)
     print(f"\n{ok} of {total} payloads accounted for, "
           f"{len(inline_ok)} of {n_in} inline corrections placed; {bad} unaccounted.")

@@ -56,6 +56,16 @@ Both come from `corrections-rollup.md` and they are not stylistic:
    the apostrophe — it runs last in `assemble.py`, after every anchored edit, because the anchors
    match draft prose that still carries the old form.
 
+5. **A claim about state is checked, not described** (owner directive 2026-09-11). Documentation
+   about the pipeline rots the way the thesis text rots, only more quietly, because nobody
+   re-reads it: `sensitivity-results.md` summarised the grid wrongly and the wrong version was
+   quoted forward into a chapter draft, and ASSEMBLY.md's paragraph about the inline-correction
+   gap was false within a day of being written — by the checker described two paragraphs above it
+   in the same file. `verify-state.py` pins each such sentence to a live value and runs in CI.
+   Adding a state claim to prose without adding it there is allowed; a claim that is there can no
+   longer rot in silence. It caught its first on the run that introduced it: "three of the twelve
+   pass on a witness" had been five since the same afternoon.
+
 Percentage points are «в. п.»; the research questions are ДП1–ДП4.
 
 ## What was corrected in the sources while writing

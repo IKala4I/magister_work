@@ -147,7 +147,7 @@ first run, finding two Додаток Ж corrections (`"solver"` → `"telemetry
 `"rationale_key"`) that §10.6 had approved and nothing had ever applied. A right-hand side too
 short or too elliptical to be its own evidence needs a named `CELL_WITNESS`; a witness may be an
 absence claim (`!Inter Variable`) where the correction landed in the wording its own section
-settled on. Three of the twelve pass on a witness rather than on the text itself — §1.4 (a) among
+settled on. Five of the twelve pass on a witness rather than on the text itself — §1.4 (a) among
 them — so those three are still the ones to re-read by hand at freeze.
 
 `verify-payloads.py` reads every blockquote payload out of `corrections-rollup.md` and asks
