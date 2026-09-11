@@ -212,6 +212,7 @@ ROLLUP_EDITS: list[tuple] = [
     ("4.3", 2, "after", "4. набули подальшого розвитку методи офлайн-оцінювання", None),
     ("4.3", 3, "from", "Практичне значення одержаних результатів.", "Розроблений програмний комплекс Kairos"),
     ("4.3", 4, "replace", "6. розроблено методику експериментального оцінювання ефективності системи у формі", None),
+    ("4.3", 5, "after", "Отже, актуальність теми зумовлена", None),
     # --- Розділ 1 --------------------------------------------------------------------------
     ("§1.1", 0, "from", "починаючи з класичного опитувальника", "Із цього випливає безпосередній практичний висновок"),
     ("§1.2", 0, "from", "Узагальнене порівняння можливостей наведено", "Узагальнене порівняння можливостей наведено"),
@@ -816,6 +817,11 @@ def build() -> tuple[list[dict], dict]:
     cell_set(blocks, 0, 8, 1,
              "частково: обробка в ЄС, RLS, мінімізація; он-девайс ранжування не реалізовано",
              "табл. 1.1 privacy / on-device")
+    # табл. 1.2 (§1.4 a) — D7 was approved for `+` → `◐` in the rollup but never wired, so the
+    # legend under the table described a symbol no cell used and the row claimed a completed
+    # field study that §1.4's own next three paragraphs deny («робота не закриває», «шість
+    # вимірів із семи»). The footnote payload had landed; only the cell was missing.
+    cell_set(blocks, 1, 11, 7, "◐", "табл. 1.2 D7 + → ◐")
     # табл. 1.3 (§1.5 c) — one mitigation is weaker than claimed, one risk materialised
     cell_set(blocks, 2, 1, 1,
              "Чесний «режим навчання» в інтерфейсі та навчання на рівні людини. Хронотипні приори **не знижують ризик першого тижня вимірно**: їхній внесок у симуляції становить ±0,4 в. п. (підрозділ 6.4)",
@@ -934,6 +940,7 @@ def build() -> tuple[list[dict], dict]:
                   "Розділ 5 replaced + Розділ 6 inserted")
 
     # --- ВИСНОВКИ (step 21) -------------------------------------------------------------
+    para_insert_after(blocks, "У кваліфікаційній роботі розв", pay[19], "висновки: результат названо першим")
     para_tail(blocks, "Проаналізовано предметну область персонального планування часу та показано", pay[10], "висновки п.1")
     para_tail(blocks, "Уперше формалізовано задачу персонального планування", pay[11], "висновки п.2")
     para_tail(blocks, "Розроблено метод холодного старту, що поєднує психометричну", pay[12], "висновки п.3")
@@ -971,6 +978,8 @@ def build() -> tuple[list[dict], dict]:
     SKIPPED.extend(AMBIGUOUS)
 
     # --- global sweeps -------------------------------------------------------------------
+    # Runs LAST, after every anchored edit: two ROLLUP_EDITS markers and the висновки п.5 locator
+    # still carry the draft's «Kairos», and they must match draft text, not swept text.
     sweeps = 0
     for b in blocks:
         if b["kind"] != "p" or b["origin"] not in ("draft", "edited", "renumbered"):
@@ -986,6 +995,35 @@ def build() -> tuple[list[dict], dict]:
             b["origin"] = "edited"
             sweeps += 1
     APPLIED.append(f"global sweeps applied to {sweeps} paragraphs")
+
+    # --- Kairos → Hourwell (docs/naming.md, owner decision 2026-09-11) --------------------
+    # The public product name replaces the internal codename throughout the thesis. Unlike the
+    # sweeps above this covers EVERY kind and origin — the name sits in headings (РОЗДІЛ 3), in
+    # table cells (табл. 1.1, табл. 1.2, FR-40) and in text-file chapters, not only in draft
+    # paragraphs. `KAIROS` before `Kairos` so the upper-case heading form is not half-replaced.
+    def _rename(x: str) -> str:
+        return x.replace("KAIROS", "HOURWELL").replace("Kairos", "Hourwell")
+
+    renamed = 0
+    for b in blocks:
+        if b["kind"] == "table":
+            rows = [[_rename(c) for c in row] for row in b["rows"]]
+            if rows != b["rows"]:
+                b["rows"] = rows
+                if b["origin"] == "draft":
+                    b["origin"] = "edited"
+                renamed += 1
+            continue
+        t = b.get("text")
+        if t is None:
+            continue
+        n = _rename(t)
+        if n != t:
+            b["text"] = n
+            if b["origin"] == "draft":
+                b["origin"] = "edited"
+            renamed += 1
+    APPLIED.append(f"Kairos → Hourwell in {renamed} blocks")
 
     stats = {
         "blocks": len(blocks),

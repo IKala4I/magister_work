@@ -383,7 +383,7 @@ novelty list:
 
 **(d) Практичне значення — П (items 3, 36, 54).** The dataset sentence is now false as written:
 
-> «Розроблений програмний комплекс Kairos є завершеним прототипом мобільного застосунку
+> «Розроблений програмний комплекс Hourwell є завершеним прототипом мобільного застосунку
 > персонального планування, придатним до дослідної експлуатації; за оцінкою аудиту тарифів (без
 > навантажувального випробування) його архітектура функціонує в межах безоплатних тарифів
 > приблизно до трьох тисяч активних користувачів на місяць. Схема журналювання подій із
@@ -403,6 +403,23 @@ novelty list:
 
 **(f) Структура та обсяг роботи — Ф (U2).** Recount at freeze: number of chapters (six if the
 split is taken), the reference count after §7 U20, the page count.
+
+**(g) Результат названо в ВСТУП, а не тільки наприкінці — П (§3.1, §3.3).** §3 of this rollup
+requires the conditional result and the simulation boundary to survive at full strength; an
+introduction that defers both to Розділ 6 lets a reader reach §1.4's matrix without them. Insert
+after «Отже, актуальність теми зумовлена…»:
+
+> «Результат цієї роботи можна назвати одразу, а не наприкінці. **Метод потребує індивідуальної
+> варіації, щоб бути вартим своєї складності; там, де поведінка йде за популяційним хронотипним
+> візерунком за припущеної в таблиці 2.4 сили, достатньо правила «найраніший вільний слот».**
+> Систему побудовано на тому, що конкретна людина відхиляється від профілю свого хронотипного
+> класу, і саме ці відхилення модуль навчання відновлює з поведінки. **Оцінювання виконано в
+> симуляції** — і воно є дослідженням із гіпотезами, методом і результатами, а не заміною
+> відсутнього. Сьомий вимір — розгорнуте польове оцінювання — робота **не закриває**; властивості,
+> які роблять рекомендування часових інтервалів складним, є тими самими властивостями, які роблять
+> польове оцінювання дорогим. Відповідно, робота закриває шість вимірів із семи, доводить сьомий
+> до стану, у якому його може виконати будь-яка лабораторія з ресурсом на набір, і **вимірює, яким
+> має бути цей ресурс**.»
 
 ---
 
@@ -1364,7 +1381,7 @@ before the outcomes were known.
 | **З** сітка світів    | **print in full** (75 rows)  | it _is_ the "every cell reported" claim; abridging it would retract the claim                                                                                                                                  |
 | **Е** простежуваність | **print abridged + pointer** | the complete matrix is 40+ requirements; print the ~15 that carry the argument and cite `docs/traceability.md` for the rest. The draft already abridges it — what changes is that the pointer becomes explicit |
 | **И** пре-реєстрації  | **print abridged + pointer** | print the predictions with their criteria and the commit hashes (≈ 2,5 pages); the full texts are ≈ 8 pages that do not become more checkable by being printed — the commits are what makes them checkable     |
-| **А, Б** діаграми     | print                        | figures, **corrected** — see 10.8 and 10.9: the draft's narratives describe the pre-build design and both point at `specs/05`                                                                                                                                                                                             |
+| **А, Б** діаграми     | print                        | figures, **corrected** — see 10.8 and 10.9: the draft's narratives describe the pre-build design and both point at `specs/05`                                                                                  |
 
 The general rule the two abridgements follow: **print what a reader must weigh, cite what a reader
 must be able to check.** A prediction table is weighed; a generative model's parameter list is
@@ -1424,7 +1441,7 @@ Replace the figure note «**[МІСЦЕ ДЛЯ РИСУНКА А.1]** _Вста�
 The scenario itself survives — the displacement branch is as built. One clause is misleading and
 the pointer is the same stale one. «Виключення неоднозначної винагороди з оновлення бандита» reads
 as though nothing is written: the tuple **is** written, with `excluded = true` and
-`excluded_reason: concurrent_external_conflict`, and it is the *update* that never happens. The
+`excluded_reason: concurrent_external_conflict`, and it is the _update_ that never happens. The
 distinction is the whole of invariant 3 and it is what makes the row auditable later, so the
 appendix should carry it. An external displacement with no completion evidence is the other case —
 there no tuple exists at all.

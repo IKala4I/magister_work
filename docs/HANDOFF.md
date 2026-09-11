@@ -69,7 +69,7 @@ markdown table. Among the accuracy fixes: the function latency 1,10–1,34 s was
 a p95 range; /plan 135 / 487 ms is the pre-rollout image (shipped: 139 / 555); accent-as-text
 contrast is 2,06–3,60:1 and the 2,98:1 was a different pairing **fixed in P10**; the iPhone's
 0,49–0,50 s is a warm series with no 413 ms subtracted; two motion frame series came from two
-builds; the product is **Kairos** in the thesis text, not Hourwell. Percentage points are now
+builds; the product was **Kairos** in the thesis text — superseded 2026-09-11: the thesis now carries **Hourwell** throughout (a rename sweep at the end of `assemble.py`; `specs/` keeps the codename, `docs/naming.md`). Percentage points are now
 **«в. п.»** (the ДСТУ form the draft already uses) rather than the repository's «п.п.», which is
 the standard abbreviation for «пункти».
 
