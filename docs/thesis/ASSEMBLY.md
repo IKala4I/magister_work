@@ -140,9 +140,15 @@ payloads. The rollup also states corrections **inline, as table cells** — §1.
 §1.5 (c) — and nothing checks those. §1.4 (a) («табл. 1.2, рядок D7: `+` → `◐`») had been approved
 and its footnote payload had landed, so the legend under the table defined `◐` while no cell in the
 table used one, and the row went on claiming a completed field study that the next three paragraphs
-of §1.4 deny. It is wired now (`cell_set(blocks, 1, 11, 7, "◐", …)`), but the class of miss is not
-closed: a cell correction that is never wired still fails silently. Until a checker covers them,
-the inline table corrections in §1.2, §1.4 and §1.5 are the ones to re-read by hand at freeze.
+of §1.4 deny. It is wired now (`cell_set(blocks, 1, 11, 7, "◐", …)`), **and the class of miss is
+closed**: `verify-payloads.py` reads every delimited `X` → `Y` the rollup states outside a
+blockquote and checks the right-hand side reached `full.md` — 12 of 12. It earned itself on the
+first run, finding two Додаток Ж corrections (`"solver"` → `"telemetry"`, `"rationale"` →
+`"rationale_key"`) that §10.6 had approved and nothing had ever applied. A right-hand side too
+short or too elliptical to be its own evidence needs a named `CELL_WITNESS`; a witness may be an
+absence claim (`!Inter Variable`) where the correction landed in the wording its own section
+settled on. Three of the twelve pass on a witness rather than on the text itself — §1.4 (a) among
+them — so those three are still the ones to re-read by hand at freeze.
 
 `verify-payloads.py` reads every blockquote payload out of `corrections-rollup.md` and asks
 whether it reached `full.md`. **61 of 61 accounted for.** A payload with no verbatim placement

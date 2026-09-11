@@ -45,6 +45,17 @@ Both come from `corrections-rollup.md` and they are not stylistic:
    §5.5 is the densest application — the protocol's N = 30 rests on three assumptions and not one
    of them is a measurement.
 
+4. **A formatting rule lives next to the data it formats** (owner directive 2026-09-11), not in a
+   sweep over the assembled text carrying a list of exceptions. The decimal comma is the worked
+   example: it belongs in `gen-dodatok-z.py`, beside the numbers that generator writes. Had it been
+   a sweep over numeric-looking table cells, it would have converted Додаток Е's traceability row
+   for FR-42 — the cell reads `3.7`, is entirely a number by any mechanical test, and means
+   підрозділ 3.7. The sweep would have needed to know that; the generator cannot reach it. The
+   English ANNOTATION keeps its decimal points for the same structural reason rather than by an
+   exception. Where a rule genuinely must cross the whole document — the Kairos → Hourwell rename,
+   the apostrophe — it runs last in `assemble.py`, after every anchored edit, because the anchors
+   match draft prose that still carries the old form.
+
 Percentage points are «в. п.»; the research questions are ДП1–ДП4.
 
 ## What was corrected in the sources while writing
