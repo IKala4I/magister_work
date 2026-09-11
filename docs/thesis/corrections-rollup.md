@@ -1115,6 +1115,15 @@ demand**, not nightly; no scheduled workflow exists and Maestro is invoked by no
 розповсюдження для дослідження є безобліковим — збірка APK для Android; каналу для учасників з
 iOS не існує.»
 
+**(d) Що є еталоном у цьому конвеєрі — Ф, item 64.** The QA section is the one place where the
+status of `specs/` can be stated without argument, and after item 64 it has to be: a pre-build
+specification is not the oracle the pipeline checks against. Append to the first paragraph:
+
+> «Специфікацію, написану до розробки, цей конвеєр еталоном не вважає: за три місяці реалізації
+> уточнилася семантика винагород, змінилися правила злиття під час синхронізації та поведінка
+> нічної атрибуції, тож розбіжність коду зі специфікацією фіксується як зміна специфікації, а
+> перевіряють код тести й апаратні прогони.»
+
 ---
 
 ## 9. Розділ 5 і новий Розділ 6 — the evaluation, rebuilt
