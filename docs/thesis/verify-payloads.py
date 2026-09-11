@@ -10,6 +10,16 @@ looking untouched, and the fidelity report calls that success.
 This checker closes the hole from the other side. It reads every blockquote payload out of the
 rollup and asks whether its sentences actually reached the assembled text.
 
+**Inline corrections too, since 2026-09-11.** The rollup does not state every correction as a
+blockquote: some are written inline as `X` → `Y` — a table cell, a version string, a JSON field.
+Nothing checked those, and §1.4 (a) («табл. 1.2, рядок D7: `+` → `◐`») proved what that costs: its
+footnote payload was placed, so the legend under the table defined a symbol no cell in the table
+used, and the row went on claiming a completed field study that §1.4's own next three paragraphs
+deny. Every delimited `X → Y` outside a blockquote is now checked for the right-hand side. A
+right-hand side too short to be evidence on its own — `◐` appears in the legend as well — needs a
+`CELL_WITNESS` entry naming a longer string that must be present, on the same principle as
+CARRIED_ELSEWHERE: an exemption is a claim about the text, and the claim is checked.
+
 Two kinds of payload legitimately have no verbatim placement, and neither is allowed to pass
 silently:
 
@@ -99,6 +109,79 @@ def coverage(payload: str, haystack: str) -> float:
     return sum(1 for s in sh if s in haystack) / len(sh)
 
 
+ARROW = re.compile(r"(`[^`]+`|«[^»]+»)\s*→\s*(`[^`]+`|«[^»]+»)")
+
+# A right-hand side shorter than this cannot prove its own placement: it would match text that
+# was already there. Each needs a witness below. So does any right-hand side carrying an `…`
+# ellipsis — the rollup writes those for "the tail of the sentence, unchanged", and they have no
+# verbatim form to look for.
+MIN_EVIDENCE = 3
+
+
+def tight(t: str) -> str:
+    """Whitespace folded, nothing else. `norm()` strips punctuation and case, which is right for
+    a paragraph and wrong here: it turned `"telemetry": {...}` into `telemetry` and matched the
+    word in a §4 sentence, passing a Додаток Ж correction that had never been applied."""
+    return re.sub(r"\s+", " ", t).strip()
+
+# rollup line -> (why the arrow alone is not evidence, the string that must be in full.md).
+# A witness prefixed with "!" is an ABSENCE claim: that string must NOT be there. Use it where
+# the correction landed in a wording a chapter settled on, so the only checkable fact is that
+# the old wording is gone.
+CELL_WITNESS: dict[int, tuple[str, str]] = {
+    479: ("`◐` also appears in the legend under the table, so presence proves nothing; the "
+          "claim is that the row's own D7 cell carries it",
+          "| Hourwell (ця робота)"),
+    1010: ("the rollup writes the correction elliptically («…з підтвердженням…») and UC-10 "
+           "closes on the 30-day legal limit rather than the rollup's millisecond aside",
+           "з підтвердженням **у застосунку** (номер запису та час завершення)"),
+    1344: ("the rollup writes the object as `{...}`; the appendix carries its real body",
+           '"telemetry": { "status": "FEASIBLE"'),
+    1345: ("elliptical in the rollup; the appendix carries the service's real shapes "
+           "(`rationale.py`), with `n_effective` elided the way it elides identifiers",
+           '"rationale_key": "energy_peak"'),
+    1297: ("applied in both places, each in the wording its own section settled on — §3.8 "
+           "«Inter (400/500/600/700)», Додаток В «Inter (статичні накреслення …; інтерфейс і "
+           "заголовки)». What is checkable is that the old name is gone from both",
+           "!Inter Variable"),
+}
+
+
+def inline_corrections(path: str = A.ROLLUP) -> list[tuple[int, str, str]]:
+    """Every delimited `X` → `Y` the rollup states outside a blockquote or a fenced block."""
+    out, fenced = [], False
+    for n, line in enumerate(io.open(path, encoding="utf-8").read().split("\n"), 1):
+        if line.startswith("```"):
+            fenced = not fenced
+            continue
+        if fenced or line.startswith(">"):
+            continue
+        for m in ARROW.finditer(line):
+            out.append((n, m.group(1)[1:-1], m.group(2)[1:-1]))
+    return out
+
+
+def check_inline(full: str, full_tight: str) -> tuple[list, list]:
+    ok, bad = [], []
+    for n, lhs, rhs in inline_corrections():
+        if n in CELL_WITNESS:
+            why, witness = CELL_WITNESS[n]
+            if witness.startswith("!"):
+                good = norm(witness[1:]) not in full
+                why = f"absence witness — {why}"
+            else:
+                good = norm(witness) in full
+            (ok if good else bad).append((n, lhs, rhs, witness, why))
+            continue
+        if len(rhs.strip()) < MIN_EVIDENCE or "…" in rhs:
+            why = ("carries an … ellipsis" if "…" in rhs
+                   else f"right-hand side is {len(rhs.strip())} chars")
+            bad.append((n, lhs, rhs, None, f"{why} — add a CELL_WITNESS entry"))
+            continue
+        (ok if tight(rhs) in full_tight else bad).append((n, lhs, rhs, None, "not found in full.md"))
+    return ok, bad
+
+
 def main() -> int:
     raw = io.open(FULL, encoding="utf-8").read()
     full = norm(raw)
@@ -146,9 +229,21 @@ def main() -> int:
         for ref, cov, head in rows:
             print(f"      {ref:12} {cov:4.0%}  {head}…")
 
+    inline_ok, inline_bad = check_inline(full, tight(raw))
+    n_in = len(inline_ok) + len(inline_bad)
+    print(f"\n  inline `X` → `Y` corrections placed     {len(inline_ok):3} of {n_in}")
+    for n, lhs, rhs, witness, why in inline_ok:
+        if witness:
+            print(f"      rollup:{n:<6} {lhs} → {rhs}   witness present: {witness[:44]!r}")
+    if inline_bad:
+        print(f"  INLINE CORRECTION NOT PLACED           {len(inline_bad):3}")
+        for n, lhs, rhs, witness, why in inline_bad:
+            print(f"      rollup:{n:<6} {lhs[:30]} → {rhs[:30]}  — {why}")
+
     ok = len(placed) + len(carried) + len(excluded)
-    bad = len(partial) + len(missing) + len(broken)
-    print(f"\n{ok} of {total} payloads accounted for; {bad} unaccounted.")
+    bad = len(partial) + len(missing) + len(broken) + len(inline_bad)
+    print(f"\n{ok} of {total} payloads accounted for, "
+          f"{len(inline_ok)} of {n_in} inline corrections placed; {bad} unaccounted.")
     return 1 if bad else 0
 
 

@@ -912,6 +912,25 @@ def build() -> tuple[list[dict], dict]:
     run_sub(blocks, "Теплокарти енергії інтерполюються", "Inter Variable (інтерфейс і заголовки)",
             "Inter (статичні накреслення 400/500/600/700; інтерфейс і заголовки)", "Додаток В typography")
     run_sub(blocks, '"engine": "bandit_cpsat"', '"bandit_cpsat"', '"learned"', "Додаток Ж engine")
+    # Додаток Ж 10.6 — two corrections the rollup states inline and nothing had wired (found by
+    # verify-payloads' inline check, 2026-09-11). The response returns a key and parameters; the
+    # Ukrainian sentence is the client's, built from its own localisation strings. Shapes are the
+    # service's real ones (`services/recsys/src/hourwell_recsys/rationale.py`). `n_effective` is
+    # elided the way the appendix already elides identifiers — the example carries no run behind it.
+    run_sub(blocks, '"solver": { "status": "FEASIBLE"', '"solver":', '"telemetry":', "Додаток Ж telemetry")
+    para_replace(blocks, '"rationale": "Писемні задачі', '      "rationale_key": "energy_peak",', "Додаток Ж rationale_key 1")
+    para_replace(blocks, 'частіше до 11:00 — переніс чернетку звіту сюди."',
+                 '      "rationale_params": { "category": "deep", "daypart": "morning",'
+                 ' "factor": 2.4, "n_effective": … }', "Додаток Ж rationale_params 1")
+    para_replace(blocks, '"rationale": "Експеримент: перевіряю', '      "rationale_key": "experiment",', "Додаток Ж rationale_key 2")
+    para_replace(blocks, 'пізнє пообіддя для паперової роботи."',
+                 '      "rationale_params": { "category": "admin", "daypart": "afternoon" }',
+                 "Додаток Ж rationale_params 2")
+    para_insert_after(blocks, '"unplaced": [ { "task_id"',
+                      "Сервер повертає ключ пояснення та його параметри, а не готове речення: "
+                      "українську фразу формує клієнт із власних рядків локалізації, тож одне й те "
+                      "саме пояснення лишається єдиним для будь-якої мови інтерфейсу.",
+                      "Додаток Ж: пояснення формує клієнт")
     run_sub(blocks, '"category": "deep_work"', '"deep_work"', '"deep"', "Додаток Ж category")
     run_sub(blocks, '"reason": "no_feasible_slot"', '"no_feasible_slot"', '"no_feasible_start"', "Додаток Ж unplaced reason")
     run_sub(blocks, '"propensity": 0.25', '"propensity": 0.25', '"propensity": 0.3333333333333333', "Додаток Ж propensity")
@@ -1004,10 +1023,28 @@ def build() -> tuple[list[dict], dict]:
     def _rename(x: str) -> str:
         return x.replace("KAIROS", "HOURWELL").replace("Kairos", "Hourwell")
 
+    # `formatter-brief.md` §7 keeps `’` (U+2019) and warns that a formatter will want the ASCII
+    # quote instead. The draft types U+2019 throughout (Word autocorrect, 153 occurrences) while
+    # every repo-authored chapter types the ASCII one, so the assembled text carried both forms.
+    # Prose only: fenced listings, inline code spans, URLs and addresses keep the ASCII quote —
+    # the SQL in Додаток Г is full of string literals ('shown', 'lapsed') that are not prose.
+    protected = re.compile(r"`[^`]*`|https?://\S+|\b[\w.-]+@[\w.-]+\b")
+
+    def _apostrophe(x: str) -> str:
+        if x.lstrip().startswith("```"):
+            return x
+        out, last = [], 0
+        for m in protected.finditer(x):
+            out.append(x[last:m.start()].replace("'", "\u2019"))
+            out.append(m.group(0))
+            last = m.end()
+        out.append(x[last:].replace("'", "\u2019"))
+        return "".join(out)
+
     renamed = 0
     for b in blocks:
         if b["kind"] == "table":
-            rows = [[_rename(c) for c in row] for row in b["rows"]]
+            rows = [[_apostrophe(_rename(c)) for c in row] for row in b["rows"]]
             if rows != b["rows"]:
                 b["rows"] = rows
                 if b["origin"] == "draft":
@@ -1017,13 +1054,13 @@ def build() -> tuple[list[dict], dict]:
         t = b.get("text")
         if t is None:
             continue
-        n = _rename(t)
+        n = _apostrophe(_rename(t))
         if n != t:
             b["text"] = n
             if b["origin"] == "draft":
                 b["origin"] = "edited"
             renamed += 1
-    APPLIED.append(f"Kairos → Hourwell in {renamed} blocks")
+    APPLIED.append(f"Kairos → Hourwell and \u2019 normalised in {renamed} blocks")
 
     stats = {
         "blocks": len(blocks),

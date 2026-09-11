@@ -27,6 +27,21 @@ OUT = "docs/thesis/text/dodatok-z.md"
 VERDICT = {"WIN": "В", "TIE": "Н", "LOSS": "П"}
 
 
+def dec(x: str) -> str:
+    """ДСТУ decimal comma and a real minus (U+2212) — the notation табл. 6.4 already uses.
+
+    The appendix and Розділ 6 print the same grid ten pages apart, and before this they printed
+    it in two notations: «+0,09 Н» in the chapter, «+0.09 ± 0.11» here. `formatter-brief.md` §7
+    keeps the en dash and the apostrophe as they are precisely because a formatter would
+    normalise them the wrong way; this normalisation goes the way the brief asks for.
+
+    The English ANNOTATION is the one place that keeps the decimal point — a comma there reads
+    as a thousands separator — and it contains no generated cell, so it is out of reach of this
+    function by construction.
+    """
+    return x.replace(".", ",").replace("-", "\u2212")
+
+
 def n80(cell) -> str:
     if cell["n80_over_grid_max"] or cell["n80_median"] is None:
         return "> 120"
@@ -36,11 +51,11 @@ def n80(cell) -> str:
 def row_values(c) -> list[str]:
     e = c["effect"]
     return [
-        f"{e['mean'] * 100:+.2f} ± {e['mc_se'] * 100:.2f}",
+        dec(f"{e['mean'] * 100:+.2f} ± {e['mc_se'] * 100:.2f}"),
         VERDICT[c["verdict"]],
-        f"{c['efficiency']:.2f}" if c["efficiency"] is not None else "—",
+        dec(f"{c['efficiency']:.2f}") if c["efficiency"] is not None else "—",
         n80(c),
-        f"{c['share_effect_positive']:.2f}",
+        dec(f"{c['share_effect_positive']:.2f}"),
     ]
 
 
@@ -90,7 +105,7 @@ def main() -> int:
     a = pick(block="A", **centre)
     parts.append(f"\n## З.1. Блок A — ядро світу: сила візерунка × індивідуальне відхилення × денний шум ({len(a)} комірок)\n")
     parts.append(table(
-        [[str(c["index"]), f"{c['s']:g}", f"{c['sigma_shape']:g}", f"{c['sigma_day']:g}"] + row_values(c) for c in a],
+        [[str(c["index"]), dec(f"{c['s']:g}"), dec(f"{c['sigma_shape']:g}"), dec(f"{c['sigma_day']:g}")] + row_values(c) for c in a],
         ["№", "s", "σ_shape", "σ_day"] + VALUE_HEADS))
 
     # ---- Block B: mix x s
@@ -98,7 +113,7 @@ def main() -> int:
     shared_b = [c for c in a if c["s"] in {x["s"] for x in b} and c["sigma_shape"] == 0.3 and c["sigma_day"] == 0.6]
     parts.append(f"\n## З.2. Блок B — склад вибірки за хронотипом × сила візерунка ({len(b) + len(shared_b)} комірок, з них {len(shared_b)} спільні з блоком A)\n")
     parts.append(table(
-        [[str(c["index"]), c["mix"], f"{c['s']:g}"] + row_values(c) for c in sorted(b + shared_b, key=lambda c: (c["mix"], c["s"]))],
+        [[str(c["index"]), c["mix"], dec(f"{c['s']:g}")] + row_values(c) for c in sorted(b + shared_b, key=lambda c: (c["mix"], c["s"]))],
         ["№", "Склад", "s"] + VALUE_HEADS))
 
     # ---- Block C: p0 x s
@@ -106,7 +121,7 @@ def main() -> int:
     shared_c = [c for c in a if c["s"] in {x["s"] for x in cblk} and c["sigma_shape"] == 0.3 and c["sigma_day"] == 0.6]
     parts.append(f"\n## З.3. Блок C — базовий рівень дотримання × сила візерунка ({len(cblk) + len(shared_c)} комірок, з них {len(shared_c)} спільні з блоком A)\n")
     parts.append(table(
-        [[str(c["index"]), f"{c['p0']:g}", f"{c['s']:g}"] + row_values(c) for c in sorted(cblk + shared_c, key=lambda c: (c["p0"], c["s"]))],
+        [[str(c["index"]), dec(f"{c['p0']:g}"), dec(f"{c['s']:g}")] + row_values(c) for c in sorted(cblk + shared_c, key=lambda c: (c["p0"], c["s"]))],
         ["№", "p₀", "s"] + VALUE_HEADS))
 
     # ---- Block D: K x s
@@ -114,14 +129,14 @@ def main() -> int:
     shared_d = [c for c in a if c["s"] in {x["s"] for x in dblk} and c["sigma_shape"] == 0.3 and c["sigma_day"] == 0.6]
     parts.append(f"\n## З.4. Блок D — кількість задач на день × сила візерунка ({len(dblk) + len(shared_d)} комірок, з них {len(shared_d)} спільні з блоком A)\n")
     parts.append(table(
-        [[str(c["index"]), str(c["tasks"]), f"{c['s']:g}"] + row_values(c) for c in sorted(dblk + shared_d, key=lambda c: (c["tasks"], c["s"]))],
+        [[str(c["index"]), str(c["tasks"]), dec(f"{c['s']:g}")] + row_values(c) for c in sorted(dblk + shared_d, key=lambda c: (c["tasks"], c["s"]))],
         ["№", "K", "s"] + VALUE_HEADS))
 
     # ---- Block E: prior x s
     e = pick(block="E")
     parts.append(f"\n## З.5. Блок E — тип приору × сила візерунка ({len(e)} комірок; порівнюються з відповідними комірками блоку A)\n")
     parts.append(table(
-        [[str(c["index"]), c["prior"], f"{c['s']:g}"] + row_values(c) for c in sorted(e, key=lambda c: c["s"])],
+        [[str(c["index"]), c["prior"], dec(f"{c['s']:g}")] + row_values(c) for c in sorted(e, key=lambda c: c["s"])],
         ["№", "Приор", "s"] + VALUE_HEADS))
 
     # ---- the two cells the text singles out
@@ -133,12 +148,12 @@ def main() -> int:
 
 **Світ, для якого писався приор холодного старту** (s = 1, σ_shape = 0): комірки
 {", ".join("№ " + str(c["index"]) for c in own)} — ефекти
-{", ".join(f"{c['effect']['mean'] * 100:+.2f}" for c in own)} в. п. за денного шуму
-{", ".join(f"{c['sigma_day']:g}" for c in own)} відповідно, усі три — нічия. Комірка з нульовим
+{", ".join(dec(f"{c['effect']['mean'] * 100:+.2f}") for c in own)} в. п. за денного шуму
+{", ".join(dec(f"{c['sigma_day']:g}") for c in own)} відповідно, усі три — нічия. Комірка з нульовим
 денним шумом і є зареєстрованим тестом на змістовну невдачу методу (підрозділ 5.7.4).
 
 **Єдина комірка, у якій достатньо 30 завершених учасників**: {", ".join("№ " + str(c["index"]) for c in support)}
-— {", ".join(str(c["tasks"]) for c in support)} задачі на день за s = {", ".join(f"{c['s']:g}" for c in support)},
+— {", ".join(str(c["tasks"]) for c in support)} задачі на день за s = {", ".join(dec(f"{c['s']:g}") for c in support)},
 тобто на зареєстрованій верхній межі навантаження сітки (N₈₀ = {", ".join(n80(c) for c in support)}).
 
 ## З.7. Що лишилося в репозиторії, а не на цих сторінках
