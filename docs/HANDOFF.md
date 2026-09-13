@@ -17,8 +17,9 @@ the explanation; U16 solver parameters applied to лістинг 4.2), «Дже�
 no ADR mentions, monospace only for code/identifiers/fields/file names; `verify-style.py` in CI.
 **Item 7 (remove «планували X, вирішили Y» narrative, keep «припущення X, вимірювання показало Y»)
 is a per-sentence list presented to the owner for decision before anything is removed** — the
-list is in the session's last message; the five subagent audits that produced it read the whole
-text. **Item 8 (strengthen the presentation from «the eight-item report») is blocked: no such
+list is `docs/thesis/plan-change-audit.md` (type 1 / type 2 / borderline with a recommendation each /
+stale draft sentences); the five subagent audits that produced it read the whole text. Record the
+owner's decisions in that file's last section before editing. **Item 8 (strengthen the presentation from «the eight-item report») is blocked: no such
 report exists in the repository or in any session transcript** — ask the owner to paste it. On
 resume: read the owner's reply, apply the approved item-7 edits at the sources (rollup payloads /
 `text/*.md` / `assemble.py` for draft paragraphs), re-run `assemble.py` and every gate, refresh
