@@ -15,15 +15,14 @@ gave eight edits (business style). Items 1–6 are done and green on every gate:
 headings, «–» for the prose dash, listings as fenced code blocks without comments (prose carries
 the explanation; U16 solver parameters applied to лістинг 4.2), «Джерела:» lines without paths,
 no ADR mentions, monospace only for code/identifiers/fields/file names; `verify-style.py` in CI.
-**Item 7 (remove «планували X, вирішили Y» narrative, keep «припущення X, вимірювання показало Y»)
-is a per-sentence list presented to the owner for decision before anything is removed** — the
-list is `docs/thesis/plan-change-audit.md` (type 1 / type 2 / borderline with a recommendation each /
-stale draft sentences); the five subagent audits that produced it read the whole text. Record the
-owner's decisions in that file's last section before editing. **Item 8 (strengthen the presentation from «the eight-item report») is blocked: no such
-report exists in the repository or in any session transcript** — ask the owner to paste it. On
-resume: read the owner's reply, apply the approved item-7 edits at the sources (rollup payloads /
-`text/*.md` / `assemble.py` for draft paragraphs), re-run `assemble.py` and every gate, refresh
-this file, open and merge the PR.
+**Item 7 is applied** (owner decisions 2026-09-13 in `docs/thesis/plan-change-audit.md`, last two
+sections): 18 type-1 passages removed, 16 borderline rewritten, 9 stale draft sentences aligned,
+hosting stated directly, табл. 6.7 down to eleven rows with the count following. A second
+fresh-context pass for dangling contrasts (five subagents) runs after that; its findings are
+applied the same way. **Item 8 (strengthen the presentation from «the eight-item report») waits
+for the owner to paste the report** — it was composed outside the repository. On resume: apply the
+re-read findings if any remain, re-run `assemble.py` and every gate, refresh this file, open and
+merge the PR; then item 8 when the report arrives.
 
 ## What the rollup phase established (2026-09-09)
 

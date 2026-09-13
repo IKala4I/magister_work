@@ -17,8 +17,8 @@ python3 docs/thesis/verify-docx.py docs/thesis/text/full.md   # 52 needles; 0 fa
 ## The guarantee, and its exact limit
 
 The assembler copies every paragraph the corrections do not touch **verbatim** from `draft.docx`
-and reports the counts: 322 from the draft untouched, 75 edited, 41 inserted, 85 renumbered, 253
-from the `text/*.md` chapters (2026-09-13 run). «Untouched» is up to the four style rules the
+and reports the counts: 317 from the draft untouched, 81 edited, 41 inserted, 84 renumbered, 253
+from the `text/*.md` chapters (2026-09-14 run). «Untouched» is up to the four style rules the
 assembler applies to every paragraph — rename, apostrophe, en dash, no bold inside a paragraph —
 and the fidelity check compares against the swept source, so those rules are themselves checked. It then asserts that **every block still marked "from draft" is
 byte-identical to the source** — `untouched_drift 0`. A silent alteration of your prose cannot
