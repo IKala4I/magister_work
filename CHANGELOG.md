@@ -2,6 +2,24 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — business style for the thesis text (2026-09-13, post-p12/thesis-style-pass)
+
+- **Bold is for headings only; the prose dash is «–»; listings carry no comments.** Owner
+  decisions on reading `text/full.md` as pages. Applied at the sources (`text/*.md`, the rollup's
+  payloads, `gen-dodatok-z.py`) and, for the draft's own paragraphs, as a pure style sweep at the
+  end of `assemble.py`; the fidelity check now compares against the swept source, so the sweep is
+  itself checked. `verify-style.py` holds the rules in CI.
+- **Listings are fenced code blocks.** `collect_listings()` folds the draft's one-paragraph-per-line
+  лістинги 4.1/4.2 into code blocks (the apostrophe sweep had been writing `’shown’` into
+  TypeScript); the text-file loader keeps fenced SQL as a block instead of one 2 000-character
+  line. Лістинг 4.2 now shows the deployed solver parameters — rollup U16, approved on 2026-09-09
+  and never wired.
+- **No repository paths, ADR numbers or errata ids in the text.** «Джерела:» lines name files
+  without directories and point at Додаток И.7; the SQL comments of Додаток Г became prose.
+- `verify-payloads.py`: `CELL_WITNESS` keyed by the correction's left-hand side (three witnesses had
+  silently stopped applying when the rollup grew above them); the inline comparison folds the
+  same typography the assembler normalises.
+
 ## Post-P12 — the corrections rollup becomes the thesis's working document (2026-09-09, post-p12/corrections-rollup)
 
 - **All 63 items carry finished Ukrainian sentences.** `docs/thesis/corrections-rollup.md` was an

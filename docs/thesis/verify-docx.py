@@ -67,7 +67,7 @@ PRESENT = [
     ("clip[0,1]( x(τ,c)", "формула (2.9) — the clip bounds, not a citation"),
     ("E(x~D) E(a~π(·|x))", "формула (2.15) — the tildes are expectations, not strikethrough"),
     ("clip[0,1]( xᵀθ̂(g)", "формула (2.10) — the clip bounds, not a citation"),
-    ("SASRec-lite, он-девайс ONNX-ранжувальник і текстові вкладення MiniLM у v1 **не реалізовані**",
+    ("SASRec-lite, он-девайс ONNX-ранжувальник і текстові вкладення MiniLM у v1 не реалізовані",
      "§3.3 — the three unbuilt components are named as unbuilt, not omitted"),
     ("шести розділів", "ВСТУП structure sentence (assembly step 30)"),
     ("поза межами роботи", "the standing scope phrase (ADR-0020)"),

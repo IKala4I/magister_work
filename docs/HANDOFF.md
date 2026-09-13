@@ -8,6 +8,22 @@
 > Ф / П / С, with every number carrying its measurement condition. **Next phase: writing the
 > thesis text** — the rollup is the document to write from.
 
+## In progress (2026-09-13) — post-p12/thesis-style-pass
+
+**Branch `post-p12/thesis-style-pass`, not merged.** The owner read `text/full.md` as pages and
+gave eight edits (business style). Items 1–6 are done and green on every gate: bold only in
+headings, «–» for the prose dash, listings as fenced code blocks without comments (prose carries
+the explanation; U16 solver parameters applied to лістинг 4.2), «Джерела:» lines without paths,
+no ADR mentions, monospace only for code/identifiers/fields/file names; `verify-style.py` in CI.
+**Item 7 (remove «планували X, вирішили Y» narrative, keep «припущення X, вимірювання показало Y»)
+is a per-sentence list presented to the owner for decision before anything is removed** — the
+list is in the session's last message; the five subagent audits that produced it read the whole
+text. **Item 8 (strengthen the presentation from «the eight-item report») is blocked: no such
+report exists in the repository or in any session transcript** — ask the owner to paste it. On
+resume: read the owner's reply, apply the approved item-7 edits at the sources (rollup payloads /
+`text/*.md` / `assemble.py` for draft paragraphs), re-run `assemble.py` and every gate, refresh
+this file, open and merge the PR.
+
 ## What the rollup phase established (2026-09-09)
 
 **The artefact.** `docs/thesis/corrections-rollup.md` (≈ 1 600 lines) in fourteen sections: the

@@ -1,6 +1,6 @@
 # Do-not-touch list for whoever formats `text/full.md`
 
-Every string below is quoted **verbatim** from `docs/thesis/text/full.md` as of 2026-09-10. This
+Every string below is quoted **verbatim** from `docs/thesis/text/full.md` as of 2026-09-13. This
 is a list, not a principle: hand it over as it is.
 
 **What the formatter is for:** headings, styles, page layout, tables, figure placement, the
@@ -39,10 +39,10 @@ agree. It does not check everything in this list, but what it does check it chec
 
 ## 2. Paired numbers — both halves, in this order, or neither
 
-- `потужність 0,84 і 0,82 за 30 учасників **за зареєстрованої неоднорідності** — але за власного
+- `потужність 0,84 і 0,82 за 30 учасників за зареєстрованої неоднорідності — але за власного
 песимістичного припущення протоколу про міжкористувацький розкид справжнього ефекту та сама межа
 дає 0,77 і 0,74`
-  → **Never keep only `0,84 і 0,82`.** The second pair is why N = 30 is not settled.
+  → Never keep only `0,84 і 0,82`. The second pair is why N = 30 is not settled.
 - `його потужність становить 0,21 і 0,13, тобто самостійним тестом він бути не може`
   → the low numbers are the result. Do not delete as "negative".
 - `виміряним практичним порогом — 3·10³ літералів на машині розгортання` … `(8·10³ на машині
@@ -71,52 +71,52 @@ agree. It does not check everything in this list, but what it does check it chec
 
 These are the limitations. Each was written after a version that was weaker got caught.
 
-1. `Правило, з яким систему порівняно, **одне** — «найраніший вільний слот»; порівняння з наявними
+1. `Правило, з яким систему порівняно, одне — «найраніший вільний слот»; порівняння з наявними
 планувальниками не проводилося.`
    → Do not delete the second clause as redundant. It is the scope of the whole evaluation.
 2. `Оцінювання виконано в симуляції, і симуляція не заміщує польового дослідження` …
    `гіпотези H1–H4 лишаються неперевіреними`
    → Do not soften to "перевірено частково" or "попередньо підтверджено".
-3. `у світі, який описує сам приор холодного старту системи, вона **лише грає внічию** (+0,4 в. п.)`
+3. `у світі, який описує сам приор холодного старту системи, вона лише грає внічию (+0,4 в. п.)`
    with `(стандартна похибка Монте-Карло ≈ 0,14 в. п.)`
-   → **`лише` carries the finding.** `+0,4 в. п.` is not a win and must never be described as one.
+   → `лише` carries the finding. `+0,4 в. п.` is not a win and must never be described as one.
    The Monte-Carlo standard error stays with it.
 4. `Склад класів «дорослий» (28 % ранкових, 52 % проміжних, 20 % вечірніх) узято з валідації MEQ на
-вибірці 566 французьких працівників середнього віку (51,2 ± 3,2 року) [67] **за межами класів,
-які автори адаптували саме для цієї вибірки**`
-   → the bolded clause is the reason the number is quotable at all. Do not shorten the sentence.
-5. `Оцінки з ESS < 100 позначаються як недоказові, але **ніколи не вилучаються з подання**`
+вибірці 566 французьких працівників середнього віку (51,2 ± 3,2 року) [67] за межами класів,
+які автори адаптували саме для цієї вибірки`
+   → the closing clause is the reason the number is quotable at all. Do not shorten the sentence.
+5. `Оцінки з ESS < 100 позначаються як недоказові, але ніколи не вилучаються з подання`
    → Do not simplify to "оцінки з ESS < 100 не використовуються".
-6. `**Розрив у персоналізації не накопичується**` … `тож первинне позиціювання «перевага зростає з
+6. `Розрив у персоналізації не накопичується` … `тож первинне позиціювання «перевага зростає з
 кожним тижнем» у симуляції не підтверджується`
    → the retraction of the original positioning is deliberate. Keep both halves.
 7. `≈ 4,3 експерименти на користувача за тиждень на звичайних тижнях і 1,1–2,4 на завантажених,
-**пораховані на коді придатності, а не спостережені**`
-   → the bolded clause is the difference between a measurement and an estimate.
-8. `Ця передумова **не втрималася під час реалізації**`
-9. `Ризик **реалізувався** під час виконання роботи`
-10. `Хронотипні приори **не знижують ризик першого тижня вимірно**: їхній внесок у симуляції
+пораховані на коді придатності, а не спостережені`
+   → the closing clause is the difference between a measurement and an estimate.
+8. `Ця передумова не втрималася під час реалізації`
+9. `Ризик реалізувався під час виконання роботи`
+10. `Хронотипні приори не знижують ризик першого тижня вимірно: їхній внесок у симуляції
 становить ±0,4 в. п.`
-11. `**Не всі кольорові пари відповідають WCAG 2.2 AA як текст**`
+11. `Не всі кольорові пари відповідають WCAG 2.2 AA як текст`
     → Do not restore the older, friendlier "усі кольорові пари задовольняють WCAG 2.2 AA".
-12. `Опитувальник **не перекладено**.`
+12. `Опитувальник не перекладено.`
 13. `Послідовнісна модель SASRec-lite, он-девайс ONNX-ранжувальник і текстові вкладення MiniLM у v1
-**не реалізовані** і віднесені до перспектив.`
+не реалізовані і віднесені до перспектив.`
     → naming an unbuilt component in order to disclaim it is deliberate. Do not delete the row.
 14. `жодного подання до магазинів не виконано`
-15. `Мережева складова розкладу (0,90 с) є **власним виміром цієї роботи** на еталонному пристрої,
+15. `Мережева складова розкладу (0,90 с) є власним виміром цієї роботи на еталонному пристрої,
 а не величиною з літератури`
     → do not attach a citation to this. There is deliberately none.
 
 ## 5. Hedges that are load-bearing — do not delete as filler
 
 `лише` · `частково` · `не проводилося` · `не запускався` · `лишаються неперевіреними` ·
-`виміряний лише частково` · `є **припущенням, а не вимірюванням**` · `є виведенням із Pixel 7a, а не вимірюванням` ·
+`виміряний лише частково` · `є припущенням, а не вимірюванням` · `є виведенням із Pixel 7a, а не вимірюванням` ·
 `спроєктовано, інструментовано й перевірено наскрізно на розгорнутій системі; його виконання лежить поза межами роботи`
 
 A copy-editor's instinct is that these weaken the text. They are the text. In particular:
 
-- `**ДП2** — відповіді не отримано` — do not upgrade to "отримано частково".
+- `ДП2 — відповіді не отримано` — do not upgrade to "отримано частково".
 - `у симуляції участі не брав і на реальних даних не запускався` (the collaborative layer).
 - `◐ — протокол польового оцінювання спроєктовано, інструментовано та перевірено наскрізно на
 розгорнутій системі; виконання лежить поза межами роботи` — the half-filled glyph `◐` in
@@ -142,6 +142,7 @@ Each of these phrases must stay **inside the sentence with its number**:
 | `«…»` guillemets                           | `"…"` typographic quotes                | the whole document uses guillemets                                         |
 | `’` (U+2019) apostrophe                    | `'`                                     | every checker folds both, but the text is one                              |
 | `–` en dash in numeric ranges              | `-` hyphen                              | `3,7–4,1` vs `3,7-4,1`                                                     |
+| `–` spaced en dash as the prose dash       | `—` em dash                             | the whole document uses the en dash (owner, 2026-09-13)                    |
 | `в. п.` with the space                     | `в.п.`                                  | appears ~90 times                                                          |
 | Subscripts `N₈₀ α₀ β₀ μ₀ p₀ c₀`            | `N80`, `alpha0`                         | —                                                                          |
 | Superscripts `4·10⁴ 3·10³ A⁻¹ xᵀ`          | `10^4`                                  | —                                                                          |
@@ -149,8 +150,11 @@ Each of these phrases must stay **inside the sentence with its number**:
 | the four-space run before `(2.1)`…`(2.20)` | a single space                          | it is the Word tab stop for the equation number                            |
 | `                                          | A_m(x)                                  | `                                                                          | `A_m(x)`                                                             | the bars are cardinality, not emphasis |
 
-The code listings in §4.2 and §4.4 keep their indentation and their aligned trailing comments.
-They have already been flattened once.
+The code listings (§4.2, §4.4, Додаток Г) are fenced code blocks: monospace, indentation kept,
+and no comments — every explanation is in the prose beside them (owner, 2026-09-13). They have
+already been flattened once. Two more rules from the same reading: bold is for headings only —
+a template that bolds run-in labels («Перше:», «H1», table cells) re-introduces what was removed
+on purpose — and the prose dash is the spaced en dash «–»; an em dash anywhere is autocorrect.
 
 ## 8. Numbering and structure — already correct, do not "fix"
 
@@ -207,10 +211,10 @@ N₈₀ не перевищує 60 у 13 комірках із 75
 не втрималася під час реалізації
 не знижують ризик першого тижня вимірно
 Не всі кольорові пари відповідають WCAG 2.2 AA як текст
-Опитувальник **не перекладено**
+Опитувальник не перекладено
 жодного подання до магазинів не виконано
 власним виміром цієї роботи
-є **припущенням, а не вимірюванням**
+є припущенням, а не вимірюванням
 є виведенням із Pixel 7a, а не вимірюванням
 на еталонному пристрої
 на машині розгортання

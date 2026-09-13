@@ -5,7 +5,7 @@
 Why a program and not a hand-edit: re-emitting 592 paragraphs by hand is exactly the thirty-step
 manual pass this is meant to replace, with the same failure mode. Here every paragraph the
 corrections do not touch is copied **verbatim** from `draft.docx`, and the run prints how many
-were copied, edited, inserted and deleted — so a silent alteration of untouched prose is not
+were copied, edited, inserted and deleted – so a silent alteration of untouched prose is not
 possible without the count moving.
 
     python3 docs/thesis/assemble.py            # writes docs/thesis/text/full.md
@@ -100,6 +100,21 @@ def load_text_file(name: str) -> list[dict]:
                     i += 1
                 seen_front_matter = True
                 continue
+        if line.startswith("```"):
+            # A fenced listing is a block of its own: one line per line, no prose sweep
+            # reaches it, and render() fences it again. Flattening it into a paragraph
+            # (the previous behaviour) turned the SQL of Додаток Г into one 2 000-character
+            # line whose first `--` would have commented out everything after it.
+            flush()
+            lang = line[3:].strip()
+            i += 1
+            code: list[str] = []
+            while i < len(raw) and not raw[i].startswith("```"):
+                code.append(raw[i].rstrip())
+                i += 1
+            out.append({"kind": "code", "lang": lang, "lines": code, "origin": name})
+            i += 1
+            continue
         if line.startswith("#"):
             flush()
             level = len(line) - len(line.lstrip("#"))
@@ -121,7 +136,7 @@ def load_text_file(name: str) -> list[dict]:
             buf.append(line.strip())
         i += 1
     flush()
-    return [b for b in out if b["kind"] == "table" or b["text"]]
+    return [b for b in out if b["kind"] in ("table", "code") or b["text"]]
 
 
 def load_quoted_payloads(name: str) -> list[list[str]]:
@@ -240,25 +255,29 @@ ROLLUP_EDITS: list[tuple] = [
     ("§3.7", 1, "after", "Обробниками є: Oracle Cloud Infrastructure", None),
     ("§3.7", 2, "after", "Розміщення даних у ЄС не робить обробку вільною від передавання", None),
     # --- Розділ 4 --------------------------------------------------------------------------
-    ("§4.1", (0, 1), "replace", "Взаємодія «перетягнути — значить навчити» (UC-07) реалізована", None),
+    ("§4.1", (0, 1), "replace", "Взаємодія «перетягнути – значить навчити» (UC-07) реалізована", None),
     ("§4.1", (0, 2), "replace", "Природномовне швидке додавання задач (FR-11) реалізовано бібліотекою", None),
     ("§3.1.3", 0, "after", "Edge Functions реалізовано на Deno/TypeScript", None),
-    # §3.2 — the figure caption: three components moved and the deployment route is new
+    # §3.2 – the figure caption: three components moved and the deployment route is new
     ("§3.2", 0, "from", "МІСЦЕ ДЛЯ РИСУНКА 3.1", ("Блок-схема чотирьох рівнів", "_")),
-    # §3.3 — the stack prose: River is a test oracle, not the online updater
-    ("§3.3", 0, "from", "Серверна частина: Supabase у регіоні ЄС", "сервіс рекомендацій — FastAPI"),
-    # §3.3 — the operational cost of the free tier (a paragraph, not an edit)
+    # §3.3 – the stack prose: River is a test oracle, not the online updater
+    ("§3.3", 0, "from", "Серверна частина: Supabase у регіоні ЄС", "сервіс рекомендацій – FastAPI"),
+    # §3.3 – the operational cost of the free tier (a paragraph, not an edit)
     ("§3.3", 1, "after", "Серверна частина: Supabase у регіоні ЄС", None),
-    # §3.8 — the interaction principles, the typography reason and the honest contrast claim
+    # §3.8 – the interaction principles, the typography reason and the honest contrast claim
     ("§3.8", 0, "from", "Візуальний напрям «спокійна точність»", "Принципи взаємодії:"),
-    # §4.5 / §4.6 — the full replacements; the earlier run_subs only patched fragments
+    # §4.5 / §4.6 – the full replacements; the earlier run_subs only patched fragments
     ("§4.5", 0, "replace", "Нічний конвеєр реалізовано робочим процесом GitHub Actions", None),
     ("§4.5", 1, "after", "Монте-Карло-оцінювання пропенсіті для трафіку семплінгу Томпсона", None),
     ("§4.6", 0, "from", "Конвеєр перевірки кожного pull-request", "Наскрізні перевірки виконуються"),
     ("§4.6", 1, "append", "Конвеєр перевірки кожного pull-request", None),
+    # --- §4.2 / §4.4 — the prose that carries what the listings' comments used to say ----------
+    ("§4.2", 0, "after", "Скорочений фрагмент ред’юсера outbox (TypeScript) наведено в лістингу 4.1", None),
+    ("§4.2", 1, "before", "Реалізація серверної частини на платформі Supabase", None),
+    ("§4.4", 0, "after", "Скорочений фрагмент побудови моделі CP-SAT в обробнику /plan (Python) наведено в лістингу 4.2", None),
     # --- Додаток Д -------------------------------------------------------------------------
     ("10.4", 0, "replace", "Опитувальник", None),
-    # --- Додатки А, Б — the two sequence diagrams (item 64) ---------------------------------
+    # --- Додатки А, Б – the two sequence diagrams (item 64) ---------------------------------
     ("10.8", 0, "replace", "Сценарій охоплює: пропуск блоку без фокус-сесії", None),
     ("10.8", 1, "replace", "[МІСЦЕ ДЛЯ РИСУНКА А.1]", None),
     ("10.9", 0, "replace", "Сценарій охоплює: паралельне вікно", None),
@@ -290,23 +309,23 @@ CITE_SITES: list[tuple[str, str, str, str]] = [
 LITERAL_EDITS: list[tuple] = [
     ("append", "Північною зіркою продуктових метрик обрано саме рівень дотримання плану",
      "PAR обчислюється зареєстрованим кодом виключно з фактів (`events` + `recommendations`) і "
-     "ніколи з таблиці винагород; спільними в них є рівно дві константи — вікно ±15 хв і поріг 50 %.",
+     "ніколи з таблиці винагород; спільними в них є рівно дві константи – вікно ±15 хв і поріг 50 %.",
      "§1.5 PAR provenance"),
     ("append", "Незалежно від цього, для забезпечення оцінюваності",
      "Цей рандомізований зріз є субстратом незміщеного офлайн-оцінювання. Частота дослідницьких "
      "блоків становить ≈ 4,3 експерименти на користувача за тиждень на звичайних тижнях і 1,1–2,4 "
-     "на завантажених, **пораховані на коді придатності, а не спостережені** (підрозділ 6.2).",
+     "на завантажених, пораховані на коді придатності, а не спостережені (підрозділ 6.2).",
      "§2.3 slice frequency"),
-    ("append", "Принципи взаємодії: **«фізика замість оздоблення» реалізовано",
+    ("append", "Принципи взаємодії: «фізика замість оздоблення» реалізовано",
      "Досяжність одним пальцем: основні дії розміщено в нижніх 60 % екрана. Кольорову систему "
      "та типографіку винесено в додаток В.",
      "§3.8 carried forward: reachability + the Додаток В pointer"),
-    ("append", "Нічний конвеєр виконується **системним таймером",
+    ("append", "Нічний конвеєр виконується системним таймером",
      "Щоквартальний крок емпіричного Байєса (2.14) переоцінює апріорні таблиці та публікує їх "
      "як версію з `kind = 'priors'`.",
      "§4.5 carried forward: the quarterly empirical-Bayes step"),
     ("append", "і оцінки з ESS < 100 трактуються як недоказові",
-     "Оцінки з ESS < 100 позначаються як недоказові, але **ніколи не вилучаються з подання**: "
+     "Оцінки з ESS < 100 позначаються як недоказові, але ніколи не вилучаються з подання: "
      "приховування слабкої оцінки є тим самим ступенем свободи дослідника, проти якого спрямована "
      "попередня реєстрація.",
      "§2.6.3 ESS reporting"),
@@ -365,6 +384,12 @@ def render(blocks: list[dict]) -> str:
                 out.append(line(r))
             out.append("")
             continue
+        if b["kind"] == "code":
+            out.append("```" + b.get("lang", ""))
+            out.extend(b["lines"])
+            out.append("```")
+            out.append("")
+            continue
         text = b["text"]
         style = b.get("style", "")
         if style.startswith("Heading"):
@@ -373,7 +398,7 @@ def render(blocks: list[dict]) -> str:
             out.append("#" * level + " " + re.sub(r"^\*\*(.*)\*\*$", r"\1", text).strip())
         elif text.startswith("\t"):
             # A numbered formula: tabs are Word tab stops, flattened to spaces. The spacing
-            # is kept exactly as the draft has it — `prettier` would collapse it, and worse,
+            # is kept exactly as the draft has it – `prettier` would collapse it, and worse,
             # would read «E(x~D) E(a~π» in (2.15) as strikethrough and rewrite the formula.
             # That is why this file is in `.prettierignore`.
             out.append(re.sub(r"\t+", "    ", text).strip())
@@ -537,6 +562,72 @@ def cell_set(blocks, table_index, row, col, new, label):
     APPLIED.append(label)
 
 
+# ----------------------------------------------------------------- listings
+# The draft carries лістинги 4.1 and 4.2 as one paragraph per code line, each with a trailing
+# comment. Owner decision 2026-09-13: the code stays, its explanation goes to the prose around
+# it, and a listing is a code block – fenced, monospace, and out of reach of every prose sweep.
+# (The apostrophe normaliser had been turning `'shown'` into `’shown’` inside TypeScript.)
+_LISTING_LANG = {"TypeScript": "typescript", "Python": "python"}
+_LISTING_COMMENT = {"typescript": re.compile(r"\s*//.*$"), "python": re.compile(r"\s+#.*$")}
+_PROSE_START = re.compile(r"^\s*[«\[А-ЯІЇЄҐа-яіїєґ]")
+
+
+def collect_listings(blocks: list[dict]) -> None:
+    i = 0
+    while i < len(blocks):
+        b = blocks[i]
+        m = (re.match("^Лістинг (\\d+\\.\\d+) [-\u2013\u2014] .*\\(мовою (\\w+)\\)", b.get("text", ""))
+             if b["kind"] == "p" else None)
+        if not m:
+            i += 1
+            continue
+        lang = _LISTING_LANG[m.group(2)]
+        j, lines = i + 1, []
+        while j < len(blocks):
+            nb = blocks[j]
+            if nb["kind"] != "p" or nb.get("style", "").startswith("Heading"):
+                break
+            t = nb["text"]
+            if t.strip() and _PROSE_START.match(t):
+                break
+            lines.append(_LISTING_COMMENT[lang].sub("", t.replace("\t", "    ")).rstrip())
+            j += 1
+        while lines and not lines[-1]:
+            lines.pop()
+        blocks[i + 1:j] = [{"kind": "code", "lang": lang, "lines": lines, "origin": "edited"}]
+        APPLIED.append(f"лістинг {m.group(1)}: {len(lines)} lines fenced, comments dropped")
+        i += 2
+
+
+def listing_solver_parameters(blocks: list[dict]) -> None:
+    """Rollup §8 U16: лістинг 4.2 shows the solver parameters measurement changed (§2.4), or
+    the listing and §2.4 contradict each other. Values are the deployed ones –
+    `services/recsys/src/hourwell_recsys/params.py`: two workers, probing and symmetry off,
+    relative gap 0,01, the 0,3 s no-improvement stop, the one-unit (1e-4) stability bonus."""
+    for b in blocks:
+        if b["kind"] != "code" or b.get("lang") != "python":
+            continue
+        lines = b["lines"]
+        if "status = solver.Solve(model)" not in lines:
+            continue
+        k = lines.index("solver.parameters.max_time_in_seconds = 1.5")
+        assert lines[k + 1] == "status = solver.Solve(model)"
+        lines[k:k + 2] = [
+            "solver.parameters.max_time_in_seconds = 1.5",
+            "solver.parameters.num_workers = 2",
+            "solver.parameters.cp_model_probing_level = 0",
+            "solver.parameters.symmetry_level = 0",
+            "solver.parameters.relative_gap_limit = 0.01",
+            "with EarlyStop(solver, stall_window_s=0.3) as watchdog:",
+            "    status = solver.Solve(model, watchdog)",
+        ]
+        h = lines.index("    add_hint(model, previous_plan)")
+        lines[h] = "    add_hint(model, previous_plan, stability_bonus=1e-4)"
+        APPLIED.append("лістинг 4.2: solver parameters and the stability bonus (U16)")
+        return
+    SKIPPED.append("лістинг 4.2 (U16): the Solve line was not found")
+
+
 # ----------------------------------------------------------------- references
 # Ukrainian-language entries the draft carried without authors or pages. Verified 2026-09-10
 # against each journal's own record; all five are Ukrainian-language, as the source-language
@@ -649,7 +740,7 @@ def renumber_citations(blocks: list[dict], mapping: dict[int, int], stop_at: int
     """Rewrite [n] and [n, m] citations in the body. Deleted refs leave a marker.
 
     A bracketed group is a citation only if every number in it is a reference number the
-    draft's own list used — otherwise it is left untouched, because «clip[0, 1]» and «[0, 1]»
+    draft's own list used – otherwise it is left untouched, because «clip[0, 1]» and «[0, 1]»
     are mathematics, not citations, and rewriting them corrupts a formula silently.
     """
     changed = 0
@@ -743,61 +834,61 @@ def build() -> tuple[list[dict], dict]:
             "ANNOTATION: keywords")
 
     # --- Розділи 1–4: anchored edits (steps 9–18) --------------------------------------
-    # §1.5 — the falsified market preconditions
-    # §2.4 — the degradation ladder constant
-    # §3.3 — stack prose
-    # §3.7 — the on-device roadmap sentence
+    # §1.5 – the falsified market preconditions
+    # §2.4 – the degradation ladder constant
+    # §3.3 – stack prose
+    # §3.7 – the on-device roadmap sentence
     run_sub(blocks, "Модель загроз і відповідні контрзаходи",
-            " Дорожня карта передбачає перенесення персонального ранкера на пристрій через onnxruntime-react-native — ті самі ONNX-артефакти дають одночасний виграш приватності та латентності.",
+            " Дорожня карта передбачає перенесення персонального ранкера на пристрій через onnxruntime-react-native – ті самі ONNX-артефакти дають одночасний виграш приватності та латентності.",
             "", "§3.7 on-device roadmap")
-    # §3.8 — typography, motion, drag
+    # §3.8 – typography, motion, drag
     run_sub(blocks, "Візуальний напрям «спокійна точність»",
-            "фізика замість оздоблення (пружинні переходи ≤ 250 мс, повага до reduced-motion); перетягнути — значить навчити (перетягування блоку — першокласна пара негативного/позитивного сигналу); ",
-            "«фізика замість оздоблення» реалізовано на трьох поверхнях — діалозі підтвердження та двох взаємодіях на стрічці «Сьогодні»; решта переходів навмисно миттєві, а перетягування не реалізовано: ручне перевизначення виконується вибором часу; ",
+            "фізика замість оздоблення (пружинні переходи ≤ 250 мс, повага до reduced-motion); перетягнути – значить навчити (перетягування блоку – першокласна пара негативного/позитивного сигналу); ",
+            "«фізика замість оздоблення» реалізовано на трьох поверхнях – діалозі підтвердження та двох взаємодіях на стрічці «Сьогодні»; решта переходів навмисно миттєві, а перетягування не реалізовано: ручне перевизначення виконується вибором часу; ",
             "§3.8 interaction principles")
     run_sub(blocks, "Візуальний напрям «спокійна точність»", "Inter Variable для інтерфейсу",
             "Inter (статичні накреслення 400/500/600/700) для інтерфейсу", "§3.8 typography")
     run_sub(blocks, "Візуальний напрям «спокійна точність»", "усі пари кольорів задовольняють WCAG 2.2 AA.",
             "пари, використані для тексту, задовольняють WCAG 2.2 AA, тоді як акцентні кольори застосовуються лише як заливки з текстовою альтернативою.",
             "§3.8 contrast claim")
-    # §3.9 UC-10 — erasure confirmation
+    # §3.9 UC-10 – erasure confirmation
     run_sub(blocks, "UC-10. Реалізація прав на дані",
             "протягом щонайбільше 30 днів з підтвердженням листом",
-            "з підтвердженням **у застосунку** (номер запису та час завершення); фактичне виконання є синхронним, а 30 днів лишаються законодавчою межею",
+            "з підтвердженням у застосунку (номер запису та час завершення); фактичне виконання є синхронним, а 30 днів лишаються законодавчою межею",
             "§3.9 UC-10 erasure")
-    # §4.1 — the live-query hook and the drag interaction
+    # §4.1 – the live-query hook and the drag interaction
     run_sub(blocks, "Мобільний клієнт реалізовано на React Native",
             "реактивні живі запити Drizzle useLiveQuery до локальної бази Expo SQLite",
             "реактивні живі запити до локальної бази Expo SQLite власним хуком `useLiveRows`",
             "§4.1 live queries")
     run_sub(blocks, "Теплокарта енергії, кільце фокус-таймера",
             "Теплокарта енергії, кільце фокус-таймера та «скляні» блоки з кодуванням упевненості намальовані декларативним канвасом react-native-skia.",
-            "Теплокарту енергії намальовано нативними View з інтерполяцією в OKLCH, а кільце фокус-таймера — канвасом react-native-skia.",
+            "Теплокарту енергії намальовано нативними View з інтерполяцією в OKLCH, а кільце фокус-таймера – канвасом react-native-skia.",
             "§4.1 heatmap")
-    # §4.5 — the nightly pipeline
-    # §4.6 — tool versions and the e2e claim
+    # §4.5 – the nightly pipeline
+    # §4.6 – tool versions and the e2e claim
     run_sub(blocks, "Конвеєр перевірки кожного pull-request", "ESLint 9 (flat config", "ESLint 10 (flat config", "§4.6 ESLint")
     run_sub(blocks, "Конвеєр перевірки кожного pull-request", "Jest 30 із React Native Testing Library", "Jest 29.7 із React Native Testing Library", "§4.6 Jest")
     run_sub(blocks, "Конвеєр перевірки кожного pull-request",
-            "Наскрізні тести виконуються щоночі: потоки Maestro [40] для п'яти критичних шляхів — онбординг, швидке додавання, прийняття плану, перетягування-перевизначення, офлайн-виконання з подальшою синхронізацією.",
-            "Наскрізні перевірки виконуються десятьма потоками Maestro [40] на вимогу — онбординг, робота із задачами, огляди доступності на найбільшому масштабі шрифту, діалоги підтвердження та українські потоки.",
+            "Наскрізні тести виконуються щоночі: потоки Maestro [40] для п'яти критичних шляхів – онбординг, швидке додавання, прийняття плану, перетягування-перевизначення, офлайн-виконання з подальшою синхронізацією.",
+            "Наскрізні перевірки виконуються десятьма потоками Maestro [40] на вимогу – онбординг, робота із задачами, огляди доступності на найбільшому масштабі шрифту, діалоги підтвердження та українські потоки.",
             "§4.6 e2e flows")
 
     # --- Розділи 1-4: the rollup's own approved payloads (steps 9-18) -------------------
     apply_rollup_edits(blocks)
 
-    # §2.1 — the formal statement forbade (C3) two pages later (spec-conflicts M6)
+    # §2.1 – the formal statement forbade (C3) two pages later (spec-conflicts M6)
     run_sub(blocks, "у якому кожна задача отримує не більше одного інтервалу",
             "у якому кожна задача отримує не більше одного інтервалу",
-            "у якому кожен фрагмент задачі отримує не більше одного інтервалу, а кожен інтервал — "
+            "у якому кожен фрагмент задачі отримує не більше одного інтервалу, а кожен інтервал – "
             "не більше одного фрагмента (для неподільних задач фрагмент збігається із задачею)",
             "§2.1 fragment-level assignment")
-    # §2.2 — |C| is 14 in the implementation, not 12–18 (spec-conflicts M3)
+    # §2.2 – |C| is 14 in the implementation, not 12–18 (spec-conflicts M3)
     run_sub(blocks, "Ключовим розв", "|C| ≈ 12–18. Бандит опитується один раз для кожної пари (τ, c): "
             "щонайбільше |T|·|C| ≈ 50 × 15 = 750 скалярних добутків незалежно від довжини горизонту.",
             load_rollup_payloads()["§2.2"][0][0].lstrip("\u2026").strip().split("(частина доби × тип дня × клас відносної позиції). ", 1)[1],
             "§2.2 context buckets")
-    # §2.4 — the two design facts the measurement refuted, and the free-tier NFR-P1 claim (U10)
+    # §2.4 – the two design facts the measurement refuted, and the free-tier NFR-P1 claim (U10)
     run_sub(blocks, "Практична реалізація використовує рідну мову моделювання CP-SAT",
             "Оцінка розміру: у найгіршому разі Σ(τ)|F(τ)| ≤ 50 × 300 ≈ 1,5·10⁴ літералів, що для CP-SAT є малою задачею. ",
             "", "§2.4 size estimate (superseded by the measurement)")
@@ -806,70 +897,70 @@ def build() -> tuple[list[dict], dict]:
             "§2.4 NFR-P1 on the free tier (U10)")
     run_sub(blocks, "Практична реалізація використовує рідну мову моделювання CP-SAT",
             " Каскад деградації: за перевищення 4·10⁴ літералів гранулярність збільшується до 30 хв; "
-            "якщо задача досі «гаряча» — застосовується ковзна поденна декомпозиція тижня; обидва режими "
+            "якщо задача досі «гаряча» – застосовується ковзна поденна декомпозиція тижня; обидва режими "
             "фіксуються в телеметрії.", "", "§2.4 cascade sentence (superseded)")
 
     # --- edits the rollup states in tables and inline, not as blockquote payloads -------
-    # табл. 1.1 (§1.2 b) — two claims the evidence changed
+    # табл. 1.1 (§1.2 b) – two claims the evidence changed
     cell_set(blocks, 0, 2, 1,
-             "так (байєсівська погодинна модель на рівні людини; виміряний внесок популяційної таблиці приорів — ±0,4 в. п.)",
+             "так (байєсівська погодинна модель на рівні людини; виміряний внесок популяційної таблиці приорів – ±0,4 в. п.)",
              "табл. 1.1 learned energy profile")
     cell_set(blocks, 0, 8, 1,
              "частково: обробка в ЄС, RLS, мінімізація; он-девайс ранжування не реалізовано",
              "табл. 1.1 privacy / on-device")
-    # табл. 1.2 (§1.4 a) — D7 was approved for `+` → `◐` in the rollup but never wired, so the
+    # табл. 1.2 (§1.4 a) – D7 was approved for `+` → `◐` in the rollup but never wired, so the
     # legend under the table described a symbol no cell used and the row claimed a completed
     # field study that §1.4's own next three paragraphs deny («робота не закриває», «шість
     # вимірів із семи»). The footnote payload had landed; only the cell was missing.
     cell_set(blocks, 1, 11, 7, "◐", "табл. 1.2 D7 + → ◐")
-    # табл. 1.3 (§1.5 c) — one mitigation is weaker than claimed, one risk materialised
+    # табл. 1.3 (§1.5 c) – one mitigation is weaker than claimed, one risk materialised
     cell_set(blocks, 2, 1, 1,
-             "Чесний «режим навчання» в інтерфейсі та навчання на рівні людини. Хронотипні приори **не знижують ризик першого тижня вимірно**: їхній внесок у симуляції становить ±0,4 в. п. (підрозділ 6.4)",
+             "Чесний «режим навчання» в інтерфейсі та навчання на рівні людини. Хронотипні приори не знижують ризик першого тижня вимірно: їхній внесок у симуляції становить ±0,4 в. п. (підрозділ 6.4)",
              "табл. 1.3 cold-start risk")
     cell_set(blocks, 2, 2, 1,
-             "Ризик **реалізувався** під час виконання роботи — постачальник скасував безоплатний тариф сервісу (підрозділ 3.3). Пом'якшення: інфраструктурно-незалежний контейнер і постачальник із договірним, а не промоційним безоплатним рівнем",
+             "Ризик реалізувався під час виконання роботи – постачальник скасував безоплатний тариф сервісу (підрозділ 3.3). Пом'якшення: інфраструктурно-незалежний контейнер і постачальник із договірним, а не промоційним безоплатним рівнем",
              "табл. 1.3 free-tier risk")
-    # §3.9 UC-03 — 06:00 is a day boundary, not a scheduled job (ADR-0019)
+    # §3.9 UC-03 – 06:00 is a day boundary, not a scheduled job (ADR-0019)
     run_sub(blocks, "UC-03. Генерація денного плану",
             "Система (о 06:00 локального часу або за першого відкриття)",
-            "Система за першого відкриття або переходу на передній план у плановий день, для якого плану ще немає (06:00 місцевого часу — межа планового дня, а не заплановане завдання: жодна коректність не залежить від фонового виконання; о 06:00 надсилається лише сповіщення)",
+            "Система за першого відкриття або переходу на передній план у плановий день, для якого плану ще немає (06:00 місцевого часу – межа планового дня, а не заплановане завдання: жодна коректність не залежить від фонового виконання; о 06:00 надсилається лише сповіщення)",
             "§3.9 UC-03 day boundary")
     para_append(blocks, "UC-03. Генерація денного плану",
-                "Альтернатива: **день без робочого вікна** — запиту не надсилається, план не зберігається, вечірній ритуал не планується; екран пояснює причину (ADR-0019).",
+                "Альтернатива: день без робочого вікна – запиту не надсилається, план не зберігається, вечірній ритуал не планується; екран пояснює причину.",
                 "§3.9 UC-03 no-working-window flow")
-    # §3.9 UC-05 — the consequence of each option is computed, and only by the learned engine
+    # §3.9 UC-05 – the consequence of each option is computed, and only by the learned engine
     para_append(blocks, "UC-05. Розв",
-                "Наслідок кожної опції обчислюється рушієм: для скорочення — оцінка падіння ймовірності виконання, для перенесення за дедлайн — величина зсуву в хвилинах; евристичне плече повертає лише узагальнений наслідок.",
+                "Наслідок кожної опції обчислюється рушієм: для скорочення – оцінка падіння ймовірності виконання, для перенесення за дедлайн – величина зсуву в хвилинах; евристичне плече повертає лише узагальнений наслідок.",
                 "§3.9 UC-05 option consequences")
-    # §3.9 UC-07 — v1 has a time picker, not a drag
+    # §3.9 UC-07 – v1 has a time picker, not a drag
     run_sub(blocks, "UC-07. Ручне перевизначення як навчання",
             "Перетягування запропонованого блоку: гаптичне «прилипання» → оновлення розміщення → парний сигнал (негатив для початкового інтервалу, слабкий позитив для цільового)",
             "Виклик «Перенести…» на блоці: вибір нового часу на сітці 15 хв → оновлення розміщення → парний сигнал (негатив для початкового інтервалу 0,1 / слабкий позитив для цільового 0,7, одна пара на розміщення; цільовий контекст обчислюється на сервері тим самим кодом сітки та ознак). Жест перетягування є пізнішим удосконаленням інтерфейсу й не є частиною навчального сигналу",
             "§3.9 UC-07 move picker")
-    # §3.9 UC-09 — no displacement notification exists
+    # §3.9 UC-09 – no displacement notification exists
     run_sub(blocks, "UC-09. Синхронізація календаря",
             "витіснена задача автоматично повертається в планування → сповіщення з пропозицією заміни (з дотриманням ліміту FR-50)",
-            "витіснена задача автоматично повертається в планування → **пристрій дізнається про витіснення під час наступного переходу на передній план, і поверхнею повідомлення є повідомлення на екрані «Сьогодні»** (окремого сповіщення про витіснення не надсилається)",
+            "витіснена задача автоматично повертається в планування → пристрій дізнається про витіснення під час наступного переходу на передній план, і поверхнею повідомлення є повідомлення на екрані «Сьогодні» (окремого сповіщення про витіснення не надсилається)",
             "§3.9 UC-09 displacement surface")
-    # §3.8 item 25 — the timeline is a row list, not a proportional canvas
+    # §3.8 item 25 – the timeline is a row list, not a proportional canvas
     run_sub(blocks, "Візуальний напрям «спокійна точність»",
             "Today (таймлайн зі «скляними» блоками рекомендацій)",
-            "Today (**стрічка рядків із часовою колонкою та маркером «зараз»**, а не пропорційний канвас — вибір продиктовано масштабуванням шрифту до 200 % і читачами екрана; блоки з високою впевненістю щільніші, евристичні рядки відображаються зі сталою щільністю без заявленого відсотка)",
+            "Today (стрічка рядків із часовою колонкою та маркером «зараз», а не пропорційний канвас – вибір продиктовано масштабуванням шрифту до 200 % і читачами екрана; блоки з високою впевненістю щільніші, евристичні рядки відображаються зі сталою щільністю без заявленого відсотка)",
             "§3.8 timeline sentence (item 25)")
-    # FR-50 — the reminder lead time is static in v1
+    # FR-50 – the reminder lead time is static in v1
     cell_set(blocks, 9, 9, 2,
-             "Нагадування про початок блоку зі статичним випередженням 10 хв (навчене випередження — вимога FR-51, поза обсягом v1); поденний ліміт сповіщень (≤5)",
+             "Нагадування про початок блоку зі статичним випередженням 10 хв (навчене випередження – вимога FR-51, поза обсягом v1); поденний ліміт сповіщень (≤5)",
              "FR-50 reminder lead time")
-    # §4.6 (c) — no store submission was made
+    # §4.6 (c) – no store submission was made
     run_sub(blocks, "Збірка та випуск: EAS Build",
             "Збірка та випуск: EAS Build для магазинних бінарників",
-            "Збірка та випуск: профілі EAS Build і EAS Update підготовлено та перевірено; жодного подання до магазинів не виконано (підрозділ 6.7): облікові записи розробника не придбано за рішенням власника, а розповсюдження для дослідження є безобліковим — збірка APK для Android; каналу для учасників з iOS не існує. EAS Build для магазинних бінарників",
+            "Збірка та випуск: профілі EAS Build і EAS Update підготовлено та перевірено; жодного подання до магазинів не виконано (підрозділ 6.7): облікові записи розробника не придбано за рішенням власника, а розповсюдження для дослідження є безобліковим – збірка APK для Android; каналу для учасників з iOS не існує. EAS Build для магазинних бінарників",
             "§4.6 release claim (item 48)")
 
     # --- tables (steps 10, 16, 23, 26) --------------------------------------------------
-    # табл. 3.2 — the requirement rows measurement changed
+    # табл. 3.2 – the requirement rows measurement changed
     cell_set(blocks, 10, 1, 2,
-             "Запит плану завершується на пристрої (дотик → план отримано) за ≤ 6,0 с (95-й перцентиль, прогріто) на Android нижнього цінового сегмента 2022 р. за слабкого зв'язку; серверна функція `plan-request` — ≤ 1,5 с (95-й перцентиль); евристичний резерв обмежує очікування сервера 1,9 с",
+             "Запит плану завершується на пристрої (дотик → план отримано) за ≤ 6,0 с (95-й перцентиль, прогріто) на Android нижнього цінового сегмента 2022 р. за слабкого зв'язку; серверна функція `plan-request` – ≤ 1,5 с (95-й перцентиль); евристичний резерв обмежує очікування сервера 1,9 с",
              "табл. 3.2 NFR-P1")
     cell_set(blocks, 10, 3, 2,
              "Базові операції читання/запису API ≤ 300 мс (95-й перцентиль), без урахування ML-ендпоїнта планування та складених функцій, які вимірюються й звітуються окремо",
@@ -877,7 +968,7 @@ def build() -> tuple[list[dict], dict]:
     cell_set(blocks, 10, 8, 2,
              "Обслуговування до ≈ 3 тис. MAU в межах безоплатних тарифів (оцінка аудиту тарифів, без навантажувального випробування); задокументований шлях міграції до ≈ 25 дол./міс. на 50 тис. MAU",
              "табл. 3.2 NFR-Sc1")
-    # табл. 3.3 — the stack rows whose named mechanism changed
+    # табл. 3.3 – the stack rows whose named mechanism changed
     cell_set(blocks, 11, 4, 1, "react-native-reanimated 4 + gesture-handler [49]", "табл. 3.3 motion row (choice)")
     cell_set(blocks, 11, 4, 2,
              "Ворклети в потоці інтерфейсу: пружинні переходи діалогу та стрічки плану; перетягування не реалізовано",
@@ -887,39 +978,39 @@ def build() -> tuple[list[dict], dict]:
              "табл. 3.3 Skia row")
     cell_set(blocks, 11, 6, 1, "Expo SQLite + Drizzle ORM (власний хук живих запитів `useLiveRows`) [18]", "табл. 3.3 ORM row (choice)")
     cell_set(blocks, 11, 6, 2,
-             "Типобезпечні схема та міграції в TS; живі запити роблять SQLite єдиним реактивним джерелом істини для доменних даних. Власний хук замість `useLiveQuery` через відкриту ваду drizzle-orm #2620 — відсутність оновлення, коли запит не повертає рядків",
+             "Типобезпечні схема та міграції в TS; живі запити роблять SQLite єдиним реактивним джерелом істини для доменних даних. Власний хук замість `useLiveQuery` через відкриту ваду drizzle-orm #2620 – відсутність оновлення, коли запит не повертає рядків",
              "табл. 3.3 ORM row (rationale)")
     cell_set(blocks, 11, 10, 2,
-             "Розбір дат — chrono-node; тривалості розбирає власна граматика, яка виконується першою та маскує свої фрагменти в тексті, що бачить chrono. Працює на пристрої двома мовами (FR-11)",
+             "Розбір дат – chrono-node; тривалості розбирає власна граматика, яка виконується першою та маскує свої фрагменти в тексті, що бачить chrono. Працює на пристрої двома мовами (FR-11)",
              "табл. 3.3 chrono row")
     # the on-device row is dropped: the ranker was never built
     del blocks[[i for i, x in enumerate(blocks) if x["kind"] == "table"][11]]["rows"][12]
     APPLIED.append("табл. 3.3 on-device row removed")
-    # табл. Е.1 — the NFR-P1 traceability row
+    # табл. Е.1 – the NFR-P1 traceability row
     cell_set(blocks, 16, 8, 0, "NFR-P1 (план ≤ 6,0 с на пристрої; функція ≤ 1,5 с)", "табл. Е.1 NFR-P1")
     cell_set(blocks, 16, 8, 2,
              "anytime CP-SAT 1,5 с з критеріями зупинки за розривом і відсутністю поліпшення; каскад деградації; евристичний резерв 1,9 с",
              "табл. Е.1 mechanism")
-    # табл. В.1 — the derived destructive-label token
+    # табл. В.1 – the derived destructive-label token
     blocks[[i for i, x in enumerate(blocks) if x["kind"] == "table"][15]]["rows"].append(
         ["danger-text", "#B91C1C (6,47:1)", "#F87171 (6,10:1)", "підписи деструктивних дій"])
     APPLIED.append("табл. В.1 danger-text row added")
 
     # --- Додаток В prose, Додаток Ж values, лістинг 4.1 ---------------------------------
     run_sub(blocks, "Теплокарти енергії інтерполюються", "Усі кольорові пари задовольняють вимоги контрасту WCAG 2.2 AA (не менше 4,5:1 для основного тексту).",
-            "Пари, використані для тексту, задовольняють WCAG 2.2 AA (≥ 4,5:1); акцентні кольори (success, warning, energy, danger) використовуються лише як заливки — як текст на світлій поверхні вони дають 2,06–3,60:1 — і завжди супроводжуються текстовою альтернативою, а для деструктивних підписів введено окремий токен danger-text. Роздільність теплокарти слід називати чесно: 126 клітинок повторюють частину доби по її годинах і тип дня по днях тижня.",
+            "Пари, використані для тексту, задовольняють WCAG 2.2 AA (≥ 4,5:1); акцентні кольори (success, warning, energy, danger) використовуються лише як заливки – як текст на світлій поверхні вони дають 2,06–3,60:1 – і завжди супроводжуються текстовою альтернативою, а для деструктивних підписів введено окремий токен danger-text. Роздільність теплокарти слід називати чесно: 126 клітинок повторюють частину доби по її годинах і тип дня по днях тижня.",
             "Додаток В contrast claim")
     run_sub(blocks, "Теплокарти енергії інтерполюються", "Inter Variable (інтерфейс і заголовки)",
             "Inter (статичні накреслення 400/500/600/700; інтерфейс і заголовки)", "Додаток В typography")
     run_sub(blocks, '"engine": "bandit_cpsat"', '"bandit_cpsat"', '"learned"', "Додаток Ж engine")
-    # Додаток Ж 10.6 — two corrections the rollup states inline and nothing had wired (found by
+    # Додаток Ж 10.6 – two corrections the rollup states inline and nothing had wired (found by
     # verify-payloads' inline check, 2026-09-11). The response returns a key and parameters; the
     # Ukrainian sentence is the client's, built from its own localisation strings. Shapes are the
     # service's real ones (`services/recsys/src/hourwell_recsys/rationale.py`). `n_effective` is
-    # elided the way the appendix already elides identifiers — the example carries no run behind it.
+    # elided the way the appendix already elides identifiers – the example carries no run behind it.
     run_sub(blocks, '"solver": { "status": "FEASIBLE"', '"solver":', '"telemetry":', "Додаток Ж telemetry")
     para_replace(blocks, '"rationale": "Писемні задачі', '      "rationale_key": "energy_peak",', "Додаток Ж rationale_key 1")
-    para_replace(blocks, 'частіше до 11:00 — переніс чернетку звіту сюди."',
+    para_replace(blocks, 'частіше до 11:00 – переніс чернетку звіту сюди."',
                  '      "rationale_params": { "category": "deep", "daypart": "morning",'
                  ' "factor": 2.4, "n_effective": … }', "Додаток Ж rationale_params 1")
     para_replace(blocks, '"rationale": "Експеримент: перевіряю', '      "rationale_key": "experiment",', "Додаток Ж rationale_key 2")
@@ -934,21 +1025,24 @@ def build() -> tuple[list[dict], dict]:
     run_sub(blocks, '"category": "deep_work"', '"deep_work"', '"deep"', "Додаток Ж category")
     run_sub(blocks, '"reason": "no_feasible_slot"', '"no_feasible_slot"', '"no_feasible_start"', "Додаток Ж unplaced reason")
     run_sub(blocks, '"propensity": 0.25', '"propensity": 0.25', '"propensity": 0.3333333333333333', "Додаток Ж propensity")
+    # §4.2 prose named the event «skip»; the client logs lapse_observed (U15), like the listing
+    run_sub(blocks, "Лінива фіксація пропусків реалізована сканером", "додається подія skip зі знімком контексту",
+            "додається подія lapse_observed зі знімком контексту", "§4.2 event name in prose")
     run_sub(blocks, "await enqueue(db, skipEvent(r, contextSnapshot(r, now)));",
             "skipEvent(r, contextSnapshot(r, now))", "lapseObservedEvent(r, contextSnapshot(r, now))",
             "лістинг 4.1 event type")
 
-    # рис. 3.1 caption — three components moved
-    # §3.10 — the chapter conclusion still names the withdrawn host
+    # рис. 3.1 caption – three components moved
+    # §3.10 – the chapter conclusion still names the withdrawn host
     run_sub(blocks, "У розділі систематизовано вимоги до системи",
             "(React Native + Expo, Supabase, FastAPI на Hugging Face Spaces, GitHub Actions)",
             "(React Native + Expo, Supabase, FastAPI у контейнері на віртуальній машині в регіоні ЄС, GitHub Actions)",
             "§3.10 hosting")
-    # §2.7 — the signal is a Move, not a drag
+    # §2.7 – the signal is a Move, not a drag
     run_sub(blocks, "Поведінкові сигнали перетворюються на винагороди",
             "оцінка енергії, перетягування блоку", "оцінка енергії, перенесення блоку", "§2.7 signal name")
 
-    run_sub(blocks, "Сервіс рекомендацій — застосунок FastAPI",
+    run_sub(blocks, "Сервіс рекомендацій – застосунок FastAPI",
             "у Docker-контейнері на безоплатному CPU-тарифі Hugging Face Spaces",
             "у Docker-контейнері на віртуальній машині Oracle Cloud «Always Free» (Ampere A1, 2 OCPU / 12 ГБ, регіон eu-marseille-1)",
             "§4.4 hosting")
@@ -996,6 +1090,9 @@ def build() -> tuple[list[dict], dict]:
         SKIPPED.append(f"unresolved citation key [@{u}]")
     SKIPPED.extend(AMBIGUOUS)
 
+    collect_listings(blocks)
+    listing_solver_parameters(blocks)
+
     # --- global sweeps -------------------------------------------------------------------
     # Runs LAST, after every anchored edit: two ROLLUP_EDITS markers and the висновки п.5 locator
     # still carry the draft's «Kairos», and they must match draft text, not swept text.
@@ -1015,52 +1112,58 @@ def build() -> tuple[list[dict], dict]:
             sweeps += 1
     APPLIED.append(f"global sweeps applied to {sweeps} paragraphs")
 
-    # --- Kairos → Hourwell (docs/naming.md, owner decision 2026-09-11) --------------------
-    # The public product name replaces the internal codename throughout the thesis. Unlike the
-    # sweeps above this covers EVERY kind and origin — the name sits in headings (РОЗДІЛ 3), in
-    # table cells (табл. 1.1, табл. 1.2, FR-40) and in text-file chapters, not only in draft
-    # paragraphs. `KAIROS` before `Kairos` so the upper-case heading form is not half-replaced.
-    def _rename(x: str) -> str:
-        return x.replace("KAIROS", "HOURWELL").replace("Kairos", "Hourwell")
-
-    # `formatter-brief.md` §7 keeps `’` (U+2019) and warns that a formatter will want the ASCII
-    # quote instead. The draft types U+2019 throughout (Word autocorrect, 153 occurrences) while
-    # every repo-authored chapter types the ASCII one, so the assembled text carried both forms.
-    # Prose only: fenced listings, inline code spans, URLs and addresses keep the ASCII quote —
-    # the SQL in Додаток Г is full of string literals ('shown', 'lapsed') that are not prose.
+    # --- style sweeps (owner decisions 2026-09-11 and 2026-09-13) -------------------------
+    # Rules that cross the whole document run last, after every anchored edit, because the
+    # anchors match draft prose that still carries the old forms. Four rules, all pure:
+    #   * Kairos → Hourwell (docs/naming.md) – every kind and origin: the name sits in
+    #     headings (РОЗДІЛ 3), in table cells (табл. 1.1, 1.2, FR-40) and in the text-file
+    #     chapters. `KAIROS` before `Kairos` so the upper-case heading form is not half-done.
+    #   * ’ (U+2019) for the prose apostrophe. The draft types it throughout (Word autocorrect,
+    #     153 occurrences); every repo-authored chapter types the ASCII one.
+    #   * – (U+2013) for the prose dash. The draft's habit was the em dash; the thesis uses the
+    #     spaced en dash throughout (owner, 2026-09-13).
+    #   * No bold inside a paragraph: business style keeps bold for headings only (owner,
+    #     2026-09-13). A paragraph that is wholly bold – title page, АНОТАЦІЯ, a figure
+    #     placeholder – is a heading in disguise and keeps its marks; a table cell never does.
+    # Inline code spans, URLs and addresses keep their bytes (the SQL in Додаток Г is full of
+    # string literals that are not prose), and code blocks are not visited at all.
+    # A draft paragraph changed only by these rules still counts as untouched: the fidelity
+    # check below compares against the swept source, so a sweep that altered anything else
+    # would surface as drift.
     protected = re.compile(r"`[^`]*`|https?://\S+|\b[\w.-]+@[\w.-]+\b")
+    wholly_bold = re.compile(r"^\s*\*\*[^*]+\*\*\s*$")
 
-    def _apostrophe(x: str) -> str:
-        if x.lstrip().startswith("```"):
-            return x
+    def _outside_code(x: str, fn) -> str:
         out, last = [], 0
         for m in protected.finditer(x):
-            out.append(x[last:m.start()].replace("'", "\u2019"))
+            out.append(fn(x[last:m.start()]))
             out.append(m.group(0))
             last = m.end()
-        out.append(x[last:].replace("'", "\u2019"))
+        out.append(fn(x[last:]))
         return "".join(out)
 
-    renamed = 0
+    def style(x: str, cell: bool = False) -> str:
+        x = x.replace("KAIROS", "HOURWELL").replace("Kairos", "Hourwell")
+        x = _outside_code(x, lambda t: t.replace("'", "\u2019").replace("\u2014", "\u2013"))
+        if cell:
+            return x.replace("**", "")
+        if wholly_bold.match(x) or x.lstrip().startswith("[МІСЦЕ ДЛЯ"):
+            return x
+        return x.replace("**", "")
+
+    swept = 0
     for b in blocks:
         if b["kind"] == "table":
-            rows = [[_apostrophe(_rename(c)) for c in row] for row in b["rows"]]
+            rows = [[style(c, cell=True) for c in row] for row in b["rows"]]
             if rows != b["rows"]:
                 b["rows"] = rows
-                if b["origin"] == "draft":
-                    b["origin"] = "edited"
-                renamed += 1
-            continue
-        t = b.get("text")
-        if t is None:
-            continue
-        n = _apostrophe(_rename(t))
-        if n != t:
-            b["text"] = n
-            if b["origin"] == "draft":
-                b["origin"] = "edited"
-            renamed += 1
-    APPLIED.append(f"Kairos → Hourwell and \u2019 normalised in {renamed} blocks")
+                swept += 1
+        elif b["kind"] == "p":
+            n = style(b["text"])
+            if n != b["text"]:
+                b["text"] = n
+                swept += 1
+    APPLIED.append(f"style sweeps (rename, apostrophe, dash, bold) touched {swept} blocks")
 
     stats = {
         "blocks": len(blocks),
@@ -1070,9 +1173,10 @@ def build() -> tuple[list[dict], dict]:
         "renumbered": sum(1 for b in blocks if b["origin"] == "renumbered"),
         "from_text_files": sum(1 for b in blocks if b["origin"].endswith(".md")),
     }
-    # fidelity: every block still marked "draft" must be byte-identical to the source
+    # fidelity: every block still marked "draft" must be byte-identical to the source once the
+    # source has been through the same four style rules – and nothing else
     drift = 0
-    src_texts = set(src.values())
+    src_texts = {style(t) for t in src.values()}
     for b in blocks:
         if b["kind"] == "p" and b["origin"] == "draft" and b["text"] not in src_texts:
             drift += 1
@@ -1091,9 +1195,9 @@ def main() -> int:
     for k, v in stats.items():
         print(f"  {k:22s} {v}")
     if stats["untouched_drift"]:
-        print("  !! paragraphs still marked untouched differ from the source — assembly is unsafe")
+        print("  !! paragraphs still marked untouched differ from the source – assembly is unsafe")
         return 1
-    print("  (every block still marked 'from_draft' is byte-identical to draft.docx)")
+    print("  (every block still marked 'from_draft' is byte-identical to draft.docx up to the style rules)")
     if "--report" in sys.argv:
         return 0
     io.open(OUT, "w", encoding="utf-8").write(render(blocks))

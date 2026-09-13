@@ -53,7 +53,7 @@ Both come from `corrections-rollup.md` and they are not stylistic:
    підрозділ 3.7. The sweep would have needed to know that; the generator cannot reach it. The
    English ANNOTATION keeps its decimal points for the same structural reason rather than by an
    exception. Where a rule genuinely must cross the whole document — the Kairos → Hourwell rename,
-   the apostrophe — it runs last in `assemble.py`, after every anchored edit, because the anchors
+   the apostrophe, the en dash, no bold inside a paragraph — it runs last in `assemble.py`, after every anchored edit, because the anchors
    match draft prose that still carries the old form.
 
 5. **A claim about state is checked, not described** (owner directive 2026-09-11). Documentation
@@ -65,6 +65,18 @@ Both come from `corrections-rollup.md` and they are not stylistic:
    Adding a state claim to prose without adding it there is allowed; a claim that is there can no
    longer rot in silence. It caught its first on the run that introduced it: "three of the twelve
    pass on a witness" had been five since the same afternoon.
+
+6. **Business style, decided on the pages** (owner directive 2026-09-13, after reading `full.md`
+   as pages). Bold is for headings only. The prose dash is the spaced en dash «–». A listing
+   carries code and nothing else — its explanation is prose beside it. Repository paths, ADR
+   numbers, owner-decision dates, phase names and other project-internal artefacts do not appear
+   (a file may be named, a directory never). And the text says what was chosen and why, never
+   that something else was planned first. That last rule needs one distinction, because the two
+   shapes look alike: «планували X, вирішили Y» is internal history and goes; «специфікація або
+   припущення стверджувало X, вимірювання показало Y» is a result and stays — `Europe/Kiev`, the
+   presolve threshold, the NFR-P1 bound, the prior that only ties in its own world are all the
+   second kind. `verify-style.py` checks the mechanical rules in CI; the last one is a per-sentence
+   decision recorded in the rollup, not a sweep.
 
 Percentage points are «в. п.»; the research questions are ДП1–ДП4.
 

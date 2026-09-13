@@ -119,28 +119,34 @@ MIN_EVIDENCE = 3
 
 
 def tight(t: str) -> str:
-    """Whitespace folded, nothing else. `norm()` strips punctuation and case, which is right for
-    a paragraph and wrong here: it turned `"telemetry": {...}` into `telemetry` and matched the
-    word in a §4 sentence, passing a Додаток Ж correction that had never been applied."""
-    return re.sub(r"\s+", " ", t).strip()
+    """Whitespace, dash and apostrophe variants and bold marks folded, nothing else. `norm()`
+    strips punctuation and case, which is right for a paragraph and wrong here: it turned
+    `"telemetry": {...}` into `telemetry` and matched the word in a §4 sentence, passing a
+    Додаток Ж correction that had never been applied. The typographic folds are the ones the
+    assembler's own style sweep applies (en dash, U+2019, no bold in paragraphs), so a rollup
+    cell written before those rules still counts as placed."""
+    return re.sub(r"\s+", " ", A.fold(t).replace("**", "")).strip()
 
-# rollup line -> (why the arrow alone is not evidence, the string that must be in full.md).
-# A witness prefixed with "!" is an ABSENCE claim: that string must NOT be there. Use it where
-# the correction landed in a wording a chapter settled on, so the only checkable fact is that
-# the old wording is gone.
-CELL_WITNESS: dict[int, tuple[str, str]] = {
-    479: ("`◐` also appears in the legend under the table, so presence proves nothing; the "
+# left-hand side of the correction -> (why the arrow alone is not evidence, the string that
+# must be in full.md). Keyed by the `X` text, not by a rollup line number: line numbers moved
+# every time a section above was edited, and a witness that silently stops applying is a check
+# that silently stops running (2026-09-13). A witness prefixed with "!" is an ABSENCE claim: that
+# string must NOT be there. Use it where the correction landed in a wording a chapter settled
+# on, so the only checkable fact is that the old wording is gone.
+CELL_WITNESS: dict[str, tuple[str, str]] = {
+    "+": ("`◐` also appears in the legend under the table, so presence proves nothing; the "
           "claim is that the row's own D7 cell carries it",
           "| Hourwell (ця робота)"),
-    1010: ("the rollup writes the correction elliptically («…з підтвердженням…») and UC-10 "
+    "…протягом щонайбільше 30 днів з підтвердженням листом": (
+           "the rollup writes the correction elliptically («…з підтвердженням…») and UC-10 "
            "closes on the 30-day legal limit rather than the rollup's millisecond aside",
-           "з підтвердженням **у застосунку** (номер запису та час завершення)"),
-    1344: ("the rollup writes the object as `{...}`; the appendix carries its real body",
+           "з підтвердженням у застосунку (номер запису та час завершення)"),
+    '"solver": {...}': ("the rollup writes the object as `{...}`; the appendix carries its real body",
            '"telemetry": { "status": "FEASIBLE"'),
-    1345: ("elliptical in the rollup; the appendix carries the service's real shapes "
+    '"rationale": "…"': ("elliptical in the rollup; the appendix carries the service's real shapes "
            "(`rationale.py`), with `n_effective` elided the way it elides identifiers",
            '"rationale_key": "energy_peak"'),
-    1297: ("applied in both places, each in the wording its own section settled on — §3.8 "
+    "Inter Variable": ("applied in both places, each in the wording its own section settled on — §3.8 "
            "«Inter (400/500/600/700)», Додаток В «Inter (статичні накреслення …; інтерфейс і "
            "заголовки)». What is checkable is that the old name is gone from both",
            "!Inter Variable"),
@@ -164,8 +170,8 @@ def inline_corrections(path: str = A.ROLLUP) -> list[tuple[int, str, str]]:
 def check_inline(full: str, full_tight: str) -> tuple[list, list]:
     ok, bad = [], []
     for n, lhs, rhs in inline_corrections():
-        if n in CELL_WITNESS:
-            why, witness = CELL_WITNESS[n]
+        if lhs in CELL_WITNESS:
+            why, witness = CELL_WITNESS[lhs]
             if witness.startswith("!"):
                 good = norm(witness[1:]) not in full
                 why = f"absence witness — {why}"

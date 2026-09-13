@@ -7,7 +7,7 @@ complete AND scannable. A 25-column dump is complete and unreadable; this emits 
 registered block, showing only the factors that vary inside that block, with five value columns:
 effect ± MC SE, verdict, efficiency, N₈₀ and the share of replicates with a positive effect.
 
-Generated, never hand-edited — CI regenerates it and fails on a diff, so the appendix cannot drift
+Generated, never hand-edited – CI regenerates it and fails on a diff, so the appendix cannot drift
 from the run. Per-class effects and the attainable ceilings stay in the repository (see the file's
 own closing note); printing them would add five columns for a claim that does not need them.
 
@@ -28,15 +28,15 @@ VERDICT = {"WIN": "В", "TIE": "Н", "LOSS": "П"}
 
 
 def dec(x: str) -> str:
-    """ДСТУ decimal comma and a real minus (U+2212) — the notation табл. 6.4 already uses.
+    """ДСТУ decimal comma and a real minus (U+2212) – the notation табл. 6.4 already uses.
 
     The appendix and Розділ 6 print the same grid ten pages apart, and before this they printed
     it in two notations: «+0,09 Н» in the chapter, «+0.09 ± 0.11» here. `formatter-brief.md` §7
     keeps the en dash and the apostrophe as they are precisely because a formatter would
     normalise them the wrong way; this normalisation goes the way the brief asks for.
 
-    The English ANNOTATION is the one place that keeps the decimal point — a comma there reads
-    as a thousands separator — and it contains no generated cell, so it is out of reach of this
+    The English ANNOTATION is the one place that keeps the decimal point – a comma there reads
+    as a thousands separator – and it contains no generated cell, so it is out of reach of this
     function by construction.
     """
     return x.replace(".", ",").replace("-", "\u2212")
@@ -53,7 +53,7 @@ def row_values(c) -> list[str]:
     return [
         dec(f"{e['mean'] * 100:+.2f} ± {e['mc_se'] * 100:.2f}"),
         VERDICT[c["verdict"]],
-        dec(f"{c['efficiency']:.2f}") if c["efficiency"] is not None else "—",
+        dec(f"{c['efficiency']:.2f}") if c["efficiency"] is not None else "–",
         n80(c),
         dec(f"{c['share_effect_positive']:.2f}"),
     ]
@@ -83,27 +83,27 @@ def main() -> int:
     parts: list[str] = []
     parts.append("""# Додаток З. Повна сітка змодельованих світів
 
-> **Статус: генерований текст.** Файл створює `docs/thesis/gen-dodatok-z.py` з
-> `docs/study/results/sensitivity.json`; редагувати вручну не можна — CI перегенерує його й
+> Статус: генерований текст. Файл створює `docs/thesis/gen-dodatok-z.py` з
+> `docs/study/results/sensitivity.json`; редагувати вручну не можна – CI перегенерує його й
 > завалить збірку на розбіжності. Це і є механізм, який тримає обіцянку «наведено кожну комірку,
 > включно з програшами й нічиями».
 
-У таблицях наведено **всі 75 комірок** сітки. Щоб таблиці лишалися читними, кожен блок сітки
+У таблицях наведено всі 75 комірок сітки. Щоб таблиці лишалися читними, кожен блок сітки
 подано окремо і в ньому показано лише ті фактори, які в цьому блоці змінюються; решта тримається на
 центральному значенні (доросла вибірка, базовий рівень 0,45, чотири задачі на день, інформативний
-приор). Вердикт: **В** — виграш (ефект понад +1 в. п. і додатний щонайменше у 90 % повторень),
-**Н** — нічия, **П** — програш (дзеркальна умова). Ефективність — відношення ефекту до аналітичної
-стелі світу. N₈₀ — медіана по 40 повтореннях кількості завершених учасників для потужності 0,80,
+приор). Вердикт: В – виграш (ефект понад +1 в. п. і додатний щонайменше у 90 % повторень),
+Н – нічия, П – програш (дзеркальна умова). Ефективність – відношення ефекту до аналітичної
+стелі світу. N₈₀ – медіана по 40 повтореннях кількості завершених учасників для потужності 0,80,
 округлена вгору; «> 120» означає, що медіана перевищує максимум сітки.
 """)
 
-    parts.append(f"""**Підсумок за всіма 75 комірками: {verdicts.count('WIN')} виграшів,
-{verdicts.count('TIE')} нічиїх, {verdicts.count('LOSS')} програшів.**
+    parts.append(f"""Підсумок за всіма 75 комірками: {verdicts.count('WIN')} виграшів,
+{verdicts.count('TIE')} нічиїх, {verdicts.count('LOSS')} програшів.
 """)
 
     # ---- Block A: s x sigma_shape x sigma_day at the centre (45 cells)
     a = pick(block="A", **centre)
-    parts.append(f"\n## З.1. Блок A — ядро світу: сила візерунка × індивідуальне відхилення × денний шум ({len(a)} комірок)\n")
+    parts.append(f"\n## З.1. Блок A – ядро світу: сила візерунка × індивідуальне відхилення × денний шум ({len(a)} комірок)\n")
     parts.append(table(
         [[str(c["index"]), dec(f"{c['s']:g}"), dec(f"{c['sigma_shape']:g}"), dec(f"{c['sigma_day']:g}")] + row_values(c) for c in a],
         ["№", "s", "σ_shape", "σ_day"] + VALUE_HEADS))
@@ -111,7 +111,7 @@ def main() -> int:
     # ---- Block B: mix x s
     b = pick(block="B")
     shared_b = [c for c in a if c["s"] in {x["s"] for x in b} and c["sigma_shape"] == 0.3 and c["sigma_day"] == 0.6]
-    parts.append(f"\n## З.2. Блок B — склад вибірки за хронотипом × сила візерунка ({len(b) + len(shared_b)} комірок, з них {len(shared_b)} спільні з блоком A)\n")
+    parts.append(f"\n## З.2. Блок B – склад вибірки за хронотипом × сила візерунка ({len(b) + len(shared_b)} комірок, з них {len(shared_b)} спільні з блоком A)\n")
     parts.append(table(
         [[str(c["index"]), c["mix"], dec(f"{c['s']:g}")] + row_values(c) for c in sorted(b + shared_b, key=lambda c: (c["mix"], c["s"]))],
         ["№", "Склад", "s"] + VALUE_HEADS))
@@ -119,7 +119,7 @@ def main() -> int:
     # ---- Block C: p0 x s
     cblk = pick(block="C")
     shared_c = [c for c in a if c["s"] in {x["s"] for x in cblk} and c["sigma_shape"] == 0.3 and c["sigma_day"] == 0.6]
-    parts.append(f"\n## З.3. Блок C — базовий рівень дотримання × сила візерунка ({len(cblk) + len(shared_c)} комірок, з них {len(shared_c)} спільні з блоком A)\n")
+    parts.append(f"\n## З.3. Блок C – базовий рівень дотримання × сила візерунка ({len(cblk) + len(shared_c)} комірок, з них {len(shared_c)} спільні з блоком A)\n")
     parts.append(table(
         [[str(c["index"]), dec(f"{c['p0']:g}"), dec(f"{c['s']:g}")] + row_values(c) for c in sorted(cblk + shared_c, key=lambda c: (c["p0"], c["s"]))],
         ["№", "p₀", "s"] + VALUE_HEADS))
@@ -127,14 +127,14 @@ def main() -> int:
     # ---- Block D: K x s
     dblk = pick(block="D")
     shared_d = [c for c in a if c["s"] in {x["s"] for x in dblk} and c["sigma_shape"] == 0.3 and c["sigma_day"] == 0.6]
-    parts.append(f"\n## З.4. Блок D — кількість задач на день × сила візерунка ({len(dblk) + len(shared_d)} комірок, з них {len(shared_d)} спільні з блоком A)\n")
+    parts.append(f"\n## З.4. Блок D – кількість задач на день × сила візерунка ({len(dblk) + len(shared_d)} комірок, з них {len(shared_d)} спільні з блоком A)\n")
     parts.append(table(
         [[str(c["index"]), str(c["tasks"]), dec(f"{c['s']:g}")] + row_values(c) for c in sorted(dblk + shared_d, key=lambda c: (c["tasks"], c["s"]))],
         ["№", "K", "s"] + VALUE_HEADS))
 
     # ---- Block E: prior x s
     e = pick(block="E")
-    parts.append(f"\n## З.5. Блок E — тип приору × сила візерунка ({len(e)} комірок; порівнюються з відповідними комірками блоку A)\n")
+    parts.append(f"\n## З.5. Блок E – тип приору × сила візерунка ({len(e)} комірок; порівнюються з відповідними комірками блоку A)\n")
     parts.append(table(
         [[str(c["index"]), c["prior"], dec(f"{c['s']:g}")] + row_values(c) for c in sorted(e, key=lambda c: c["s"])],
         ["№", "Приор", "s"] + VALUE_HEADS))
@@ -146,23 +146,23 @@ def main() -> int:
     parts.append(f"""
 ## З.6. Дві комірки, на які спирається текст
 
-**Світ, для якого писався приор холодного старту** (s = 1, σ_shape = 0): комірки
-{", ".join("№ " + str(c["index"]) for c in own)} — ефекти
+Світ, для якого писався приор холодного старту (s = 1, σ_shape = 0): комірки
+{", ".join("№ " + str(c["index"]) for c in own)} – ефекти
 {", ".join(dec(f"{c['effect']['mean'] * 100:+.2f}") for c in own)} в. п. за денного шуму
-{", ".join(dec(f"{c['sigma_day']:g}") for c in own)} відповідно, усі три — нічия. Комірка з нульовим
+{", ".join(dec(f"{c['sigma_day']:g}") for c in own)} відповідно, усі три – нічия. Комірка з нульовим
 денним шумом і є зареєстрованим тестом на змістовну невдачу методу (підрозділ 5.7.4).
 
-**Єдина комірка, у якій достатньо 30 завершених учасників**: {", ".join("№ " + str(c["index"]) for c in support)}
-— {", ".join(str(c["tasks"]) for c in support)} задачі на день за s = {", ".join(dec(f"{c['s']:g}") for c in support)},
+Єдина комірка, у якій достатньо 30 завершених учасників: {", ".join("№ " + str(c["index"]) for c in support)}
+– {", ".join(str(c["tasks"]) for c in support)} задачі на день за s = {", ".join(dec(f"{c['s']:g}") for c in support)},
 тобто на зареєстрованій верхній межі навантаження сітки (N₈₀ = {", ".join(n80(c) for c in support)}).
 
 ## З.7. Що лишилося в репозиторії, а не на цих сторінках
 
 Для кожної комірки прогін також дає ефекти за п'ятьма класами хронотипу, приріст між парами фаз,
 вартість рандомізованого зрізу окремо для кожного плеча, аналітичну стелю світу та стелю з
-урахуванням зрізу. Ці величини наведено в `docs/study/sensitivity-results.md` (додаток) і в
-машиночитаному вигляді в `docs/study/results/sensitivity.json` та
-`ceilings_attainable.json`. Друкувати їх означало б додати п'ять–сім стовпців до кожної таблиці
+урахуванням зрізу. Ці величини наведено у зведенні `sensitivity-results.md` і в машиночитаному
+вигляді у файлах `sensitivity.json` та `ceilings_attainable.json` відкритого репозиторію
+(перелік файлів – у додатку И, п. И.7). Друкувати їх означало б додати п'ять–сім стовпців до кожної таблиці
 вище для тверджень, які цих стовпців не потребують: обіцянка «наведено кожну комірку» стосується
 ефекту та вердикту, і саме вони наведені тут повністю.
 """)
