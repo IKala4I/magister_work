@@ -19,6 +19,17 @@
 - `verify-payloads.py`: `CELL_WITNESS` keyed by the correction's left-hand side (three witnesses had
   silently stopped applying when the rollup grew above them); the inline comparison folds the
   same typography the assembler normalises.
+- **Item 7 — the text says what was chosen and why, never that something else was planned first.**
+  Five fresh-context subagents audited the whole text; the list (`docs/thesis/plan-change-audit.md`)
+  is split into «планували X, вирішили Y» (removed: 18 places, from the on-device roadmap in §1.5 to
+  the device-pass calendar in §6.6) and «припущення X, вимірювання показало Y» (kept: every tested
+  assumption, the twelve → eleven rows of табл. 6.7 included, minus the hosting-tier row the owner
+  had removed with the previous provider). Hosting is stated directly: a free Oracle Cloud VM in
+  Marseille — EU region, two real cores, no cold start, zero cost. §5.5.3 and §6.5 keep the
+  recomputation argument in full without the document story; §6.8's specifications are «апріорні».
+  Ten stale draft sentences that contradicted the corrected text are aligned (drag, nightly E2E,
+  Space/train.yml, River as updater, FR-20, UC-02 chips, a duplicated sentence, the broken табл.
+  6.7 rows, a placeholder in Додаток Д, the prose inside Додаток Ж's JSON).
 
 ## Post-P12 — the corrections rollup becomes the thesis's working document (2026-09-09, post-p12/corrections-rollup)
 

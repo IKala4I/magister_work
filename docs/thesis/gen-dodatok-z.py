@@ -153,7 +153,7 @@ def main() -> int:
 денним шумом і є зареєстрованим тестом на змістовну невдачу методу (підрозділ 5.7.4).
 
 Єдина комірка, у якій достатньо 30 завершених учасників: {", ".join("№ " + str(c["index"]) for c in support)}
-– {", ".join(str(c["tasks"]) for c in support)} задачі на день за s = {", ".join(dec(f"{c['s']:g}") for c in support)},
+– {", ".join(str(c["tasks"]) for c in support)} {"задачі" if all(2 <= c["tasks"] <= 4 for c in support) else "задач"} на день за s = {", ".join(dec(f"{c['s']:g}") for c in support)},
 тобто на зареєстрованій верхній межі навантаження сітки (N₈₀ = {", ".join(n80(c) for c in support)}).
 
 ## З.7. Що лишилося в репозиторії, а не на цих сторінках

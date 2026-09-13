@@ -124,7 +124,7 @@ def load_text_file(name: str) -> list[dict]:
             flush()
             rows = []
             while i < len(raw) and raw[i].startswith("|"):
-                cells = [c.strip() for c in raw[i].strip().strip("|").split("|")]
+                cells = [c.strip().replace("\\|", "|") for c in re.split(r"(?<!\\)\|", raw[i].strip().strip("|"))]
                 if not all(set(c) <= set("-: ") for c in cells):
                     rows.append(cells)
                 i += 1
@@ -295,9 +295,10 @@ NN_PLACEHOLDERS: list[tuple[str, str, str]] = [
 # does not write out as replacement prose. Each adds the source to a sentence already there.
 CITE_SITES: list[tuple[str, str, str, str]] = [
     ("Обробник /feedback застосовує кортежі винагород",
-     "кроки стохастичного градієнта River для вагових коефіцієнтів",
-     "кроки стохастичного градієнта River для вагових коефіцієнтів змішування з проєкцією на "
-     "ймовірнісний симплекс [@duchi] після кожного кроку",
+     "кроки стохастичного градієнта River для вагових коефіцієнтів змішування гібрида",
+     "власні кроки проєктованого стохастичного градієнта для вагових коефіцієнтів змішування з "
+     "проєкцією на ймовірнісний симплекс [@duchi] після кожного кроку змішування гібрида (River "
+     "слугує тестовим оракулом)",
      "§4.3 blend projection (Duchi)"),
     ("За Настановами EDPB 05/2021", "За Настановами EDPB 05/2021 (v2.0)",
      "За Настановами EDPB 05/2021 (v2.0) [@edpb]", "§3.7 transfer analysis (EDPB)"),
@@ -446,7 +447,9 @@ def para_tail(blocks, locator, payload, label):
 
 
 def para_insert_after(blocks, locator, new, label):
-    i = find(blocks, locator)
+    """`locator` may be (needle, start): the first match at or after block `start` — used to land
+    Додаток Ж's explanation after the JSON's closing brace rather than inside the listing."""
+    i = find(blocks, *locator) if isinstance(locator, tuple) else find(blocks, locator)
     blocks.insert(i + 1, {"kind": "p", "style": "", "text": new, "origin": "inserted"})
     APPLIED.append(label)
 
@@ -538,7 +541,7 @@ def apply_rollup_edits(blocks) -> None:
             para_append(blocks, anchor, text, label)
     # the payload was written before D2 removed the HF Hub entry; the sentence it supports
     # is precisely that this precondition did not hold, so the citation goes with it
-    run_sub(blocks, "безоплатні тарифи хмарних платформ на момент проєктування",
+    run_sub(blocks, "безоплатні рівні хмарних платформ покривають",
             "за нульової вартості на ранньому масштабі [60, 30, 23]",
             "за нульової вартості на ранньому масштабі [60, 23]", "§1.5 dropped HF Hub citation")
     for anchor, old, new in NN_PLACEHOLDERS:
@@ -551,6 +554,22 @@ def replace_range(blocks, start_locator, end_locator, new_blocks, label):
     a = find(blocks, start_locator)
     b = find(blocks, end_locator, a + 1)
     blocks[a:b] = new_blocks
+    APPLIED.append(label)
+
+
+def cell_sub(blocks, old, new, label):
+    """Substitute inside the one table cell that contains `old`; two or none is an error."""
+    hits = [(bi, ri, ci) for bi, b in enumerate(blocks) if b["kind"] == "table"
+            for ri, r in enumerate(b["rows"]) for ci, c in enumerate(r) if fold(old) in fold(c)]
+    if len(hits) != 1:
+        SKIPPED.append(f"{label} ({len(hits)} cells match {old[:40]!r})")
+        return
+    bi, ri, ci = hits[0]
+    c = blocks[bi]["rows"][ri][ci]
+    at = fold(c).find(fold(old))
+    blocks[bi]["rows"][ri][ci] = c[:at] + new + c[at + len(old):]
+    if blocks[bi]["origin"] == "draft":
+        blocks[bi]["origin"] = "edited"
     APPLIED.append(label)
 
 
@@ -844,7 +863,7 @@ def build() -> tuple[list[dict], dict]:
     # §3.8 – typography, motion, drag
     run_sub(blocks, "Візуальний напрям «спокійна точність»",
             "фізика замість оздоблення (пружинні переходи ≤ 250 мс, повага до reduced-motion); перетягнути – значить навчити (перетягування блоку – першокласна пара негативного/позитивного сигналу); ",
-            "«фізика замість оздоблення» реалізовано на трьох поверхнях – діалозі підтвердження та двох взаємодіях на стрічці «Сьогодні»; решта переходів навмисно миттєві, а перетягування не реалізовано: ручне перевизначення виконується вибором часу; ",
+            "«фізика замість оздоблення» реалізовано на трьох поверхнях – діалозі підтвердження та двох взаємодіях на стрічці «Сьогодні»; решта переходів навмисно миттєві; ручне перевизначення виконується вибором часу; ",
             "§3.8 interaction principles")
     run_sub(blocks, "Візуальний напрям «спокійна точність»", "Inter Variable для інтерфейсу",
             "Inter (статичні накреслення 400/500/600/700) для інтерфейсу", "§3.8 typography")
@@ -906,7 +925,7 @@ def build() -> tuple[list[dict], dict]:
              "так (байєсівська погодинна модель на рівні людини; виміряний внесок популяційної таблиці приорів – ±0,4 в. п.)",
              "табл. 1.1 learned energy profile")
     cell_set(blocks, 0, 8, 1,
-             "частково: обробка в ЄС, RLS, мінімізація; он-девайс ранжування не реалізовано",
+             "частково: обробка в ЄС, RLS, мінімізація; он-девайс ранжування – перспектива",
              "табл. 1.1 privacy / on-device")
     # табл. 1.2 (§1.4 a) – D7 was approved for `+` → `◐` in the rollup but never wired, so the
     # legend under the table described a symbol no cell used and the row claimed a completed
@@ -918,7 +937,7 @@ def build() -> tuple[list[dict], dict]:
              "Чесний «режим навчання» в інтерфейсі та навчання на рівні людини. Хронотипні приори не знижують ризик першого тижня вимірно: їхній внесок у симуляції становить ±0,4 в. п. (підрозділ 6.4)",
              "табл. 1.3 cold-start risk")
     cell_set(blocks, 2, 2, 1,
-             "Ризик реалізувався під час виконання роботи – постачальник скасував безоплатний тариф сервісу (підрозділ 3.3). Пом'якшення: інфраструктурно-незалежний контейнер і постачальник із договірним, а не промоційним безоплатним рівнем",
+             "Інфраструктурно-незалежний контейнер; постачальник із договірним, а не промоційним безоплатним рівнем; задокументований шлях платної міграції (підрозділ 3.3)",
              "табл. 1.3 free-tier risk")
     # §3.9 UC-03 – 06:00 is a day boundary, not a scheduled job (ADR-0019)
     run_sub(blocks, "UC-03. Генерація денного плану",
@@ -935,7 +954,7 @@ def build() -> tuple[list[dict], dict]:
     # §3.9 UC-07 – v1 has a time picker, not a drag
     run_sub(blocks, "UC-07. Ручне перевизначення як навчання",
             "Перетягування запропонованого блоку: гаптичне «прилипання» → оновлення розміщення → парний сигнал (негатив для початкового інтервалу, слабкий позитив для цільового)",
-            "Виклик «Перенести…» на блоці: вибір нового часу на сітці 15 хв → оновлення розміщення → парний сигнал (негатив для початкового інтервалу 0,1 / слабкий позитив для цільового 0,7, одна пара на розміщення; цільовий контекст обчислюється на сервері тим самим кодом сітки та ознак). Жест перетягування є пізнішим удосконаленням інтерфейсу й не є частиною навчального сигналу",
+            "Виклик «Перенести…» на блоці: вибір нового часу на сітці 15 хв → оновлення розміщення → парний сигнал (негатив для початкового інтервалу 0,1 / слабкий позитив для цільового 0,7, одна пара на розміщення; цільовий контекст обчислюється на сервері тим самим кодом сітки та ознак)",
             "§3.9 UC-07 move picker")
     # §3.9 UC-09 – no displacement notification exists
     run_sub(blocks, "UC-09. Синхронізація календаря",
@@ -954,7 +973,7 @@ def build() -> tuple[list[dict], dict]:
     # §4.6 (c) – no store submission was made
     run_sub(blocks, "Збірка та випуск: EAS Build",
             "Збірка та випуск: EAS Build для магазинних бінарників",
-            "Збірка та випуск: профілі EAS Build і EAS Update підготовлено та перевірено; жодного подання до магазинів не виконано (підрозділ 6.7): облікові записи розробника не придбано за рішенням власника, а розповсюдження для дослідження є безобліковим – збірка APK для Android; каналу для учасників з iOS не існує. EAS Build для магазинних бінарників",
+            "Збірка та випуск: профілі EAS Build і EAS Update підготовлено та перевірено; жодного подання до магазинів не виконано (підрозділ 6.7): роботу розповсюджують без облікових записів магазинів – збіркою APK для Android; каналу для учасників з iOS немає, бо TestFlight потребує платного членства. EAS Build для магазинних бінарників",
             "§4.6 release claim (item 48)")
 
     # --- tables (steps 10, 16, 23, 26) --------------------------------------------------
@@ -971,7 +990,7 @@ def build() -> tuple[list[dict], dict]:
     # табл. 3.3 – the stack rows whose named mechanism changed
     cell_set(blocks, 11, 4, 1, "react-native-reanimated 4 + gesture-handler [49]", "табл. 3.3 motion row (choice)")
     cell_set(blocks, 11, 4, 2,
-             "Ворклети в потоці інтерфейсу: пружинні переходи діалогу та стрічки плану; перетягування не реалізовано",
+             "Ворклети в потоці інтерфейсу: пружинні переходи діалогу та стрічки плану",
              "табл. 3.3 motion row (rationale)")
     cell_set(blocks, 11, 5, 2,
              "Кільце фокус-таймера. Теплокарту енергії (FR-40) намальовано нативними View з інтерполяцією в OKLCH: канвас є одним непрозорим елементом для читача екрана і не масштабує підписи зі шрифтом (NFR-A1/A2)",
@@ -998,7 +1017,7 @@ def build() -> tuple[list[dict], dict]:
 
     # --- Додаток В prose, Додаток Ж values, лістинг 4.1 ---------------------------------
     run_sub(blocks, "Теплокарти енергії інтерполюються", "Усі кольорові пари задовольняють вимоги контрасту WCAG 2.2 AA (не менше 4,5:1 для основного тексту).",
-            "Пари, використані для тексту, задовольняють WCAG 2.2 AA (≥ 4,5:1); акцентні кольори (success, warning, energy, danger) використовуються лише як заливки – як текст на світлій поверхні вони дають 2,06–3,60:1 – і завжди супроводжуються текстовою альтернативою, а для деструктивних підписів введено окремий токен danger-text. Роздільність теплокарти слід називати чесно: 126 клітинок повторюють частину доби по її годинах і тип дня по днях тижня.",
+            "Пари, використані для тексту, задовольняють WCAG 2.2 AA (≥ 4,5:1); акцентні кольори (success, warning, energy, danger) використовуються лише як заливки – як текст на світлій поверхні вони дають 2,06–3,60:1 – і завжди супроводжуються текстовою альтернативою, а для деструктивних підписів використовується окремий токен danger-text. Роздільність теплокарти – 126 клітинок: вони повторюють частину доби по її годинах і тип дня по днях тижня.",
             "Додаток В contrast claim")
     run_sub(blocks, "Теплокарти енергії інтерполюються", "Inter Variable (інтерфейс і заголовки)",
             "Inter (статичні накреслення 400/500/600/700; інтерфейс і заголовки)", "Додаток В typography")
@@ -1017,7 +1036,10 @@ def build() -> tuple[list[dict], dict]:
     para_replace(blocks, 'пізнє пообіддя для паперової роботи."',
                  '      "rationale_params": { "category": "admin", "daypart": "afternoon" }',
                  "Додаток Ж rationale_params 2")
-    para_insert_after(blocks, '"unplaced": [ { "task_id"',
+    # after the JSON's closing brace — the `unplaced` line itself contains a `}`
+    _u = find(blocks, '"unplaced": [ { "task_id"')
+    _close = next(k for k in range(_u + 1, len(blocks)) if blocks[k]["kind"] == "p" and blocks[k]["text"].strip() == "}")
+    para_insert_after(blocks, ("}", _close),
                       "Сервер повертає ключ пояснення та його параметри, а не готове речення: "
                       "українську фразу формує клієнт із власних рядків локалізації, тож одне й те "
                       "саме пояснення лишається єдиним для будь-якої мови інтерфейсу.",
@@ -1031,6 +1053,35 @@ def build() -> tuple[list[dict], dict]:
     run_sub(blocks, "await enqueue(db, skipEvent(r, contextSnapshot(r, now)));",
             "skipEvent(r, contextSnapshot(r, now))", "lapseObservedEvent(r, contextSnapshot(r, now))",
             "лістинг 4.1 event type")
+
+    # --- item 7 (plan-change-audit.md, owner decisions 2026-09-13): draft prose ------------
+    run_sub(blocks, "залоговане пропенсіті", "(для чого в схему даних введено поле recommendations.propensity, міграція M-01)",
+            "(поле recommendations.propensity, M-01)", "§2.6.1 propensity column")
+    run_sub(blocks, "recommendations – рекомендації-розміщення", "пропенсіті (поле propensity, міграція M-01)",
+            "пропенсіті (поле propensity, M-01)", "§3.4 propensity")
+    run_sub(blocks, "recommendations – рекомендації-розміщення",
+            "displaced_pending – останній додано міграцією M-02 разом із прапорцем conflict_flag);",
+            "displaced_pending), прапорець conflict_flag (M-02);", "§3.4 displaced_pending")
+    run_sub(blocks, "UC-02. Швидке захоплення задачі", "неоднозначність розбору – вбудовані чипи уточнення",
+            "день тижня без дати – вбудований чип уточнення, решту неоднозначностей розв'язано за першим збігом", "§3.9 UC-02 chips")
+    # §4.4 credits River with the online update; §3.3 says the step is the system's own and River
+    # is the test oracle. The Duchi citation site below carries the rewrite, so both land at once.
+    run_sub(blocks, "лічильника невдач Beta-комірки з піврозпадом 28 днів і крок River",
+            "і крок River для ваг змішування з проєкцією на симплекс",
+            "і крок проєктованого стохастичного градієнта для ваг змішування", "§3.9 River as the updater")
+    run_sub(blocks, "EAS Update для OTA-доставлення",
+            "збірка Docker; розгортання Space; нічний train.yml з оцінювальним бар'єром просування моделей.",
+            "збірка Docker і публікація образу в реєстр контейнерів; конвеєр навчання на синтетичній когорті з оцінювальним бар'єром просування моделей.",
+            "§4.6 server-side CI")
+    run_sub(blocks, "У розділі описано програмну реалізацію всіх рівнів", "ворклетною взаємодією перетягування",
+            "ворклетними переходами інтерфейсу", "§4.8 drag")
+    run_sub(blocks, "У розділі описано програмну реалізацію всіх рівнів", "а критичні користувацькі шляхи – нічними наскрізними тестами",
+            "а критичні користувацькі шляхи – наскрізними потоками Maestro на вимогу", "§4.8 e2e")
+    run_sub(blocks, "Опорною категорією є глибока робота", " – це чесна відповідь на питання про походження чисел", "", "§2.5.2 origin aside")
+    run_sub(blocks, "Сумарний бал R ∈ [4, 25]",
+            " [МІСЦЕ ДЛЯ ДОПОВНЕННЯ: за потреби додати точні формулювання пунктів і шкали балів, узгоджені з валідованим перекладом rMEQ.]",
+            "", "Додаток Д stale placeholder")
+    cell_sub(blocks, "Генерація денного/тижневого плану", "Генерація денного плану", "табл. 3.1 FR-20")
 
     # рис. 3.1 caption – three components moved
     # §3.10 – the chapter conclusion still names the withdrawn host

@@ -79,7 +79,7 @@ CARRIED_ELSEWHERE: dict[tuple[str, int], tuple[str, str]] = {
     ),
     ("13.4", 0): (
         "the specs-as-assumptions framing opens Розділ 6 §6.8, without the file-number aside",
-        "Специфікації системи є **згенерованими припущеннями, а не вихідними даними**",
+        "Специфікації системи є апріорними припущеннями, а не вихідними даними",
     ),
     ("(c)", 0): (
         "the Taillard class-mix qualification is in Розділ 6 §6.4, carrying its citation",
