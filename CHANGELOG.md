@@ -39,6 +39,12 @@
   LinUCB «arm» the protocol does not have. All applied at the sources; Додаток Ж is a fenced JSON
   block, лістинг 4.2 scales weights by 10 000 like the deployed code, Додаток Г explains every
   column. Nine number disagreements are reported in `plan-change-audit.md`, not changed.
+- **Two gates that went red on their own, fixed in passing.** `DailyRateLimiter` evicted a key eight
+  days after the *plan date it named* rather than after its last hit, so the /plan cap silently
+  stopped applying to requests more than eight days from the wall clock — and the API test, whose
+  fixture names a fixed September date, failed by itself on 2026-09-14; eviction is now by last
+  use. Eighteen Expo SDK 57 patch releases turned expo-doctor red; aligned with
+  `expo install --fix` (TS gates green), the recurring shape logged in `revisit.md`.
 
 ## Post-P12 — the corrections rollup becomes the thesis's working document (2026-09-09, post-p12/corrections-rollup)
 

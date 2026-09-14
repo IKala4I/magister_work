@@ -511,3 +511,4 @@ Format: `- [Pn, YYYY-MM-DD] <decision touched> — <evidence> — <suggested act
   the flag is pure win — the HANDOFF's _device_ build command already carries it. **Fix:** add
   `--no-bundler` to the script's build line and say why in its header. Owner's instruction: do not
   open a PR for one line — **fold it into the next phase that touches main.**
+- 2026-09-14 — expo-doctor's dependency-version check compares against the latest SDK-57 patches on the registry, so CI goes red whenever Expo publishes (18 packages on 2026-09-14, none changed by us). Bumped this time (`expo install --fix`, all TS gates green). Decide at release time whether the check stays blocking (bump on every publication) or CI sets `EXPO_DOCTOR_SKIP_DEPENDENCY_VERSION_CHECK=1` and the alignment becomes a release-checklist item.
