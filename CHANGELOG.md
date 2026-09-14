@@ -39,6 +39,14 @@
   LinUCB «arm» the protocol does not have. All applied at the sources; Додаток Ж is a fenced JSON
   block, лістинг 4.2 scales weights by 10 000 like the deployed code, Додаток Г explains every
   column. Nine number disagreements are reported in `plan-change-audit.md`, not changed.
+- **The nine number disagreements, decided by the owner (2026-09-14).** rMEQ [4, 25] — the citation
+  renumberer had been reading the set «R ∈ [4, 25]» as a citation list and writing «[8, 25]»; a
+  group after «∈» is now exempt and `verify-docx` pins both forms. Thirteen NFRs; 42 kept as the
+  protocol's figure with one sentence on the two rounding rules; the табл. 6.5 note says what the
+  rejection share and N₈₀ each measure; Додаток З states that verdicts use unrounded effects;
+  «у цих класах» dropped from the fourteen-defect sentence; «знайдені під час проходу на iOS»; and
+  §1.4 now says who has D7 and who does not in a way табл. 1.2 confirms (calendar assistants have
+  it without learning; combinatorial semi-bandits combine constraints with learning and lack it).
 - **Two gates that went red on their own, fixed in passing.** `DailyRateLimiter` evicted a key eight
   days after the *plan date it named* rather than after its last hit, so the /plan cap silently
   stopped applying to requests more than eight days from the wall clock — and the API test, whose

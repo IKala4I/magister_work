@@ -43,6 +43,7 @@ BANNED = [
     # order to say it was not built — which is stronger than silence — so what must stay
     # banned is the build claim, not the word.
     ("SASRec-lite на PyTorch", "item 9 — the model was never trained"),
+    ("R ∈ [8, 25]", "§2.5.1 — the citation renumberer once read the rMEQ score range as [4, 25] → [8, 25]"),
     ("навчання послідовнісної моделі SASRec", "item 9 — the nightly pipeline has no such step"),
     ("no_feasible_slot", "item 7 — the service returns no_feasible_start"),
     ("10 тис. MAU", "item 3 — the audited figure is ≈ 3 тис."),
@@ -84,6 +85,7 @@ PRESENT = [
     ("Liu", "arm A's EDF citation"),
     ("Graham", "arm A's list-scheduling citation"),
     ("danger-text", "Додаток В's derived token (U21)"),
+    ("сумарний бал R ∈ [4, 25]", "§2.5.1 — the rMEQ range is a set after «∈», not a citation (2026-09-14)"),
 ]
 
 # --- (3) numbers that must appear with their corrected value -------------------------------------

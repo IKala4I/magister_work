@@ -30,11 +30,9 @@ the removal exposed; all applied at the sources (audit, section «Другий �
 
 - **Item 8** («підсили подачу» from the owner's eight-item report) — the report was composed
   outside the repository; the owner will paste it. Apply only what needs no content change.
-- **Nine number disagreements** reported, none changed (owner rule): listed at the end of
-  `plan-change-audit.md` §«Другий прохід» — the rMEQ range «[8, 25]» vs «[4, 25]», «дванадцять»
-  NFRs vs 13 IDs, 42 × 0,7 < 30, «чотирьох меж фаз», табл. 6.5 shares vs N₈₀, З.3 cell 56,
-  «чотирнадцять у цих класах», табл. 1.2's D7 for OR/calendar assistants vs the §1.4 argument,
-  «Три дефекти на iOS» with one found on Android. Each is a one-word decision.
+- ~~Nine number disagreements~~ — decided by the owner and applied on 2026-09-14 (audit, last
+  section). One was a pipeline defect, not a text one: the citation renumberer rewrote the set
+  «R ∈ [4, 25]» to «[8, 25]»; groups after «∈» are exempt now and `verify-docx` pins both forms.
 
 **How the pipeline works now (read before touching the thesis text):** `docs/thesis/ASSEMBLY.md`
 (the 2026-09-13 section) and `text/README.md` rule 6. Sources are the rollup's blockquote

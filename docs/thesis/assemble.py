@@ -775,8 +775,12 @@ def renumber_citations(blocks: list[dict], mapping: dict[int, int], stop_at: int
 
     A bracketed group is a citation only if every number in it is a reference number the
     draft's own list used – otherwise it is left untouched, because «clip[0, 1]» and «[0, 1]»
-    are mathematics, not citations, and rewriting them corrupts a formula silently.
+    are mathematics, not citations, and rewriting them corrupts a formula silently. A group
+    after «∈» is a set, never a citation: «R ∈ [4, 25]» in §2.5.1 (the rMEQ score range, both
+    numbers valid reference numbers) had been renumbered to «[8, 25]» and read as a wrong range
+    until the owner caught it on 2026-09-14; verify-docx now pins both forms.
     """
+    cite = r"(?<!∈ )(?<!∈)\[(\d+(?:\s*,\s*\d+)*)\]"
     changed = 0
 
     def one(m: re.Match) -> str:
@@ -790,13 +794,13 @@ def renumber_citations(blocks: list[dict], mapping: dict[int, int], stop_at: int
         if b["kind"] == "table":
             for r in b["rows"]:
                 for j, c in enumerate(r):
-                    new = re.sub(r"\[(\d+(?:\s*,\s*\d+)*)\]", one, c)
+                    new = re.sub(cite, one, c)
                     if new != c:
                         r[j] = new
                         b["origin"] = "renumbered"
                         changed += 1
         elif b["kind"] == "p":
-            new = re.sub(r"\[(\d+(?:\s*,\s*\d+)*)\]", one, b["text"])
+            new = re.sub(cite, one, b["text"])
             if new != b["text"]:
                 b["text"] = new
                 if b["origin"] == "draft":
@@ -1122,6 +1126,8 @@ def build() -> tuple[list[dict], dict]:
     run_sub(blocks, "EAS Update для OTA-доставлення", ", EAS Update для OTA-доставлення", ", EAS Update – для OTA-доставлення", "§4.6 EAS fragment (2)")
     run_sub(blocks, "Мікроопитувальник хронотипу онбордингу (адаптація rMEQ)", "(адаптація rMEQ)", "(rMEQ)", "Додаток Д heading")
     run_sub(blocks, "UC-03. Генерація денного плану", "холодний ML-бекенд – евристичний резервний план", "недоступний ML-бекенд або тайм-аут – евристичний резервний план", "§3.9 UC-03 fallback trigger")
+    # --- owner decisions on the nine number disagreements (plan-change-audit.md, 2026-09-14) ----
+    run_sub(blocks, "У розділі систематизовано вимоги до системи", "дванадцять нефункціональних вимог", "тринадцять нефункціональних вимог", "§3.10 NFR count: 13 ids in табл. 3.2")
     run_sub(blocks, "Основні результати роботи такі.", " Основні результати роботи такі.", "", "ВИСНОВКИ seam before the headline paragraph")
     cell_sub(blocks, "Дистанція перенесення (перетягування)", "Дистанція перенесення", "табл. 2.6 signal name")
     cell_sub(blocks, "за холодного/недоступного сервісу рекомендацій", "за недоступного сервісу рекомендацій або перевищення часу очікування", "табл. 3.2 NFR-R2")
