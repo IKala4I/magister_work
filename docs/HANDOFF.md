@@ -16,7 +16,24 @@ headings, «–» for the prose dash, listings as fenced code blocks without com
 the explanation; U16 solver parameters applied to лістинг 4.2), «Джерела:» lines without paths,
 no ADR mentions, monospace only for code/identifiers/fields/file names; `verify-style.py` in CI.
 **Item 7 is applied** (owner decisions 2026-09-13 in `docs/thesis/plan-change-audit.md`, last two
-sections): 18 type-1 passages removed, 16 borderline rewritten, 9 stale draft sentences aligned,
+sections). **State at the compaction point (2026-09-14):** the second pass («той самий погляд» for
+dangling contrasts, residue, hosting consistency) is half done. Five fresh-context subagents were
+launched over `text/full.md`; the one for lines 901–1249 (Розділ 5, §6.1–6.5) finished and its
+findings are applied and committed (cross-references §5.3→4.3, §5.4→4.3, §5.5.2→З.3, §5.6→6.5/З.2;
+the §5.5.3 and §6.5 recomputation paragraphs restated as a self-contained method — the minimum N₈₀
+taken over all 75 cells including the task-count block; «на якому зупинявся протокол» →
+«передбачений протоколом» ×3; §6.4.5 main-block ties). **Four agents are still running or must be
+re-run** for lines 1–595, 596–900, 1250–1408 and 1553–1994 of `full.md` (the first launch died on a
+rate limit; the relaunch is in flight). When their findings arrive: apply them at the SOURCES —
+rollup blockquote payloads and `text/*.md` via paragraph-unwrap/rewrap (the helper
+`edit_para()` lives in the session scratchpad `item7.py`; re-create it if lost: unwrap the
+paragraph containing the anchor, substitute with dash/apostrophe folding, rewrap at 100 cols
+without splitting a backtick span), draft prose via `run_sub` in `assemble.py`; never edit
+`full.md` by hand; then `python3 docs/thesis/assemble.py`, `gen-dodatok-z.py`, prettier on the
+edited md, and all seven gates (verify-numbers, -payloads, -brief, -state, -style, -docx,
+gen-dodatok-z --check, format:check). Findings about NUMBERS are reported, never applied
+(owner: no number changes). Then open the PR «Post-P12 — business style for the thesis text» and
+merge it once CI is green.: 18 type-1 passages removed, 16 borderline rewritten, 9 stale draft sentences aligned,
 hosting stated directly, табл. 6.7 down to eleven rows with the count following. A second
 fresh-context pass for dangling contrasts (five subagents) runs after that; its findings are
 applied the same way. **Item 8 (strengthen the presentation from «the eight-item report») waits
