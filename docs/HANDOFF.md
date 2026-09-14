@@ -2,44 +2,49 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-09 (night) — **post-p12/corrections-rollup** is on the branch and green on
+> Last update: 2026-09-14 — **post-p12/thesis-style-pass** (PR #78): business style and the
+> plan-change removal are in; item 8 and nine number decisions wait on the owner. Earlier: the
+> corrections rollup (2026-09-09) is green on
 > the format gate. `docs/thesis/corrections-rollup.md` is no longer an index: all 63 items carry
 > the Ukrainian sentences the draft should read, grouped by the draft's own chapters, tagged
 > Ф / П / С, with every number carrying its measurement condition. **Next phase: writing the
 > thesis text** — the rollup is the document to write from.
 
-## In progress (2026-09-13) — post-p12/thesis-style-pass
+## Current state (2026-09-14) — post-p12/thesis-style-pass (PR #78)
 
-**Branch `post-p12/thesis-style-pass`, not merged.** The owner read `text/full.md` as pages and
-gave eight edits (business style). Items 1–6 are done and green on every gate: bold only in
-headings, «–» for the prose dash, listings as fenced code blocks without comments (prose carries
-the explanation; U16 solver parameters applied to лістинг 4.2), «Джерела:» lines without paths,
-no ADR mentions, monospace only for code/identifiers/fields/file names; `verify-style.py` in CI.
-**Item 7 is applied** (owner decisions 2026-09-13 in `docs/thesis/plan-change-audit.md`, last two
-sections). **State at the compaction point (2026-09-14):** the second pass («той самий погляд» for
-dangling contrasts, residue, hosting consistency) is half done. Five fresh-context subagents were
-launched over `text/full.md`; the one for lines 901–1249 (Розділ 5, §6.1–6.5) finished and its
-findings are applied and committed (cross-references §5.3→4.3, §5.4→4.3, §5.5.2→З.3, §5.6→6.5/З.2;
-the §5.5.3 and §6.5 recomputation paragraphs restated as a self-contained method — the minimum N₈₀
-taken over all 75 cells including the task-count block; «на якому зупинявся протокол» →
-«передбачений протоколом» ×3; §6.4.5 main-block ties). **Four agents are still running or must be
-re-run** for lines 1–595, 596–900, 1250–1408 and 1553–1994 of `full.md` (the first launch died on a
-rate limit; the relaunch is in flight). When their findings arrive: apply them at the SOURCES —
-rollup blockquote payloads and `text/*.md` via paragraph-unwrap/rewrap (the helper
-`edit_para()` lives in the session scratchpad `item7.py`; re-create it if lost: unwrap the
-paragraph containing the anchor, substitute with dash/apostrophe folding, rewrap at 100 cols
-without splitting a backtick span), draft prose via `run_sub` in `assemble.py`; never edit
-`full.md` by hand; then `python3 docs/thesis/assemble.py`, `gen-dodatok-z.py`, prettier on the
-edited md, and all seven gates (verify-numbers, -payloads, -brief, -state, -style, -docx,
-gen-dodatok-z --check, format:check). Findings about NUMBERS are reported, never applied
-(owner: no number changes). Then open the PR «Post-P12 — business style for the thesis text» and
-merge it once CI is green.: 18 type-1 passages removed, 16 borderline rewritten, 9 stale draft sentences aligned,
-hosting stated directly, табл. 6.7 down to eleven rows with the count following. A second
-fresh-context pass for dangling contrasts (five subagents) runs after that; its findings are
-applied the same way. **Item 8 (strengthen the presentation from «the eight-item report») waits
-for the owner to paste the report** — it was composed outside the repository. On resume: apply the
-re-read findings if any remain, re-run `assemble.py` and every gate, refresh this file, open and
-merge the PR; then item 8 when the report arrives.
+**Done and green on every gate.** The owner read `text/full.md` as pages on 2026-09-13 and gave
+eight edits; seven are in. (1–6) Business style at the sources: bold only in headings, «–» for the
+prose dash, listings as fenced code blocks without comments (the explanation is prose; the U16
+solver parameters are in лістинг 4.2), «Джерела:» lines without paths, no ADR mentions, monospace
+only for code/identifiers/fields/file names; `verify-style.py` holds the rules in CI. (7) The text
+says what was chosen and why, never what was planned first: `docs/thesis/plan-change-audit.md` is
+the record — 18 type-1 passages removed, 16 borderline cases rewritten with the owner's three
+clarifications (hosting stated directly as a free Oracle Cloud VM in Marseille with EU region /
+two real cores / no cold start / zero cost and no previous provider anywhere; §5.5.3 and §6.5
+keep the recomputation argument in full; «згенеровані» → «апріорні»), nine stale draft sentences
+aligned, табл. 6.7 down to eleven rows with the count following. A second fresh-context pass
+(five subagents, whole text) fixed ~40 dangling contrasts, wrong cross-references and older seams
+the removal exposed; all applied at the sources (audit, section «Другий прохід»).
+
+**Waiting on the owner — none blocks the merge:**
+
+- **Item 8** («підсили подачу» from the owner's eight-item report) — the report was composed
+  outside the repository; the owner will paste it. Apply only what needs no content change.
+- **Nine number disagreements** reported, none changed (owner rule): listed at the end of
+  `plan-change-audit.md` §«Другий прохід» — the rMEQ range «[8, 25]» vs «[4, 25]», «дванадцять»
+  NFRs vs 13 IDs, 42 × 0,7 < 30, «чотирьох меж фаз», табл. 6.5 shares vs N₈₀, З.3 cell 56,
+  «чотирнадцять у цих класах», табл. 1.2's D7 for OR/calendar assistants vs the §1.4 argument,
+  «Три дефекти на iOS» with one found on Android. Each is a one-word decision.
+
+**How the pipeline works now (read before touching the thesis text):** `docs/thesis/ASSEMBLY.md`
+(the 2026-09-13 section) and `text/README.md` rule 6. Sources are the rollup's blockquote
+payloads, `text/*.md`, `gen-dodatok-z.py` and the `run_sub`/`cell_sub` literals in `assemble.py`;
+`full.md` is never edited by hand. Hard-wrapped prose is edited by unwrapping the paragraph,
+substituting with dash/apostrophe folding and rewrapping at 100 columns **without splitting a
+backtick span** — prettier drops the blockquote prefix from a line that leaves a code span open,
+and the payload silently splits in two (`verify-payloads` catches it). Gates: assemble
+(`untouched_drift 0`, no SKIPPED), verify-numbers, -payloads, -brief, -state, -style, -docx,
+`gen-dodatok-z --check`, `format:check`.
 
 ## What the rollup phase established (2026-09-09)
 

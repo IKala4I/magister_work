@@ -30,6 +30,15 @@
   Ten stale draft sentences that contradicted the corrected text are aligned (drag, nightly E2E,
   Space/train.yml, River as updater, FR-20, UC-02 chips, a duplicated sentence, the broken табл.
   6.7 rows, a placeholder in Додаток Д, the prose inside Додаток Ж's JSON).
+- **Second pass, same eye.** Five fresh-context subagents re-read the whole text after the removal:
+  ~20 dangling contrasts the removal left (an accusative without its verb, «Твердження» without a
+  claim, «ще одним читанням коду» with no first reading, quotation marks around an expectation that
+  no longer exists in chapter 1) and as many older defects of the same class it exposed — eight
+  cross-references pointing at sections that do not contain what they claim, «обидва» where there
+  are three, the cold-start wording of the previous host in NFR-R2, UC-03, §3.2 and §4.3, a
+  LinUCB «arm» the protocol does not have. All applied at the sources; Додаток Ж is a fenced JSON
+  block, лістинг 4.2 scales weights by 10 000 like the deployed code, Додаток Г explains every
+  column. Nine number disagreements are reported in `plan-change-audit.md`, not changed.
 
 ## Post-P12 — the corrections rollup becomes the thesis's working document (2026-09-09, post-p12/corrections-rollup)
 

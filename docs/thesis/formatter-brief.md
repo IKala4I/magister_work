@@ -87,8 +87,8 @@ These are the limitations. Each was written after a version that was weaker got 
    → the closing clause is the reason the number is quotable at all. Do not shorten the sentence.
 5. `Оцінки з ESS < 100 позначаються як недоказові, але ніколи не вилучаються з подання`
    → Do not simplify to "оцінки з ESS < 100 не використовуються".
-6. `Розрив у персоналізації не накопичується` … `тож очікування «перевага зростає з кожним
-тижнем» у симуляції не підтверджується`
+6. `Розрив у персоналізації не накопичується` … `тож очікування, що перевага зростає з кожним
+тижнем, у симуляції не підтверджується`
    → the retraction of the expectation is deliberate. Keep both halves.
 7. `≈ 4,3 експерименти на користувача за тиждень на звичайних тижнях і 1,1–2,4 на завантажених,
 пораховані на коді придатності, а не спостережені`
