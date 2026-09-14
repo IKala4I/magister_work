@@ -2,6 +2,50 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — business style for the thesis text (2026-09-13, post-p12/thesis-style-pass)
+
+- **Bold is for headings only; the prose dash is «–»; listings carry no comments.** Owner
+  decisions on reading `text/full.md` as pages. Applied at the sources (`text/*.md`, the rollup's
+  payloads, `gen-dodatok-z.py`) and, for the draft's own paragraphs, as a pure style sweep at the
+  end of `assemble.py`; the fidelity check now compares against the swept source, so the sweep is
+  itself checked. `verify-style.py` holds the rules in CI.
+- **Listings are fenced code blocks.** `collect_listings()` folds the draft's one-paragraph-per-line
+  лістинги 4.1/4.2 into code blocks (the apostrophe sweep had been writing `’shown’` into
+  TypeScript); the text-file loader keeps fenced SQL as a block instead of one 2 000-character
+  line. Лістинг 4.2 now shows the deployed solver parameters — rollup U16, approved on 2026-09-09
+  and never wired.
+- **No repository paths, ADR numbers or errata ids in the text.** «Джерела:» lines name files
+  without directories and point at Додаток И.7; the SQL comments of Додаток Г became prose.
+- `verify-payloads.py`: `CELL_WITNESS` keyed by the correction's left-hand side (three witnesses had
+  silently stopped applying when the rollup grew above them); the inline comparison folds the
+  same typography the assembler normalises.
+- **Item 7 — the text says what was chosen and why, never that something else was planned first.**
+  Five fresh-context subagents audited the whole text; the list (`docs/thesis/plan-change-audit.md`)
+  is split into «планували X, вирішили Y» (removed: 18 places, from the on-device roadmap in §1.5 to
+  the device-pass calendar in §6.6) and «припущення X, вимірювання показало Y» (kept: every tested
+  assumption, the twelve → eleven rows of табл. 6.7 included, minus the hosting-tier row the owner
+  had removed with the previous provider). Hosting is stated directly: a free Oracle Cloud VM in
+  Marseille — EU region, two real cores, no cold start, zero cost. §5.5.3 and §6.5 keep the
+  recomputation argument in full without the document story; §6.8's specifications are «апріорні».
+  Ten stale draft sentences that contradicted the corrected text are aligned (drag, nightly E2E,
+  Space/train.yml, River as updater, FR-20, UC-02 chips, a duplicated sentence, the broken табл.
+  6.7 rows, a placeholder in Додаток Д, the prose inside Додаток Ж's JSON).
+- **Second pass, same eye.** Five fresh-context subagents re-read the whole text after the removal:
+  ~20 dangling contrasts the removal left (an accusative without its verb, «Твердження» without a
+  claim, «ще одним читанням коду» with no first reading, quotation marks around an expectation that
+  no longer exists in chapter 1) and as many older defects of the same class it exposed — eight
+  cross-references pointing at sections that do not contain what they claim, «обидва» where there
+  are three, the cold-start wording of the previous host in NFR-R2, UC-03, §3.2 and §4.3, a
+  LinUCB «arm» the protocol does not have. All applied at the sources; Додаток Ж is a fenced JSON
+  block, лістинг 4.2 scales weights by 10 000 like the deployed code, Додаток Г explains every
+  column. Nine number disagreements are reported in `plan-change-audit.md`, not changed.
+- **Two gates that went red on their own, fixed in passing.** `DailyRateLimiter` evicted a key eight
+  days after the *plan date it named* rather than after its last hit, so the /plan cap silently
+  stopped applying to requests more than eight days from the wall clock — and the API test, whose
+  fixture names a fixed September date, failed by itself on 2026-09-14; eviction is now by last
+  use. Eighteen Expo SDK 57 patch releases turned expo-doctor red; aligned with
+  `expo install --fix` (TS gates green), the recurring shape logged in `revisit.md`.
+
 ## Post-P12 — the corrections rollup becomes the thesis's working document (2026-09-09, post-p12/corrections-rollup)
 
 - **All 63 items carry finished Ukrainian sentences.** `docs/thesis/corrections-rollup.md` was an

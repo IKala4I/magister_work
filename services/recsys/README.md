@@ -1,6 +1,6 @@
 # Hourwell RecSys service
 
-Bandit-weighted CP-SAT planning service for Hourwell (thesis codename Kairos): `POST /plan`,
+Bandit-weighted CP-SAT planning service for Hourwell (spec codename Kairos): `POST /plan`,
 `POST /feedback`, `GET /insights`, `POST /parse-preview`, `GET /healthz` — the contract in
 `specs/07_engine_internals_and_schema.md` §5, generated into `packages/shared/src/api.ts`.
 

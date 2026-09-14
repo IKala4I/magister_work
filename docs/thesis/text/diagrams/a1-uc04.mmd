@@ -1,0 +1,55 @@
+%% Рисунок А.1 — UC-04 «Петля прощення» (пропуск блоку → оновлення моделі → змінене розміщення)
+%% Джерело істини: apps/mobile/src/db/feedback.ts (lapseScan, skipBlock), apps/mobile/src/sync/pull.ts,
+%% supabase/functions/_shared/rewards.ts, supabase/migrations/20260827150000_p7_feedback.sql,
+%% services/recsys/src/hourwell_recsys/{bandit,energy,blend}.py.
+%% Звірено з апаратним прогоном iPhone 2026-09-08 (docs/verification/device-pass/ios-20260908-1215).
+sequenceDiagram
+    autonumber
+    actor K as Користувач
+    participant App as Застосунок RN (Expo)
+    participant DB as Expo SQLite та outbox
+    participant SR as Edge Fn sync-resolve
+    participant PG as Supabase Postgres
+    participant AR as Edge Fn attribute-rewards
+    participant API as FastAPI RecSys
+    participant MS as user_model_state
+
+    Note over K,DB: Інтервал блоку минув — фокус-сесії не було, виконання не зафіксовано
+
+    K->>App: відкриває застосунок, перехід на передній план
+    App->>DB: лінивий сканер — slot_end < now, жодної сесії на задачі, факту ще не записано
+    DB-->>App: локальний статус lapsed, useLiveQuery перемальовує картку
+    App->>DB: дописує факт lapse_observed з observed_at, hours_after_slot_end, skip_streak
+    DB-->>App: задача повертається у Вхідні, лічильник відкладень +1
+    App-->>K: «Не зроблено — повернулося у Вхідні», дія «Уже зроблено», без інтерфейсу провини
+    Note over App,DB: Операції зміни статусу не створено — lapsed клієнт на сервері не встановлює
+
+    App->>SR: push неквитованих операцій за seq, ідемпотентний op_id, base_version
+    SR->>PG: факт lapse_observed лягає в append-only журнал подій
+    Note over SR,PG: Миттєвий прохід атрибуції для пропуску кортежа не породжує
+    SR-->>App: pull — рядок рекомендації повертається зі статусом shown
+    App->>DB: ґратка статусів утримує lapsed — факт не знижується до планового статусу
+
+    Note over PG,AR: 23:55 за місцевим часом користувача, обхід pg_cron кожні 15 хв
+    AR->>PG: повторна перевірка миттєвих правил на факти, що досинхронізувалися пізно
+    AR->>PG: кортеж r = 0 reason lapsed source daily, статус рядка lapsed, attributed_at
+    Note over AR,API: Спершу зберегти, потім доставити — недоступність сервісу нічого не втрачає
+    AR->>API: POST /feedback з кортежем винагороди
+    API->>MS: Шерман–Моррісон для (A_g, b_g), відмова в Beta-комірці з піврозпадом 28 днів
+    API->>MS: крок River для ваг змішування з проєкцією на симплекс
+    API-->>AR: підтвердження, delivered_at проставлено, повторна доставка ідемпотентна
+
+    Note over K,MS: Наступного дня
+    K->>App: відкриває план на день
+    App->>API: запит плану
+    API-->>App: знижена q̂ для цього контексту, CP-SAT переставляє блок, раціоналія «тому що…»
+
+    alt Пізня корекція «насправді я це зробив» протягом 7 днів
+        K->>App: «Уже зроблено» на картці пропущеного блоку
+        App->>SR: факт lapse_corrected
+        SR->>PG: збережений кортеж переписано на r = 1 з correction = true, початковий attributed_at збережено
+        SR->>API: сигнал перебудови
+        API->>MS: повна перебудова стану з усіх збережених кортежів, ранг-один пониження не застосовується
+    else Пізніше за вікно 7 днів
+        SR->>PG: кортеж заморожено, факт лишається в журналі для аудиту
+    end

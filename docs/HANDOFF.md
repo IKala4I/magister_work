@@ -2,11 +2,49 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-09 (night) — **post-p12/corrections-rollup** is on the branch and green on
+> Last update: 2026-09-14 — **post-p12/thesis-style-pass** (PR #78): business style and the
+> plan-change removal are in; item 8 and nine number decisions wait on the owner. Earlier: the
+> corrections rollup (2026-09-09) is green on
 > the format gate. `docs/thesis/corrections-rollup.md` is no longer an index: all 63 items carry
 > the Ukrainian sentences the draft should read, grouped by the draft's own chapters, tagged
 > Ф / П / С, with every number carrying its measurement condition. **Next phase: writing the
 > thesis text** — the rollup is the document to write from.
+
+## Current state (2026-09-14) — post-p12/thesis-style-pass (PR #78)
+
+**Done and green on every gate.** The owner read `text/full.md` as pages on 2026-09-13 and gave
+eight edits; seven are in. (1–6) Business style at the sources: bold only in headings, «–» for the
+prose dash, listings as fenced code blocks without comments (the explanation is prose; the U16
+solver parameters are in лістинг 4.2), «Джерела:» lines without paths, no ADR mentions, monospace
+only for code/identifiers/fields/file names; `verify-style.py` holds the rules in CI. (7) The text
+says what was chosen and why, never what was planned first: `docs/thesis/plan-change-audit.md` is
+the record — 18 type-1 passages removed, 16 borderline cases rewritten with the owner's three
+clarifications (hosting stated directly as a free Oracle Cloud VM in Marseille with EU region /
+two real cores / no cold start / zero cost and no previous provider anywhere; §5.5.3 and §6.5
+keep the recomputation argument in full; «згенеровані» → «апріорні»), nine stale draft sentences
+aligned, табл. 6.7 down to eleven rows with the count following. A second fresh-context pass
+(five subagents, whole text) fixed ~40 dangling contrasts, wrong cross-references and older seams
+the removal exposed; all applied at the sources (audit, section «Другий прохід»).
+
+**Waiting on the owner — none blocks the merge:**
+
+- **Item 8** («підсили подачу» from the owner's eight-item report) — the report was composed
+  outside the repository; the owner will paste it. Apply only what needs no content change.
+- **Nine number disagreements** reported, none changed (owner rule): listed at the end of
+  `plan-change-audit.md` §«Другий прохід» — the rMEQ range «[8, 25]» vs «[4, 25]», «дванадцять»
+  NFRs vs 13 IDs, 42 × 0,7 < 30, «чотирьох меж фаз», табл. 6.5 shares vs N₈₀, З.3 cell 56,
+  «чотирнадцять у цих класах», табл. 1.2's D7 for OR/calendar assistants vs the §1.4 argument,
+  «Три дефекти на iOS» with one found on Android. Each is a one-word decision.
+
+**How the pipeline works now (read before touching the thesis text):** `docs/thesis/ASSEMBLY.md`
+(the 2026-09-13 section) and `text/README.md` rule 6. Sources are the rollup's blockquote
+payloads, `text/*.md`, `gen-dodatok-z.py` and the `run_sub`/`cell_sub` literals in `assemble.py`;
+`full.md` is never edited by hand. Hard-wrapped prose is edited by unwrapping the paragraph,
+substituting with dash/apostrophe folding and rewrapping at 100 columns **without splitting a
+backtick span** — prettier drops the blockquote prefix from a line that leaves a code span open,
+and the payload silently splits in two (`verify-payloads` catches it). Gates: assemble
+(`untouched_drift 0`, no SKIPPED), verify-numbers, -payloads, -brief, -state, -style, -docx,
+`gen-dodatok-z --check`, `format:check`.
 
 ## What the rollup phase established (2026-09-09)
 
@@ -69,7 +107,7 @@ markdown table. Among the accuracy fixes: the function latency 1,10–1,34 s was
 a p95 range; /plan 135 / 487 ms is the pre-rollout image (shipped: 139 / 555); accent-as-text
 contrast is 2,06–3,60:1 and the 2,98:1 was a different pairing **fixed in P10**; the iPhone's
 0,49–0,50 s is a warm series with no 413 ms subtracted; two motion frame series came from two
-builds; the product is **Kairos** in the thesis text, not Hourwell. Percentage points are now
+builds; the product was **Kairos** in the thesis text — superseded 2026-09-11: the thesis now carries **Hourwell** throughout (a rename sweep at the end of `assemble.py`; `specs/` keeps the codename, `docs/naming.md`). Percentage points are now
 **«в. п.»** (the ДСТУ form the draft already uses) rather than the repository's «п.п.», which is
 the standard abbreviation for «пункти».
 

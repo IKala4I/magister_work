@@ -17,8 +17,11 @@ python3 docs/thesis/verify-docx.py docs/thesis/text/full.md   # 52 needles; 0 fa
 ## The guarantee, and its exact limit
 
 The assembler copies every paragraph the corrections do not touch **verbatim** from `draft.docx`
-and reports the counts: 400 from the draft untouched, 37 edited, 15 inserted, 90 renumbered, 254
-from the `text/*.md` chapters. It then asserts that **every block still marked "from draft" is
+and reports the counts: 287 from the draft untouched, 85 edited, 42 inserted, 83 renumbered, 254
+from the `text/*.md` chapters (2026-09-14 run; the JSON example of Додаток Ж is now one fenced
+block, which is where thirty «untouched» one-line paragraphs went). «Untouched» is up to the four style rules the
+assembler applies to every paragraph — rename, apostrophe, en dash, no bold inside a paragraph —
+and the fidelity check compares against the swept source, so those rules are themselves checked. It then asserts that **every block still marked "from draft" is
 byte-identical to the source** — `untouched_drift 0`. A silent alteration of your prose cannot
 happen without that number moving.
 
@@ -31,13 +34,13 @@ Verified against the file rather than assumed: the draft has **no** equations (f
 text), **no** footnotes, endnotes, comments, tracked changes, hyperlinks or images. So the losses
 are exactly:
 
-| Lost                                                                                        | Consequence                                                 |
-| ------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| Paragraph styling: indents, 1.5 spacing, justification, ДСТУ margins, Times New Roman 14 pt | re-apply by template                                        |
-| The 44 tab stops that right-align formula numbers                                           | formula lines come across as text; `(2.1)` needs re-tabbing |
-| Table column widths, borders, the 8 dashed figure-placeholder boxes                         | re-apply by template                                        |
-| The generated ЗМІСТ                                                                         | Word rebuilds it                                            |
-| Run-level bold/italic **is** carried (`**`/`_`), but heading bold is dropped as styling     | intended                                                    |
+| Lost                                                                                                                                             | Consequence                                                 |
+| ------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------- |
+| Paragraph styling: indents, 1.5 spacing, justification, ДСТУ margins, Times New Roman 14 pt                                                      | re-apply by template                                        |
+| The 44 tab stops that right-align formula numbers                                                                                                | formula lines come across as text; `(2.1)` needs re-tabbing |
+| Table column widths, borders, the 8 dashed figure-placeholder boxes                                                                              | re-apply by template                                        |
+| The generated ЗМІСТ                                                                                                                              | Word rebuilds it                                            |
+| Run-level italic is carried (`_`); bold inside a paragraph is dropped (owner, 2026-09-13: bold is for headings only) and heading bold is styling | intended                                                    |
 
 Two things markdown cannot do anything about, which the step-by-step could not either: the figures
 themselves (still placeholders) and the two ВСТУП items that are yours (D7).
@@ -50,38 +53,38 @@ the same result, with a fidelity check the manual route does not have.
 
 ## The order
 
-| #   | Where in the draft                                                                                     | What to do                                                                                                                    | Source                                                                                                |
-| --- | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| 1   | **АНОТАЦІЯ**                                                                                           | keep ¶1 (bibliographic); replace ¶2 and ¶3; insert the new ¶4; extend the keyword list                                        | `text/anotaciya-ta-vysnovky.md` § «АНОТАЦІЯ»                                                          |
-| 2   | **ANNOTATION**                                                                                         | same three edits, mirrored                                                                                                    | same file § «ANNOTATION»                                                                              |
-| 3   | **ПЕРЕЛІК СКОРОЧЕНЬ**                                                                                  | add: ICC, MC SE, N₈₀, σ_shape, «в. п.»                                                                                        | rollup §12.1 U-row for the abbreviations                                                              |
-| 4   | **ВСТУП** — актуальність ¶1                                                                            | replace the paragraph (drops «2–3 години», states the literature at its real strength)                                        | rollup §4.3 (a)                                                                                       |
-| 5   | **ВСТУП** — наукова новизна                                                                            | edit п. 3; **add the new п. 5**                                                                                               | rollup §4.3 (b), (c)                                                                                  |
-| 6   | **ВСТУП** — практичне значення                                                                         | replace the paragraph (synthetic dataset, not «анонімізований»)                                                               | rollup §4.3 (d)                                                                                       |
-| 7   | **ВСТУП** — завдання п. 6                                                                              | replace                                                                                                                       | rollup §4.3 (e)                                                                                       |
-| 8   | **ВСТУП** — структура роботи                                                                           | **do this last, at #26** — the counts change                                                                                  | rollup §4.3 (f)                                                                                       |
-| 9   | **§1.1**                                                                                               | replace the closing sentence of ¶2 (mechanism)                                                                                | rollup §5 «§1.1»                                                                                      |
-| 10  | **§1.2 + табл. 1.1**                                                                                   | add the pre-table sentence; two table cells; replace the post-table paragraph; **drop the price and user-count figures** (D2) | rollup §5 «§1.2»                                                                                      |
-| 11  | **§1.4 + табл. 1.2**                                                                                   | табл. 1.2 Kairos row D7 `+` → `◐` with its footnote; **replace the gap paragraph with the four rebuilt paragraphs**           | rollup §5 «§1.4»                                                                                      |
-| 12  | **§1.5 + табл. 1.3**                                                                                   | replace the market-preconditions paragraph and the «конкурентна перевага» paragraph; two risk rows; the PAR sentence          | rollup §5 «§1.5»                                                                                      |
-| 13  | **§1.6**                                                                                               | add the closing ДП1–ДП4 status paragraph                                                                                      | rollup §5 «§1.6»                                                                                      |
-| 14  | **§1.7**                                                                                               | add the closing sentence about six of seven dimensions                                                                        | rollup §5 «§1.4» (c)                                                                                  |
-| 15  | **Розділ 2** — §2.1, §2.2, §2.3, §2.4, §2.5, §2.6.2, §2.6.3, §2.7                                      | eight anchored edits, in that order; §2.4 is the big one (the solver's size argument becomes an empirical result)             | rollup §6                                                                                             |
-| 16  | **Розділ 3** — §3.1.3 табл. 3.2, NFR-R2, §3.2 + рис. 3.1, §3.3 табл. 3.3, §3.4, §3.6, §3.7, §3.8, §3.9 | nine anchored edits; §3.7 is a rebuild (the transfer analysis is new material)                                                | rollup §7                                                                                             |
-| 17  | **Розділ 4** — §4.1, §4.2 + лістинг 4.1, §4.4 + лістинг 4.2, §4.5, §4.6                                | five anchored edits; both listings change                                                                                     | rollup §8                                                                                             |
-| 18  | **Розділ 4** — after §4.6                                                                              | add the two-sentence forward reference to §6.6                                                                                | rollup §8 «§4.6»                                                                                      |
-| 19  | **РОЗДІЛ 5**                                                                                           | **replace the chapter entirely**                                                                                              | `text/rozdil-5.md`                                                                                    |
-| 20  | **РОЗДІЛ 6**                                                                                           | **insert the new chapter** after Розділ 5                                                                                     | `text/rozdil-6.md`                                                                                    |
-| 21  | **ВИСНОВКИ**                                                                                           | edit п. 1, 2, 3, 4, 5; replace п. 6; **add п. 7 and п. 8**; replace перспективи                                               | `text/anotaciya-ta-vysnovky.md` § «ВИСНОВКИ»                                                          |
-| 22  | **СПИСОК ДЖЕРЕЛ**                                                                                      | delete four entries, add seven, renumber every citation in the body                                                           | rollup §12.3 (a), (b) — **and read (c) first: four citations cannot be produced from the repository** |
-| 23  | **Додаток В**                                                                                          | two typography edits; the blanket contrast claim; **add the `danger-text` row**                                               | rollup §10.2                                                                                          |
-| 24  | **Додаток Г**                                                                                          | **replace the appendix entirely**                                                                                             | `text/dodatok-g.md`                                                                                   |
-| 25  | **Додаток Д**                                                                                          | replace the closing placeholder with the resolved paragraph                                                                   | rollup §10.4                                                                                          |
-| 26  | **Додаток Е**                                                                                          | update the NFR-P1 row; regenerate from `docs/traceability.md`; **abridged + explicit pointer** (§10.7a)                       | rollup §10.5                                                                                          |
-| 27  | **Додаток Ж**                                                                                          | five value edits inside the JSON                                                                                              | rollup §10.6                                                                                          |
-| 28  | **Додаток З**                                                                                          | **insert new** — all 75 cells                                                                                                 | `text/dodatok-z.md`                                                                                   |
-| 29  | **Додаток И**                                                                                          | **insert new** — registered predictions and the four dating commits                                                           | `text/dodatok-y.md`                                                                                   |
-| 30  | **ВСТУП** — структура роботи                                                                           | now do #8: «шести розділів», the new reference count, the page count                                                          | rollup §4.3 (f)                                                                                       |
+| #   | Where in the draft                                                                                     | What to do                                                                                                                          | Source                                                                                                |
+| --- | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| 1   | **АНОТАЦІЯ**                                                                                           | keep ¶1 (bibliographic); replace ¶2 and ¶3; insert the new ¶4; extend the keyword list                                              | `text/anotaciya-ta-vysnovky.md` § «АНОТАЦІЯ»                                                          |
+| 2   | **ANNOTATION**                                                                                         | same three edits, mirrored                                                                                                          | same file § «ANNOTATION»                                                                              |
+| 3   | **ПЕРЕЛІК СКОРОЧЕНЬ**                                                                                  | add: ICC, MC SE, N₈₀, σ_shape, «в. п.»                                                                                              | rollup §12.1 U-row for the abbreviations                                                              |
+| 4   | **ВСТУП** — актуальність ¶1                                                                            | replace the paragraph (drops «2–3 години», states the literature at its real strength)                                              | rollup §4.3 (a)                                                                                       |
+| 5   | **ВСТУП** — наукова новизна                                                                            | edit п. 3; **add the new п. 5**                                                                                                     | rollup §4.3 (b), (c)                                                                                  |
+| 6   | **ВСТУП** — практичне значення                                                                         | replace the paragraph (synthetic dataset, not «анонімізований»)                                                                     | rollup §4.3 (d)                                                                                       |
+| 7   | **ВСТУП** — завдання п. 6                                                                              | replace                                                                                                                             | rollup §4.3 (e)                                                                                       |
+| 8   | **ВСТУП** — структура роботи                                                                           | **do this last, at #26** — the counts change                                                                                        | rollup §4.3 (f)                                                                                       |
+| 9   | **§1.1**                                                                                               | replace the closing sentence of ¶2 (mechanism)                                                                                      | rollup §5 «§1.1»                                                                                      |
+| 10  | **§1.2 + табл. 1.1**                                                                                   | add the pre-table sentence; two table cells; replace the post-table paragraph; **drop the price and user-count figures** (D2)       | rollup §5 «§1.2»                                                                                      |
+| 11  | **§1.4 + табл. 1.2**                                                                                   | табл. 1.2 «Hourwell (ця робота)» row D7 `+` → `◐` with its footnote; **replace the gap paragraph with the four rebuilt paragraphs** | rollup §5 «§1.4»                                                                                      |
+| 12  | **§1.5 + табл. 1.3**                                                                                   | replace the market-preconditions paragraph and the «конкурентна перевага» paragraph; two risk rows; the PAR sentence                | rollup §5 «§1.5»                                                                                      |
+| 13  | **§1.6**                                                                                               | add the closing ДП1–ДП4 status paragraph                                                                                            | rollup §5 «§1.6»                                                                                      |
+| 14  | **§1.7**                                                                                               | add the closing sentence about six of seven dimensions                                                                              | rollup §5 «§1.4» (c)                                                                                  |
+| 15  | **Розділ 2** — §2.1, §2.2, §2.3, §2.4, §2.5, §2.6.2, §2.6.3, §2.7                                      | eight anchored edits, in that order; §2.4 is the big one (the solver's size argument becomes an empirical result)                   | rollup §6                                                                                             |
+| 16  | **Розділ 3** — §3.1.3 табл. 3.2, NFR-R2, §3.2 + рис. 3.1, §3.3 табл. 3.3, §3.4, §3.6, §3.7, §3.8, §3.9 | nine anchored edits; §3.7 is a rebuild (the transfer analysis is new material)                                                      | rollup §7                                                                                             |
+| 17  | **Розділ 4** — §4.1, §4.2 + лістинг 4.1, §4.4 + лістинг 4.2, §4.5, §4.6                                | five anchored edits; both listings change                                                                                           | rollup §8                                                                                             |
+| 18  | **Розділ 4** — after §4.6                                                                              | add the two-sentence forward reference to §6.6                                                                                      | rollup §8 «§4.6»                                                                                      |
+| 19  | **РОЗДІЛ 5**                                                                                           | **replace the chapter entirely**                                                                                                    | `text/rozdil-5.md`                                                                                    |
+| 20  | **РОЗДІЛ 6**                                                                                           | **insert the new chapter** after Розділ 5                                                                                           | `text/rozdil-6.md`                                                                                    |
+| 21  | **ВИСНОВКИ**                                                                                           | edit п. 1, 2, 3, 4, 5; replace п. 6; **add п. 7 and п. 8**; replace перспективи                                                     | `text/anotaciya-ta-vysnovky.md` § «ВИСНОВКИ»                                                          |
+| 22  | **СПИСОК ДЖЕРЕЛ**                                                                                      | delete four entries, add seven, renumber every citation in the body                                                                 | rollup §12.3 (a), (b) — **and read (c) first: four citations cannot be produced from the repository** |
+| 23  | **Додаток В**                                                                                          | two typography edits; the blanket contrast claim; **add the `danger-text` row**                                                     | rollup §10.2                                                                                          |
+| 24  | **Додаток Г**                                                                                          | **replace the appendix entirely**                                                                                                   | `text/dodatok-g.md`                                                                                   |
+| 25  | **Додаток Д**                                                                                          | replace the closing placeholder with the resolved paragraph                                                                         | rollup §10.4                                                                                          |
+| 26  | **Додаток Е**                                                                                          | update the NFR-P1 row; regenerate from `docs/traceability.md`; **abridged + explicit pointer** (§10.7a)                             | rollup §10.5                                                                                          |
+| 27  | **Додаток Ж**                                                                                          | five value edits inside the JSON                                                                                                    | rollup §10.6                                                                                          |
+| 28  | **Додаток З**                                                                                          | **insert new** — all 75 cells                                                                                                       | `text/dodatok-z.md`                                                                                   |
+| 29  | **Додаток И**                                                                                          | **insert new** — registered predictions and the four dating commits                                                                 | `text/dodatok-y.md`                                                                                   |
+| 30  | **ВСТУП** — структура роботи                                                                           | now do #8: «шести розділів», the new reference count, the page count                                                                | rollup §4.3 (f)                                                                                       |
 
 ---
 
@@ -133,10 +136,49 @@ Citations in the chapter files are written symbolically — `[@chauhan]`, `[@liu
 resolved to numbers after the list is renumbered, so adding or dropping a reference cannot leave a
 citation pointing at the wrong entry. See `reference-audit.md` for the reference list itself.
 
+## What the 2026-09-13 pass changed
+
+The owner read `full.md` as pages and asked for business style. The mechanical half is in the
+assembler and checked in CI (`verify-style.py`); the textual half — the sentences that narrate a
+plan that changed — is a decision list, not a sweep, and is handled per sentence.
+
+- **Bold is for headings only.** The style sweep strips `**` inside every paragraph and table
+  cell; a wholly bold paragraph (title page, АНОТАЦІЯ, a figure placeholder) keeps its marks. The
+  `text/*.md` chapters and the rollup's blockquote payloads were cleaned at the source as well.
+- **The prose dash is the spaced en dash.** «—» → «–» everywhere outside code; the sources too.
+- **Listings are fenced code blocks with no comments.** `collect_listings()` folds the draft's
+  one-paragraph-per-line лістинги 4.1 and 4.2 into ` ```typescript ` / ` ```python ` blocks and
+  drops the trailing comments; what they said is now prose (rollup §8, three new payloads). Fenced
+  blocks in `text/*.md` are kept as blocks — the previous loader flattened the SQL of Додаток Г
+  into one line, whose first `--` would have commented out everything after it. Code blocks are
+  outside every prose sweep, which also ends the `’shown’` apostrophes inside TypeScript.
+- **Лістинг 4.2 shows the deployed solver parameters (U16).** The rollup's fenced block had
+  never been wired; `listing_solver_parameters()` applies it from the values in
+  `services/recsys/src/hourwell_recsys/params.py`.
+- **No repository paths, ADR numbers or errata ids in the text.** The «Джерела:» lines name
+  files without directories and point at Додаток И.7, which lists them.
+- **`CELL_WITNESS` is keyed by the correction's left-hand side**, not by a rollup line number:
+  the numbers moved with the first edit above them and three witnesses silently stopped applying.
+
 ## Coverage, and what CI can and cannot prove
 
+**A gap the 2026-09-11 pass found, and the shape of it.** `verify-payloads.py` checks _blockquote_
+payloads. The rollup also states corrections **inline, as table cells** — §1.2 (b), §1.4 (a),
+§1.5 (c) — and nothing checks those. §1.4 (a) («табл. 1.2, рядок D7: `+` → `◐`») had been approved
+and its footnote payload had landed, so the legend under the table defined `◐` while no cell in the
+table used one, and the row went on claiming a completed field study that the next three paragraphs
+of §1.4 deny. It is wired now (`cell_set(blocks, 1, 11, 7, "◐", …)`), **and the class of miss is
+closed**: `verify-payloads.py` reads every delimited `X` → `Y` the rollup states outside a
+blockquote and checks the right-hand side reached `full.md` — 12 of 12. It earned itself on the
+first run, finding two Додаток Ж corrections (`"solver"` → `"telemetry"`, `"rationale"` →
+`"rationale_key"`) that §10.6 had approved and nothing had ever applied. A right-hand side too
+short or too elliptical to be its own evidence needs a named `CELL_WITNESS`; a witness may be an
+absence claim (`!Inter Variable`) where the correction landed in the wording its own section
+settled on. Five of the twelve pass on a witness rather than on the text itself — §1.4 (a) among
+them — so those three are still the ones to re-read by hand at freeze.
+
 `verify-payloads.py` reads every blockquote payload out of `corrections-rollup.md` and asks
-whether it reached `full.md`. **55 of 55 accounted for.** A payload with no verbatim placement
+whether it reached `full.md`. **64 of 64 accounted for.** A payload with no verbatim placement
 must be listed by name in one of two tables in that file, and the second of them —
 `CARRIED_ELSEWHERE` — requires a _witness_: a sentence that must be present instead. An exemption
 is therefore a claim about the text, and the claim is checked. "Not placed" cannot be a silent

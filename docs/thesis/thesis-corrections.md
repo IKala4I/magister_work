@@ -1031,3 +1031,28 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     cost belongs in the same paragraph: a Ukrainian-only speaker will more often skip the survey,
     and skipping is a designed path (INT with prior strength halved, ADR-0005 §2), not a failure.
     Do **not** write that the survey "is localised". ADR-0023 §1.1, spec-conflicts L21.
+
+64. **§2.7 (модель винагород) vs Додаток Г (права доступу) — the two passages contradicted each
+    other, and §2.7 was the wrong one.** §2.7 said «Пропуск дає r = 0 негайно й переводить рядок у
+    стан `rejected`» two sentences after binding «пропуск» to **lapse**; Додаток Г said `lapsed` is
+    set by the nightly attribution and is not a status the client may write. Both cannot be true of
+    the same event, and the system says Додаток Г is right — the sentence had collapsed two
+    different events under one Ukrainian word. As built (`db/feedback.ts` `skipBlock` vs
+    `lapseScan`; `_shared/rewards.ts` `instantOutcome` vs `dailyOutcome`):
+
+    - **Explicit skip** (`block_skipped`) → tuple r = 0, `reason: skipped`, `source: instant`,
+      status **`rejected`** on both sides — the client is allowed to write it
+      (`sync_apply_rec_status` accepts `accepted | pinned | moved | rejected`).
+    - **Lapse** (`lapse_observed`) → status **`lapsed`**: locally the moment the lazy scan runs,
+      **on the server only at the 23:55-local authority**, which is also where the sole tuple comes
+      from (r = 0, `reason: lapsed`, `source: daily`). `instantOutcome` returns null for a lapse —
+      the instant path never fires for one.
+
+    Evidence, iPhone hardware pass 2026-09-08 (`device-pass/ios-20260908-1215`): the day's skip at
+    09:09:57 carries `reason: skipped, source: instant` with `attributed_at == delivered_at` and
+    `status: rejected`; the five lapses of the same day carry `reason: lapsed, source: daily`, all
+    stamped 21:00:03Z — the `*/15` sweep's first tick past 23:55 local (notes item 53). The same
+    capture shows the split state: after five `lapse_observed` facts were pushed at 09:22, the
+    server still held **11 × `shown`** and `rewards_after` was empty (`server-q-first-fg.json`).
+
+    Change the text to the two-event form (done — rollup §2.7 payload). Додаток Г stands unchanged.

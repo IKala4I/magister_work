@@ -43,6 +43,14 @@ jobs:
         run: python3 docs/thesis/verify-payloads.py
       - name: The formatter brief still quotes the text verbatim
         run: python3 docs/thesis/verify-brief.py
+      - name: The assembled thesis obeys the style decisions (bold, dash, listings, artefacts)
+        run: python3 docs/thesis/verify-style.py
+      # Documentation about state drifts the way the text does, only more quietly: ASSEMBLY.md's
+      # own paragraph about the inline-correction gap was false within a day of being written,
+      # and a study summary carried a wrong grid claim forward into a chapter draft. A state
+      # claim that can be checked is checked. Reads only committed files, so it runs here.
+      - name: The docs' claims about the pipeline match the pipeline
+        run: python3 docs/thesis/verify-state.py
       # assemble.py cannot run here: it reads docs/thesis/draft.docx, which is git-ignored and
       # is never published from this public repo. So CI checks the product, not the process —
       # the three checkers above all read full.md itself. Re-running the assembler and
