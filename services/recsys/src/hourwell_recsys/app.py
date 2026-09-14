@@ -51,14 +51,23 @@ class DailyRateLimiter:
     def __init__(self, limit: int = PLAN_RATE_LIMIT_PER_DAY) -> None:
         self.limit = limit
         self._counts: dict[tuple[str, date], int] = defaultdict(int)
+        self._touched: dict[tuple[str, date], date] = {}
 
     def hit(self, user_id: str, day: date, *, today: date | None = None) -> bool:
-        today = today or datetime.now(UTC).date()  # evict by wall clock, never by request data
-        stale = [k for k in self._counts if abs((today - k[1]).days) > 8]
+        # Evict by wall clock, never by request data: a key is stale eight days after it was LAST
+        # HIT, not eight days from the plan date it names. Comparing `today` with the plan date
+        # deleted the live key on every call once the requested day lay more than eight days from
+        # the wall clock — the cap silently stopped applying to such requests, and the API test,
+        # whose fixture names a fixed September date, went red by itself on 2026-09-14.
+        today = today or datetime.now(UTC).date()
+        key = (user_id, day)
+        stale = [k for k, t in self._touched.items() if (today - t).days > 8]
         for k in stale:
             del self._counts[k]
-        self._counts[(user_id, day)] += 1
-        return self._counts[(user_id, day)] <= self.limit
+            del self._touched[k]
+        self._counts[key] += 1
+        self._touched[key] = today
+        return self._counts[key] <= self.limit
 
 
 def create_app(
