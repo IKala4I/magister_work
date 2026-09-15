@@ -160,6 +160,37 @@ plan that changed — is a decision list, not a sweep, and is handled per senten
 - **`CELL_WITNESS` is keyed by the correction's left-hand side**, not by a rollup line number:
   the numbers moved with the first edit above them and three witnesses silently stopped applying.
 
+## What the 2026-09-15 pass changed
+
+The owner's submission report (six placement items, no claim changed) and two patches from the
+formatter, all applied at the sources; `full.md` regenerated and every hunk checked against it.
+
+- **Додаток Ж's fence closed one object too early.** `fence_json_example()` took the first «}»-only
+  paragraph after the opening brace, which is the last assignment object's; the JSON's own closing
+  brace is the first «}» after the `unplaced` line, and that is what it takes now. «],», `unplaced`
+  and the final brace are inside the listing again.
+- **Extra paragraphs of a payload follow their head by position.** They used to be placed after the
+  first paragraph containing the previous paragraph's opening 60 characters. §1.4 (b)'s second
+  paragraph opens with words that also open a sentence of 4.3 (g), so two paragraphs approved for §1.4
+  had been landing in ВСТУП since PR #78 — where the second pass of 2026-09-14 found them and expanded
+  them for that position. The reviewed placement stands: they are 4.3 (h) now, placed by name, and
+  `full.md` is byte-identical there before and after the change.
+- **Three new placements:** 4.3 (h); §1.6 [1] (the strongest sentence of the work, moved out of §1.4's
+  paragraph, with one sentence on the reproducibility package) before the status paragraph; §1.6 [2]
+  (the evaluation boundary) as the last paragraph of §1.6. Payload count 64 → 67.
+- **Додаток Г's provenance paragraph** had been written inside the file's front-matter blockquote,
+  which the loader drops; it is a body paragraph now (the formatter's hunk, without the directory
+  name).
+- **§6.6 is titled by its result** — «шість класів дефектів структурно невидимі без пристрою» — and
+  opens with табл. 6.6; the procedure (6.6.1) and the findings (6.6.2) follow, and 6.6.4–6.6.6 are
+  6.6.3–6.6.5. No cross-reference in the text pointed at the old numbers.
+- **ВИСНОВКИ п.7 and §6.9** state the tie in the prior's world before the win count; the annotation keeps
+  «conclusion first, then both facts in one sentence» (rollup §10.1).
+- `formatter-brief.md`: the quoted strings carry the text's apostrophe and dash; the two §7 rows with
+  unescaped pipes are one row each again; a decimal-comma row says the English ANNOTATION keeps its
+  points, and `+0.4 pp` / `0.3–1.4 pp` are in the machine-checked list. The «не втрималася під час
+  реалізації» line the formatter asked to drop had already gone with the sentence in PR #78.
+
 ## Coverage, and what CI can and cannot prove
 
 **A gap the 2026-09-11 pass found, and the shape of it.** `verify-payloads.py` checks _blockquote_
@@ -178,7 +209,7 @@ settled on. Five of the twelve pass on a witness rather than on the text itself 
 them — so those three are still the ones to re-read by hand at freeze.
 
 `verify-payloads.py` reads every blockquote payload out of `corrections-rollup.md` and asks
-whether it reached `full.md`. **64 of 64 accounted for.** A payload with no verbatim placement
+whether it reached `full.md`. **67 of 67 accounted for.** A payload with no verbatim placement
 must be listed by name in one of two tables in that file, and the second of them —
 `CARRIED_ELSEWHERE` — requires a _witness_: a sentence that must be present instead. An exemption
 is therefore a claim about the text, and the claim is checked. "Not placed" cannot be a silent

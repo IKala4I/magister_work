@@ -2,15 +2,35 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-14 — **post-p12/thesis-style-pass** (PR #78): business style and the
-> plan-change removal are in; item 8 and nine number decisions wait on the owner. Earlier: the
-> corrections rollup (2026-09-09) is green on
-> the format gate. `docs/thesis/corrections-rollup.md` is no longer an index: all 63 items carry
-> the Ukrainian sentences the draft should read, grouped by the draft's own chapters, tagged
-> Ф / П / С, with every number carrying its measurement condition. **Next phase: writing the
-> thesis text** — the rollup is the document to write from.
+> Last update: 2026-09-15 — **post-p12/submission-report**: the owner's submission report (six
+> placement items) and the formatter's second patch set are in at the sources; nothing waits on the
+> owner. Earlier: the business-style pass (PR #78), the nine number decisions (PR #79), and the
+> corrections rollup (2026-09-09), which is no longer an index: all 63 items carry the Ukrainian
+> sentences the draft should read, tagged Ф / П / С, every number with its measurement condition.
+> **The thesis text is assembled and green on every gate.**
 
-## Current state (2026-09-14) — post-p12/thesis-style-pass (PR #78)
+## Current state (2026-09-15) — post-p12/submission-report
+
+**Done and green on every gate.** The owner read the pages and sent a six-item submission report
+(items 1–2 were already in the source); items 3–8 are applied at the sources — placement and order
+only, no claim changed: the strongest sentence of the work moved from §1.4 to §1.6 with one sentence
+on the reproducibility package and one closing sentence on the evaluation boundary; §6.6 titled by
+its result and opening with табл. 6.6 (6.6.4–6.6.6 → 6.6.3–6.6.5); §4.1's bilingual parser tied to
+табл. 6.7; ВИСНОВКИ п.7 and §6.9 with the prior-world tie before the win count. The formatter's two patches
+are merged at the sources and every hunk checked against the regenerated `full.md`
+(`docs/thesis/plan-change-audit.md`, last section; `ASSEMBLY.md`, 2026-09-15 section).
+
+**Found on the way, fixed:** the assembler placed a payload's extra paragraphs by a 60-character
+text search, and two paragraphs approved for §1.4 had been landing in ВСТУП since PR #78 (the second
+pass adapted them there). The placement stands as reviewed — now explicit as 4.3 (h) — and extra
+paragraphs follow their head by position. Додаток Ж's JSON fence closed after the last assignment
+object; it closes after the final brace.
+
+**Waiting on the owner — nothing.** Gates: assemble `untouched_drift 0`, no SKIPPED; verify-numbers
+144/0; verify-payloads 67/67 + 12/12; verify-brief 46/0; verify-state 14/0; verify-style 0;
+verify-docx on `full.md` 63/0 (on the un-assembled draft.docx it lists the remaining work); gen-dodatok-z --check ok; format:check clean.
+
+## Earlier state (2026-09-14) — post-p12/thesis-style-pass (PR #78)
 
 **Done and green on every gate.** The owner read `text/full.md` as pages on 2026-09-13 and gave
 eight edits; seven are in. (1–6) Business style at the sources: bold only in headings, «–» for the

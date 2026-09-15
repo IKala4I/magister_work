@@ -1,6 +1,6 @@
 # Do-not-touch list for whoever formats `text/full.md`
 
-Every string below is quoted **verbatim** from `docs/thesis/text/full.md` as of 2026-09-13. This
+Every string below is quoted **verbatim** from `docs/thesis/text/full.md` as of 2026-09-15. This
 is a list, not a principle: hand it over as it is.
 
 **What the formatter is for:** headings, styles, page layout, tables, figure placement, the
@@ -58,9 +58,9 @@ agree. It does not check everything in this list, but what it does check it chec
 | Keep exactly                                           | Do not write                  |
 | ------------------------------------------------------ | ----------------------------- |
 | `у 58 світах, грає внічию у 17 і не програє в жодному` | `перемагає майже скрізь`      |
-| `понад 120 — у 48 із 75 розглянутих світів`            | `у більшості світів`          |
+| `понад 120 – у 48 із 75 розглянутих світів`            | `у більшості світів`          |
 | `N₈₀ не перевищує 60 у 13 комірках із 75`              | `у частині комірок`           |
-| `розв'язувач у 12 із 15 запитів доходив до ліміту`     | `здебільшого` · `у більшості` |
+| `розв’язувач у 12 із 15 запитів доходив до ліміту`     | `здебільшого` · `у більшості` |
 | `набір щонайменше 172 осіб`                            | `близько 170` · `≈ 200`       |
 | `40 повтореннях`                                       | `кількох повтореннях`         |
 | `N₈₀ … дорівнює 31 … а в дорослій вибірці — 33`        | either number alone           |
@@ -126,28 +126,29 @@ A copy-editor's instinct is that these weaken the text. They are the text. In pa
 Each of these phrases must stay **inside the sentence with its number**:
 
 `на еталонному пристрої` · `на машині розгортання (Oracle A1, два закріплені ядра)` ·
-`на машині розробника класу M-series` · `за слабкого зв'язку` · `на 95-му перцентилі` ·
-`(дві серії по десять, 3 і 4 вересня; об'єднано 4,0 с, n = 20)` ·
+`на машині розробника класу M-series` · `за слабкого зв’язку` · `на 95-му перцентилі` ·
+`(дві серії по десять, 3 і 4 вересня; об’єднано 4,0 с, n = 20)` ·
 `(стандартна похибка Монте-Карло ≈ 0,14 в. п.)` · `за інформативного приору` ·
 `за зареєстрованої неоднорідності` · `медіана по 40 повтореннях` ·
 `пораховані на коді придатності, а не спостережені` · `за припущеного відсіву 30 %`
 
 ## 7. Characters and formulas — do not normalise
 
-| Keep                                       | A formatter or model will want to write | Consequence                                                                |
-| ------------------------------------------ | --------------------------------------- | -------------------------------------------------------------------------- |
-| `clip[0,1]` in (2.9) and (2.10)            | `clip[0, 1]`                            | tooling has already misread this as a citation and produced `clip[‹?›, 1]` |
-| `E(x~~D) E(a~~π(·                          | x))` in (2.15)                          | `E(x~~D)`                                                                  | Markdown tooling reads `~…~` as strikethrough and doubles the tildes |
-| `«…»` guillemets                           | `"…"` typographic quotes                | the whole document uses guillemets                                         |
-| `’` (U+2019) apostrophe                    | `'`                                     | every checker folds both, but the text is one                              |
-| `–` en dash in numeric ranges              | `-` hyphen                              | `3,7–4,1` vs `3,7-4,1`                                                     |
-| `–` spaced en dash as the prose dash       | `—` em dash                             | the whole document uses the en dash (owner, 2026-09-13)                    |
-| `в. п.` with the space                     | `в.п.`                                  | appears ~90 times                                                          |
-| Subscripts `N₈₀ α₀ β₀ μ₀ p₀ c₀`            | `N80`, `alpha0`                         | —                                                                          |
-| Superscripts `4·10⁴ 3·10³ A⁻¹ xᵀ`          | `10^4`                                  | —                                                                          |
-| `≈ ≤ ≥ ± · × → ∈ Σ σ τ λ ε φ θ μ π`        | ASCII equivalents                       | —                                                                          |
-| the four-space run before `(2.1)`…`(2.20)` | a single space                          | it is the Word tab stop for the equation number                            |
-| `                                          | A_m(x)                                  | `                                                                          | `A_m(x)`                                                             | the bars are cardinality, not emphasis |
+| Keep                                       | A formatter or model will want to write | Consequence                                                                                                                                                                                                                                                              |
+| ------------------------------------------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `clip[0,1]` in (2.9) and (2.10)            | `clip[0, 1]`                            | tooling has already misread this as a citation and produced `clip[‹?›, 1]`                                                                                                                                                                                               |
+| `E(x~D) E(a~π(·\|x))` in (2.15)            | `E(x~~D)`                               | Markdown tooling reads `~…~` as strikethrough and doubles the tildes                                                                                                                                                                                                     |
+| `«…»` guillemets                           | `"…"` typographic quotes                | the whole document uses guillemets                                                                                                                                                                                                                                       |
+| `’` (U+2019) apostrophe                    | `'`                                     | every checker folds both, but the text is one                                                                                                                                                                                                                            |
+| `–` en dash in numeric ranges              | `-` hyphen                              | `3,7–4,1` vs `3,7-4,1`                                                                                                                                                                                                                                                   |
+| `–` spaced en dash as the prose dash       | `—` em dash                             | the whole document uses the en dash (owner, 2026-09-13)                                                                                                                                                                                                                  |
+| `в. п.` with the space                     | `в.п.`                                  | appears ~90 times                                                                                                                                                                                                                                                        |
+| Subscripts `N₈₀ α₀ β₀ μ₀ p₀ c₀`            | `N80`, `alpha0`                         | —                                                                                                                                                                                                                                                                        |
+| Superscripts `4·10⁴ 3·10³ A⁻¹ xᵀ`          | `10^4`                                  | —                                                                                                                                                                                                                                                                        |
+| `≈ ≤ ≥ ± · × → ∈ Σ σ τ λ ε φ θ μ π`        | ASCII equivalents                       | —                                                                                                                                                                                                                                                                        |
+| the four-space run before `(2.1)`…`(2.20)` | a single space                          | it is the Word tab stop for the equation number                                                                                                                                                                                                                          |
+| `\|A_m(x)\|`                               | `A_m(x)`                                | the bars are cardinality, not emphasis                                                                                                                                                                                                                                   |
+| `0,45` — the decimal comma                 | `0.45`                                  | the Ukrainian norm. The English ANNOTATION keeps its decimal points (`+0.4 pp`, `0.3–1.4 pp`): a comma there would read as a thousands separator. Two correct norms side by side, not a discrepancy — a «one decimal mark per document» check must exempt the ANNOTATION |
 
 The code listings (§4.2, §4.4, Додаток Г) are fenced code blocks: monospace, indentation kept,
 and no comments — every explanation is in the prose beside them (owner, 2026-09-13). They have
@@ -195,9 +196,9 @@ drift from the text it describes. One string per line; nothing else in this file
 10–11 мс
 0,38–1,21
 у 58 світах, грає внічию у 17 і не програє в жодному
-понад 120 — у 48 із 75 розглянутих світів
+понад 120 – у 48 із 75 розглянутих світів
 N₈₀ не перевищує 60 у 13 комірках із 75
-розв'язувач у 12 із 15 запитів доходив до ліміту
+розв’язувач у 12 із 15 запитів доходив до ліміту
 набір щонайменше 172 осіб
 62,1 / 36,6 / 2,2
 порівняння з наявними планувальниками не проводилося
@@ -216,7 +217,7 @@ N₈₀ не перевищує 60 у 13 комірках із 75
 є виведенням із Pixel 7a, а не вимірюванням
 на еталонному пристрої
 на машині розгортання
-за слабкого зв'язку
+за слабкого зв’язку
 на 95-му перцентилі
 за інформативного приору
 за зареєстрованої неоднорідності
@@ -225,4 +226,6 @@ clip[0,1]
 E(x~D)
 |A_m(x)|
 шести розділів
++0.4 pp
+0.3–1.4 pp
 ```

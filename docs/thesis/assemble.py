@@ -228,6 +228,8 @@ ROLLUP_EDITS: list[tuple] = [
     ("4.3", 3, "from", "Практичне значення одержаних результатів.", "Розроблений програмний комплекс Kairos"),
     ("4.3", 4, "replace", "6. розроблено методику експериментального оцінювання ефективності системи у формі", None),
     ("4.3", 5, "after", "Отже, актуальність теми зумовлена", None),
+    # (h) – the two costed-D7 paragraphs, after (g); anchored on a sentence only (g) has
+    ("4.3", 6, "after", "Систему побудовано на тому, що конкретна людина відхиляється від профілю", None),
     # --- Розділ 1 --------------------------------------------------------------------------
     ("§1.1", 0, "from", "починаючи з класичного опитувальника", "Із цього випливає безпосередній практичний висновок"),
     ("§1.2", 0, "from", "Узагальнене порівняння можливостей наведено", "Узагальнене порівняння можливостей наведено"),
@@ -238,6 +240,9 @@ ROLLUP_EDITS: list[tuple] = [
     ("§1.5", 0, "from", "Хоча робота є науково-прикладною", "По-перше, дозріло он-девайс машинне навчання"),
     ("§1.5", 1, "replace", "Конкурентна перевага, що накопичується", None),
     ("§1.6", 0, "after", "потребує математичної формалізації задачі та методів", None),
+    # owner's submission report 2026-09-15: items 3 + 7 before the status paragraph, item 4 after it
+    ("§1.6", 1, "before", "Стан відповідей на дослідницькі питання, отриманий у цій роботі", None),
+    ("§1.6", 2, "after", "Стан відповідей на дослідницькі питання, отриманий у цій роботі", None),
     # --- Розділ 2 --------------------------------------------------------------------------
     ("§2.3", 2, "replace", "Незалежно від цього, для забезпечення оцінюваності", None),
     ("§2.3", 1, "after", "(C3) τ → {τ(1), …, τ(m)}", None),
@@ -438,6 +443,7 @@ def para_replace(blocks, locator, new, label):
     i = find_one(blocks, locator, label)
     blocks[i] = {**blocks[i], "text": new, "origin": "edited"}
     APPLIED.append(label)
+    return i
 
 
 def para_tail(blocks, locator, payload, label):
@@ -452,6 +458,7 @@ def para_insert_after(blocks, locator, new, label):
     i = find(blocks, *locator) if isinstance(locator, tuple) else find(blocks, locator)
     blocks.insert(i + 1, {"kind": "p", "style": "", "text": new, "origin": "inserted"})
     APPLIED.append(label)
+    return i + 1
 
 
 def run_sub(blocks, locator, old, new, label):
@@ -473,6 +480,7 @@ def para_before(blocks, locator, new, label):
     i = find_one(blocks, locator, label)
     blocks.insert(i, {"kind": "p", "style": "", "text": new, "origin": "inserted"})
     APPLIED.append(label)
+    return i
 
 
 def para_append(blocks, locator, new, label):
@@ -483,6 +491,7 @@ def para_append(blocks, locator, new, label):
         return
     blocks[i] = {**blocks[i], "text": blocks[i]["text"].rstrip() + " " + new, "origin": "edited"}
     APPLIED.append(label)
+    return i
 
 
 def para_from(blocks, locator, marker, new, label):
@@ -499,6 +508,7 @@ def para_from(blocks, locator, marker, new, label):
         return
     blocks[i] = {**blocks[i], "text": (text[:at] + new).strip(), "origin": "edited"}
     APPLIED.append(label)
+    return i
 
 
 def apply_rollup_edits(blocks) -> None:
@@ -514,28 +524,36 @@ def apply_rollup_edits(blocks) -> None:
         head, rest = paras[0], paras[1:]
         try:
             if op == "replace":
-                para_replace(blocks, anchor, head, label)
+                pos = para_replace(blocks, anchor, head, label)
             elif op == "from":
                 marker, tail = marker if isinstance(marker, tuple) else (marker, "")
                 body = head.lstrip("\u2026").strip()
                 for lead in ("[РИСУНОК 3.1] ",):
                     body = body.removeprefix(lead)
-                para_from(blocks, anchor, marker, body + tail, label)
+                pos = para_from(blocks, anchor, marker, body + tail, label)
             elif op == "after":
-                para_insert_after(blocks, anchor, head, label)
+                pos = para_insert_after(blocks, anchor, head, label)
             elif op == "before":
-                para_before(blocks, anchor, head, label)
+                pos = para_before(blocks, anchor, head, label)
             elif op == "append":
-                para_append(blocks, anchor, head, label)
+                pos = para_append(blocks, anchor, head, label)
             else:
                 raise ValueError(op)
         except LookupError:
             SKIPPED.append(f"{label} (anchor not found: {anchor[:44]!r})")
             continue
-        prev = head[:60]
+        if pos is None:
+            if rest:
+                SKIPPED.append(f"{label} +para (head was skipped)")
+            continue
+        # Extra paragraphs follow their head by POSITION. Until 2026-09-15 each was placed after
+        # the first paragraph whose text contained the previous paragraph's opening 60 characters
+        # – and §1.4 (b)'s second paragraph opens with words that also open a sentence of the
+        # ВСТУП payload 4.3 (g), so two paragraphs approved for §1.4 landed in the introduction.
         for extra in rest:
-            para_insert_after(blocks, prev, extra, f"{label} +para")
-            prev = extra[:60]
+            blocks.insert(pos + 1, {"kind": "p", "style": "", "text": extra, "origin": "inserted"})
+            APPLIED.append(f"{label} +para")
+            pos += 1
     for op, anchor, text, label in LITERAL_EDITS:
         if op == "append":
             para_append(blocks, anchor, text, label)
@@ -623,7 +641,11 @@ def fence_json_example(blocks: list[dict]) -> None:
     renders half as code and half as paragraphs. It is a listing and is fenced like one."""
     h = find(blocks, "Додаток Ж. Приклад відповіді")
     start = next(k for k in range(h + 1, len(blocks)) if blocks[k]["kind"] == "p" and blocks[k]["text"].strip() == "{")
-    end = next(k for k in range(start + 1, len(blocks)) if blocks[k]["kind"] == "p" and blocks[k]["text"].strip() == "}")
+    # The JSON's closing brace is the first «}»-only paragraph AFTER the `unplaced` line: the
+    # last assignment object closes with «}» too, and taking the first «}» after `start` fenced
+    # the block there, leaving «],», `unplaced` and the final brace as prose (formatter, 2026-09-15).
+    u = find(blocks, '"unplaced": [ { "task_id"', start)
+    end = next(k for k in range(u + 1, len(blocks)) if blocks[k]["kind"] == "p" and blocks[k]["text"].strip() == "}")
     lines = [b["text"].replace("\t", "    ").rstrip() for b in blocks[start:end + 1] if b["kind"] == "p" and b["text"].strip()]
     blocks[start:end + 1] = [{"kind": "code", "lang": "json", "lines": lines, "origin": "edited"}]
     APPLIED.append(f"Додаток Ж: {len(lines)} JSON lines fenced")

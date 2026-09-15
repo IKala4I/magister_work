@@ -2,6 +2,25 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — the submission report and the formatter's second patch set (2026-09-15, post-p12/submission-report)
+
+- **Six placement items from the owner's submission report; no claim changed.** The strongest sentence
+  of the work leaves the middle of a §1.4 paragraph for §1.6, where the contribution is formulated,
+  with one sentence on the reproducibility package (pre-registration with verifiable timestamps before
+  the study code, the synthetic event set, the one-command bench) and one closing sentence naming the
+  evaluation boundary in §1.6 rather than forty pages later. §6.6 is titled by its result («шість
+  класів дефектів структурно невидимі без пристрою») and opens with табл. 6.6. §4.1 says the bilingual
+  parser is a specification assumption refuted by measurement (табл. 6.7). ВИСНОВКИ п.7 and §6.9 put the tie in the prior's own world before the 58 wins.
+- **The formatter's patches, applied at the sources:** p(A) ≈ 0,45 is «припущення, а не вимірювання»
+  in §5.5.2; Додаток Г carries its provenance paragraph (it had been written in the front matter the
+  loader drops); Додаток Ж's JSON fence closes after the final brace, not after the last assignment;
+  the brief's quoted strings carry the text's apostrophe and dash, and the ANNOTATION's decimal points
+  are pinned.
+- **A placement defect in the assembler, found on the way:** extra paragraphs of a multi-paragraph
+  payload were placed by a 60-character text search, and two paragraphs approved for §1.4 had been
+  landing in ВСТУП since PR #78. The reviewed placement stands (they are 4.3 (h) now); extra
+  paragraphs follow their head by position.
+
 ## Post-P12 — business style for the thesis text (2026-09-13, post-p12/thesis-style-pass)
 
 - **Bold is for headings only; the prose dash is «–»; listings carry no comments.** Owner
