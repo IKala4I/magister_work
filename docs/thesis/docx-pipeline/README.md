@@ -12,35 +12,42 @@
 ./run_all.sh ../text/full.md ../formatter-brief.md out/
 ```
 
-або окремо:
+або окремо (з цієї теки; `uv run` бере Python і пакети з власного проєкту теки):
 
 ```bash
-python3 build.py  --src ../text/full.md --brief ../formatter-brief.md --out out/hourwell.docx --report out/report.json
-python3 verify.py --src ../text/full.md --brief ../formatter-brief.md --docx out/hourwell.docx
-python3 check_legend_symbols.py ../text/full.md
-python3 audit_markdown.py ../text/full.md --out out/audit.md
-python3 regress.py GOLDEN.docx out/hourwell.docx          # після будь-якої зміни конвеєра
+uv run python build.py  --src ../text/full.md --brief ../formatter-brief.md --out out/hourwell.docx --report out/report.json
+uv run python verify.py --src ../text/full.md --brief ../formatter-brief.md --docx out/hourwell.docx
+uv run python check_legend_symbols.py ../text/full.md
+uv run python audit_markdown.py ../text/full.md --out out/audit.md
+uv run python regress.py golden/hourwell.docx out/hourwell.docx   # після будь-якої зміни конвеєра
 ```
 
 `cmp` чи хеш усього .docx для порівняння не годяться: у zip записано час складання, тож
 два однакові документи різняться байтами архіву. `regress.py` порівнює вміст частин.
 
-Залежності: Python 3.10+, `python-docx`, `lxml`, `pandoc` (LaTeX → OMML для формул).
-Для PDF — LibreOffice **разом із `libreoffice-math`**: без нього LibreOffice не малює формул
-і PDF виглядає так, ніби формули зникли, хоча в .docx вони є.
+Залежності. **Python і пакети — не з машини**, а з проєкту uv цієї теки: `pyproject.toml`
+(python-docx 1.2.0, lxml 6.1.1, точні версії) і `uv.lock`, Python 3.12 лише керований uv
+(`python-preference = "only-managed"`) — видалення системного Python чи дистрибутива на кшталт
+Anaconda збірку не ламає. `run_all.sh` запускає все через `uv run --locked`. Із системи потрібні
+тільки `uv`, `pandoc` (LaTeX → OMML для формул) і `unzip`; `run_all.sh` друкує версії першим
+рядком. **pandoc** формує OMML формул, тож його версія може зсунути формули: еталон відтворюється
+частина до частини з pandoc 3.8, 3.8.2.1 і 3.11 (перевірено 2026-09-28); після оновлення pandoc —
+`regress.py` проти еталона. Для PDF — LibreOffice **разом із `libreoffice-math`**: без нього
+LibreOffice не малює формул і PDF виглядає так, ніби формули зникли, хоча в .docx вони є.
 
 ## Файли
 
-| Файл                      | Що робить                                                                            |
-| ------------------------- | ------------------------------------------------------------------------------------ |
-| `build.py`                | складальник: стилі, класифікатор рядків, таблиці, код, формули, нормалізація, реєстр |
-| `formulas.py`             | 20 формул у LaTeX — **дані**, набрані вручну з рядків `full.md`                      |
-| `registry.json`           | погоджені правки поверх джерела, прив'язані до тексту (якорі)                        |
-| `verify.py`               | звірка .docx із джерелом, брифом і реєстром                                          |
-| `regress.py`              | порівняння двох .docx: байтове, потім змістовне по елементах                         |
-| `check_legend_symbols.py` | легенда, що описує символ, вимагає його входження в таблицю                          |
-| `audit_markdown.py`       | суцільний аудит джерела на сліди псування розміткою                                  |
-| `run_all.sh`              | усе разом                                                                            |
+| Файл                                           | Що робить                                                                            |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `build.py`                                     | складальник: стилі, класифікатор рядків, таблиці, код, формули, нормалізація, реєстр |
+| `formulas.py`                                  | 20 формул у LaTeX — **дані**, набрані вручну з рядків `full.md`                      |
+| `registry.json`                                | погоджені правки поверх джерела, прив'язані до тексту (якорі)                        |
+| `verify.py`                                    | звірка .docx із джерелом, брифом і реєстром                                          |
+| `regress.py`                                   | порівняння двох .docx: байтове, потім змістовне по елементах                         |
+| `check_legend_symbols.py`                      | легенда, що описує символ, вимагає його входження в таблицю                          |
+| `audit_markdown.py`                            | суцільний аудит джерела на сліди псування розміткою                                  |
+| `run_all.sh`                                   | усе разом                                                                            |
+| `pyproject.toml`, `uv.lock`, `.python-version` | власне середовище конвеєра: Python 3.12 від uv, точні версії пакетів                 |
 
 ## Рішення, закладені в код, і чому
 

@@ -1,0 +1,17 @@
+[project]
+name = "hourwell-thesis-docx"
+version = "0.1.0"
+description = "Thesis full.md → .docx pipeline (НУБіП / ДСТУ 3008) and its checks; README.md is the manual"
+requires-python = ">=3.12,<3.13"
+# Exact pins: Document() starts from python-docx's own template, so an upgrade can move styles.xml
+# and every paragraph; a change here goes through regress.py against the golden like code does.
+dependencies = [
+    "python-docx==1.2.0",
+    "lxml==6.1.1",
+]
+
+[tool.uv]
+package = false
+# uv's own Python, never the machine's: the pipeline must not break when a system Python or a
+# distribution (Anaconda, 2026-09-28) is removed.
+python-preference = "only-managed"
