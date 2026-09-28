@@ -63,6 +63,10 @@ __pycache__/
 # thesis working files (never published from this repo)
 docs/thesis/draft.docx
 docs/thesis/*.docx
+# the .docx pipeline's build output and its local regression golden (a .docx and the exact
+# full.md it was built from) stay out of git; the pipeline's scripts and README are committed
+docs/thesis/docx-pipeline/out/
+docs/thesis/docx-pipeline/golden/
 
 # local session exports (never commit conversation transcripts)
 session-backup*.txt

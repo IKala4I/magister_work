@@ -248,3 +248,15 @@ No new Python or Deno dependencies. `ANONYMOUS_RETENTION_DAYS = 30` added to the
 | ----------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | expo        | ~57.0.21 | patch bump via `npx expo install` — expo-doctor's "packages match the SDK" check fails CI on every upstream patch release (drift seen 2026-09-08 after a green run the day before); build 2 on the iPhone was 57.0.20 |
 | expo-router | ~57.0.20 | same bump, same reason                                                                                                                                                                                                |
+
+## Thesis .docx pipeline (verified 2026-09-28)
+
+`docs/thesis/docx-pipeline/` is its own uv project (`pyproject.toml`, `uv.lock`); `run_all.sh` runs
+every step through `uv run --locked` and prints these versions first.
+
+| Package / tool            | Version | Notes                                                                                                                                                                                                |
+| ------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CPython (uv-managed)      | 3.12.14 | `requires-python = ">=3.12,<3.13"`, `.python-version` 3.12, `[tool.uv] python-preference = "only-managed"` (uv docs, settings reference, via ctx7 2026-09-28) — never the machine's Python           |
+| python-docx               | 1.2.0   | exact pin: `Document()` starts from the package's own template, so an upgrade can move `styles.xml`; any change goes through `regress.py` against the golden                                         |
+| lxml                      | 6.1.1   | exact pin, same reason                                                                                                                                                                               |
+| pandoc (system, Homebrew) | 3.11    | LaTeX → OMML for the 20 formulas; not pinned — 3.8, 3.8.2.1 and 3.11 all reproduce the golden part-for-part identical (2026-09-28). After a pandoc upgrade, run `regress.py` before trusting a build |
