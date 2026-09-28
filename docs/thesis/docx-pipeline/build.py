@@ -79,13 +79,39 @@ def _is_code_line(n):
 
 
 NUMERIC_CELL = re.compile(r'^[+\-−]?\d+(\.\d+)?(\s*±\s*\d+(\.\d+)?)?$')
+SECTION_COLUMN = re.compile(r'(?<!\w)(?:[Пп]ід)?[Рр]озділ')   # «Розділ реалізації», «Підрозділ»
 CODE_SPAN = re.compile(r'`[^`]*`')
 URLISH = re.compile(r'\S*(?:https?://|www\.|@|\.md|\.py|\.json|\.sql)\S*')
+
+
+def _cell_spans(s):
+    """Межі комірок рядка таблиці за GFM: зворотна скісна екранує наступний символ,
+    тож \\| — риска всередині комірки. Повертає [(a, b)]: s[a:b] — вміст комірки
+    без рисок-роздільників."""
+    bars, i = [], 0
+    while i < len(s):
+        if s[i] == '\\': i += 2; continue
+        if s[i] == '|': bars.append(i)
+        i += 1
+    spans = [(a + 1, b) for a, b in zip(bars, bars[1:])]
+    if bars and s[bars[-1] + 1:].strip(): spans.append((bars[-1] + 1, len(s)))
+    return spans
+
+
+def _table_header(n):
+    """Рядок заголовка таблиці, якій належить рядок n."""
+    h = n
+    while h > 1 and LINES[h - 2].startswith('|'): h -= 1
+    return LINES[h - 1]
 
 
 def _decimal_comma(n, s):
     """Десяткова крапка → кома і ASCII-дефіс → мінус. Лише в суто числових
     комірках таблиць: у прозі «підрозділ 5.2» під це правило не потрапляє.
+
+    Стовпці, чий заголовок називає розділ чи підрозділ, правило теж оминає: `3.7`
+    там — номер підрозділу, а не дріб. Табл. Е.1, «Розділ реалізації» для FR-42:
+    конвеєр, відновлений 2026-09-28, друкував його як «3,7».
 
     ВИНЯТОК, ЯКИЙ НЕ Є ПОМИЛКОЮ: англомовна анотація лишається з десятковою
     крапкою — «+0.4 pp», «1.4–1.9 pp». В англійському тексті крапка є нормою,
@@ -95,19 +121,19 @@ def _decimal_comma(n, s):
     перевірка «одна десяткова позначка в документі», якщо колись з'явиться, має
     вносити англомовну анотацію до винятків саме з цієї причини."""
     if not s.startswith('|') or _is_code_line(n): return s
-    parts = s.split('|')
-    out, touched = [], False
-    for part in parts:
-        cell = part.strip()
-        if cell and NUMERIC_CELL.match(cell):
-            new = cell.replace('.', ',')
-            if new.startswith('-'): new = '−' + new[1:]
-            if new != cell:
-                part = part.replace(cell, new); touched = True
-                if ',' in new and '.' in cell: NORMALIZED['кома'].append((n, cell, new))
-                if new.startswith('−') and cell.startswith('-'): NORMALIZED['мінус'].append((n, cell, new))
-        out.append(part)
-    return '|'.join(out) if touched else s
+    head = _table_header(n)
+    skip = {j for j, (a, b) in enumerate(_cell_spans(head)) if SECTION_COLUMN.search(head[a:b])}
+    out = s
+    for j, (a, b) in enumerate(_cell_spans(s)):
+        cell = s[a:b].strip()
+        if j in skip or not (cell and NUMERIC_CELL.match(cell)): continue
+        new = cell.replace('.', ',')
+        if new.startswith('-'): new = '−' + new[1:]
+        if new != cell:
+            out = out[:a] + s[a:b].replace(cell, new) + out[b:]     # довжина та сама — межі тримаються
+            if ',' in new and '.' in cell: NORMALIZED['кома'].append((n, cell, new))
+            if new.startswith('−') and cell.startswith('-'): NORMALIZED['мінус'].append((n, cell, new))
+    return out
 
 
 def _apostrophe(n, s):
