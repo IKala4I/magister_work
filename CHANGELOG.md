@@ -7,6 +7,15 @@
 - **§6.6 no longer says every finding is one of the six classes.** «поділяються на шість класів» →
   «серед знахідок … виокремлюються шість класів», which is what the caveat further down the section
   («Не кожна знахідка належить до цих класів») already said. The formatter's patch, at the source.
+- **The formatter's `full.md` → `.docx` pipeline is in the repository**
+  (`docs/thesis/docx-pipeline/`: builder, verifier, regression diff, legend and markup audits, the
+  hand-typed formulas, the registry of agreed overrides, `run_all.sh`, README). It had lived only in
+  a chat sandbox. Proven from a clean directory and a stripped environment; the build output and a
+  local regression golden (the `.docx` with the exact `full.md` it was built from) are git-ignored.
+- **Open, not changed — three places where the pipeline disagrees with how `full.md` is built:** the
+  decimal-comma rule prints табл. Е.1's section reference `3.7` as `3,7` (its verifier compares
+  after the same rule); the legend check needs an em dash the text no longer has, so it checks
+  nothing; fenced code loses its blank lines.
 
 ## Post-P12 — the submission report and the formatter's second patch set (2026-09-15, post-p12/submission-report)
 

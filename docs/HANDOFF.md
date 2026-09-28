@@ -2,14 +2,52 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-15 — **post-p12/submission-report**: the owner's submission report (six
-> placement items) and the formatter's second patch set are in at the sources; nothing waits on the
-> owner. Earlier: the business-style pass (PR #78), the nine number decisions (PR #79), and the
-> corrections rollup (2026-09-09), which is no longer an index: all 63 items carry the Ukrainian
-> sentences the draft should read, tagged Ф / П / С, every number with its measurement condition.
+> Last update: 2026-09-28 — **post-p12/docx-pipeline**: the formatter's `full.md` → `.docx`
+> pipeline is in the repo (`docs/thesis/docx-pipeline/`), §6.6's opening is fixed at the source,
+> and three pipeline mismatches wait on the owner (below). Earlier: the submission report and the
+> formatter's second patch set (PR #80), the business-style pass (PR #78), the nine number
+> decisions (PR #79), and the corrections rollup (2026-09-09), which is no longer an index: all 63
+> items carry the Ukrainian sentences the draft should read, tagged Ф / П / С, every number with
+> its measurement condition.
 > **The thesis text is assembled and green on every gate.**
 
-## Current state (2026-09-15) — post-p12/submission-report
+## Current state (2026-09-28) — post-p12/docx-pipeline
+
+**Done and green on every gate.** The formatter's pipeline (it had lived only in a chat sandbox) is
+committed in `docs/thesis/docx-pipeline/`; its `README.md` is the manual. Run from that directory:
+`./run_all.sh ../text/full.md ../formatter-brief.md out/` — needs Python ≥ 3.10 with `python-docx`
+and `lxml`, `pandoc` and `unzip` (all present on the owner's Mac); LibreOffice only for the PDF.
+Proven from a fresh copy, another working directory and `env -i`. The formatter's §6.6 hunk
+(«серед знахідок … виокремлюються шість класів») is in `rozdil-6.md`; the patch file is deleted.
+
+**The regression golden is local and git-ignored:** `docs/thesis/docx-pipeline/golden/` holds
+`hourwell.docx`, the exact `full.md` and `formatter-brief.md` it was built from, `report.json` and
+`SOURCE.txt`. A fresh clone does not have it; rebuild it from `full.md` blob `858654e8` with the
+pipeline as first committed (`git log --diff-filter=A -- docs/thesis/docx-pipeline/build.py`) —
+`ASSEMBLY.md`, 2026-09-28 section, has the tool versions, the registry findings and the caveat on
+the Додаток Г insert's older wording. Before changing any pipeline code: build `golden/full.md`
+with the new code and run `regress.py golden/hourwell.docx <new>`; every difference it shows is
+either intended or a bug.
+
+**Waiting on the owner — three pipeline mismatches, reported and not fixed** (the owner asked that
+mismatches be named, not fixed silently; `ASSEMBLY.md` 2026-09-28 has the evidence):
+
+1. The decimal-comma rule prints табл. Е.1's section reference `3.7` (FR-42, «Розділ реалізації»)
+   as `3,7`; `verify.py` compares after the same rule and cannot see it. Recommended: skip the rule
+   in columns whose header names a section (`Розділ`, `Підрозділ`); `regress.py` against the golden
+   then shows exactly that cell (the adversarial pass confirmed it: `[7,1] 3,7↔3.7`).
+2. `check_legend_symbols.py` requires an em dash; `full.md` has none, so the one legend (line 302,
+   «◐ – …») is never checked. Recommended: accept `–` as well (it then finds the legend and passes).
+3. `emit_fenced` drops blank lines inside fences (Лістинг 4.1, Додаток Г's SQL). Recommended: keep
+   them; `regress.py` will show the three restored empty lines.
+
+Gates: assemble `untouched_drift 0`, no SKIPPED; verify-numbers 144/0; verify-payloads 67/67 +
+12/12; verify-brief 46/0; verify-state 14/0; verify-style 0; verify-docx on `full.md` 63/0;
+gen-dodatok-z --check ok; format:check clean; `run_all.sh` exit 0 (`verify.py` OK; the legend check
+reports 0 but is vacuous, item 2; markup audit 40 candidates, 2 high — both the known `clip[0,1](`
+false positive).
+
+## Earlier state (2026-09-15) — post-p12/submission-report
 
 **Done and green on every gate.** The owner read the pages and sent a six-item submission report
 (items 1–2 were already in the source); items 3–8 are applied at the sources — placement and order

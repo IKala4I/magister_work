@@ -196,8 +196,54 @@ formatter, all applied at the sources; `full.md` regenerated and every hunk chec
 - **§6.6's opening no longer says every finding is one of the six classes.** «знахідки … поділяються
   на шість класів» contradicted «Не кожна знахідка належить до цих класів» further down the same
   section; it reads «серед знахідок … виокремлюються шість класів» now. The formatter's one-hunk
-  patch, applied in `rozdil-6.md`; the regenerated `full.md` differs from the previous one by exactly
-  that line (1260), character for character the patch's «+» line.
+  patch, applied in `rozdil-6.md`; the regenerated `full.md` differs from the previous one by
+  exactly that line (1260), character for character the patch's «+» line.
+- **The formatter's `full.md` → `.docx` pipeline lives in `docx-pipeline/` now** (it had lived only
+  in a chat sandbox and was lost when that environment reset). `README.md` there is the manual; run
+  it from that directory as `./run_all.sh ../text/full.md ../formatter-brief.md out/`. Every input
+  is an argument and the registry defaults to the script's own directory: a fresh copy of the
+  directory, run from another working directory with `env -i` (only `PATH` and a scratch `HOME`),
+  exits 0 and produces a document part-for-part identical to the in-repo run. Needs Python ≥ 3.10
+  with `python-docx` and `lxml`, `pandoc` (formulas) and `unzip`; LibreOffice only for the PDF.
+  `run_all.sh` arrived without its executable bit and has it now; `README.md` and `registry.json`
+  are Prettier-formatted (table padding and JSON indent only; the parsed registry is unchanged).
+- **All three registry entries are no-ops on the current `full.md`**: the p(A) override and the
+  Додаток Г insert (both merged at the sources in PR #80) and Додаток Ж's code range (the fence
+  closes after the final brace since PR #80). An empty registry builds a part-for-part identical
+  document. They stay as a safety net, and it works: on `full.md` as of 9a6cb0f (before PR #80) all
+  three fire and `verify.py` passes. One caveat: the insert's text is the formatter's older wording
+  («з міграцій `supabase/migrations/`»), not the source's («з міграцій бази даних», `text/README.md`
+  rule 6), so if it ever fires it brings the directory name back.
+- **The regression golden is local, not committed:** `docx-pipeline/golden/` holds `hourwell.docx`,
+  the exact `full.md` and `formatter-brief.md` it was built from (blobs `858654e8` and `1f106f05`),
+  `report.json` and `SOURCE.txt` (tool versions — `pandoc` writes the OMML, so a `pandoc` upgrade
+  alone can move formulas). `out/` and `golden/` are git-ignored, so a fresh clone rebuilds the
+  golden: blob `858654e8` built by the pipeline as first committed (the commit that adds
+  `docx-pipeline/build.py`; `git log --diff-filter=A -- docs/thesis/docx-pipeline/build.py`) with
+  Python 3.14.3, python-docx 1.2.0, lxml 6.1.1, pandoc 3.8. To check a pipeline change: build
+  `golden/full.md` with the changed code, then `regress.py golden/hourwell.docx <new>`.
+- **Open — the decimal-comma rule rewrote a section number.** `_decimal_comma` turns every purely
+  numeric table cell `d.d` into `d,d`; the one cell in `full.md` it changes is табл. Е.1's «Розділ
+  реалізації» for FR-42, `3.7` (підрозділ 3.7), which the `.docx` prints as `3,7`. `verify.py` does
+  not see it: it compares the document with the source _after_ the same normalisation. Every other
+  purely numeric cell already carries its comma, so on this `full.md` the rule's only effect is that
+  cell. Not changed here (the owner's call); the golden carries `3,7`, and a fix would show in
+  `regress.py` as exactly that cell. The build report's «нормалізація «кома»: 2 замін» is that one
+  cell counted twice — `md_table_rows` calls `L()` twice per row.
+- **Open — the legend check checks nothing on this `full.md`.** `check_legend_symbols.py` looks for
+  «X — пояснення» with an em dash; `full.md` has no em dash since the 2026-09-13 dash sweep, so the
+  one legend it exists for (line 302, «◐ – …» under табл. 1.2) never matches, on this `full.md` or
+  on 9a6cb0f's. Its «помилок: 0» is vacuous; with the en dash allowed it finds the legend and
+  passes. Not changed here.
+- **Open — fenced code loses its blank lines.** `emit_fenced` drops every empty line inside a fence,
+  so Лістинг 4.1 (`full.md` 819) and Додаток Г's SQL (1673, 1681) lose their paragraph breaks —
+  «alter table public.events …» runs straight into «revoke all …» — against the README's «Код …
+  дослівно». `verify.py` skips empty lines and cannot see it. Not changed here.
+- Minor, not changed: the README's dependency list omits `unzip` (`compile_formulas` calls it); the
+  build report's placeholder list misses the ANNOTATION's «[ПІБ здобувача]» (`full.md` 33) — the
+  paragraph itself reaches the document.
+- The README's claim that the restored pipeline reproduced the formatter's POVNA build byte for byte
+  on the pre-PR #80 `full.md` cannot be checked here — that build is not in the repository.
 
 ## Coverage, and what CI can and cannot prove
 
