@@ -12,10 +12,19 @@
   hand-typed formulas, the registry of agreed overrides, `run_all.sh`, README). It had lived only in
   a chat sandbox. Proven from a clean directory and a stripped environment; the build output and a
   local regression golden (the `.docx` with the exact `full.md` it was built from) are git-ignored.
-- **Open, not changed — three places where the pipeline disagrees with how `full.md` is built:** the
-  decimal-comma rule prints табл. Е.1's section reference `3.7` as `3,7` (its verifier compares
-  after the same rule); the legend check needs an em dash the text no longer has, so it checks
-  nothing; fenced code loses its blank lines.
+- **Three places where the pipeline disagreed with how `full.md` is built — reported, then fixed
+  on the owner's decision**, each shown on the regression golden as exactly its own change: the
+  decimal-comma rule no longer turns табл. Е.1's section reference `3.7` into `3,7`, and
+  `verify.py` now checks from the raw source with its own rules, so it catches that class; the
+  legend check reads the en dash and proves on every run, by a negative control, that it can fail;
+  fenced code keeps its blank lines, and `verify.py` compares code blocks line by line.
+- The registry's safety-net insert for Додаток Г carries the source's current wording (no directory
+  name). The golden was refreshed after the fixes.
+- **The pipeline has its own uv environment** (`pyproject.toml`, `uv.lock`, uv-managed Python 3.12,
+  python-docx 1.2.0 and lxml 6.1.1 pinned exactly); `run_all.sh` runs every step through
+  `uv run --locked`, so removing a system Python or a distribution such as Anaconda no longer
+  breaks the build. `pandoc` stays a system tool; 3.8, 3.8.2.1 and 3.11 reproduce the golden
+  part-for-part identical.
 
 ## Post-P12 — the submission report and the formatter's second patch set (2026-09-15, post-p12/submission-report)
 

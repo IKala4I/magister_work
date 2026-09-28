@@ -4,8 +4,9 @@
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
 > Last update: 2026-09-28 — **post-p12/docx-pipeline**: the formatter's `full.md` → `.docx`
 > pipeline is in the repo (`docs/thesis/docx-pipeline/`), §6.6's opening is fixed at the source,
-> and three pipeline mismatches wait on the owner (below). Earlier: the submission report and the
-> formatter's second patch set (PR #80), the business-style pass (PR #78), the nine number
+> and the three pipeline mismatches found on the way are fixed on the owner's decision; Expo's
+> patch drift went in first as PR #82. Nothing waits on the owner. Earlier: the submission report
+> and the formatter's second patch set (PR #80), the business-style pass (PR #78), the nine number
 > decisions (PR #79), and the corrections rollup (2026-09-09), which is no longer an index: all 63
 > items carry the Ukrainian sentences the draft should read, tagged Ф / П / С, every number with
 > its measurement condition.
@@ -16,36 +17,41 @@
 **Done and green on every gate.** The formatter's pipeline (it had lived only in a chat sandbox) is
 committed in `docs/thesis/docx-pipeline/`; its `README.md` is the manual. Run from that directory:
 `./run_all.sh ../text/full.md ../formatter-brief.md out/` — needs Python ≥ 3.10 with `python-docx`
-and `lxml`, `pandoc` and `unzip` (all present on the owner's Mac); LibreOffice only for the PDF.
-Proven from a fresh copy, another working directory and `env -i`. The formatter's §6.6 hunk
-(«серед знахідок … виокремлюються шість класів») is in `rozdil-6.md`; the patch file is deleted.
+and `lxml`, `pandoc` and `unzip`; LibreOffice only for the PDF. Proven from a fresh copy, another
+working directory and `env -i`. The formatter's §6.6 hunk («серед знахідок … виокремлюються шість
+класів») is in `rozdil-6.md`; the patch file is deleted.
 
-**The regression golden is local and git-ignored:** `docs/thesis/docx-pipeline/golden/` holds
-`hourwell.docx`, the exact `full.md` and `formatter-brief.md` it was built from, `report.json` and
-`SOURCE.txt`. A fresh clone does not have it; rebuild it from `full.md` blob `858654e8` with the
-pipeline as first committed (`git log --diff-filter=A -- docs/thesis/docx-pipeline/build.py`) —
-`ASSEMBLY.md`, 2026-09-28 section, has the tool versions, the registry findings and the caveat on
-the Додаток Г insert's older wording. Before changing any pipeline code: build `golden/full.md`
+**Three pipeline mismatches, found on the way and fixed on the owner's decision** (each its own
+commit, each shown on the golden as exactly its own change; `ASSEMBLY.md` 2026-09-28 has the
+evidence): the decimal comma skips section columns (табл. Е.1's `3.7`) and `verify.py` now checks
+from the raw source with its own admissibility rules; the legend check reads «–» and runs a
+negative control on every call; fenced code keeps its blank lines and `verify.py` compares code
+blocks line by line. The registry's Додаток Г insert carries the source's current wording. Expo's
+SDK 57 patch drift, the only red CI check on PR #81, was fixed first in its own PR (#82).
+
+**The regression golden is local and git-ignored, refreshed after the fixes:**
+`docs/thesis/docx-pipeline/golden/` holds `hourwell.docx`, the exact `full.md` and
+`formatter-brief.md` it was built from, `report.json` and `SOURCE.txt`. A fresh clone does not have
+it; rebuild it from `full.md` blob `858654e8` with the pipeline as merged (the last commit touching
+`docs/thesis/docx-pipeline/build.py`). Before changing any pipeline code: build `golden/full.md`
 with the new code and run `regress.py golden/hourwell.docx <new>`; every difference it shows is
 either intended or a bug.
 
-**Waiting on the owner — three pipeline mismatches, reported and not fixed** (the owner asked that
-mismatches be named, not fixed silently; `ASSEMBLY.md` 2026-09-28 has the evidence):
+**The pipeline runs in its own uv environment** (`docs/thesis/docx-pipeline/pyproject.toml`,
+`uv.lock`, uv-managed Python 3.12 only, python-docx 1.2.0 and lxml 6.1.1 pinned exactly):
+`run_all.sh` runs every step through `uv run --locked` and prints the Python, package and pandoc
+versions first. From the system it needs only `uv`, `pandoc` and `unzip`. The owner removed
+Anaconda on 2026-09-28 (pandoc went with it) and reinstalled pandoc with Homebrew: 3.11 reproduces
+the golden part-for-part identical, as did 3.8 and 3.8.2.1 — after any pandoc upgrade, run
+`regress.py` against the golden before trusting a build.
 
-1. The decimal-comma rule prints табл. Е.1's section reference `3.7` (FR-42, «Розділ реалізації»)
-   as `3,7`; `verify.py` compares after the same rule and cannot see it. Recommended: skip the rule
-   in columns whose header names a section (`Розділ`, `Підрозділ`); `regress.py` against the golden
-   then shows exactly that cell (the adversarial pass confirmed it: `[7,1] 3,7↔3.7`).
-2. `check_legend_symbols.py` requires an em dash; `full.md` has none, so the one legend (line 302,
-   «◐ – …») is never checked. Recommended: accept `–` as well (it then finds the legend and passes).
-3. `emit_fenced` drops blank lines inside fences (Лістинг 4.1, Додаток Г's SQL). Recommended: keep
-   them; `regress.py` will show the three restored empty lines.
-
-Gates: assemble `untouched_drift 0`, no SKIPPED; verify-numbers 144/0; verify-payloads 67/67 +
-12/12; verify-brief 46/0; verify-state 14/0; verify-style 0; verify-docx on `full.md` 63/0;
-gen-dodatok-z --check ok; format:check clean; `run_all.sh` exit 0 (`verify.py` OK; the legend check
-reports 0 but is vacuous, item 2; markup audit 40 candidates, 2 high — both the known `clip[0,1](`
-false positive).
+**Waiting on the owner — nothing.** Gates: assemble `untouched_drift 0`, no SKIPPED; verify-numbers
+144/0; verify-payloads 67/67 + 12/12; verify-brief 46/0; verify-state 14/0; verify-style 0;
+verify-docx on `full.md` 63/0; gen-dodatok-z --check ok; format:check clean; `run_all.sh` exit 0
+(Python 3.12.14 via uv, pandoc 3.11; `verify.py` OK: 33 tables with 0 cells differing, 6 code
+blocks with 0 differences; legend check 1 legend, negative control 1 of 1; markup audit 40
+candidates, 2 high — both the known `clip[0,1](` false positive). Two fresh-context adversarial
+passes; the second's findings (a false blank-line path, two latent `verify.py` holes) are fixed.
 
 ## Earlier state (2026-09-15) — post-p12/submission-report
 

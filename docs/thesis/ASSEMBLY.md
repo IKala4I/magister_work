@@ -211,37 +211,66 @@ formatter, all applied at the sources; `full.md` regenerated and every hunk chec
   Додаток Г insert (both merged at the sources in PR #80) and Додаток Ж's code range (the fence
   closes after the final brace since PR #80). An empty registry builds a part-for-part identical
   document. They stay as a safety net, and it works: on `full.md` as of 9a6cb0f (before PR #80) all
-  three fire and `verify.py` passes. One caveat: the insert's text is the formatter's older wording
-  («з міграцій `supabase/migrations/`»), not the source's («з міграцій бази даних», `text/README.md`
-  rule 6), so if it ever fires it brings the directory name back.
-- **The regression golden is local, not committed:** `docx-pipeline/golden/` holds `hourwell.docx`,
-  the exact `full.md` and `formatter-brief.md` it was built from (blobs `858654e8` and `1f106f05`),
-  `report.json` and `SOURCE.txt` (tool versions — `pandoc` writes the OMML, so a `pandoc` upgrade
-  alone can move formulas). `out/` and `golden/` are git-ignored, so a fresh clone rebuilds the
-  golden: blob `858654e8` built by the pipeline as first committed (the commit that adds
-  `docx-pipeline/build.py`; `git log --diff-filter=A -- docs/thesis/docx-pipeline/build.py`) with
-  Python 3.14.3, python-docx 1.2.0, lxml 6.1.1, pandoc 3.8. To check a pipeline change: build
-  `golden/full.md` with the changed code, then `regress.py golden/hourwell.docx <new>`.
-- **Open — the decimal-comma rule rewrote a section number.** `_decimal_comma` turns every purely
-  numeric table cell `d.d` into `d,d`; the one cell in `full.md` it changes is табл. Е.1's «Розділ
-  реалізації» for FR-42, `3.7` (підрозділ 3.7), which the `.docx` prints as `3,7`. `verify.py` does
-  not see it: it compares the document with the source _after_ the same normalisation. Every other
-  purely numeric cell already carries its comma, so on this `full.md` the rule's only effect is that
-  cell. Not changed here (the owner's call); the golden carries `3,7`, and a fix would show in
-  `regress.py` as exactly that cell. The build report's «нормалізація «кома»: 2 замін» is that one
-  cell counted twice — `md_table_rows` calls `L()` twice per row.
-- **Open — the legend check checks nothing on this `full.md`.** `check_legend_symbols.py` looks for
-  «X — пояснення» with an em dash; `full.md` has no em dash since the 2026-09-13 dash sweep, so the
-  one legend it exists for (line 302, «◐ – …» under табл. 1.2) never matches, on this `full.md` or
-  on 9a6cb0f's. Its «помилок: 0» is vacuous; with the en dash allowed it finds the legend and
-  passes. Not changed here.
-- **Open — fenced code loses its blank lines.** `emit_fenced` drops every empty line inside a fence,
-  so Лістинг 4.1 (`full.md` 819) and Додаток Г's SQL (1673, 1681) lose their paragraph breaks —
-  «alter table public.events …» runs straight into «revoke all …» — against the README's «Код …
-  дослівно». `verify.py` skips empty lines and cannot see it. Not changed here.
-- Minor, not changed: the README's dependency list omits `unzip` (`compile_formulas` calls it); the
-  build report's placeholder list misses the ANNOTATION's «[ПІБ здобувача]» (`full.md` 33) — the
-  paragraph itself reaches the document.
+  three fire and `run_all.sh` passes. The insert's text was the formatter's older wording («з
+  міграцій `supabase/migrations/`»); it is the source paragraph verbatim now («з міграцій бази
+  даних», `text/README.md` rule 6), and on 9a6cb0f's `full.md` the built document carries that
+  wording and no directory name.
+- **Three mismatches with how `full.md` is built — found, reported, then fixed on the owner's
+  decision**, each in its own commit, each shown on the golden as exactly its own change:
+  1. _The decimal-comma rule printed a section number as a fraction._ `_decimal_comma` turned every
+     purely numeric table cell `d.d` into `d,d`, including табл. Е.1's «Розділ реалізації» `3.7`
+     for FR-42. It now skips columns whose header names a section (Розділ / Підрозділ). `verify.py`
+     had certified «3,7» because it compared _after_ the same rule; it now starts from the raw
+     source, compares tables cell by cell, and admits a substitution only by its own rules — comma
+     and minus only in a wholly numeric cell and never in a subsection number of this document, read
+     from its headings. Golden → fix: one cell, [7,1] «3,7» ↔ «3.7». Negative control: b51385a's
+     `verify.py` on the old golden fails on exactly that cell (the final one fails there too, and on
+     code blocks 1 and 5).
+  2. _The legend check checked nothing._ It required an em dash; `full.md` has none since
+     2026-09-13, so the one legend (line 302, «◐ – …») was never found. It accepts both dashes,
+     fails when no legend is found, and every run removes each legend's symbol from the tables and
+     requires the check to fail on that text. With ◐ removed from табл. 1.2 it fails (the delivered
+     version said «помилок: 0»). The document does not change.
+  3. _Fenced code lost its blank lines._ Лістинг 4.1 (`full.md` line 819) and Додаток Г's SQL (lines
+     1673, 1681) keep them now. The registry's code-range path does not: outside a fence a blank
+     line is a markdown paragraph break, not code (a first attempt emitted them, and on 9a6cb0f's
+     `full.md` put two false blank lines into Додаток Ж's JSON; the second adversarial pass caught
+     it, and that path is as delivered). `verify.py` check 6 compares every code block line by line,
+     blank lines included. Fix: three inserted empty paragraphs. Negative control: the new
+     `verify.py` on the pre-fix build fails in blocks 1 and 5.
+
+  Golden → final build: exactly those four differences; on 9a6cb0f's `full.md` the delivered and the
+  final builds differ in exactly five (the same four and the registry insert's wording). The second
+  adversarial pass (19 mutations of the built `.docx`, every one caught) also closed two latent
+  holes in `verify.py`: a comma inside a code span (`` `0.5` `` printed «0,5») passed as a
+  normalised number, and an apostrophe curled inside an address passed as prose; both fail now,
+  and the correct build still passes. The build report's «нормалізація «кома»» count doubled
+  (`md_table_rows` calls `L()` twice per row); on this `full.md` it is now 0.
+
+- **The regression golden is local, not committed, and was refreshed after the fixes:**
+  `docx-pipeline/golden/` holds `hourwell.docx`, the exact `full.md` and `formatter-brief.md` it
+  was built from (blobs `858654e8` and `1f106f05`), `report.json` and `SOURCE.txt`. `out/` and
+  `golden/` are git-ignored, so a fresh clone rebuilds the golden: blob `858654e8` built by the
+  pipeline as of this pass's merge (the last commit touching `docs/thesis/docx-pipeline/build.py`).
+  It was built on Homebrew's Python 3.14.3 with pandoc 3.8.2.1 and is reproduced part-for-part
+  identical by the pipeline's own uv environment (CPython 3.12.14, python-docx 1.2.0, lxml 6.1.1)
+  with the owner's pandoc 3.11. To check a pipeline change: build `golden/full.md` with the changed
+  code, then `uv run python regress.py golden/hourwell.docx <new>`.
+- **The pipeline no longer depends on the machine's Python.** The owner removed Anaconda during this
+  pass and `pandoc` went with it (python-docx and lxml had come from Homebrew's Python, not
+  Anaconda); the owner reinstalled `pandoc` with Homebrew (3.11). `docx-pipeline/` is now its own uv
+  project — `pyproject.toml` (python-docx 1.2.0 and lxml 6.1.1, exact: `Document()` starts from
+  python-docx's own template), `uv.lock`, `.python-version` 3.12,
+  `python-preference = "only-managed"` — and `run_all.sh` runs every step through
+  `uv run --locked`, printing the Python, package and pandoc versions first and failing loudly
+  without `uv` or `pandoc`. From the system it needs only `uv`, `pandoc` and `unzip`. A fresh copy
+  run under `env -i` with an empty `HOME` had uv fetch its own CPython 3.12.14 and built a document
+  identical to the golden. `pandoc` stays a system tool: the golden is reproduced
+  part-for-part identical with pandoc 3.8, 3.8.2.1 and 3.11, so no version is pinned; the README
+  says to run `regress.py` after a pandoc upgrade.
+- The README's dependency list now names `unzip` (`compile_formulas` calls it). Still minor and not
+  changed: the build report's placeholder list misses the ANNOTATION's «[ПІБ здобувача]» (line 33
+  of `full.md`) — the paragraph itself reaches the document.
 - The README's claim that the restored pipeline reproduced the formatter's POVNA build byte for byte
   on the pre-PR #80 `full.md` cannot be checked here — that build is not in the repository.
 
