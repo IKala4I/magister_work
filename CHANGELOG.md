@@ -2,6 +2,13 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — Expo SDK 57 patch alignment (2026-09-28, post-p12/expo-patch-bump)
+
+- **`npx expo install --fix`: seven Expo packages on their current SDK 57 patches** (expo 57.0.25,
+  expo-router 57.0.23, expo-notifications 57.0.21, expo-sharing 57.0.22, expo-constants 57.0.19,
+  expo-linking 57.0.11, `@expo/metro-runtime` 57.0.16). expo-doctor's version check had turned CI
+  red on upstream publications alone; react-native, React and Babel are unchanged.
+
 ## Post-P12 — the submission report and the formatter's second patch set (2026-09-15, post-p12/submission-report)
 
 - **Six placement items from the owner's submission report; no claim changed.** The strongest sentence
