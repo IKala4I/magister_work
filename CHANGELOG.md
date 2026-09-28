@@ -2,6 +2,12 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — the formatter's .docx pipeline in the repo, and §6.6's opening (2026-09-28, post-p12/docx-pipeline)
+
+- **§6.6 no longer says every finding is one of the six classes.** «поділяються на шість класів» →
+  «серед знахідок … виокремлюються шість класів», which is what the caveat further down the section
+  («Не кожна знахідка належить до цих класів») already said. The formatter's patch, at the source.
+
 ## Post-P12 — the submission report and the formatter's second patch set (2026-09-15, post-p12/submission-report)
 
 - **Six placement items from the owner's submission report; no claim changed.** The strongest sentence

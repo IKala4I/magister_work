@@ -191,6 +191,14 @@ formatter, all applied at the sources; `full.md` regenerated and every hunk chec
   points, and `+0.4 pp` / `0.3–1.4 pp` are in the machine-checked list. The «не втрималася під час
   реалізації» line the formatter asked to drop had already gone with the sentence in PR #78.
 
+## What the 2026-09-28 pass changed
+
+- **§6.6's opening no longer says every finding is one of the six classes.** «знахідки … поділяються
+  на шість класів» contradicted «Не кожна знахідка належить до цих класів» further down the same
+  section; it reads «серед знахідок … виокремлюються шість класів» now. The formatter's one-hunk
+  patch, applied in `rozdil-6.md`; the regenerated `full.md` differs from the previous one by exactly
+  that line (1260), character for character the patch's «+» line.
+
 ## Coverage, and what CI can and cannot prove
 
 **A gap the 2026-09-11 pass found, and the shape of it.** `verify-payloads.py` checks _blockquote_
