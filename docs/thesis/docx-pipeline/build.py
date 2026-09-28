@@ -548,7 +548,9 @@ def mono_size(lines):
 
 def emit_fenced(doc, start):
     """Блок в огорожі ```. Вміст іде дослівно, моноширинним, без розбору розмітки.
-    Закривальна огорожа може стояти окремим рядком або в кінці змістового."""
+    Закривальна огорожа може стояти окремим рядком або в кінці змістового.
+    Порожні рядки всередині блоку — теж код: вони відділяють у SQL Додатка Г і в
+    лістингу 4.1 одну групу інструкцій від іншої. До 2026-09-28 вони випадали."""
     first = L(start).lstrip()
     rest = first[3:]
     lang = rest.split()[0] if rest.split() and rest.split()[0].isalpha() else ''
@@ -564,9 +566,10 @@ def emit_fenced(doc, start):
                 lines.append(cur.rstrip()[:-3].rstrip()); i += 1; break
             if cur.lstrip().startswith('```'):
                 i += 1; break
-            if cur.strip(): lines.append(cur)
+            lines.append(cur)
             i += 1
-    lines = [ln for ln in lines if ln.strip()]
+    while lines and not lines[0].strip(): lines.pop(0)       # порожнє від рядка-огорожі
+    while lines and not lines[-1].strip(): lines.pop()
     sz = mono_size(lines)
     for ln in lines:
         para(doc, ln, indent=0, spacing=1, mono='Courier New', size=sz, align=LEFT)
@@ -727,6 +730,17 @@ def build_body(doc, lo, hi):
     n, in_refs = lo, False
     while n <= hi:
         s = L(n)
+        if any(a <= n <= b for a, b in CODE_RANGES):         # код поза огорожею (реєстр): весь відрізок
+            seg = []                                          # разом, порожні рядки всередині — теж код,
+            while n <= hi and any(a <= n <= b for a, b in CODE_RANGES):     # крайні — ні, як в emit_fenced
+                if not L(n).lstrip().startswith('```'): seg.append(L(n))
+                n += 1
+            while seg and not seg[0].strip(): seg.pop(0)
+            while seg and not seg[-1].strip(): seg.pop()
+            for ln in seg:
+                para(doc, ln, indent=0, spacing=1, mono='Courier New', size=9.5, align=LEFT)
+            continue
+
         if not s.strip(): n += 1; continue
 
         m = RE_H.match(s)
@@ -738,11 +752,6 @@ def build_body(doc, lo, hi):
             else:
                 p = doc.add_paragraph(style='Heading %d' % min(lvl, 3)); add_runs(p, txt)
             _emit_inserts(doc, n)
-            n += 1; continue
-
-        if any(a <= n <= b for a, b in CODE_RANGES):
-            if not s.lstrip().startswith('```'):
-                para(doc, s, indent=0, spacing=1, mono='Courier New', size=9.5, align=LEFT)
             n += 1; continue
 
         if s.lstrip().startswith('```'):

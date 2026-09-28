@@ -26,8 +26,10 @@ check_legend_symbols.py, audit_markdown.py і структурні переві�
      і жодне кириличне слово з рядка формули не загубилося в LaTeX;
   4. рядки keep-verbatim із брифа — є в джерелі й у документі (апостроф і тире
      згортаються, як велить §7 брифа; структура рівняння — окремим винятком);
-  5. кожна вставка з реєстру, яку застосовано, є в документі.
-Код виходу 1, якщо порушено будь-що з 1–5.
+  5. кожна вставка з реєстру, яку застосовано, є в документі;
+  6. кожен блок коду — рядок до рядка, разом із порожніми, проти абзаців коду документа
+     (до 2026-09-28 складальник викидав порожні рядки з коду, а перевірка 1 їх не бачила).
+Код виходу 1, якщо порушено будь-що з 1–6.
 """
 import argparse, os, re, sys, zipfile
 
@@ -162,6 +164,49 @@ def source_tables(lines, code):
     return tables
 
 
+def source_code_blocks(lines):
+    """Блоки коду джерела по порядку: огороджені ``` і діапазони коду з реєстру поза
+    огорожами. Порожні рядки всередині — частина коду; крайні порожні відкинуто."""
+    blocks, cur, inside, prev = [], None, False, None
+    in_range = lambda n: any(a <= n <= b for a, b in build.CODE_RANGES)
+    for n, s in enumerate(lines, 1):
+        if inside:
+            if s.rstrip().endswith('```'):
+                head = s.rstrip()[:-3].rstrip()
+                if head.strip(): cur.append(head)
+                blocks.append(cur); inside = False
+            else:
+                cur.append(s)
+        elif s.lstrip().startswith('```'):
+            rest = s.lstrip()[3:]
+            head = rest[len(re.match(r'[A-Za-z]*', rest).group(0)):]
+            if s.count('```') >= 2: blocks.append([head.rstrip()[:-3].strip()])
+            else: cur, inside = ([head.strip()] if head.strip() else []), True
+        elif in_range(n):                    # рядок коду з реєстру поза огорожею
+            if prev == n - 1: blocks[-1].append(s)
+            else: blocks.append([s])
+            prev = n
+    out = []
+    for b in blocks:
+        while b and not b[0].strip(): b = b[1:]
+        while b and not b[-1].strip(): b = b[:-1]
+        out.append([ln.rstrip() for ln in b])
+    return out
+
+
+def docx_code_blocks(path):
+    """Групи сусідніх абзаців коду в тілі документа: абзац коду — той, де всі runs
+    набрано Courier New (порожній рядок коду — один порожній run Courier New)."""
+    blocks, cur = [], []
+    for p in Document(path).paragraphs:
+        if p.runs and all(r.font.name == 'Courier New' for r in p.runs):
+            cur.append(p.text.rstrip())
+        elif cur:
+            blocks.append(cur); cur = []
+    if cur: blocks.append(cur)
+    return blocks
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('--src', required=True); ap.add_argument('--docx', required=True)
@@ -250,6 +295,20 @@ def main():
     print(f'вставок із реєстру застосовано: {sum(len(v) for v in build.INSERT_AFTER.values())}; '
           f'не знайдено в .docx: {len(ins_bad)}')
     failed |= bool(ins_bad)
+
+    # 6
+    sb, db = source_code_blocks(LINES), docx_code_blocks(a.docx)
+    code_bad = [] if len(sb) == len(db) else [f'блоків коду в джерелі {len(sb)}, у .docx {len(db)}']
+    for k, (x, y) in enumerate(zip(sb, db), 1):
+        if x != y:
+            j = next((i for i, (u, v) in enumerate(zip(x, y)) if u != v), min(len(x), len(y)))
+            code_bad.append(f'блок {k}, рядок {j + 1}: «{(x[j] if j < len(x) else "⟨кінець⟩")[:50]}» ↔ '
+                            f'«{(y[j] if j < len(y) else "⟨кінець⟩")[:50]}»')
+    print(f'блоків коду: джерело {len(sb)}, .docx {len(db)} '
+          f'(рядків {sum(map(len, sb))}, з них порожніх {sum(ln == "" for b in sb for ln in b)}); '
+          f'розбіжностей: {len(code_bad)}')
+    for t in code_bad[:20]: print(f'   {t}')
+    failed |= bool(code_bad)
 
     print('РЕЗУЛЬТАТ:', 'ПОМИЛКИ' if failed else 'OK')
     return 1 if failed else 0
