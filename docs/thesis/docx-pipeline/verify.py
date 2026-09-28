@@ -125,6 +125,23 @@ def heading_numbers(lines):
     return {m.group(1) for s in lines for m in [re.match(r'^#{1,3}\s+(\d+(?:\.\d+)+)\.?\s', s)] if m}
 
 
+PROTECTED = re.compile(r'`[^`]*`|\S*(?:://|www\.|@)\S*|\S+\.(?:md|py|json|sql)\b\S*')
+
+
+def protected(raw_text):
+    """Фрагменти з апострофом, які бриф велить лишити як є: вставки в зворотних лапках і
+    адреси (посилання, пошта, імена файлів) — `f'y_{t.id}'`, https://…/it's. Без лапок."""
+    return [m.strip('`') for m in PROTECTED.findall(raw_text) if "'" in m]
+
+
+def curl(raw_text):
+    """Сирий рядок, у якому ' → ’ скрізь, крім захищених фрагментів: так має виглядати
+    проза в документі, якщо апостроф замінено правильно."""
+    spans = PROTECTED.findall(raw_text)
+    return ''.join(part.replace("'", '’') + (spans[i] if i < len(spans) else '')
+                   for i, part in enumerate(PROTECTED.split(raw_text)))
+
+
 ALLOWED = {('.', ','): 'кома', ('-', '−'): 'мінус', ("'", '’'): 'апостроф'}
 PURE_NUMBER = re.compile(r'[+\-−]?(\d+(?:\.\d+)?)(?:\s*±\s*\d+(?:\.\d+)?)?')
 
@@ -142,12 +159,12 @@ def judge(raw_cell, src, doc, sections):
             if (x, y) not in ALLOWED: return f'заміна {x!r} → {y!r} не передбачена', []
             kinds.add(ALLOWED[(x, y)])
     if kinds & {'кома', 'мінус'}:
-        m = PURE_NUMBER.fullmatch(src)
+        m = PURE_NUMBER.fullmatch(raw_cell.strip())     # сира комірка: `0.5` у зворотних лапках — код, не число
         if not m: return 'кома чи мінус у комірці, що не є числом', []
         if m.group(1) in sections: return f'номер підрозділу {m.group(1)} надруковано як дріб', []
     if 'апостроф' in kinds:
-        for span in re.findall(r'`([^`]*)`', raw_cell):
-            if "'" in span and span not in doc: return f'апостроф змінено у вставці коду `{span}`', []
+        for span in protected(raw_cell):
+            if span not in doc: return f'апостроф змінено у вставці коду чи адресі «{span}»', []
     return None, sorted(kinds)
 
 
@@ -166,7 +183,8 @@ def source_tables(lines, code):
 
 def source_code_blocks(lines):
     """Блоки коду джерела по порядку: огороджені ``` і діапазони коду з реєстру поза
-    огорожами. Порожні рядки всередині — частина коду; крайні порожні відкинуто."""
+    огорожами. Порожні рядки всередині огорожі — частина коду, крайні відкинуто; поза
+    огорожею (діапазон із реєстру) порожній рядок — межа абзаців markdown, не код."""
     blocks, cur, inside, prev = [], None, False, None
     in_range = lambda n: any(a <= n <= b for a, b in build.CODE_RANGES)
     for n, s in enumerate(lines, 1):
@@ -183,14 +201,14 @@ def source_code_blocks(lines):
             if s.count('```') >= 2: blocks.append([head.rstrip()[:-3].strip()])
             else: cur, inside = ([head.strip()] if head.strip() else []), True
         elif in_range(n):                    # рядок коду з реєстру поза огорожею
-            if prev == n - 1: blocks[-1].append(s)
-            else: blocks.append([s])
+            if prev != n - 1: blocks.append([])
+            if s.strip(): blocks[-1].append(s)
             prev = n
     out = []
     for b in blocks:
         while b and not b[0].strip(): b = b[1:]
         while b and not b[-1].strip(): b = b[:-1]
-        out.append([ln.rstrip() for ln in b])
+        if b: out.append([ln.rstrip() for ln in b])
     return out
 
 
@@ -238,8 +256,7 @@ def main():
             continue
         t = strip_md(s)
         if len(t) < 3 or t in body: continue
-        spans_kept = all(sp in body for sp in re.findall(r'`([^`]*)`', s) if "'" in sp)
-        if t.replace("'", '’') in body and spans_kept: apostrophes += 1
+        if strip_md(curl(s)) in body: apostrophes += 1
         else: missing.append((n, t[:90]))
 
     # 2
