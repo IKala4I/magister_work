@@ -2,7 +2,8 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-29 — **post-p12/thesis-figures**: the figures render in the pipeline and a
+> Last update: 2026-09-29 — **post-p12/thesis-private-docs** in progress (below). Before it,
+> **post-p12/thesis-figures**: the figures render in the pipeline and a
 > PDF builds; four items wait on the owner (below). Before that, 2026-09-28 —
 > **post-p12/docx-pipeline**: the formatter's `full.md` → `.docx`
 > pipeline is in the repo (`docs/thesis/docx-pipeline/`), §6.6's opening is fixed at the source,
@@ -13,6 +14,29 @@
 > items carry the Ukrainian sentences the draft should read, tagged Ф / П / С, every number with
 > its measurement condition.
 > **The thesis text is assembled and green on every gate.**
+
+## In progress (2026-09-29) — post-p12/thesis-private-docs
+
+**Owner's task:** (1) the text follows the schema — **done** (`59c0a7e`): user_model_state →
+bandit_state + beta_cells + blend_state, user_profiles → profiles (assemble.py run_subs, rollup А.1
+payload, А.1 participant); Рисунок 3.2 redrawn and inserted (landscape, 9.0 pt). 1.1 stays five
+points. «Апробація» / «Публікації» are edited in the source (the draft), not moved out.
+(2) **all private data and build outputs leave the repo** for `/Users/vladyslav/Workspace/MagisterDocs`:
+
+```
+MagisterDocs/
+  README.md            what lives where, how to build
+  private/titulka.json names for the title page and annotations (full.md keeps placeholders)
+  sources/draft.docx   the owner's draft (assemble.py --draft)
+  figures/4.1/         screenshots for Рисунок 4.1
+  build/               run_all.sh output: .docx, PDF, report, audit, renders
+  golden/              regression golden (was docx-pipeline/golden)
+```
+
+Plan: `run_all.sh SRC BRIEF DOCS` (third argument = the MagisterDocs root); `build.py --private`
+substitutes names at build time only; `verify.py --private` checks every placeholder was filled and
+that no private value is in full.md; `render_figures.py --docs` finds 4.1; `assemble.py --draft`;
+CLAUDE.md's draft path updated. Commit per unit.
 
 ## Current state (2026-09-29) — post-p12/thesis-figures
 
