@@ -113,7 +113,8 @@ def min_font_px(kind):
         return 14.0             # skinparam defaultFontSize 14 у кожному .puml (перевіряється нижче)
     cfg = json.load(open(MERMAID_CONFIG, encoding='utf-8'))
     sizes = [cfg.get('themeVariables', {}).get('fontSize', '16px')]
-    sizes += [v for k, v in cfg.get('sequence', {}).items() if k.endswith('FontSize')]
+    sizes += [v for sec in cfg.values() if isinstance(sec, dict)
+              for k, v in sec.items() if k.endswith('FontSize')]    # усі розділи: sequence, quadrantChart…
     return min(float(str(s).rstrip('px')) for s in sizes)
 
 

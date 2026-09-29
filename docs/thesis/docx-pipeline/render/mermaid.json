@@ -1,36 +1,48 @@
 {
- "theme": "neutral",
- "themeVariables": {
-  "fontFamily": "Arial, Helvetica, sans-serif",
-  "fontSize": "15px"
- },
- "sequence": {
-  "useMaxWidth": false,
-  "wrap": true,
-  "width": 120,
-  "actorMargin": 14,
-  "messageMargin": 20,
-  "boxMargin": 6,
-  "noteMargin": 6,
-  "mirrorActors": false,
-  "diagramMarginX": 6,
-  "diagramMarginY": 6,
-  "messageFontSize": 15,
-  "noteFontSize": 15,
-  "actorFontSize": 15,
-  "hideUnusedParticipants": true,
-  "messageFontFamily": "Arial, Helvetica, sans-serif",
-  "noteFontFamily": "Arial, Helvetica, sans-serif",
-  "actorFontFamily": "Arial, Helvetica, sans-serif"
- },
- "flowchart": {
-  "useMaxWidth": false,
-  "nodeSpacing": 20,
-  "rankSpacing": 22,
-  "padding": 6,
-  "wrappingWidth": 420
- },
- "er": {
-  "useMaxWidth": false
- }
+  "theme": "neutral",
+  "themeVariables": {
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "fontSize": "15px"
+  },
+  "sequence": {
+    "useMaxWidth": false,
+    "wrap": true,
+    "width": 120,
+    "actorMargin": 14,
+    "messageMargin": 20,
+    "boxMargin": 6,
+    "noteMargin": 6,
+    "mirrorActors": false,
+    "diagramMarginX": 6,
+    "diagramMarginY": 6,
+    "messageFontSize": 15,
+    "noteFontSize": 15,
+    "actorFontSize": 15,
+    "hideUnusedParticipants": true,
+    "messageFontFamily": "Arial, Helvetica, sans-serif",
+    "noteFontFamily": "Arial, Helvetica, sans-serif",
+    "actorFontFamily": "Arial, Helvetica, sans-serif"
+  },
+  "flowchart": {
+    "useMaxWidth": false,
+    "nodeSpacing": 20,
+    "rankSpacing": 22,
+    "padding": 6,
+    "wrappingWidth": 420
+  },
+  "er": {
+    "useMaxWidth": false
+  },
+  "quadrantChart": {
+    "useMaxWidth": false,
+    "chartWidth": 720,
+    "chartHeight": 520,
+    "titleFontSize": 15,
+    "xAxisLabelFontSize": 15,
+    "yAxisLabelFontSize": 15,
+    "quadrantLabelFontSize": 15,
+    "pointLabelFontSize": 15,
+    "pointRadius": 6,
+    "pointTextPadding": 14
+  }
 }
