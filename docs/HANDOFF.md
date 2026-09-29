@@ -12,6 +12,49 @@
 > its measurement condition.
 > **The thesis text is assembled and green on every gate.**
 
+## In progress (2026-09-29) — post-p12/thesis-figures
+
+**Goal (owner):** the `.docx` builds complete with nothing pasted by hand — every figure rendered by
+`run_all.sh` from sources in the repo with pinned tools, then a PDF for reading. **Commit on the
+branch after every finished figure** (owner, after two dropped sessions); refresh this section as
+you go.
+
+**Done:** `docs/thesis/docx-pipeline/render/` — mermaid-cli 12.0.0 exactly, `package-lock.json`,
+project-local chrome-headless-shell 154 (`render/.cache`, git-ignored). Install: `npm ci` in
+`render/`.
+
+**Owner decisions (2026-09-29):**
+
+- А.1 and Б.1 must print with labels **≥ 8 pt** — no shrinking, no content removed. Either a
+  landscape page or two sheets split at a natural boundary of the scenario; the session picks by
+  measurement. Measured so far (one sheet, wrapped labels): А.1 4.3 pt, Б.1 5.2 pt — not enough.
+  Boundaries: А.1 before `Note over K,MS: Наступного дня` (line 42); Б.1 before
+  `K->>App: зʼєднання відновлено` (offline divergence / reconnect and resolve). ДСТУ practice for a
+  split figure: full caption under sheet 1, «Рисунок N, аркуш 2» under the next.
+- Рисунок 3.2 (ER): **entities and relations only, no fields, nothing beyond what the text
+  describes** (§3.4 list + the placeholder's relations). Migrations only to check the relations; if
+  text and migrations disagree, report — do not decide.
+
+**Four sources to write** (only А.1/Б.1 exist, `text/diagrams/*.mmd`): 1.1 positioning
+(`quadrantChart`, from табл. 1.1 only — Sunsama has no price in the text, so it is left out and
+reported), 3.1 architecture (flowchart from the placeholder text), 3.2 ER, 3.3 use cases in
+**PlantUML** (owner's choice; plantuml 1.2026.8 jar + checksum in `render/.tools`,
+`!pragma layout smetana` — no Graphviz here; Java 17 is on the machine). 3.3's include/extend: the placeholder's two
+(UC-03 include UC-09, UC-04 extend UC-03) plus only what §3.9 states, each with evidence in a
+comment.
+
+**Still to do:** `render_figures.py` + a `run_all.sh` step; `build.py` inserts images at the
+placeholders (split sheets, landscape if needed), `verify.py` checks each figure's image by hash
+with a negative control, `regress.py` learns drawings/media (it ignores them today and crashes on
+binary parts); folder for the owner's 4.1 screenshots (proposed `docs/thesis/figures/4.1/`,
+git-ignored until the owner has checked them for personal data); PDF — LibreOffice is not installed
+(pin it in `render/.tools` rather than system-wide; ask the owner first — ~1 GB).
+
+**Answer owed to the owner:** the title page, the annotation's «[ПІБ здобувача]» / «[Student
+name]» and ВСТУП's «Апробація» / «Публікації» placeholders all come verbatim from
+`docs/thesis/draft.docx` (paragraphs 9–16, 94–95; git-ignored); edit there, then
+`python3 docs/thesis/assemble.py`. The filled names then appear in the committed `full.md`.
+
 ## Current state (2026-09-28) — post-p12/docx-pipeline
 
 **Done and green on every gate.** The formatter's pipeline (it had lived only in a chat sandbox) is
