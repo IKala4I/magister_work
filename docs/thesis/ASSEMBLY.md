@@ -100,8 +100,8 @@ that pointed at _results_ now points at Розділ 6. The `text/` chapters alr
 numbering; the anchored edits in the rollup do too. What needs a sweep is the draft's **untouched**
 prose — search for «розділ 5», «розділі 5», «розділу 5» and check each.
 
-**Two placeholders stay yours.** ВСТУП's «Апробація» and «Публікації» (D7 — no conference, no
-publications, keep both minimal).
+**ВСТУП has no «Апробація» / «Публікації».** Both items are optional («за наявності») and there
+were none (D7); `assemble.py` drops them, headings included (2026-09-30).
 
 **Two numbers are deliberately absent** and must not be reinstated from memory: the test counts
 (583 / 191) are not in ВИСНОВКИ п. 8 until the gates are re-run at freeze time and pasted (D6);
@@ -354,12 +354,14 @@ than the text, and a disagreement between text and schema is the owner's to deci
 
 ## What the 2026-09-30 pass changed
 
-- **ВСТУП's «Апробація результатів» and «Публікації»** — there were no publications and no
-  conference presentations (owner). `assemble.py` replaces each placeholder with a neutral
-  sentence without a name: «Результати роботи на наукових конференціях не апробувалися.» and
-  «Результати роботи не публікувалися.»; the draft keeps its placeholders. No NUBiP guideline with
-  a prescribed wording for this case was found (the one found, the crop-production department's,
-  is silent on it). This settles the open question of 2026-09-29: no surname reaches `full.md`.
+- **ВСТУП's «Апробація результатів» and «Публікації» are gone.** There were no publications and
+  no conference presentations (owner), and the draft's own placeholders marked both items «за
+  наявності», i.e. optional. A first step put a neutral sentence in each (PR #86); the owner then
+  asked to drop both, headings included. `assemble.py` does it with a new helper, `para_delete`
+  (the anchor must match exactly one paragraph); the draft keeps its placeholders. ВСТУП now runs
+  «Практичне значення» → «Особистий внесок здобувача» → «Структура та обсяг роботи», and nothing in
+  the text refers to the dropped items. This also settles the open question of 2026-09-29: no
+  surname can reach `full.md` from them.
 
 ## Coverage, and what CI can and cannot prove
 

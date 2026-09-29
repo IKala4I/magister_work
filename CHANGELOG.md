@@ -2,6 +2,12 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — ВСТУП drops the optional «Апробація» and «Публікації» (2026-09-30, post-p12/vstup-drop-optional-items)
+
+- **Both items and their headings are gone** — optional («за наявності») and empty (owner);
+  `assemble.py`'s new `para_delete` drops them. ВСТУП reads «Практичне значення» → «Особистий
+  внесок здобувача» → «Структура та обсяг роботи»; nothing refers to the dropped items.
+
 ## Post-P12 — ВСТУП without publications (2026-09-30, post-p12/vstup-no-publications)
 
 - **«Апробація результатів» and «Публікації»** carry a neutral sentence each («…на наукових
