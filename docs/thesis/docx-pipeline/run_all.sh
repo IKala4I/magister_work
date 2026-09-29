@@ -17,6 +17,13 @@ OUT="$DOCS/build"
 PRIV="$DOCS/private/titulka.json"; PRIVATE=()
 [ -f "$PRIV" ] && PRIVATE=(--private "$PRIV")
 HERE=$(cd "$(dirname "$0")" && pwd)
+# тека з приватними іменами й готовими файлами не може лежати всередині репозиторію
+REPO=$(git -C "$HERE" rev-parse --show-toplevel 2>/dev/null || true)
+if [ -n "$REPO" ]; then
+  case "$(cd "$DOCS" && pwd -P)/" in
+    "$(cd "$REPO" && pwd -P)/"*) echo "$DOCS — усередині репозиторію $REPO; MagisterDocs має бути поза ним"; exit 1 ;;
+  esac
+fi
 PY=(uv run --project "$HERE" --locked --quiet python)
 command -v uv >/dev/null 2>&1 || { echo "немає uv (brew install uv)"; exit 1; }
 command -v pandoc >/dev/null 2>&1 || { echo "немає pandoc (brew install pandoc): без нього формули не складаються"; exit 1; }

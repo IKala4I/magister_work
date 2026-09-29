@@ -69,6 +69,9 @@ docs/thesis/*.docx
 docs/thesis/docx-pipeline/out/
 docs/thesis/docx-pipeline/golden/
 **/titulka.json
+docs/thesis/figures/
+docs/**/*.pdf
+docs/**/*.docx
 # the figure renderer's own Chrome (puppeteer cache) and PlantUML jar — downloaded, pinned, never committed
 docs/thesis/docx-pipeline/render/.cache/
 docs/thesis/docx-pipeline/render/.tools/
