@@ -1,5 +1,5 @@
 {
-  "_про_файл": "Рисунки роботи: номер → вихідний код (шлях від теки full.md) або тека зі знімками. Рендерить render_figures.py, вставляє build.py замість плейсхолдера «[МІСЦЕ ДЛЯ РИСУНКА N]».",
+  "_про_файл": "Рисунки роботи: номер → вихідний код (шлях від теки full.md) або тека зі знімками (\"root\": \"docs\" — від теки MagisterDocs поза репозиторієм). Рендерить render_figures.py, вставляє build.py замість плейсхолдера «[МІСЦЕ ДЛЯ РИСУНКА N]».",
   "figures": {
     "1.1": {
       "source": "diagrams/1-1-positioning.mmd",
@@ -18,7 +18,8 @@
       "orientation": "landscape"
     },
     "4.1": {
-      "images": "../figures/4.1"
+      "images": "figures/4.1",
+      "root": "docs"
     },
     "А.1": {
       "source": "diagrams/a1-uc04.mmd",

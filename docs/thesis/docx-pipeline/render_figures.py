@@ -195,6 +195,7 @@ def main():
     ap.add_argument('--out', required=True, help='тека для аркушів і manifest.json')
     ap.add_argument('--figures', default=os.path.join(HERE, 'figures.json'))
     ap.add_argument('--measure', action='store_true', help='кегль в обох орієнтаціях, без вимог')
+    ap.add_argument('--docs', help='тека MagisterDocs (поза репозиторієм): звідти беруться знімки рисунка 4.1')
     a = ap.parse_args()
 
     base = os.path.dirname(os.path.abspath(a.src))
@@ -204,11 +205,14 @@ def main():
     for num, fig in spec.items():
         d = os.path.join(a.out, num); shutil.rmtree(d, ignore_errors=True); os.makedirs(d)
         if 'images' in fig:                                  # знімки: беруться як є
-            folder = os.path.join(base, fig['images'])
+            if fig.get('root') == 'docs' and not a.docs:
+                print(f'   {num}: не вказано --docs (MagisterDocs) — лишається плейсхолдер')
+                continue
+            folder = os.path.join(a.docs if fig.get('root') == 'docs' else base, fig['images'])
             files = sorted(f for f in (os.listdir(folder) if os.path.isdir(folder) else [])
                            if f.lower().endswith(IMAGE_EXT))
             if not files:
-                print(f'   {num}: знімків немає в {os.path.relpath(folder)} — лишається плейсхолдер')
+                print(f'   {num}: знімків немає в {folder} — лишається плейсхолдер')
                 continue
             sheets = []
             for f in files:
