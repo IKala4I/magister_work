@@ -479,6 +479,17 @@ def run_sub(blocks, locator, old, new, label):
     APPLIED.append(label)
 
 
+def para_delete(blocks, locator, label):
+    """Drops one paragraph of the draft. The anchor must match exactly one paragraph (find_one)."""
+    try:
+        i = find_one(blocks, locator, label)
+    except LookupError:
+        SKIPPED.append(f"{label} (locator not found or ambiguous: {locator[:40]!r})")
+        return
+    del blocks[i]
+    APPLIED.append(label)
+
+
 def para_before(blocks, locator, new, label):
     i = find_one(blocks, locator, label)
     blocks.insert(i, {"kind": "p", "style": "", "text": new, "origin": "inserted"})
@@ -1143,14 +1154,10 @@ def build() -> tuple[list[dict], dict]:
             "Евристичний резерв (NFR-R2) розміщено саме в Edge Function: «сплячий» контейнер безоплатного тарифу ML-сервісу ніколи не блокує користувача.",
             "Евристичний резерв (NFR-R2) розміщено в Edge Function: тайм-аут або недосяжність сервісу рекомендацій ніколи не блокує користувача.", "§3.2 fallback placement")
     run_sub(blocks, "events – append-only журнал поведінкових фактів", "пропуск, перетягування, корекція", "пропуск, перенесення, корекція", "§3.4 event list")
-    # ВСТУП: no publications and no conference presentations (owner, 2026-09-30) — a neutral sentence
-    # without a name in place of each placeholder; the draft keeps its placeholders.
-    run_sub(blocks, "Апробація результатів. [МІСЦЕ ДЛЯ ЗАПОВНЕННЯ",
-            "[МІСЦЕ ДЛЯ ЗАПОВНЕННЯ: конференції, семінари кафедри, на яких доповідалися результати роботи, за наявності.]",
-            "Результати роботи на наукових конференціях не апробувалися.", "ВСТУП: апробація")
-    run_sub(blocks, "Публікації. [МІСЦЕ ДЛЯ ЗАПОВНЕННЯ",
-            "[МІСЦЕ ДЛЯ ЗАПОВНЕННЯ: перелік публікацій здобувача за темою роботи, за наявності.]",
-            "Результати роботи не публікувалися.", "ВСТУП: публікації")
+    # ВСТУП: «Апробація результатів» and «Публікації» are optional («за наявності» in the draft's
+    # own placeholders); there were none, so both items go, headings included (owner, 2026-09-30).
+    para_delete(blocks, "Апробація результатів. [МІСЦЕ ДЛЯ ЗАПОВНЕННЯ", "ВСТУП: апробація (optional, none) dropped")
+    para_delete(blocks, "Публікації. [МІСЦЕ ДЛЯ ЗАПОВНЕННЯ", "ВСТУП: публікації (optional, none) dropped")
     # §3.4 and the figure 3.2 note name the tables the schema has (owner, 2026-09-29): the draft's
     # single user_model_state is bandit_state + beta_cells + blend_state (rollup §3.4, items 5–6),
     # its user_profiles is profiles; cardinalities as in the migrations (profiles and blend_state

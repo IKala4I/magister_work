@@ -28,9 +28,8 @@ requires the five placeholders), `sources/draft.docx` (`assemble.py --draft PATH
 `docs/thesis/docx-pipeline/` — 6 figures, PDF 162 pages; it refuses a folder inside the repo.
 
 **Waiting on the owner:** fill `MagisterDocs/private/titulka.json`; put 4.1's screenshots in
-`MagisterDocs/figures/4.1/`. «Апробація» / «Публікації» are done (2026-09-30: neutral sentences via
-`assemble.py`, no publications or presentations). 1.1 stays five points (owner, 2026-09-29). The
-«Публікації» surname question is settled: there are none, the sentence has no name.
+`MagisterDocs/figures/4.1/`. «Апробація» / «Публікації» are dropped from ВСТУП (optional, none;
+2026-09-30, `para_delete` in `assemble.py`). 1.1 stays five points (owner, 2026-09-29).
 
 **Gotchas:** never write names into the draft (its text flows into the public `full.md`); the old
 table names remain on purpose in `assemble.py` (they match the draft) and in the change records.
