@@ -44,6 +44,12 @@
   breaks the build. `pandoc` stays a system tool; 3.8, 3.8.2.1 and 3.11 reproduce the golden
   part-for-part identical.
 
+## Post-P12 — Expo SDK 57 patch alignment, again (2026-09-29, post-p12/expo-patch-bump-2)
+
+- **`npx expo install --fix`: expo 57.0.26, expo-router 57.0.24, expo-constants 57.0.20** (plus
+  @expo/ui and expo-modules-core patches). expo-doctor turned red on #83 on upstream publications
+  alone; react-native, React and Babel unchanged.
+
 ## Post-P12 — Expo SDK 57 patch alignment (2026-09-28, post-p12/expo-patch-bump)
 
 - **`npx expo install --fix`: seven Expo packages on their current SDK 57 patches** (expo 57.0.25,
