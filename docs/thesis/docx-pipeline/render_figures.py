@@ -18,7 +18,7 @@
 
 Гарантія розміру. Для кожного аркуша обчислюється кегль найдрібнішого підпису на папері — з
 розміру шрифту в конфігурації рендера і масштабу, з яким аркуш стане в свою область сторінки
-(книжкова 170 × 230 мм, альбомна 257 × 150 мм). Менше MIN_PT — складання падає: нечитабельний
+(книжкова 170 × 240 мм, альбомна 257 × 150 мм). Менше MIN_PT — складання падає: нечитабельний
 рисунок гірший за відсутній (власник, 2026-09-29).
 
 --measure: для кожного аркуша друкує кегль в обох орієнтаціях, нічого не вимагаючи.
@@ -29,6 +29,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 RENDER = os.path.join(HERE, 'render')
 MMDC = os.path.join(RENDER, 'node_modules', '.bin', 'mmdc')
 MERMAID_CONFIG = os.path.join(RENDER, 'mermaid.json')
+MERMAID_CSS = os.path.join(RENDER, 'mermaid.css')
 PLANTUML_VERSION = '1.2026.8'
 PLANTUML_URL = ('https://github.com/plantuml/plantuml/releases/download/'
                 f'v{PLANTUML_VERSION}/plantuml-{PLANTUML_VERSION}.jar')
@@ -107,14 +108,33 @@ def break_labels(text, width):
     return '\n'.join(out)
 
 
-def min_font_px(kind):
-    """Кегль найдрібнішого підпису в пікселях рендера — з тієї самої конфігурації, якою рендеримо."""
-    if kind == 'puml':
-        return 14.0             # skinparam defaultFontSize 14 у кожному .puml (перевіряється нижче)
-    cfg = json.load(open(MERMAID_CONFIG, encoding='utf-8'))
-    sizes = [cfg.get('themeVariables', {}).get('fontSize', '16px')]
-    sizes += [v for sec in cfg.values() if isinstance(sec, dict)
-              for k, v in sec.items() if k.endswith('FontSize')]    # усі розділи: sequence, quadrantChart…
+CSS_SIZE = re.compile(r'\.([\w-]+)\s*\{[^}]*font-size:\s*([\d.]+)px')
+SVG_TAG = re.compile(r'<(?:text|tspan)\b[^>]*>')
+SVG_ATTR_SIZE = re.compile(r'font-size="([\d.]+)(?:px)?"')
+SVG_STYLE = re.compile(r'<(?:text|tspan|span|div|p)\b[^>]*style="[^"]*font-size:\s*([\d.]+)px')
+
+
+def min_font_px(kind, svg):
+    """Кегль найдрібнішого тексту рендера в пікселях — виміряний у самому SVG, а не лише з
+    конфігурації: Mermaid частину тексту (номери кроків) малює фіксованим розміром поза
+    mermaid.json, і такий текст, якщо його не перекрито в mermaid.css, стає мінімумом."""
+    sizes = []
+    if kind == 'mmd':
+        cfg = json.load(open(MERMAID_CONFIG, encoding='utf-8'))
+        sizes += [cfg.get('themeVariables', {}).get('fontSize', '16px')]
+        sizes += [v for sec in cfg.values() if isinstance(sec, dict)
+                  for k, v in sec.items() if k.endswith('FontSize')]    # усі розділи: sequence, quadrantChart…
+        overrides = dict(CSS_SIZE.findall(open(MERMAID_CSS, encoding='utf-8').read()))
+        for tag in SVG_TAG.findall(svg):
+            m = SVG_ATTR_SIZE.search(tag)
+            if not m: continue
+            cls = re.search(r'class="([^"]*)"', tag)
+            hit = [overrides[c] for c in (cls.group(1).split() if cls else []) if c in overrides]
+            sizes.append(hit[0] if hit else m.group(1))
+        sizes += SVG_STYLE.findall(svg)
+    else:                                  # PlantUML: у SVG уже враховано `scale`, ділимо назад
+        sizes += [float(m.group(1)) / SCALE for tag in SVG_TAG.findall(svg)
+                  for m in [SVG_ATTR_SIZE.search(tag)] if m]
     return min(float(str(s).rstrip('px')) for s in sizes)
 
 
@@ -140,28 +160,33 @@ def ensure_plantuml():
 
 
 def render_mermaid(text, out_png):
+    """PNG для документа і SVG того самого рендера — для виміру найдрібнішого тексту."""
     if not os.path.exists(MMDC):
         raise SystemExit(f'немає mmdc: виконати `npm ci` у {RENDER}')
     with tempfile.NamedTemporaryFile('w', suffix='.mmd', delete=False, encoding='utf-8') as f:
         f.write(text); src = f.name
     try:                                   # cwd=render/: puppeteer шукає .puppeteerrc.cjs у робочій теці
-        subprocess.run([MMDC, '-q', '-i', src, '-o', os.path.abspath(out_png), '-c', MERMAID_CONFIG,
-                        '-s', str(SCALE), '-b', 'white'], check=True, cwd=RENDER)
+        for out, extra in ((out_png, ['-s', str(SCALE), '-b', 'white']), (out_png[:-4] + '.svg', [])):
+            subprocess.run([MMDC, '-q', '-i', src, '-o', os.path.abspath(out), '-c', MERMAID_CONFIG,
+                            '-C', MERMAID_CSS, *extra], check=True, cwd=RENDER)
     finally:
         os.remove(src)
+    return open(out_png[:-4] + '.svg', encoding='utf-8').read()
 
 
 def render_plantuml(text, out_png):
-    if 'defaultFontSize 14' not in text:
-        raise SystemExit('.puml має задавати `skinparam defaultFontSize 14` — від нього рахується кегль')
+    """PNG для документа і SVG того самого рендера — для виміру найдрібнішого тексту."""
     jar = ensure_plantuml()
     with tempfile.TemporaryDirectory() as d:
         src = os.path.join(d, 'figure.puml')
         open(src, 'w', encoding='utf-8').write(text.replace('@startuml', f'@startuml\nscale {SCALE}', 1))
         # PLANTUML_LIMIT_SIZE: без нього PlantUML мовчки обрізає зображення ширше за 4096 px
-        subprocess.run(['java', '-Djava.awt.headless=true', '-DPLANTUML_LIMIT_SIZE=16384', '-jar', jar,
-                        '-charset', 'UTF-8', '-tpng', src], check=True)
+        for fmt in ('png', 'svg'):
+            subprocess.run(['java', '-Djava.awt.headless=true', '-DPLANTUML_LIMIT_SIZE=16384', '-jar', jar,
+                            '-charset', 'UTF-8', f'-t{fmt}', src], check=True)
         shutil.move(os.path.join(d, 'figure.png'), out_png)
+        svg = open(os.path.join(d, 'figure.svg'), encoding='utf-8').read()
+    return svg
 
 
 def main():
@@ -200,16 +225,17 @@ def main():
         if 'label_chars' in fig:
             texts = [break_labels(t, fig['label_chars']) for t in texts]
         orientation = fig.get('orientation', 'portrait')
-        font = min_font_px(kind)
         sheets = []
         for k, t in enumerate(texts, 1):
             png = os.path.join(d, f'аркуш-{k}.png')
-            (render_plantuml if kind == 'puml' else render_mermaid)(t, png)
+            svg = (render_plantuml if kind == 'puml' else render_mermaid)(t, png)
+            font = min_font_px(kind, svg)
             w, h = (v / SCALE for v in png_size(png))
             pts = {o: fit_pt(w, h, font, o) for o in AREA_MM}
             sheets.append({'file': os.path.relpath(png, a.out), 'sha256': sha256(png),
-                           'css_px': [round(w), round(h)], 'min_pt': round(pts[orientation], 2)})
-            line = (f'   {num} аркуш {k}/{len(texts)}: {w:.0f}×{h:.0f} px, найдрібніший підпис '
+                           'css_px': [round(w), round(h)], 'min_font_px': font,
+                           'min_pt': round(pts[orientation], 2)})
+            line = (f'   {num} аркуш {k}/{len(texts)}: {w:.0f}×{h:.0f} px, текст від {font:g} px, найдрібніший '
                     + ', '.join(f'{o} {p:.1f} пт' for o, p in pts.items()))
             print(line)
             if not a.measure and pts[orientation] < MIN_PT:
