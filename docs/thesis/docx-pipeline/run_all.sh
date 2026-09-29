@@ -4,8 +4,9 @@
 # Python і його пакети — з власного проєкту uv цієї теки (pyproject.toml, uv.lock, Python 3.12,
 # лише керований uv), а не з того, що стоїть на машині. Рисунки — рендер render_figures.py:
 # Mermaid із render/ (npm ci за package-lock.json, власний chrome-headless-shell), PlantUML —
-# закріплений jar у render/.tools. Із системи потрібні uv, pandoc, node/npm і java (для PlantUML).
-# Код виходу ненульовий, якщо впало складання, звірка чи перевірка легенд.
+# закріплений jar у render/.tools. PDF — make_pdf.py: закріплений LibreOffice у render/.tools, зміст
+# оновлюється. Із системи потрібні uv, pandoc, node/npm, java (PlantUML) і macOS (hdiutil, для LibreOffice).
+# Код виходу ненульовий, якщо впало будь-що: рендер (підписи < 8 пт), складання, звірка, легенди чи PDF.
 set -euo pipefail
 SRC=${1:?шлях до full.md}; BRIEF=${2:?шлях до formatter-brief.md}; OUT=${3:-out}
 HERE=$(cd "$(dirname "$0")" && pwd)
@@ -23,8 +24,4 @@ echo; echo "== звірка";         "${PY[@]}" "$HERE/verify.py" --src "$SRC" 
 echo; echo "== легенди";        "${PY[@]}" "$HERE/check_legend_symbols.py" "$SRC"
 echo; echo "== аудит розмітки"; "${PY[@]}" "$HERE/audit_markdown.py" "$SRC" --out "$OUT/audit.md"
 
-if command -v soffice >/dev/null 2>&1; then
-  echo; echo "== PDF"
-  soffice --headless --convert-to pdf --outdir "$OUT" "$OUT/hourwell.docx" >/dev/null 2>&1 && echo "   $OUT/hourwell.pdf" \
-    || echo "   PDF не зібрано (для формул потрібен пакет libreoffice-math)"
-fi
+echo; echo "== PDF";            "${PY[@]}" "$HERE/make_pdf.py" "$OUT/hourwell.docx" "$OUT/hourwell.pdf"
