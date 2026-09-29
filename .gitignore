@@ -67,6 +67,9 @@ docs/thesis/*.docx
 # full.md it was built from) stay out of git; the pipeline's scripts and README are committed
 docs/thesis/docx-pipeline/out/
 docs/thesis/docx-pipeline/golden/
+# the figure renderer's own Chrome (puppeteer cache) and PlantUML jar — downloaded, pinned, never committed
+docs/thesis/docx-pipeline/render/.cache/
+docs/thesis/docx-pipeline/render/.tools/
 
 # local session exports (never commit conversation transcripts)
 session-backup*.txt
