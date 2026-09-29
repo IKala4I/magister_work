@@ -20,6 +20,12 @@
   number sits away from the spine; 3.3 keeps only the placeholder's two relations; 1.1 and 3.1
   tidied; every appendix starts on a new page (ДСТУ 3008).
 
+## Post-P12 — Expo SDK 57 patch alignment, again (2026-09-29, post-p12/expo-patch-bump-2)
+
+- **`npx expo install --fix`: expo 57.0.26, expo-router 57.0.24, expo-constants 57.0.20** (plus
+  @expo/ui and expo-modules-core patches). expo-doctor turned red on #83 on upstream publications
+  alone; react-native, React and Babel unchanged.
+
 ## Post-P12 — the formatter's .docx pipeline in the repo, and §6.6's opening (2026-09-28, post-p12/docx-pipeline)
 
 - **§6.6 no longer says every finding is one of the six classes.** «поділяються на шість класів» →
@@ -43,12 +49,6 @@
   `uv run --locked`, so removing a system Python or a distribution such as Anaconda no longer
   breaks the build. `pandoc` stays a system tool; 3.8, 3.8.2.1 and 3.11 reproduce the golden
   part-for-part identical.
-
-## Post-P12 — Expo SDK 57 patch alignment, again (2026-09-29, post-p12/expo-patch-bump-2)
-
-- **`npx expo install --fix`: expo 57.0.26, expo-router 57.0.24, expo-constants 57.0.20** (plus
-  @expo/ui and expo-modules-core patches). expo-doctor turned red on #83 on upstream publications
-  alone; react-native, React and Babel unchanged.
 
 ## Post-P12 — Expo SDK 57 patch alignment (2026-09-28, post-p12/expo-patch-bump)
 
