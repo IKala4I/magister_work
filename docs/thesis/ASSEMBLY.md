@@ -274,6 +274,41 @@ formatter, all applied at the sources; `full.md` regenerated and every hunk chec
 - The README's claim that the restored pipeline reproduced the formatter's POVNA build byte for byte
   on the pre-PR #80 `full.md` cannot be checked here — that build is not in the repository.
 
+## What the 2026-09-29 pass changed
+
+The document builds with its figures: `run_all.sh` renders them from sources in
+`text/diagrams/`, inserts them in place of the placeholders, proves each image by hash and makes a
+PDF for reading (159 pages, contents page built). The owner's rules: every label ≥ 8 pt on paper,
+no shrinking, nothing removed; the ER figure shows entities and relations only, no more than the
+text, and a disagreement between text and schema is the owner's to decide.
+
+- **Рисунок 1.1** (Mermaid quadrant chart, 10.0 pt) — built from табл. 1.1 alone; positions
+  ordinal, prices in the labels verbatim. **Sunsama is not drawn**: the placeholder names it, but
+  the text gives it no price and no learning assessment, so its point would be a new claim.
+- **Рисунок 3.1** (8.7 pt) — the placeholder's four levels and arrows. **In PlantUML, not
+  Mermaid**: Mermaid's layout routed the training → Storage arrow around the figure and ignored
+  frame directions (best of five layouts: 6.0 pt).
+- **Рисунок 3.2 — written, rendered for review (9.0 pt), not inserted.** The migrations confirm
+  the placeholder's relations except: `user_model_state` does not exist (the state lives in
+  `bandit_state`, `beta_cells`, `blend_state`), `user_profiles` is `profiles`, and
+  `recommendations.model_version` is text, not a foreign key. Waiting on the owner.
+- **Рисунок 3.3** (PlantUML, 8.1 pt, **landscape page**) — UC-01…UC-10 by §3.9; relations: the
+  placeholder's two (UC-03 «include» UC-09, UC-04 «extend» UC-03) plus two §3.9 states in words
+  (UC-01 «include» UC-03, UC-05 «extend» UC-03), each quoted in the source.
+- **Рисунки А.1 and Б.1** — on one page they printed at 4.3 and 5.2 pt; two sheets reached at most
+  5–7 pt. At the scenario's phase boundaries (`%% аркуш` comments; no diagram line changed) with the
+  participants a sheet does not use left out: **А.1 on four sheets, Б.1 on three**, portrait, 8.5
+  pt at the smallest. Caption from `full.md` under sheet 1, «Рисунок N, аркуш k» under the rest.
+- **Рисунок 4.1** — the owner's screenshots go to `docs/thesis/figures/4.1/` (git-ignored: phone
+  screenshots may carry personal data); until then the placeholder stays.
+- **The title page, the annotations' name placeholders and ВСТУП's «Апробація» / «Публікації»**
+  come verbatim from `draft.docx` (paragraphs 9–16, 94–95); the owner fills them there and reruns
+  `assemble.py`. The filled names then appear in the committed `full.md`.
+- Tools, all pinned: mermaid-cli 12.0.0 with its own chrome-headless-shell (`render/`), PlantUML
+  1.2026.8 (SHA-256), LibreOffice 26.8.0 (SHA-256) in `render/.tools` with a private profile
+  (the owner's choice over a system install). `verify.py` check 7 and `regress.py` see images;
+  the golden now keeps its renders (`golden/figures`).
+
 ## Coverage, and what CI can and cannot prove
 
 **A gap the 2026-09-11 pass found, and the shape of it.** `verify-payloads.py` checks _blockquote_

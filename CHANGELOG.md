@@ -2,6 +2,19 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — the figures in the document, and a PDF for reading (2026-09-29, post-p12/thesis-figures)
+
+- **Five figures rendered by the pipeline from sources in the repo** — 1.1 (from табл. 1.1; Sunsama
+  left out: the text gives it no price), 3.1 (PlantUML), 3.3 (PlantUML, landscape page), А.1 on
+  four sheets and Б.1 on three — every label ≥ 8 pt on paper, a gate the build enforces.
+  verify.py proves each image by SHA-256; regress.py sees images.
+- **Рисунок 3.2 written but not inserted:** the text's `user_model_state` and `user_profiles`
+  disagree with the schema (`bandit_state` / `beta_cells` / `blend_state`; `profiles`) — the
+  owner decides.
+- **A folder for 4.1's screenshots**, a **PDF** through a pinned LibreOffice with the contents page
+  built, and every tool pinned inside the pipeline (mermaid-cli, chrome-headless-shell, PlantUML,
+  LibreOffice).
+
 ## Post-P12 — the formatter's .docx pipeline in the repo, and §6.6's opening (2026-09-28, post-p12/docx-pipeline)
 
 - **§6.6 no longer says every finding is one of the six classes.** «поділяються на шість класів» →

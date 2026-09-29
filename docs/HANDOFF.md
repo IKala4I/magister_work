@@ -2,61 +2,46 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-28 — **post-p12/docx-pipeline**: the formatter's `full.md` → `.docx`
+> Last update: 2026-09-29 — **post-p12/thesis-figures**: the figures render in the pipeline and a
+> PDF builds; four items wait on the owner (below). Before that, 2026-09-28 —
+> **post-p12/docx-pipeline**: the formatter's `full.md` → `.docx`
 > pipeline is in the repo (`docs/thesis/docx-pipeline/`), §6.6's opening is fixed at the source,
 > and the three pipeline mismatches found on the way are fixed on the owner's decision; Expo's
-> patch drift went in first as PR #82. Nothing waits on the owner. Earlier: the submission report
+> patch drift went in first as PR #82. Nothing waited on the owner then. Earlier: the submission report
 > and the formatter's second patch set (PR #80), the business-style pass (PR #78), the nine number
 > decisions (PR #79), and the corrections rollup (2026-09-09), which is no longer an index: all 63
 > items carry the Ukrainian sentences the draft should read, tagged Ф / П / С, every number with
 > its measurement condition.
 > **The thesis text is assembled and green on every gate.**
 
-## In progress (2026-09-29) — post-p12/thesis-figures
+## Current state (2026-09-29) — post-p12/thesis-figures
 
-**Goal (owner):** the `.docx` builds complete with nothing pasted by hand — every figure rendered by
-`run_all.sh` from sources in the repo with pinned tools, then a PDF for reading. **Commit on the
-branch after every finished figure** (owner, after two dropped sessions); refresh this section as
-you go.
+**Done and green.** `run_all.sh` renders the figures from `docs/thesis/text/diagrams/`
+(`render_figures.py`, `figures.json`; ≥ 8 pt gate), builds, verifies (check 7: every image by
+SHA-256), and makes the PDF (`make_pdf.py`: pinned LibreOffice 26.8.0 in `render/.tools`, contents
+page built by a macro) — 159 pages, 12 s. In the document: 1.1 (10.0 pt), 3.1 (PlantUML, 8.7 pt),
+3.3 (PlantUML, landscape, 8.1 pt), А.1 (4 sheets) and Б.1 (3 sheets), 8.5 pt at the smallest. The
+golden (`docx-pipeline/golden/`) keeps its renders in `golden/figures`. `ASSEMBLY.md`, 2026-09-29,
+has everything; tools and pins in `docs/versions.md`.
 
-**Done:** `docs/thesis/docx-pipeline/render/` — mermaid-cli 12.0.0 exactly, `package-lock.json`,
-project-local chrome-headless-shell 154 (`render/.cache`, git-ignored; `run_all.sh` runs `npm ci`
-if missing). `render_figures.py` + `figures.json` (8 pt gate), `build.py --figures`, `verify.py`
-check 7 (image hashes, negative controls), `regress.py` sees images. **А.1 (4 sheets) and Б.1
-(3 sheets) are in the document**, portrait, 8.5 pt minimum; sheet boundaries are `%% аркуш`
-comments in the sources.
+**Waiting on the owner:**
 
-**Owner decisions (2026-09-29):**
+1. **Рисунок 3.2** — `text/diagrams/3-2-er.mmd` is drawn by the text and rendered
+   (`docx-pipeline/out/preview-3.2.png`), not inserted: the schema has no `user_model_state`
+   (`bandit_state`, `beta_cells`, `blend_state`) and names `user_profiles` `profiles`. Either the
+   text changes (and the figure with it) or the figure goes in as the text stands — then add
+   `"3.2": {"source": "diagrams/3-2-er.mmd", "orientation": "portrait"}` to `figures.json`.
+2. **Рисунок 4.1** — screenshots into `docs/thesis/figures/4.1/` (named `1-…`, `2-…`; git-ignored
+   until checked for personal data).
+3. **Title page and ВСТУП placeholders** — fill in `docs/thesis/draft.docx` (paragraphs 9–16,
+   94–95), then `python3 docs/thesis/assemble.py`.
+4. **Sunsama in 1.1** — only if a row for it (price, learning) goes into табл. 1.1.
 
-- А.1 and Б.1 must print with labels **≥ 8 pt** — no shrinking, no content removed. Either a
-  landscape page or two sheets split at a natural boundary of the scenario; the session picks by
-  measurement. Measured so far (one sheet, wrapped labels): А.1 4.3 pt, Б.1 5.2 pt — not enough.
-  Boundaries: А.1 before `Note over K,MS: Наступного дня` (line 42); Б.1 before
-  `K->>App: зʼєднання відновлено` (offline divergence / reconnect and resolve). ДСТУ practice for a
-  split figure: full caption under sheet 1, «Рисунок N, аркуш 2» under the next.
-- Рисунок 3.2 (ER): **entities and relations only, no fields, nothing beyond what the text
-  describes** (§3.4 list + the placeholder's relations). Migrations only to check the relations; if
-  text and migrations disagree, report — do not decide.
-
-**Four sources to write** (only А.1/Б.1 exist, `text/diagrams/*.mmd`): 1.1 positioning
-(`quadrantChart`, from табл. 1.1 only — Sunsama has no price in the text, so it is left out and
-reported), 3.1 architecture (flowchart from the placeholder text), 3.2 ER, 3.3 use cases in
-**PlantUML** (owner's choice; plantuml 1.2026.8 jar + checksum in `render/.tools`,
-`!pragma layout smetana` — no Graphviz here; Java 17 is on the machine). 3.3's include/extend: the placeholder's two
-(UC-03 include UC-09, UC-04 extend UC-03) plus only what §3.9 states, each with evidence in a
-comment.
-
-**Still to do:** `render_figures.py` + a `run_all.sh` step; `build.py` inserts images at the
-placeholders (split sheets, landscape if needed), `verify.py` checks each figure's image by hash
-with a negative control, `regress.py` learns drawings/media (it ignores them today and crashes on
-binary parts); folder for the owner's 4.1 screenshots (proposed `docs/thesis/figures/4.1/`,
-git-ignored until the owner has checked them for personal data); PDF — LibreOffice is not installed
-(pin it in `render/.tools` rather than system-wide; ask the owner first — ~1 GB).
-
-**Answer owed to the owner:** the title page, the annotation's «[ПІБ здобувача]» / «[Student
-name]» and ВСТУП's «Апробація» / «Публікації» placeholders all come verbatim from
-`docs/thesis/draft.docx` (paragraphs 9–16, 94–95; git-ignored); edit there, then
-`python3 docs/thesis/assemble.py`. The filled names then appear in the committed `full.md`.
+**Gotchas:** puppeteer finds `.puppeteerrc.cjs` only from its working directory (mmdc runs with
+`cwd=render/`); PlantUML crops images wider than 4096 px unless `-DPLANTUML_LIMIT_SIZE` is raised;
+Mermaid ignores a frame's `direction` when arrows cross into it; a headless LibreOffice macro that
+errors hangs on an invisible dialog (the macro terminates itself); LibreOffice's bundled Python is
+killed on this machine (exit 137), so the PDF step uses Basic.
 
 ## Current state (2026-09-28) — post-p12/docx-pipeline
 
