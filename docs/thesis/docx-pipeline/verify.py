@@ -146,6 +146,7 @@ def curl(raw_text):
                    for i, part in enumerate(PROTECTED.split(raw_text)))
 
 
+MIN_PT = 8.0                    # найдрібніший текст рисунка на папері (власник, 2026-09-29)
 ALLOWED = {('.', ','): 'кома', ('-', '−'): 'мінус', ("'", '’'): 'апостроф'}
 PURE_NUMBER = re.compile(r'[+\-−]?(\d+(?:\.\d+)?)(?:\s*±\s*\d+(?:\.\d+)?)?')
 
@@ -186,20 +187,40 @@ def source_tables(lines, code):
 
 
 def body_elements(path):
-    """Тіло документа по порядку: [(«P»|«T», текст, [SHA-256 зображень])]. Зображення
-    читаються з пакета за r:embed — байти, які побачить читач."""
+    """Тіло документа по порядку: [(«P»|«T», текст, [SHA-256 зображень], [ширина зображень, мм],
+    орієнтація сторінки)]. Зображення читаються з пакета за r:embed — байти, які побачить читач;
+    орієнтація — з розділу, до якого належить елемент (sectPr у абзаці закриває свій розділ)."""
     import hashlib
     doc = Document(path)
     A = '{http://schemas.openxmlformats.org/drawingml/2006/main}blip'
     R = '{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed'
+    WP = '{http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing}'
     W = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'
+
+    def orient(sp):
+        pg = sp.find(W + 'pgSz')
+        if pg is None: return 'portrait'
+        if pg.get(W + 'orient') == 'landscape': return 'landscape'
+        return 'landscape' if int(pg.get(W + 'w', 0)) > int(pg.get(W + 'h', 0)) else 'portrait'
+
+    body = doc.element.body
+    kids = [el for el in body.iterchildren() if el.tag in (W + 'p', W + 'tbl')]
+    cur, orients = orient(body.find(W + 'sectPr')), []
+    for el in reversed(kids):
+        sp = el.find(f'{W}pPr/{W}sectPr')
+        if sp is not None: cur = orient(sp)
+        orients.append(cur)
+    orients.reverse()
     out = []
-    for el in doc.element.body.iterchildren():
-        tag = el.tag.replace(W, '')
-        if tag not in ('p', 'tbl'): continue
-        shas = [hashlib.sha256(doc.part.related_parts[b.get(R)].blob).hexdigest() for b in el.iter(A)]
+    for el, o in zip(kids, orients):
+        shas, widths = [], []
+        for dr in el.iter(WP + 'inline', WP + 'anchor'):
+            b, e = dr.find('.//' + A), dr.find(WP + 'extent')
+            if b is None: continue
+            shas.append(hashlib.sha256(doc.part.related_parts[b.get(R)].blob).hexdigest())
+            widths.append(int(e.get('cx')) / 36000 if e is not None else 0.0)
         text = ws(''.join(t.text or '' for t in el.iter(W + 't')))
-        out.append(('P' if tag == 'p' else 'T', text, shas))
+        out.append(('P' if el.tag == W + 'p' else 'T', text, shas, widths, o))
     return out
 
 
@@ -211,23 +232,34 @@ def check_figures(fig_dir, docx, lines):
     file_sha = lambda f: hashlib.sha256(open(os.path.join(fig_dir, f), 'rb').read()).hexdigest()
     for num, fig in man.items():
         want = [file_sha(s['file']) for s in fig['sheets']]
-        caps = [i for i, (k, t, _) in enumerate(els)
+        caps = [i for i, (k, t, *_) in enumerate(els)
                 if k == 'P' and re.match(rf'^Рисунок {re.escape(num)}\s+[–—-]', t)]
         if len(caps) != 1:
             bad.append(f'рисунок {num}: підписів «Рисунок {num} – …» у .docx {len(caps)}, має бути 1'); continue
         i = caps[0]
-        prev = els[i - 1] if i else ('', '', [])
+        prev = els[i - 1] if i else ('', '', [], [], '')
         first = want if fig['kind'] == 'images' else want[:1]
         if prev[0] != ('T' if fig['kind'] == 'images' else 'P') or prev[2] != first:
             bad.append(f'рисунок {num}: перед підписом не той рендер (очікувано {len(first)} зображ., '
                        f'знайдено {len(prev[2])}, збіг SHA-256: {prev[2] == first})')
         if fig['kind'] == 'images': continue
+        placed = [prev]
         for k, sha in enumerate(want[1:], 2):
-            img, lab = els[i + 2 * k - 3: i + 2 * k - 1] or [None, None]
+            img, lab = (els[i + 2 * k - 3: i + 2 * k - 1] + [None, None])[:2]
             if not img or img[2] != [sha]:
                 bad.append(f'рисунок {num}, аркуш {k}: після підпису не той рендер або його немає')
             if not lab or lab[1] != f'Рисунок {num}, аркуш {k}':
                 bad.append(f'рисунок {num}, аркуш {k}: немає підпису «Рисунок {num}, аркуш {k}»')
+            placed.append(img)
+        # як рисунок стоїть насправді: орієнтація сторінки й кегль найдрібнішого тексту на папері —
+        # з ширини зображення в .docx, а не з того, що збирався зробити build.py
+        for k, (sheet, el) in enumerate(zip(fig['sheets'], placed), 1):
+            if not el or not el[3]: continue
+            if el[4] != fig['orientation']:
+                bad.append(f'рисунок {num}, аркуш {k}: сторінка {el[4]}, а має бути {fig["orientation"]}')
+            pt = sheet['min_font_px'] * el[3][0] / sheet['css_px'][0] / 0.3528
+            if pt < MIN_PT - 0.05:
+                bad.append(f'рисунок {num}, аркуш {k}: найдрібніший текст на папері {pt:.1f} пт < {MIN_PT}')
     total = sum(len(e[2]) for e in els); expected = sum(len(f['sheets']) for f in man.values())
     if total != expected:
         bad.append(f'зображень у .docx {total}, відрендерено {expected}')
