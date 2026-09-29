@@ -13,6 +13,9 @@
       "source": "diagrams/3-3-use-cases.puml",
       "orientation": "landscape"
     },
+    "4.1": {
+      "images": "../figures/4.1"
+    },
     "А.1": {
       "source": "diagrams/a1-uc04.mmd",
       "orientation": "portrait",

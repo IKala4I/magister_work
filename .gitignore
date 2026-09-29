@@ -70,6 +70,9 @@ docs/thesis/docx-pipeline/golden/
 # the figure renderer's own Chrome (puppeteer cache) and PlantUML jar — downloaded, pinned, never committed
 docs/thesis/docx-pipeline/render/.cache/
 docs/thesis/docx-pipeline/render/.tools/
+# the owner's screenshots for Рисунок 4.1 — may carry personal data; add with -f once checked
+docs/thesis/figures/4.1/*
+!docs/thesis/figures/4.1/README.md
 
 # local session exports (never commit conversation transcripts)
 session-backup*.txt
