@@ -3,7 +3,8 @@
 """Складальник магістерської роботи: full.md → .docx за стандартом НУБіП / ДСТУ 3008.
 
     python3 build.py --src ../text/full.md --brief ../formatter-brief.md \\
-                     --registry registry.json --out out/hourwell.docx --report out/report.json
+                     --registry registry.json --out $DOCS/build/hourwell.docx --report $DOCS/build/report.json \\
+                     --figures $DOCS/build/figures --private $DOCS/private/titulka.json
 
 Головне правило: жоден рядок прози не набирається руками — текст читається з full.md.
 Руками зроблено лише те, що не має текстового вигляду: формули (formulas.py) і реєстр

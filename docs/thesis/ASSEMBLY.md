@@ -305,8 +305,8 @@ than the text, and a disagreement between text and schema is the owner's to deci
 - **Рисунок 4.1** — the owner's screenshots; their folder moved out of the repo the same day (next
   section). Until they are there, the placeholder stays.
 - **The title page, the annotations' name placeholders and ВСТУП's «Апробація» / «Публікації»**
-  come verbatim from `draft.docx` (paragraphs 9–16, 94–95); the owner fills them there and reruns
-  `assemble.py`. The filled names then appear in the committed `full.md`.
+  come verbatim from `draft.docx` (paragraphs 9–16, 94–95). Superseded the same day (next section):
+  the names are filled in MagisterDocs, never in the draft; «Апробація» / «Публікації» stay in it.
 - Tools, all pinned: mermaid-cli 12.0.0 with its own chrome-headless-shell (`render/`), PlantUML
   1.2026.8 (SHA-256), LibreOffice 26.8.0 (SHA-256) in `render/.tools` with a private profile
   (the owner's choice over a system install); npm's lockfile integrity and puppeteer's version pin
@@ -324,23 +324,33 @@ than the text, and a disagreement between text and schema is the owner's to deci
 
 ## What the 2026-09-29 private-docs pass changed
 
-- **The text names the schema's tables.** The owner's decision: the draft's single model-state
-  table is `bandit_state` + `beta_cells` + `blend_state` (rollup §3.4 had approved the wording and
-  nothing had wired it), and its profile table is `profiles`. `assemble.py` applies it to §3.4,
-  the §4 /plan paragraph and the note for Рисунок 3.2; the rollup's А.1 payload and the А.1
-  participant name the three tables. `specs/05` and `specs/07` follow (spec-conflicts L44,
-  evidence: the base migration). **Рисунок 3.2** is redrawn from the corrected text (eleven
-  entities, the note's relations, `model_version` dashed) and inserted on a landscape page at
-  9.0 pt. The old names remain only where they must: `assemble.py`'s substitutions (they match the
-  draft's wording) and the records of the change.
+- **The text names the schema's tables.** The owner's decision: the draft's single model-state table
+  is `bandit_state` + `beta_cells` + `blend_state` (rollup §3.4 had approved the wording and nothing
+  had wired it), and its profile table is `profiles`. `assemble.py` applies it to §3.4, the §4 /plan
+  paragraph and the note for Рисунок 3.2; the rollup's А.1 payload and the А.1 participant name the
+  three tables; §3.4 ties the cell-level reading to `beta_cells` only. `specs/05` and `specs/07`
+  follow (spec-conflicts L44, evidence: the base migration). **Рисунок 3.2** is redrawn from the
+  corrected text (eleven entities, the note's relations, `model_version` dashed) — in PlantUML:
+  Mermaid drew the recommendations → feedback_rewards edge so short that its cardinality marks
+  overlapped — and inserted in portrait at 10.4 pt. The old names remain only where they must:
+  `assemble.py`'s substitutions (they match the draft's wording) and the records of the change.
 - **Private data and build outputs live outside the repo**, in
   `/Users/vladyslav/Workspace/MagisterDocs` (the owner's folder): `private/titulka.json` (the names
   for the title page and the annotations — `full.md` keeps the placeholders, `build.py --private`
-  substitutes them at build time, `verify.py` check 8 fails if a name reaches `full.md`),
+  substitutes them at build time; `verify.py` check 8 fails on a full value or a surname in any
+  case in `full.md`, and on a filled value whose placeholder is gone; CI's `verify-docx` requires
+  the five placeholders in `full.md`),
   `sources/draft.docx` (moved; SHA-256 unchanged; `assemble.py --draft PATH`, required),
   `figures/4.1/` (screenshots), `build/` (the .docx, PDF, report, renders) and `golden/`.
-  `run_all.sh SRC BRIEF MAGISTERDOCS`. «Апробація» and «Публікації» stay in the draft (no
-  private data in them). `.gitignore` keeps the old paths and `**/titulka.json` as guards.
+  `run_all.sh SRC BRIEF MAGISTERDOCS` (it refuses a folder inside the repo). «Апробація» and
+  «Публікації» stay in the draft, as the owner decided. **Open for the owner:** a publication list
+  carries the author's surname and initials, so listing publications in the draft would put the
+  surname into the public `full.md` — check 8 will then fail. `.gitignore` guards the old paths,
+  `docs/thesis/figures/`, every `.docx`/`.pdf` under `docs/` and `**/titulka.json`.
+- **The adversarial pass** found, and this pass fixed: check 8 caught only an exact match; a filled
+  value without its placeholder vanished silently; CI had no placeholder check; the screenshots'
+  ignore rule had gone with their folder; the §3.4 wording; 3.2's overlapping marks; stale paths
+  in docstrings and one ASSEMBLY bullet.
 
 ## Coverage, and what CI can and cannot prove
 

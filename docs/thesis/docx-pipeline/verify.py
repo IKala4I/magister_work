@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 """Звірка зібраного .docx із джерелом.
 
-    python3 verify.py --src ../text/full.md --docx out/hourwell.docx --brief ../formatter-brief.md
+    python3 verify.py --src ../text/full.md --docx $DOCS/build/hourwell.docx --brief ../formatter-brief.md \\
+                      --figures $DOCS/build/figures --private $DOCS/private/titulka.json
 
 Що гарантує і чого НЕ гарантує. Перевірка на дослівність доводить, що дорогою від
 full.md до .docx нічого не переписано. Вона нічого не каже про те, чи правильний

@@ -18,17 +18,20 @@
 
 **Done and green.** The text names the schema's tables (`bandit_state` + `beta_cells` +
 `blend_state`, `profiles`; assemble.py run_subs, the rollup's А.1 payload, the А.1 participant,
-specs/05–07 with spec-conflicts L44); Рисунок 3.2 redrawn and inserted (landscape, 9.0 pt).
-**Private data and outputs live in `/Users/vladyslav/Workspace/MagisterDocs`** (README there):
-`private/titulka.json` (names; `build.py --private`, `verify.py` check 8 — a name in `full.md`
-fails), `sources/draft.docx` (`assemble.py --draft PATH`, required), `figures/4.1/`, `build/`
-(.docx, PDF), `golden/`. Build:
+specs/05–07 with spec-conflicts L44); Рисунок 3.2 redrawn in PlantUML and inserted (portrait, 10.4
+pt). **Private data and outputs live in `/Users/vladyslav/Workspace/MagisterDocs`** (README there):
+`private/titulka.json` (names; `build.py --private`; `verify.py` check 8 fails on a full value or a
+surname in any case in `full.md` and on a filled value without its placeholder; CI's `verify-docx`
+requires the five placeholders), `sources/draft.docx` (`assemble.py --draft PATH`, required),
+`figures/4.1/`, `build/` (.docx, PDF), `golden/`. Build:
 `./run_all.sh ../text/full.md ../formatter-brief.md /Users/vladyslav/Workspace/MagisterDocs` from
-`docs/thesis/docx-pipeline/` — 6 figures, PDF 163 pages.
+`docs/thesis/docx-pipeline/` — 6 figures, PDF 162 pages; it refuses a folder inside the repo.
 
 **Waiting on the owner:** fill `MagisterDocs/private/titulka.json`; put 4.1's screenshots in
 `MagisterDocs/figures/4.1/`; «Апробація» / «Публікації» in the draft, then `assemble.py --draft`.
-1.1 stays five points (owner, 2026-09-29).
+1.1 stays five points (owner, 2026-09-29). **Open question:** a publication list carries the
+author's surname and initials — in the draft it would reach the public `full.md` and fail check 8;
+the owner decides whether to allow that match or move «Публікації» to the private data.
 
 **Gotchas:** never write names into the draft (its text flows into the public `full.md`); the old
 table names remain on purpose in `assemble.py` (they match the draft) and in the change records.

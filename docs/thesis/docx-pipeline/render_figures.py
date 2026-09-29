@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Рендер рисунків роботи з вихідного коду в репозиторії — крок run_all.sh перед складанням.
 
-    python3 render_figures.py --src ../text/full.md --out out/figures [--measure]
+    python3 render_figures.py --src ../text/full.md --out $DOCS/build/figures --docs $DOCS [--measure]
 
 Що робить. Для кожного рисунка з figures.json:
   * діаграма Mermaid (.mmd) — mmdc із render/ (mermaid-cli, версії закріплені package-lock.json,
@@ -10,7 +10,8 @@
   * діаграма PlantUML (.puml) — закріплений plantuml.jar із render/.tools (перевірка SHA-256),
     розкладка smetana, тож Graphviz не потрібен;
   * знімки (тека) — файли зображень у порядку назв, як є.
-Результат — out/figures/<номер>/аркуш-<k>.png і out/figures/manifest.json, який читає build.py.
+Результат — <out>/<номер>/аркуш-<k>.png і <out>/manifest.json, який читає build.py ($DOCS — тека
+MagisterDocs поза репозиторієм; run_all.sh пише в $DOCS/build/figures).
 
 Аркуші. Діаграма, що не вміщується на сторінку з підписами не менше MIN_PT, ділиться в самому
 вихідному файлі рядком-маркером `%% аркуш` на природній межі сценарію. Кожен аркуш — окремий

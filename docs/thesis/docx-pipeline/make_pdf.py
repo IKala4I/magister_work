@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """PDF для читання: .docx → PDF закріпленим LibreOffice, зі зібраним змістом.
 
-    python3 make_pdf.py out/hourwell.docx out/hourwell.pdf
+    python3 make_pdf.py $DOCS/build/hourwell.docx $DOCS/build/hourwell.pdf
 
 LibreOffice — не з машини: LO_VERSION для macOS aarch64, перевірений за SHA-256, опублікованим
 поруч із файлом на download.documentfoundation.org, розпаковується при першому запуску в
