@@ -1,6 +1,10 @@
 {
   "_про_файл": "Рисунки роботи: номер → вихідний код (шлях від теки full.md) або тека зі знімками. Рендерить render_figures.py, вставляє build.py замість плейсхолдера «[МІСЦЕ ДЛЯ РИСУНКА N]».",
   "figures": {
+    "3.1": {
+      "source": "diagrams/3-1-architecture.puml",
+      "orientation": "portrait"
+    },
     "А.1": {
       "source": "diagrams/a1-uc04.mmd",
       "orientation": "portrait",

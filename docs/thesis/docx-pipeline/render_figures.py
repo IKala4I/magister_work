@@ -32,12 +32,12 @@ MERMAID_CONFIG = os.path.join(RENDER, 'mermaid.json')
 PLANTUML_VERSION = '1.2026.8'
 PLANTUML_URL = ('https://github.com/plantuml/plantuml/releases/download/'
                 f'v{PLANTUML_VERSION}/plantuml-{PLANTUML_VERSION}.jar')
-PLANTUML_SHA256 = None          # вписується при першому закріпленні; див. README
+PLANTUML_SHA256 = '5e1ecfa8ecd32c90b03bbf3b1eb6f020943f98ab0fcf4032be31a0002ee2c462'   # GitHub release digest, 2026-09-29
 PLANTUML_JAR = os.path.join(RENDER, '.tools', f'plantuml-{PLANTUML_VERSION}.jar')
 
 MIN_PT = 8.0
 SCALE = 3                       # PNG утричі щільніший за CSS-піксель: ≈ 300 dpi на папері
-AREA_MM = {'portrait': (170, 230), 'landscape': (257, 150)}
+AREA_MM = {'portrait': (170, 240), 'landscape': (257, 150)}
 PT_MM = 0.3528
 IMAGE_EXT = ('.png', '.jpg', '.jpeg')
 SHEET = re.compile(r'^\s*%%\s*аркуш\b')
@@ -157,8 +157,9 @@ def render_plantuml(text, out_png):
     with tempfile.TemporaryDirectory() as d:
         src = os.path.join(d, 'figure.puml')
         open(src, 'w', encoding='utf-8').write(text.replace('@startuml', f'@startuml\nscale {SCALE}', 1))
-        subprocess.run(['java', '-Djava.awt.headless=true', '-jar', jar, '-charset', 'UTF-8',
-                        '-tpng', src], check=True)
+        # PLANTUML_LIMIT_SIZE: без нього PlantUML мовчки обрізає зображення ширше за 4096 px
+        subprocess.run(['java', '-Djava.awt.headless=true', '-DPLANTUML_LIMIT_SIZE=16384', '-jar', jar,
+                        '-charset', 'UTF-8', '-tpng', src], check=True)
         shutil.move(os.path.join(d, 'figure.png'), out_png)
 
 
