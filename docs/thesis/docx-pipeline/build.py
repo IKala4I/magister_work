@@ -733,7 +733,7 @@ def build_front(doc):
 def build_body(doc, lo, hi):
     """Універсальний обробник: заголовки, код, формули, таблиці з підписами,
     лістинги, плейсхолдери, списки, проза. Текст — дослівно з full.md."""
-    n, in_refs = lo, False
+    n, in_refs, last_heading = lo, False, ''
     while n <= hi:
         s = L(n)
         if not s.strip(): n += 1; continue    # поза огорожею порожній рядок — межа абзаців markdown, не код
@@ -746,8 +746,14 @@ def build_body(doc, lo, hi):
                 struct_head(doc, txt)
             else:
                 p = doc.add_paragraph(style='Heading %d' % min(lvl, 3)); add_runs(p, txt)
+                # ДСТУ 3008: кожен додаток — з нової сторінки; перший, що йде одразу за «ДОДАТКИ»,
+                # лишається з цим заголовком на його сторінці
+                if lvl == 2 and txt.startswith('Додаток') and not last_heading.startswith('ДОДАТКИ'):
+                    p.paragraph_format.page_break_before = True
+            last_heading = txt
             _emit_inserts(doc, n)
             n += 1; continue
+        last_heading = ''
 
         if any(a <= n <= b for a, b in CODE_RANGES):
             if not s.lstrip().startswith('```'):
