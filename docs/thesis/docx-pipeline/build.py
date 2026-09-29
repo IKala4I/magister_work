@@ -16,6 +16,7 @@ import argparse, json, os, re, subprocess, sys, tempfile
 from docx import Document
 from docx.shared import Pt, Mm, Cm, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING, WD_BREAK
+from docx.enum.section import WD_SECTION, WD_ORIENT
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.oxml.ns import qn, nsdecls
 from docx.oxml import parse_xml, OxmlElement
@@ -805,16 +806,17 @@ def build_body(doc, lo, hi):
 # плейсхолдером у рамці. Рисунок на кількох аркушах: перший аркуш — над підписом із full.md
 # (дослівно), кожен наступний — після нього з підписом «Рисунок N, аркуш k».
 
-FIGURES, PENDING = {}, {}
+FIGURES, PENDING, LANDSCAPE_OPEN = {}, {}, set()
 FIG_DIR = None
-PORTRAIT_MM = (TW, 230)                   # область рисунка на книжковій сторінці, мм
+AREA_MM = {'portrait': (TW, 240),         # область рисунка: книжкова сторінка без підпису, мм
+           'landscape': (257, 150)}       # альбомна: 297 − 20 − 20; 210 − 30 − 10 − підпис
 PX_MM = 25.4 / 96                         # CSS-піксель рендера в мм за натурального розміру
 RE_SHEET_LABEL = 'Рисунок {num}, аркуш {k}'
 
 
 def load_figures(d):
     global FIG_DIR
-    FIGURES.clear(); PENDING.clear(); FIG_DIR = d
+    FIGURES.clear(); PENDING.clear(); LANDSCAPE_OPEN.clear(); FIG_DIR = d
     if d:
         FIGURES.update(json.load(open(os.path.join(d, 'manifest.json'), encoding='utf-8')))
 
@@ -823,8 +825,23 @@ def _figure_scale(fig):
     """Один масштаб на всі аркуші рисунка (мм на CSS-піксель): найменший, з яким кожен аркуш
     вміщується в область сторінки, і не більший за натуральний — кегль підписів однаковий на
     всіх аркушах і дорівнює найменшому з виміряних render_figures.py."""
-    W, H = PORTRAIT_MM
+    W, H = AREA_MM[fig.get('orientation', 'portrait')]
     return min(min(W / s['css_px'][0], H / s['css_px'][1], PX_MM) for s in fig['sheets'])
+
+
+def orientation_section(doc, landscape):
+    """Розрив розділу з нової сторінки. Альбомна сторінка читається поворотом за годинниковою
+    стрілкою, тож корінець (поле 30 мм) стає її верхнім полем: 30 / 10 / 20 / 20 мм. Номер
+    сторінки продовжується: колонтитул прив'язано до попереднього, а «особлива перша сторінка»
+    (титулка) у нових розділах вимкнена."""
+    s = doc.add_section(WD_SECTION.NEW_PAGE)
+    s.different_first_page_header_footer = False
+    if landscape:
+        s.orientation, s.page_width, s.page_height = WD_ORIENT.LANDSCAPE, Mm(297), Mm(210)
+        s.top_margin, s.bottom_margin, s.left_margin, s.right_margin = Mm(30), Mm(10), Mm(20), Mm(20)
+    else:
+        s.orientation, s.page_width, s.page_height = WD_ORIENT.PORTRAIT, Mm(210), Mm(297)
+        s.left_margin, s.right_margin, s.top_margin, s.bottom_margin = Mm(30), Mm(10), Mm(20), Mm(20)
 
 
 def image_para(doc, path, width_mm):
@@ -860,11 +877,14 @@ def emit_figure(doc, num):
     if fig['kind'] == 'images':
         emit_image_grid(doc, num, fig); return
     k = _figure_scale(fig)
+    if fig.get('orientation') == 'landscape':
+        orientation_section(doc, True); LANDSCAPE_OPEN.add(num)
     first, rest = fig['sheets'][0], fig['sheets'][1:]
     image_para(doc, os.path.join(FIG_DIR, first['file']), first['css_px'][0] * k)
     PENDING[num] = [(s, k) for s in rest]
     pt = min(s['min_pt'] for s in fig['sheets'])
-    REPORT['figures'].append(f'рисунок {num}: {len(fig["sheets"])} аркуш(і), найдрібніший підпис {pt:.1f} пт')
+    REPORT['figures'].append(f'рисунок {num}: {len(fig["sheets"])} аркуш(і), найдрібніший підпис {pt:.1f} пт'
+                             + (', альбомна сторінка' if fig.get('orientation') == 'landscape' else ''))
 
 
 def emit_pending_sheets(doc, num):
@@ -872,6 +892,8 @@ def emit_pending_sheets(doc, num):
         image_para(doc, os.path.join(FIG_DIR, s['file']), s['css_px'][0] * k)
         para(doc, RE_SHEET_LABEL.format(num=num, k=k_sheet), indent=0, align=C, spacing=1, after=12,
              literal=True)
+    if num in LANDSCAPE_OPEN:
+        orientation_section(doc, False); LANDSCAPE_OPEN.discard(num)
 
 
 def build(src, out, brief=None, registry=None, report=None, figures=None):

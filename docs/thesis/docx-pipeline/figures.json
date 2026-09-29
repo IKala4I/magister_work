@@ -5,6 +5,10 @@
       "source": "diagrams/3-1-architecture.puml",
       "orientation": "portrait"
     },
+    "3.3": {
+      "source": "diagrams/3-3-use-cases.puml",
+      "orientation": "landscape"
+    },
     "А.1": {
       "source": "diagrams/a1-uc04.mmd",
       "orientation": "portrait",
