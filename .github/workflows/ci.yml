@@ -51,8 +51,8 @@ jobs:
       # claim that can be checked is checked. Reads only committed files, so it runs here.
       - name: The docs' claims about the pipeline match the pipeline
         run: python3 docs/thesis/verify-state.py
-      # assemble.py cannot run here: it reads docs/thesis/draft.docx, which is git-ignored and
-      # is never published from this public repo. So CI checks the product, not the process —
+      # assemble.py cannot run here: it reads the owner's draft.docx, which lives outside the
+      # repository (MagisterDocs) and is never published. So CI checks the product, not the process —
       # the three checkers above all read full.md itself. Re-running the assembler and
       # committing the result stays a local step; ASSEMBLY.md says so.
 

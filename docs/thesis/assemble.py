@@ -8,8 +8,10 @@ corrections do not touch is copied **verbatim** from `draft.docx`, and the run p
 were copied, edited, inserted and deleted – so a silent alteration of untouched prose is not
 possible without the count moving.
 
-    python3 docs/thesis/assemble.py            # writes docs/thesis/text/full.md
-    python3 docs/thesis/assemble.py --report   # counts only, no write
+    python3 docs/thesis/assemble.py --draft PATH/draft.docx            # writes docs/thesis/text/full.md
+    python3 docs/thesis/assemble.py --draft PATH/draft.docx --report   # counts only, no write
+
+The draft is private and lives outside the repository (MagisterDocs/sources/draft.docx).
 
 What it deliberately does NOT carry: Word paragraph styling (indents, 1.5 spacing, justification,
 ДСТУ margins, Times New Roman 14 pt), the 44 tab stops that right-align formula numbers, table

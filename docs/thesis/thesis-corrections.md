@@ -1,6 +1,6 @@
 # Thesis-Draft Corrections Worklist
 
-> One line per discrepancy between `docs/thesis/draft.docx` and the system as built.
+> One line per discrepancy between the owner's `draft.docx` and the system as built.
 > Format: draft section says A, the system does B, change the text to say B because …
 > Appended by every phase whose work contradicts the draft. Started 2026-08-24 (draft read
 > end-to-end against specs/01–07 and the P0/P1 state).

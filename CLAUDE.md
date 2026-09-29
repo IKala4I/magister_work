@@ -81,10 +81,11 @@
 - **`docs/thesis/pojasnennia.uk.md`** (Ukrainian explainer for the owner) is updated **in the
   same commit** as the work it describes; a phase is not done if it no longer matches the
   code — this check is part of the adversarial pass.
-- **`docs/thesis/draft.docx`** is a consistency target, NOT a spec, and is git-ignored (never
-  publish the owner's thesis draft from this public repo). When a decision contradicts the
-  draft, keep the better choice and append one line to `docs/thesis/thesis-corrections.md`
-  ("draft §X says A, system does B, change text because …").
+- **The owner's thesis draft** (`/Users/vladyslav/Workspace/MagisterDocs/sources/draft.docx`,
+  outside the repo since 2026-09-29, with every other private file and build output) is a
+  consistency target, NOT a spec (never publish it from this public repo); `assemble.py --draft`
+  reads it. When a decision contradicts the draft, keep the better choice and append one line to
+  `docs/thesis/thesis-corrections.md` ("draft §X says A, system does B, change text because …").
 - **`docs/thesis/spec-conflicts.md`** is the errata layer over frozen specs/ — check it before
   implementing anything a spec file describes.
 - **Handoffs.** Keep PLAN statuses, CHANGELOG, traceability, ADRs, and the explainer current

@@ -8,7 +8,8 @@ template, not executing patches.
 It is **generated**, never hand-edited:
 
 ```
-python3 docs/thesis/assemble.py          # rebuilds text/full.md from draft.docx + text/*.md
+python3 docs/thesis/assemble.py --draft /Users/vladyslav/Workspace/MagisterDocs/sources/draft.docx
+                                         # rebuilds text/full.md from the draft + text/*.md
 python3 docs/thesis/verify-numbers.py    # 144 study numbers, recomputed from the results JSON
 python3 docs/thesis/gen-dodatok-z.py --check
 python3 docs/thesis/verify-docx.py docs/thesis/text/full.md   # 52 needles; 0 failures
@@ -290,10 +291,9 @@ than the text, and a disagreement between text and schema is the owner's to deci
   Mermaid**: Mermaid's layout routed the training → Storage arrow around the figure and ignored
   frame directions (best of five layouts: 6.0 pt). No arrow label: «plan-request» is in the Edge
   Functions box and `/plan` in the FastAPI box; frame captions kept out of the lines' way.
-- **Рисунок 3.2 — written, rendered for review (9.0 pt), not inserted.** The migrations confirm
-  the placeholder's relations except: `user_model_state` does not exist (the state lives in
-  `bandit_state`, `beta_cells`, `blend_state`), `user_profiles` is `profiles`, and
-  `recommendations.model_version` is text, not a foreign key. Waiting on the owner.
+- **Рисунок 3.2** — written by the text and held back: the text and the schema disagreed on two
+  table names. The owner decided the same day that the text follows the schema — see the next
+  section; 3.2 is in.
 - **Рисунок 3.3** (PlantUML, 8.1 pt, **landscape page**, page number bottom right — the sheet's
   top-right corner) — UC-01…UC-10 by §3.9; relations: only the placeholder's two (UC-03 «include»
   UC-09, UC-04 «extend» UC-03).
@@ -302,8 +302,8 @@ than the text, and a disagreement between text and schema is the owner's to deci
   participants a sheet does not use left out: **А.1 on four sheets, Б.1 on three**, portrait, 8.5 pt
   at the smallest (step numbers included: Mermaid draws them at a fixed 12 px, `render/mermaid.css`
   makes them 15 px). Caption from `full.md` under sheet 1, «Рисунок N, аркуш k» under the rest.
-- **Рисунок 4.1** — the owner's screenshots go to `docs/thesis/figures/4.1/` (git-ignored: phone
-  screenshots may carry personal data); until then the placeholder stays.
+- **Рисунок 4.1** — the owner's screenshots; their folder moved out of the repo the same day (next
+  section). Until they are there, the placeholder stays.
 - **The title page, the annotations' name placeholders and ВСТУП's «Апробація» / «Публікації»**
   come verbatim from `draft.docx` (paragraphs 9–16, 94–95); the owner fills them there and reruns
   `assemble.py`. The filled names then appear in the committed `full.md`.
@@ -321,6 +321,26 @@ than the text, and a disagreement between text and schema is the owner's to deci
   quadrant line and a non-verbatim price in 1.1; crossings in 3.1; and, older than this pass, the
   appendices not starting on new pages (ДСТУ 3008) — fixed, `regress.py` shows exactly the eight
   headings Б…И.
+
+## What the 2026-09-29 private-docs pass changed
+
+- **The text names the schema's tables.** The owner's decision: the draft's single model-state
+  table is `bandit_state` + `beta_cells` + `blend_state` (rollup §3.4 had approved the wording and
+  nothing had wired it), and its profile table is `profiles`. `assemble.py` applies it to §3.4,
+  the §4 /plan paragraph and the note for Рисунок 3.2; the rollup's А.1 payload and the А.1
+  participant name the three tables. `specs/05` and `specs/07` follow (spec-conflicts L44,
+  evidence: the base migration). **Рисунок 3.2** is redrawn from the corrected text (eleven
+  entities, the note's relations, `model_version` dashed) and inserted on a landscape page at
+  9.0 pt. The old names remain only where they must: `assemble.py`'s substitutions (they match the
+  draft's wording) and the records of the change.
+- **Private data and build outputs live outside the repo**, in
+  `/Users/vladyslav/Workspace/MagisterDocs` (the owner's folder): `private/titulka.json` (the names
+  for the title page and the annotations — `full.md` keeps the placeholders, `build.py --private`
+  substitutes them at build time, `verify.py` check 8 fails if a name reaches `full.md`),
+  `sources/draft.docx` (moved; SHA-256 unchanged; `assemble.py --draft PATH`, required),
+  `figures/4.1/` (screenshots), `build/` (the .docx, PDF, report, renders) and `golden/`.
+  `run_all.sh SRC BRIEF MAGISTERDOCS`. «Апробація» and «Публікації» stay in the draft (no
+  private data in them). `.gitignore` keeps the old paths and `**/titulka.json` as guards.
 
 ## Coverage, and what CI can and cannot prove
 
@@ -350,8 +370,8 @@ default.
 verbatim must still be in the text, so the do-not-touch list cannot drift into describing a
 document that no longer exists.
 
-**What CI cannot check.** `assemble.py` reads `docs/thesis/draft.docx`, which is git-ignored and
-never published from this public repo. So CI checks the product — `full.md` itself — and not the
+**What CI cannot check.** `assemble.py` reads the owner's draft, which lives outside the
+repository (`MagisterDocs/sources/draft.docx`) and is never published. So CI checks the product — `full.md` itself — and not the
 process. Re-running the assembler and committing the result stays a local step. If someone edits
 `full.md` by hand, `verify-payloads`, `verify-brief` and `verify-docx` will usually catch it,
 but the authority is still: change `assemble.py`, re-run, commit.

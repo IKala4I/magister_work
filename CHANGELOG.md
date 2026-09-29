@@ -2,6 +2,17 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — the schema's table names, Рисунок 3.2, and private data outside the repo (2026-09-29, post-p12/thesis-private-docs)
+
+- **The text names the schema's tables** (owner's decision): `bandit_state` + `beta_cells` +
+  `blend_state` for the model state, `profiles` for the profile — in §3.4, the §4 /plan paragraph,
+  the notes for 3.2 and А.1, the А.1 diagram, and specs/05–07 (spec-conflicts L44). **Рисунок
+  3.2** redrawn from the corrected text and inserted (landscape, 9.0 pt).
+- **Private data and build outputs live in `/Users/vladyslav/Workspace/MagisterDocs`**, outside
+  the repo: the names for the title page (substituted at build time; `full.md` keeps placeholders;
+  verify fails if a name reaches it), the draft (`assemble.py --draft`), 4.1's screenshots, the
+  .docx/PDF and the golden. `run_all.sh`'s third argument is that folder.
+
 ## Post-P12 — the figures in the document, and a PDF for reading (2026-09-29, post-p12/thesis-figures)
 
 - **Five figures rendered by the pipeline from sources in the repo** — 1.1 (from табл. 1.1; Sunsama
