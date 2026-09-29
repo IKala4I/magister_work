@@ -32,8 +32,11 @@ check_legend_symbols.py, audit_markdown.py і структурні переві�
   7. з --figures: кожен відрендерений рисунок стоїть на своєму місці — зображення перед підписом
      «Рисунок N – …» і кожен наступний аркуш після нього з підписом «Рисунок N, аркуш k» —
      і це саме той рендер: SHA-256 байтів зображення в .docx збігається з файлом рендера;
-     плейсхолдера такого рисунка в документі немає; зайвих зображень немає.
-Код виходу 1, якщо порушено будь-що з 1–7.
+     плейсхолдера такого рисунка в документі немає; зайвих зображень немає;
+  8. з --private: кожен заповнений приватний плейсхолдер (титулка, анотації) у документі
+     замінено значенням, незаповнений — лишився як є, і жодне приватне значення не потрапило
+     у full.md (публічний репозиторій).
+Код виходу 1, якщо порушено будь-що з 1–8.
 """
 import argparse, json, os, re, sys, zipfile
 
@@ -315,9 +318,11 @@ def main():
     ap.add_argument('--src', required=True); ap.add_argument('--docx', required=True)
     ap.add_argument('--brief'); ap.add_argument('--registry', default=os.path.join(HERE, 'registry.json'))
     ap.add_argument('--figures', help='тека рендерів із manifest.json: перевірка 7')
+    ap.add_argument('--private', help='titulka.json: перевірка 8 (приватні імена лише в .docx)')
     a = ap.parse_args()
 
     build.load(a.src, a.brief)
+    private = dict(build.load_private(a.private))       # дані, як реєстр; перевіряє їх перевірка 8
     if a.registry: build.bind_registry(a.registry)
     LINES = build.LINES
     body, nmath = docx_text(a.docx)
@@ -403,6 +408,23 @@ def main():
     print(f'вставок із реєстру застосовано: {sum(len(v) for v in build.INSERT_AFTER.values())}; '
           f'не знайдено в .docx: {len(ins_bad)}')
     failed |= bool(ins_bad)
+
+    # 8
+    if a.private:
+        public = open(a.src, encoding='utf-8').read()           # сирий full.md, як лежить у репозиторії
+        raw_values = [str(v).strip() for k, v in json.load(open(a.private, encoding='utf-8')).items()
+                      if not k.startswith('_') and str(v or '').strip()]
+        priv_bad = [f'ПРИВАТНЕ ЗНАЧЕННЯ У full.md: «{v}»' for v in raw_values if v in public]
+        for _, ph, _ in build.PRIVATE_FIELDS:
+            if ph not in public: continue
+            if ph in private:
+                if ph in body: priv_bad.append(f'плейсхолдер «{ph}» лишився в .docx, хоча значення задано')
+                if private[ph] not in body: priv_bad.append(f'значення для «{ph}» немає в .docx')
+            elif ph not in body:
+                priv_bad.append(f'незаповнений плейсхолдер «{ph}» зник із .docx')
+        print(f'приватні поля: заповнено {len(private)} з {len(build.PRIVATE_FIELDS)}; порушень: {len(priv_bad)}')
+        for t in priv_bad: print(f'   {t}')
+        failed |= bool(priv_bad)
 
     # 7
     if a.figures:

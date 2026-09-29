@@ -45,6 +45,46 @@ _FENCE_LINES = None
 _OMML = {}
 
 
+# ================================================================ приватні дані
+# Імена на титулці й в анотаціях — приватні: у full.md (публічний репозиторій) лишаються
+# плейсхолдери, а значення підставляються лише під час складання .docx із файлу поза
+# репозиторієм (MagisterDocs/private/titulka.json, власник, 2026-09-29). Порожнє значення —
+# плейсхолдер лишається. Ключі — людські; тут вони зіставлені з плейсхолдерами full.md.
+PRIVATE_FIELDS = (                        # (ключ у titulka.json, плейсхолдер у full.md, шаблон)
+    ('здобувач', '[ПІБ здобувача]', '{}'),
+    ('здобувач_англійською', '[Student name]', '{}'),
+    ('керівник_науковий_ступінь', '[науковий ступінь,', '{},'),
+    ('керівник_вчене_звання_і_ПІБ', 'вчене звання, ПІБ керівника]', '{}'),
+    ('рецензент', '[ПІБ рецензента]', '{}'),
+)
+PRIVATE = {}                              # плейсхолдер → значення (лише заповнені)
+
+
+def load_private(path):
+    """Читає titulka.json і підставляє заповнені значення в LINES. Повертає словник
+    плейсхолдер → значення. Невідомий ключ у файлі валить складання (друкарська помилка в
+    ключі інакше мовчки лишила б плейсхолдер)."""
+    global LINES
+    PRIVATE.clear()
+    if not path: return PRIVATE
+    data = json.load(open(path, encoding='utf-8'))
+    known = {k for k, _, _ in PRIVATE_FIELDS}
+    unknown = [k for k in data if not k.startswith('_') and k not in known]
+    if unknown:
+        raise SystemExit(f'titulka.json: невідомі ключі {unknown}; відомі — {sorted(known)}')
+    for key, ph, tmpl in PRIVATE_FIELDS:
+        val = str(data.get(key) or '').strip()
+        if val: PRIVATE[ph] = tmpl.format(val)
+    LINES = [_sub_private(ln) for ln in LINES]
+    return PRIVATE
+
+
+def _sub_private(line):
+    for ph, val in PRIVATE.items():
+        line = line.replace(ph, val)
+    return line
+
+
 def load(src, brief=None):
     """Завантажує джерело й бриф. Скидає весь стан — модуль можна перевикористати."""
     global LINES, KEEP_VERBATIM, _FENCE_LINES
@@ -718,8 +758,10 @@ def build_front(doc):
         para(doc, plain(n), align=R, indent=0)
         if n in (21, 25): para(doc, '')
     para(doc, plain(29), align=C, indent=0, before=48)
-    REPORT['placeholders'].append('Титульна сторінка: [ПІБ здобувача], [науковий ступінь, '
-                                  'вчене звання, ПІБ керівника], [ПІБ рецензента]')
+    left = [ph for _, ph, _ in PRIVATE_FIELDS if ph not in PRIVATE]
+    if left:
+        REPORT['placeholders'].append('Титульна сторінка й анотації: ' + ', '.join(left)
+                                      + ' (заповнити в MagisterDocs/private/titulka.json)')
     a_ua, a_en, toc = anchor('**АНОТАЦІЯ**'), anchor('**ANNOTATION**'), anchor('**ЗМІСТ**')
     for head_n, lo, hi in ((a_ua, a_ua + 2, a_en - 1), (a_en, a_en + 2, toc - 1)):
         struct_head(doc, plain(head_n), in_toc=True)
@@ -925,8 +967,9 @@ def emit_pending_sheets(doc, num):
         orientation_section(doc, False); LANDSCAPE_OPEN.discard(num)
 
 
-def build(src, out, brief=None, registry=None, report=None, figures=None):
+def build(src, out, brief=None, registry=None, report=None, figures=None, private=None):
     load(src, brief)
+    load_private(private)
     if registry: bind_registry(registry)
     load_figures(figures)
     doc = new_doc()
@@ -954,8 +997,9 @@ if __name__ == '__main__':
     ap.add_argument('--registry', default=os.path.join(HERE, 'registry.json'))
     ap.add_argument('--report', help='куди записати звіт складання (JSON)')
     ap.add_argument('--figures', help='тека рендерів із manifest.json (render_figures.py); без неї — плейсхолдери')
+    ap.add_argument('--private', help='titulka.json з іменами для титулки й анотацій (поза репозиторієм)')
     a = ap.parse_args()
-    rep = build(a.src, a.out, a.brief, a.registry, a.report, a.figures)
+    rep = build(a.src, a.out, a.brief, a.registry, a.report, a.figures, a.private)
     for x in rep['notes']: print('•', x)
     for x in rep['figures']:
         if x.startswith('рисунок'): print('•', x)
