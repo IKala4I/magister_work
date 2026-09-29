@@ -1502,8 +1502,9 @@ Replace the figure note «**[МІСЦЕ ДЛЯ РИСУНКА А.1]** _Вста�
 
 > «**[МІСЦЕ ДЛЯ РИСУНКА А.1]** _Вставити: діаграма послідовності з учасниками: Користувач,
 > застосунок RN (Expo), Expo SQLite та outbox, Edge Fn `sync-resolve`, Supabase Postgres, Edge Fn
-> `attribute-rewards`, FastAPI RecSys, `user_model_state`. Вихідний код діаграми (`a1-uc04.mmd`)
-> зберігається в репозиторії системи; діаграму слід відрендерити та вставити зображенням._»
+> `attribute-rewards`, FastAPI RecSys, стан моделей (`bandit_state`, `beta_cells`, `blend_state`).
+> Вихідний код діаграми (`a1-uc04.mmd`) зберігається в репозиторії системи; діаграму слід
+> відрендерити та вставити зображенням._»
 
 ### 10.9 Додаток Б — **П**, item 64
 

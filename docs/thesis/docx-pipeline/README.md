@@ -9,19 +9,27 @@
 ## Запуск
 
 ```bash
-./run_all.sh ../text/full.md ../formatter-brief.md out/
+./run_all.sh ../text/full.md ../formatter-brief.md /Users/vladyslav/Workspace/MagisterDocs
 ```
 
-або окремо (з цієї теки; `uv run` бере Python і пакети з власного проєкту теки):
+Третій аргумент — тека **MagisterDocs поза репозиторієм** (власник, 2026-09-29): звідти
+приватні дані (`private/titulka.json` — імена для титулки й анотацій; `full.md` лишається з
+плейсхолдерами), знімки рисунка 4.1 (`figures/4.1/`), туди — результат (`build/`: .docx, PDF,
+звіт, аудит, рендери). Там само `sources/draft.docx` (вхід `assemble.py --draft`) і `golden/`
+(еталон регресій). Будь-що з цього в репозиторій не потрапляє; `verify.py` падає, якщо приватне
+ім'я опинилося в `full.md`.
+
+або окремо (з цієї теки, `DOCS=/Users/vladyslav/Workspace/MagisterDocs`; `uv run` бере Python і пакети
+з власного проєкту теки):
 
 ```bash
-uv run python render_figures.py --src ../text/full.md --out out/figures        # рисунки з вихідного коду
-uv run python build.py  --src ../text/full.md --brief ../formatter-brief.md --out out/hourwell.docx --report out/report.json --figures out/figures
-uv run python verify.py --src ../text/full.md --brief ../formatter-brief.md --docx out/hourwell.docx --figures out/figures
+uv run python render_figures.py --src ../text/full.md --out $DOCS/build/figures --docs $DOCS     # рисунки
+uv run python build.py  --src ../text/full.md --brief ../formatter-brief.md --out $DOCS/build/hourwell.docx --report $DOCS/build/report.json --figures $DOCS/build/figures --private $DOCS/private/titulka.json
+uv run python verify.py --src ../text/full.md --brief ../formatter-brief.md --docx $DOCS/build/hourwell.docx --figures $DOCS/build/figures --private $DOCS/private/titulka.json
 uv run python check_legend_symbols.py ../text/full.md
-uv run python audit_markdown.py ../text/full.md --out out/audit.md
-uv run python regress.py golden/hourwell.docx out/hourwell.docx   # після будь-якої зміни конвеєра
-uv run python make_pdf.py out/hourwell.docx out/hourwell.pdf      # PDF для читання, зі змістом
+uv run python audit_markdown.py ../text/full.md --out $DOCS/build/audit.md
+uv run python regress.py $DOCS/golden/hourwell.docx $DOCS/build/hourwell.docx   # після зміни конвеєра
+uv run python make_pdf.py $DOCS/build/hourwell.docx $DOCS/build/hourwell.pdf      # PDF для читання, зі змістом
 ```
 
 `cmp` чи хеш усього .docx для порівняння не годяться: у zip записано час складання, тож
@@ -117,7 +125,7 @@ git-ignored.
 аркуші рисунка. Підписи повідомлень Mermaid переносяться явними `<br/>` під час рендера (власне
 перенесення Mermaid рахує висоту замало й кладе рядок на стрілку); у вихідному файлі слова ті самі.
 PlantUML обрізає зображення ширші за 4096 px, тому ліміт знято (`-DPLANTUML_LIMIT_SIZE`). Знімки
-(рисунок 4.1) — з теки `../figures/4.1`, сіткою до чотирьох у ряд, у порядку назв файлів.
+(рисунок 4.1) — з теки `figures/4.1` у MagisterDocs, сіткою до чотирьох у ряд, у порядку назв файлів.
 
 **PDF.** ЗМІСТ — поле Word, яке звичайна конвертація не оновлює; макрос LibreOffice у власному
 профілі оновлює покажчики двічі й експортує PDF, а при помилці завершує LibreOffice (інакше

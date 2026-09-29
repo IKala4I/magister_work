@@ -19,7 +19,7 @@ sequenceDiagram
     participant SB as Supabase Postgres
     participant EF as Edge Fn attribute-rewards
     participant API as FastAPI RecSys
-    participant MS as user_model_state
+    participant MS as bandit_state, beta_cells, blend_state
 
     Note over U,DB: Block "Report draft" (rec 7f3a, Tue 14:00-15:30, deep_work) passes with no focus session
     U->>App: opens app at 17:30 (foreground event)

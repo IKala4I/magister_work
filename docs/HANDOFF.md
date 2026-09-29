@@ -2,19 +2,41 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-29 — **post-p12/thesis-figures**: the figures render in the pipeline and a
-> PDF builds; four items wait on the owner (below). Before that, 2026-09-28 —
-> **post-p12/docx-pipeline**: the formatter's `full.md` → `.docx`
-> pipeline is in the repo (`docs/thesis/docx-pipeline/`), §6.6's opening is fixed at the source,
-> and the three pipeline mismatches found on the way are fixed on the owner's decision; Expo's
-> patch drift went in first as PR #82. Nothing waited on the owner then. Earlier: the submission
-> report and the formatter's second patch set (PR #80), the business-style pass (PR #78), the nine
-> number decisions (PR #79), and the corrections rollup (2026-09-09), which is no longer an index: all 63
-> items carry the Ukrainian sentences the draft should read, tagged Ф / П / С, every number with
-> its measurement condition.
-> **The thesis text is assembled and green on every gate.**
+> Last update: 2026-09-29 — **post-p12/thesis-private-docs**: schema names in the text, 3.2 in,
+> private data in MagisterDocs (below). Before it, **post-p12/thesis-figures**: the figures render
+> in the pipeline and a PDF builds; the figures pass's own waiting items are superseded. Before
+> that, 2026-09-28 — **post-p12/docx-pipeline**: the formatter's `full.md` → `.docx` pipeline is in
+> the repo (`docs/thesis/docx-pipeline/`), §6.6's opening is fixed at the source, and the three
+> pipeline mismatches found on the way are fixed on the owner's decision; Expo's patch drift went in
+> first as PR #82. Nothing waited on the owner then. Earlier: the submission report and the
+> formatter's second patch set (PR #80), the business-style pass (PR #78), the nine number decisions
+> (PR #79), and the corrections rollup (2026-09-09), which is no longer an index: all 63 items carry
+> the Ukrainian sentences the draft should read, tagged Ф / П / С, every number with its measurement
+> condition. **The thesis text is assembled and green on every gate.**
 
-## Current state (2026-09-29) — post-p12/thesis-figures
+## Current state (2026-09-29) — post-p12/thesis-private-docs
+
+**Done and green.** The text names the schema's tables (`bandit_state` + `beta_cells` +
+`blend_state`, `profiles`; assemble.py run_subs, the rollup's А.1 payload, the А.1 participant,
+specs/05–07 with spec-conflicts L44); Рисунок 3.2 redrawn in PlantUML and inserted (portrait, 10.4
+pt). **Private data and outputs live in `/Users/vladyslav/Workspace/MagisterDocs`** (README there):
+`private/titulka.json` (names; `build.py --private`; `verify.py` check 8 fails on a full value or a
+surname in any case in `full.md` and on a filled value without its placeholder; CI's `verify-docx`
+requires the five placeholders), `sources/draft.docx` (`assemble.py --draft PATH`, required),
+`figures/4.1/`, `build/` (.docx, PDF), `golden/`. Build:
+`./run_all.sh ../text/full.md ../formatter-brief.md /Users/vladyslav/Workspace/MagisterDocs` from
+`docs/thesis/docx-pipeline/` — 6 figures, PDF 162 pages; it refuses a folder inside the repo.
+
+**Waiting on the owner:** fill `MagisterDocs/private/titulka.json`; put 4.1's screenshots in
+`MagisterDocs/figures/4.1/`; «Апробація» / «Публікації» in the draft, then `assemble.py --draft`.
+1.1 stays five points (owner, 2026-09-29). **Open question:** a publication list carries the
+author's surname and initials — in the draft it would reach the public `full.md` and fail check 8;
+the owner decides whether to allow that match or move «Публікації» to the private data.
+
+**Gotchas:** never write names into the draft (its text flows into the public `full.md`); the old
+table names remain on purpose in `assemble.py` (they match the draft) and in the change records.
+
+## Earlier state (2026-09-29) — post-p12/thesis-figures
 
 **Done and green.** `run_all.sh` renders the figures from `docs/thesis/text/diagrams/`
 (`render_figures.py`, `figures.json`; ≥ 8 pt gate), builds, verifies (check 7: every image by
@@ -24,18 +46,7 @@ page built by a macro) — 162 pages, ≈ 15 s; every appendix from a new page. 
 sheets), 8.5 pt at the smallest. The golden (`docx-pipeline/golden/`) keeps its renders in
 `golden/figures`. `ASSEMBLY.md`, 2026-09-29, has everything; tools and pins in `docs/versions.md`.
 
-**Waiting on the owner:**
-
-1. **Рисунок 3.2** — `text/diagrams/3-2-er.mmd` is drawn by the text and rendered
-   (`docx-pipeline/out/preview-3.2.png`), not inserted: the schema has no `user_model_state`
-   (`bandit_state`, `beta_cells`, `blend_state`) and names `user_profiles` `profiles`. Either the
-   text changes (and the figure with it) or the figure goes in as the text stands — then add
-   `"3.2": {"source": "diagrams/3-2-er.mmd", "orientation": "portrait"}` to `figures.json`.
-2. **Рисунок 4.1** — screenshots into `docs/thesis/figures/4.1/` (named `1-…`, `2-…`; git-ignored
-   until checked for personal data).
-3. **Title page and ВСТУП placeholders** — fill in `docs/thesis/draft.docx` (paragraphs 9–16,
-   94–95), then `python3 docs/thesis/assemble.py`.
-4. **Sunsama in 1.1** — only if a row for it (price, learning) goes into табл. 1.1.
+**Waiting on the owner:** superseded by the private-docs pass above.
 
 **Gotchas:** puppeteer finds `.puppeteerrc.cjs` only from its working directory (mmdc runs with
 `cwd=render/`); PlantUML crops images wider than 4096 px unless `-DPLANTUML_LIMIT_SIZE` is raised;

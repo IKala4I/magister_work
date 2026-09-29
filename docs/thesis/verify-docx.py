@@ -10,8 +10,8 @@ What it CANNOT do: it does not verify prose, argument, or numbers it was not tol
 run means "none of the known-stale strings survive and every checked landmark is present" — not
 "the chapter is right".
 
-Run:  python3 docs/thesis/verify-docx.py [path/to/draft.docx]
-      (default: docs/thesis/draft.docx — which is git-ignored, so this is a local check)
+Run:  python3 docs/thesis/verify-docx.py path/to/full.md-or-draft.docx
+      (CI passes docs/thesis/text/full.md; the draft is private, outside the repo)
 
 Exit 1 if any check fails. Run it BEFORE assembly too: it then lists what is still to do.
 """
@@ -21,7 +21,7 @@ import re
 import sys
 import zipfile
 
-DEFAULT = "docs/thesis/draft.docx"
+DEFAULT = "docs/thesis/text/full.md"
 
 # --- (1) strings that must be GONE after assembly ------------------------------------------------
 # each is (needle, why it must go)
@@ -63,6 +63,13 @@ BANNED = [
 
 # --- (2) landmarks that must be PRESENT after assembly -------------------------------------------
 PRESENT = [
+    # the private fields stay placeholders in the public full.md; the names are substituted only at
+    # .docx build time from MagisterDocs/private/titulka.json (owner, 2026-09-29)
+    ("[ПІБ здобувача]", "title page and ANNOTATION name stay a placeholder in the public repo"),
+    ("[Student name]", "the English annotation's name stays a placeholder in the public repo"),
+    ("[науковий ступінь,", "the supervisor stays a placeholder in the public repo"),
+    ("вчене звання, ПІБ керівника]", "the supervisor stays a placeholder in the public repo"),
+    ("[ПІБ рецензента]", "the reviewer stays a placeholder in the public repo"),
     # The renumberer once rewrote «clip[0, 1]» as a citation and silently broke (2.9)/(2.10);
     # the formulas are asserted here so it can never happen unnoticed again.
     ("clip[0,1]( x(τ,c)", "формула (2.9) — the clip bounds, not a citation"),

@@ -63,16 +63,18 @@ __pycache__/
 # thesis working files (never published from this repo)
 docs/thesis/draft.docx
 docs/thesis/*.docx
-# the .docx pipeline's build output and its local regression golden (a .docx and the exact
-# full.md it was built from) stay out of git; the pipeline's scripts and README are committed
+# private data and build outputs live outside the repo in MagisterDocs (owner, 2026-09-29): the
+# draft, the names for the title page, 4.1's screenshots, the .docx/PDF and the golden. These lines
+# stay as guards against an accidental copy back into the repo
 docs/thesis/docx-pipeline/out/
 docs/thesis/docx-pipeline/golden/
+**/titulka.json
+docs/thesis/figures/
+docs/**/*.pdf
+docs/**/*.docx
 # the figure renderer's own Chrome (puppeteer cache) and PlantUML jar — downloaded, pinned, never committed
 docs/thesis/docx-pipeline/render/.cache/
 docs/thesis/docx-pipeline/render/.tools/
-# the owner's screenshots for Рисунок 4.1 — may carry personal data; add with -f once checked
-docs/thesis/figures/4.1/*
-!docs/thesis/figures/4.1/README.md
 
 # local session exports (never commit conversation transcripts)
 session-backup*.txt

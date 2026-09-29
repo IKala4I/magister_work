@@ -8,8 +8,10 @@ corrections do not touch is copied **verbatim** from `draft.docx`, and the run p
 were copied, edited, inserted and deleted – so a silent alteration of untouched prose is not
 possible without the count moving.
 
-    python3 docs/thesis/assemble.py            # writes docs/thesis/text/full.md
-    python3 docs/thesis/assemble.py --report   # counts only, no write
+    python3 docs/thesis/assemble.py --draft PATH/draft.docx            # writes docs/thesis/text/full.md
+    python3 docs/thesis/assemble.py --draft PATH/draft.docx --report   # counts only, no write
+
+The draft is private and lives outside the repository (MagisterDocs/sources/draft.docx).
 
 What it deliberately does NOT carry: Word paragraph styling (indents, 1.5 spacing, justification,
 ДСТУ margins, Times New Roman 14 pt), the 44 tab stops that right-align formula numbers, table
@@ -20,6 +22,7 @@ from __future__ import annotations
 
 import io
 import json
+import os
 import re
 import unicodedata
 import sys
@@ -27,7 +30,7 @@ import zipfile
 from xml.etree import ElementTree as ET
 
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
-DOCX = "docs/thesis/draft.docx"
+DOCX = None  # --draft PATH: the owner's draft lives outside the repo (MagisterDocs/sources/, 2026-09-29)
 TEXT = "docs/thesis/text/"
 OUT = TEXT + "full.md"
 
@@ -58,7 +61,7 @@ def _runs(el) -> str:
     return "".join(out)
 
 
-def extract(path: str = DOCX) -> list[dict]:
+def extract(path: str) -> list[dict]:
     root = ET.fromstring(zipfile.ZipFile(path).read("word/document.xml"))
     blocks: list[dict] = []
     for el in root.find(f"{W}body"):
@@ -871,7 +874,7 @@ def resolve_cite_keys(blocks: list[dict], head: int) -> tuple[int, list[str]]:
 
 # ----------------------------------------------------------------- the pass
 def build() -> tuple[list[dict], dict]:
-    blocks = extract()
+    blocks = extract(DOCX)
     src = {i: b.get("text", "") for i, b in enumerate(blocks) if b["kind"] == "p"}
     pay = load_quoted_payloads("anotaciya-ta-vysnovky.md")
 
@@ -1140,6 +1143,25 @@ def build() -> tuple[list[dict], dict]:
             "Евристичний резерв (NFR-R2) розміщено саме в Edge Function: «сплячий» контейнер безоплатного тарифу ML-сервісу ніколи не блокує користувача.",
             "Евристичний резерв (NFR-R2) розміщено в Edge Function: тайм-аут або недосяжність сервісу рекомендацій ніколи не блокує користувача.", "§3.2 fallback placement")
     run_sub(blocks, "events – append-only журнал поведінкових фактів", "пропуск, перетягування, корекція", "пропуск, перенесення, корекція", "§3.4 event list")
+    # §3.4 and the figure 3.2 note name the tables the schema has (owner, 2026-09-29): the draft's
+    # single user_model_state is bandit_state + beta_cells + blend_state (rollup §3.4, items 5–6),
+    # its user_profiles is profiles; cardinalities as in the migrations (profiles and blend_state
+    # keyed by user_id, bandit_state by (user_id, category), beta_cells per cell).
+    run_sub(blocks, "users, user_profiles – обліковий запис", "users, user_profiles", "users, profiles", "§3.4 profiles")
+    run_sub(blocks, "user_model_state – персональний стан моделей",
+            "user_model_state – персональний стан моделей: матриці (A, b) лінійного бандита за категоріями, "
+            "лічильники Beta-комірок із загасанням, вагові коефіцієнти змішування;",
+            "bandit_state, beta_cells, blend_state – персональний стан моделей у трьох таблицях: матриці (A, b) "
+            "лінійного бандита за категоріями (bandit_state), лічильники Beta-комірок із загасанням (beta_cells; "
+            "теплокарта FR-40 і оновлення приорів емпіричним Байєсом читають комірки реляційно), вагові "
+            "коефіцієнти змішування (blend_state);",
+            "§3.4 model state tables")
+    run_sub(blocks, "МІСЦЕ ДЛЯ РИСУНКА 3.2", "users 1–1 user_model_state;",
+            "users 1–1 profiles; users 1–N bandit_state; users 1–N beta_cells; users 1–1 blend_state;",
+            "figure 3.2 note: model state tables")
+    run_sub(blocks, "Обробник /plan послідовно виконує", "завантаження персонального стану user_model_state;",
+            "завантаження персонального стану моделей (bandit_state, beta_cells, blend_state);",
+            "§4 /plan: model state tables")
     run_sub(blocks, "оцінка впливу на захист даних (DPIA) в документації проєкту", " в документації проєкту", "", "§3.7 DPIA pointer")
     run_sub(blocks, "Розклади pg_cron запускають нічну атрибуцію та тригери планування нового дня.",
             "Розклади pg_cron запускають нічну атрибуцію та тригери планування нового дня.",
@@ -1312,6 +1334,14 @@ def build() -> tuple[list[dict], dict]:
 
 
 def main() -> int:
+    global DOCX
+    if "--draft" in sys.argv[:-1]:
+        DOCX = sys.argv[sys.argv.index("--draft") + 1]
+    if not DOCX or not os.path.exists(DOCX):
+        print("usage: python3 docs/thesis/assemble.py --draft PATH/TO/draft.docx [--report]\n"
+              "The draft is private and lives outside the repository "
+              "(MagisterDocs/sources/draft.docx, see docs/thesis/ASSEMBLY.md).")
+        return 2
     blocks, stats = build()
     print("== assembly ==")
     for line in APPLIED:
