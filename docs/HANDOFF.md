@@ -28,10 +28,9 @@ requires the five placeholders), `sources/draft.docx` (`assemble.py --draft PATH
 `docs/thesis/docx-pipeline/` — 6 figures, PDF 162 pages; it refuses a folder inside the repo.
 
 **Waiting on the owner:** fill `MagisterDocs/private/titulka.json`; put 4.1's screenshots in
-`MagisterDocs/figures/4.1/`; «Апробація» / «Публікації» in the draft, then `assemble.py --draft`.
-1.1 stays five points (owner, 2026-09-29). **Open question:** a publication list carries the
-author's surname and initials — in the draft it would reach the public `full.md` and fail check 8;
-the owner decides whether to allow that match or move «Публікації» to the private data.
+`MagisterDocs/figures/4.1/`. «Апробація» / «Публікації» are done (2026-09-30: neutral sentences via
+`assemble.py`, no publications or presentations). 1.1 stays five points (owner, 2026-09-29). The
+«Публікації» surname question is settled: there are none, the sentence has no name.
 
 **Gotchas:** never write names into the draft (its text flows into the public `full.md`); the old
 table names remain on purpose in `assemble.py` (they match the draft) and in the change records.

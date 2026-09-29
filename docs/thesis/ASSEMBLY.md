@@ -352,6 +352,15 @@ than the text, and a disagreement between text and schema is the owner's to deci
   ignore rule had gone with their folder; the §3.4 wording; 3.2's overlapping marks; stale paths
   in docstrings and one ASSEMBLY bullet.
 
+## What the 2026-09-30 pass changed
+
+- **ВСТУП's «Апробація результатів» and «Публікації»** — there were no publications and no
+  conference presentations (owner). `assemble.py` replaces each placeholder with a neutral
+  sentence without a name: «Результати роботи на наукових конференціях не апробувалися.» and
+  «Результати роботи не публікувалися.»; the draft keeps its placeholders. No NUBiP guideline with
+  a prescribed wording for this case was found (the one found, the crop-production department's,
+  is silent on it). This settles the open question of 2026-09-29: no surname reaches `full.md`.
+
 ## Coverage, and what CI can and cannot prove
 
 **A gap the 2026-09-11 pass found, and the shape of it.** `verify-payloads.py` checks _blockquote_
