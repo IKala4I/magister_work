@@ -271,16 +271,21 @@ def new_doc():
         f.line_spacing_rule = WD_LINE_SPACING.ONE_POINT_FIVE
         f.keep_with_next = True; f.page_break_before = brk
 
-    hp = s.header.paragraphs[0]; hp.alignment = R
-    hp.paragraph_format.first_line_indent = Cm(0)
+    page_number(s.header.paragraphs[0])
+    return doc
+
+
+def page_number(p):
+    """Поле PAGE у колонтитулі, праворуч."""
+    p.alignment = R
+    p.paragraph_format.first_line_indent = Cm(0)
     for kind, val in (('begin', None), ('instr', ' PAGE '), ('end', None)):
-        r = hp.add_run()
+        r = p.add_run()
         if kind == 'instr':
             e = OxmlElement('w:instrText'); e.text = val
         else:
             e = OxmlElement('w:fldChar'); e.set(qn('w:fldCharType'), kind)
         r._r.append(e)
-    return doc
 
 
 # ================================================================ inline-розмітка
@@ -831,11 +836,29 @@ def _figure_scale(fig):
 
 def orientation_section(doc, landscape):
     """Розрив розділу з нової сторінки. Альбомна сторінка читається поворотом за годинниковою
-    стрілкою, тож корінець (поле 30 мм) стає її верхнім полем: 30 / 10 / 20 / 20 мм. Номер
-    сторінки продовжується: колонтитул прив'язано до попереднього, а «особлива перша сторінка»
-    (титулка) у нових розділах вимкнена."""
+    стрілкою, тож корінець (поле 30 мм) стає її верхнім полем: 30 / 10 / 20 / 20 мм, а номер
+    сторінки — не вгорі біля корінця, а внизу праворуч (це правий верхній кут аркуша, як на
+    книжкових). Нумерація продовжується; «особлива перша сторінка» (титулка) вимкнена.
+
+    python-docx ставить розрив у новий порожній абзац (стиль Normal, 1,5 інтервалу, ≈ 8,5 мм):
+    після підпису альбомного рисунка він міг вивести зайву порожню сторінку в Word. Розрив
+    переноситься в попередній абзац; якщо перед ним таблиця — абзац лишається, але 1 пт."""
     s = doc.add_section(WD_SECTION.NEW_PAGE)
     s.different_first_page_header_footer = False
+    brk = doc.element.body.findall(qn('w:p'))[-1]              # новий абзац із розривом
+    prev = brk.getprevious()
+    if prev is not None and prev.tag == qn('w:p') and prev.find(qn('w:pPr') + '/' + qn('w:sectPr')) is None:
+        prev_ppr = prev.find(qn('w:pPr'))
+        if prev_ppr is None:
+            prev_ppr = OxmlElement('w:pPr'); prev.insert(0, prev_ppr)
+        prev_ppr.append(brk.find(qn('w:pPr') + '/' + qn('w:sectPr')))
+        brk.getparent().remove(brk)
+    else:
+        ppr = brk.find(qn('w:pPr'))
+        ppr.insert(0, parse_xml('<w:spacing %s w:before="0" w:after="0" w:line="20" w:lineRule="exact"/>' % nsdecls('w')))
+    for part in (s.header, s.footer):
+        part.is_linked_to_previous = False
+    page_number(s.footer.paragraphs[0] if landscape else s.header.paragraphs[0])
     if landscape:
         s.orientation, s.page_width, s.page_height = WD_ORIENT.LANDSCAPE, Mm(297), Mm(210)
         s.top_margin, s.bottom_margin, s.left_margin, s.right_margin = Mm(30), Mm(10), Mm(20), Mm(20)
