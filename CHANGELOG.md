@@ -2,6 +2,12 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — ВСТУП without publications (2026-09-30, post-p12/vstup-no-publications)
+
+- **«Апробація результатів» and «Публікації»** carry a neutral sentence each («…на наукових
+  конференціях не апробувалися.», «Результати роботи не публікувалися.») — there were none (owner);
+  applied by `assemble.py`, no name in either.
+
 ## Post-P12 — the schema's table names, Рисунок 3.2, and private data outside the repo (2026-09-29, post-p12/thesis-private-docs)
 
 - **The text names the schema's tables** (owner's decision): `bandit_state` + `beta_cells` +
