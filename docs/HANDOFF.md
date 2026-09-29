@@ -7,9 +7,9 @@
 > **post-p12/docx-pipeline**: the formatter's `full.md` → `.docx`
 > pipeline is in the repo (`docs/thesis/docx-pipeline/`), §6.6's opening is fixed at the source,
 > and the three pipeline mismatches found on the way are fixed on the owner's decision; Expo's
-> patch drift went in first as PR #82. Nothing waited on the owner then. Earlier: the submission report
-> and the formatter's second patch set (PR #80), the business-style pass (PR #78), the nine number
-> decisions (PR #79), and the corrections rollup (2026-09-09), which is no longer an index: all 63
+> patch drift went in first as PR #82. Nothing waited on the owner then. Earlier: the submission
+> report and the formatter's second patch set (PR #80), the business-style pass (PR #78), the nine
+> number decisions (PR #79), and the corrections rollup (2026-09-09), which is no longer an index: all 63
 > items carry the Ukrainian sentences the draft should read, tagged Ф / П / С, every number with
 > its measurement condition.
 > **The thesis text is assembled and green on every gate.**
@@ -19,10 +19,10 @@
 **Done and green.** `run_all.sh` renders the figures from `docs/thesis/text/diagrams/`
 (`render_figures.py`, `figures.json`; ≥ 8 pt gate), builds, verifies (check 7: every image by
 SHA-256), and makes the PDF (`make_pdf.py`: pinned LibreOffice 26.8.0 in `render/.tools`, contents
-page built by a macro) — 159 pages, 12 s. In the document: 1.1 (10.0 pt), 3.1 (PlantUML, 8.7 pt),
-3.3 (PlantUML, landscape, 8.1 pt), А.1 (4 sheets) and Б.1 (3 sheets), 8.5 pt at the smallest. The
-golden (`docx-pipeline/golden/`) keeps its renders in `golden/figures`. `ASSEMBLY.md`, 2026-09-29,
-has everything; tools and pins in `docs/versions.md`.
+page built by a macro) — 162 pages, ≈ 15 s; every appendix from a new page. In the document: 1.1
+(10.0 pt), 3.1 (PlantUML, 8.7 pt), 3.3 (PlantUML, landscape, 8.1 pt), А.1 (4 sheets) and Б.1 (3
+sheets), 8.5 pt at the smallest. The golden (`docx-pipeline/golden/`) keeps its renders in
+`golden/figures`. `ASSEMBLY.md`, 2026-09-29, has everything; tools and pins in `docs/versions.md`.
 
 **Waiting on the owner:**
 
@@ -39,7 +39,10 @@ has everything; tools and pins in `docs/versions.md`.
 
 **Gotchas:** puppeteer finds `.puppeteerrc.cjs` only from its working directory (mmdc runs with
 `cwd=render/`); PlantUML crops images wider than 4096 px unless `-DPLANTUML_LIMIT_SIZE` is raised;
-Mermaid ignores a frame's `direction` when arrows cross into it; a headless LibreOffice macro that
+Mermaid ignores a frame's `direction` when arrows cross into it; Mermaid draws sequence step numbers
+at a fixed 12 px (overridden in `render/mermaid.css`; the gate measures the SVG, so a new hard-coded
+size fails loudly); python-docx's `add_section` adds an empty break paragraph (`build.py` moves the
+break into the neighbouring paragraph); a headless LibreOffice macro that
 errors hangs on an invisible dialog (the macro terminates itself); LibreOffice's bundled Python is
 killed on this machine (exit 137), so the PDF step uses Basic.
 

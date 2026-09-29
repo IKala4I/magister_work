@@ -276,29 +276,32 @@ formatter, all applied at the sources; `full.md` regenerated and every hunk chec
 
 ## What the 2026-09-29 pass changed
 
-The document builds with its figures: `run_all.sh` renders them from sources in
-`text/diagrams/`, inserts them in place of the placeholders, proves each image by hash and makes a
-PDF for reading (159 pages, contents page built). The owner's rules: every label ≥ 8 pt on paper,
-no shrinking, nothing removed; the ER figure shows entities and relations only, no more than the
-text, and a disagreement between text and schema is the owner's to decide.
+The document builds with its figures: `run_all.sh` renders them from sources in `text/diagrams/`,
+inserts them in place of the placeholders, proves each image by hash and makes a PDF for reading
+(162 pages, contents page built, every appendix from a new page). The owner's rules: every label ≥ 8
+pt on paper, no shrinking, nothing removed; the ER figure shows entities and relations only, no more
+than the text, and a disagreement between text and schema is the owner's to decide.
 
 - **Рисунок 1.1** (Mermaid quadrant chart, 10.0 pt) — built from табл. 1.1 alone; positions
-  ordinal, prices in the labels verbatim. **Sunsama is not drawn**: the placeholder names it, but
-  the text gives it no price and no learning assessment, so its point would be a new claim.
+  ordinal, prices in the labels verbatim; Reclaim.ai in the left half (the text: «механізм правил»),
+  no quadrant label (the text's phrase has four attributes, the axes two). **Sunsama is not drawn**:
+  the placeholder names it, but the text gives it no price and no learning assessment.
 - **Рисунок 3.1** (8.7 pt) — the placeholder's four levels and arrows. **In PlantUML, not
   Mermaid**: Mermaid's layout routed the training → Storage arrow around the figure and ignored
-  frame directions (best of five layouts: 6.0 pt).
+  frame directions (best of five layouts: 6.0 pt). No arrow label: «plan-request» is in the Edge
+  Functions box and `/plan` in the FastAPI box; frame captions kept out of the lines' way.
 - **Рисунок 3.2 — written, rendered for review (9.0 pt), not inserted.** The migrations confirm
   the placeholder's relations except: `user_model_state` does not exist (the state lives in
   `bandit_state`, `beta_cells`, `blend_state`), `user_profiles` is `profiles`, and
   `recommendations.model_version` is text, not a foreign key. Waiting on the owner.
-- **Рисунок 3.3** (PlantUML, 8.1 pt, **landscape page**) — UC-01…UC-10 by §3.9; relations: the
-  placeholder's two (UC-03 «include» UC-09, UC-04 «extend» UC-03) plus two §3.9 states in words
-  (UC-01 «include» UC-03, UC-05 «extend» UC-03), each quoted in the source.
+- **Рисунок 3.3** (PlantUML, 8.1 pt, **landscape page**, page number bottom right — the sheet's
+  top-right corner) — UC-01…UC-10 by §3.9; relations: only the placeholder's two (UC-03 «include»
+  UC-09, UC-04 «extend» UC-03).
 - **Рисунки А.1 and Б.1** — on one page they printed at 4.3 and 5.2 pt; two sheets reached at most
   5–7 pt. At the scenario's phase boundaries (`%% аркуш` comments; no diagram line changed) with the
-  participants a sheet does not use left out: **А.1 on four sheets, Б.1 on three**, portrait, 8.5
-  pt at the smallest. Caption from `full.md` under sheet 1, «Рисунок N, аркуш k» under the rest.
+  participants a sheet does not use left out: **А.1 on four sheets, Б.1 on three**, portrait, 8.5 pt
+  at the smallest (step numbers included: Mermaid draws them at a fixed 12 px, `render/mermaid.css`
+  makes them 15 px). Caption from `full.md` under sheet 1, «Рисунок N, аркуш k» under the rest.
 - **Рисунок 4.1** — the owner's screenshots go to `docs/thesis/figures/4.1/` (git-ignored: phone
   screenshots may carry personal data); until then the placeholder stays.
 - **The title page, the annotations' name placeholders and ВСТУП's «Апробація» / «Публікації»**
@@ -306,8 +309,18 @@ text, and a disagreement between text and schema is the owner's to decide.
   `assemble.py`. The filled names then appear in the committed `full.md`.
 - Tools, all pinned: mermaid-cli 12.0.0 with its own chrome-headless-shell (`render/`), PlantUML
   1.2026.8 (SHA-256), LibreOffice 26.8.0 (SHA-256) in `render/.tools` with a private profile
-  (the owner's choice over a system install). `verify.py` check 7 and `regress.py` see images;
-  the golden now keeps its renders (`golden/figures`).
+  (the owner's choice over a system install); npm's lockfile integrity and puppeteer's version pin
+  the Mermaid side. `verify.py` check 7 and `regress.py` see images; the golden now keeps its
+  renders (`golden/figures`).
+- **The adversarial pass** (fresh context) found, and this pass fixed: the step numbers of А.1/Б.1
+  at 6.8 pt, invisible to a gate that read only the config — the gate now measures the rendered SVG
+  (negative control: without the CSS override, exit 1); check 7 blind to orientation and size —
+  it now reads both from the .docx (all pages portrait, 3.3 at 40 %, А.1 sheet 2 at 60 % — each
+  exit 1); the spare section-break paragraph after the landscape caption (a likely blank page in
+  Word) and the landscape page number at the spine; two inferred relations in 3.3; Reclaim.ai on the
+  quadrant line and a non-verbatim price in 1.1; crossings in 3.1; and, older than this pass, the
+  appendices not starting on new pages (ДСТУ 3008) — fixed, `regress.py` shows exactly the eight
+  headings Б…И.
 
 ## Coverage, and what CI can and cannot prove
 

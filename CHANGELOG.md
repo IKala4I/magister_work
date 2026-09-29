@@ -14,6 +14,11 @@
 - **A folder for 4.1's screenshots**, a **PDF** through a pinned LibreOffice with the contents page
   built, and every tool pinned inside the pipeline (mermaid-cli, chrome-headless-shell, PlantUML,
   LibreOffice).
+- **After a fresh-context adversarial pass:** the 8 pt gate measures the rendered SVG (Mermaid's
+  step numbers were a fixed 12 px, 6.8 pt — now 15 px); verify.py checks each figure's page
+  orientation and printed size in the .docx; the landscape page has no spare break paragraph and its
+  number sits away from the spine; 3.3 keeps only the placeholder's two relations; 1.1 and 3.1
+  tidied; every appendix starts on a new page (ДСТУ 3008).
 
 ## Post-P12 — the formatter's .docx pipeline in the repo, and §6.6's opening (2026-09-28, post-p12/docx-pipeline)
 
