@@ -16,6 +16,7 @@ import argparse, json, os, re, subprocess, sys, tempfile
 from docx import Document
 from docx.shared import Pt, Mm, Cm, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING, WD_BREAK
+from docx.enum.section import WD_SECTION, WD_ORIENT
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.oxml.ns import qn, nsdecls
 from docx.oxml import parse_xml, OxmlElement
@@ -270,16 +271,21 @@ def new_doc():
         f.line_spacing_rule = WD_LINE_SPACING.ONE_POINT_FIVE
         f.keep_with_next = True; f.page_break_before = brk
 
-    hp = s.header.paragraphs[0]; hp.alignment = R
-    hp.paragraph_format.first_line_indent = Cm(0)
+    page_number(s.header.paragraphs[0])
+    return doc
+
+
+def page_number(p):
+    """Поле PAGE у колонтитулі, праворуч."""
+    p.alignment = R
+    p.paragraph_format.first_line_indent = Cm(0)
     for kind, val in (('begin', None), ('instr', ' PAGE '), ('end', None)):
-        r = hp.add_run()
+        r = p.add_run()
         if kind == 'instr':
             e = OxmlElement('w:instrText'); e.text = val
         else:
             e = OxmlElement('w:fldChar'); e.set(qn('w:fldCharType'), kind)
         r._r.append(e)
-    return doc
 
 
 # ================================================================ inline-розмітка
@@ -727,7 +733,7 @@ def build_front(doc):
 def build_body(doc, lo, hi):
     """Універсальний обробник: заголовки, код, формули, таблиці з підписами,
     лістинги, плейсхолдери, списки, проза. Текст — дослівно з full.md."""
-    n, in_refs = lo, False
+    n, in_refs, last_heading = lo, False, ''
     while n <= hi:
         s = L(n)
         if not s.strip(): n += 1; continue    # поза огорожею порожній рядок — межа абзаців markdown, не код
@@ -740,8 +746,14 @@ def build_body(doc, lo, hi):
                 struct_head(doc, txt)
             else:
                 p = doc.add_paragraph(style='Heading %d' % min(lvl, 3)); add_runs(p, txt)
+                # ДСТУ 3008: кожен додаток — з нової сторінки; перший, що йде одразу за «ДОДАТКИ»,
+                # лишається з цим заголовком на його сторінці
+                if lvl == 2 and txt.startswith('Додаток') and not last_heading.startswith('ДОДАТКИ'):
+                    p.paragraph_format.page_break_before = True
+            last_heading = txt
             _emit_inserts(doc, n)
             n += 1; continue
+        last_heading = ''
 
         if any(a <= n <= b for a, b in CODE_RANGES):
             if not s.lstrip().startswith('```'):
@@ -772,8 +784,11 @@ def build_body(doc, lo, hi):
 
         m = RE_FIG_PH.match(s)
         if m:
-            boxed(doc, s)
-            REPORT['placeholders'].append(f'ряд {n}: рисунок {m.group(1)}')
+            if m.group(1) in FIGURES:
+                emit_figure(doc, m.group(1))
+            else:
+                boxed(doc, s)
+                REPORT['placeholders'].append(f'ряд {n}: рисунок {m.group(1)}')
             n += 1; continue
 
         if RE_FILL_PH.search(s):
@@ -784,6 +799,7 @@ def build_body(doc, lo, hi):
         if RE_FIG_CAP.match(s):
             para(doc, s, indent=0, align=C, spacing=1, after=12, literal=True)
             REPORT['figures'].append(f'ряд {n}: {s[:80]}')
+            emit_pending_sheets(doc, RE_FIG_CAP.match(s).group(1))
             n += 1; continue
 
         if RE_NUM_ITEM.match(s) or RE_BULLET.match(s):
@@ -795,12 +811,129 @@ def build_body(doc, lo, hi):
     return doc
 
 
-def build(src, out, brief=None, registry=None, report=None):
+# ================================================================ рисунки
+# Рисунки рендерить render_figures.py (крок run_all.sh перед складанням) у теку з manifest.json.
+# Плейсхолдер «[МІСЦЕ ДЛЯ РИСУНКА N]» заміняється зображенням; рисунок без рендера лишається
+# плейсхолдером у рамці. Рисунок на кількох аркушах: перший аркуш — над підписом із full.md
+# (дослівно), кожен наступний — після нього з підписом «Рисунок N, аркуш k».
+
+FIGURES, PENDING, LANDSCAPE_OPEN = {}, {}, set()
+FIG_DIR = None
+AREA_MM = {'portrait': (TW, 240),         # область рисунка: книжкова сторінка без підпису, мм
+           'landscape': (257, 150)}       # альбомна: 297 − 20 − 20; 210 − 30 − 10 − підпис
+PX_MM = 25.4 / 96                         # CSS-піксель рендера в мм за натурального розміру
+RE_SHEET_LABEL = 'Рисунок {num}, аркуш {k}'
+
+
+def load_figures(d):
+    global FIG_DIR
+    FIGURES.clear(); PENDING.clear(); LANDSCAPE_OPEN.clear(); FIG_DIR = d
+    if d:
+        FIGURES.update(json.load(open(os.path.join(d, 'manifest.json'), encoding='utf-8')))
+
+
+def _figure_scale(fig):
+    """Один масштаб на всі аркуші рисунка (мм на CSS-піксель): найменший, з яким кожен аркуш
+    вміщується в область сторінки, і не більший за натуральний — кегль підписів однаковий на
+    всіх аркушах і дорівнює найменшому з виміряних render_figures.py."""
+    W, H = AREA_MM[fig.get('orientation', 'portrait')]
+    return min(min(W / s['css_px'][0], H / s['css_px'][1], PX_MM) for s in fig['sheets'])
+
+
+def orientation_section(doc, landscape):
+    """Розрив розділу з нової сторінки. Альбомна сторінка читається поворотом за годинниковою
+    стрілкою, тож корінець (поле 30 мм) стає її верхнім полем: 30 / 10 / 20 / 20 мм, а номер
+    сторінки — не вгорі біля корінця, а внизу праворуч (це правий верхній кут аркуша, як на
+    книжкових). Нумерація продовжується; «особлива перша сторінка» (титулка) вимкнена.
+
+    python-docx ставить розрив у новий порожній абзац (стиль Normal, 1,5 інтервалу, ≈ 8,5 мм):
+    після підпису альбомного рисунка він міг вивести зайву порожню сторінку в Word. Розрив
+    переноситься в попередній абзац; якщо перед ним таблиця — абзац лишається, але 1 пт."""
+    s = doc.add_section(WD_SECTION.NEW_PAGE)
+    s.different_first_page_header_footer = False
+    brk = doc.element.body.findall(qn('w:p'))[-1]              # новий абзац із розривом
+    prev = brk.getprevious()
+    if prev is not None and prev.tag == qn('w:p') and prev.find(qn('w:pPr') + '/' + qn('w:sectPr')) is None:
+        prev_ppr = prev.find(qn('w:pPr'))
+        if prev_ppr is None:
+            prev_ppr = OxmlElement('w:pPr'); prev.insert(0, prev_ppr)
+        prev_ppr.append(brk.find(qn('w:pPr') + '/' + qn('w:sectPr')))
+        brk.getparent().remove(brk)
+    else:
+        ppr = brk.find(qn('w:pPr'))
+        ppr.insert(0, parse_xml('<w:spacing %s w:before="0" w:after="0" w:line="20" w:lineRule="exact"/>' % nsdecls('w')))
+    for part in (s.header, s.footer):
+        part.is_linked_to_previous = False
+    page_number(s.footer.paragraphs[0] if landscape else s.header.paragraphs[0])
+    if landscape:
+        s.orientation, s.page_width, s.page_height = WD_ORIENT.LANDSCAPE, Mm(297), Mm(210)
+        s.top_margin, s.bottom_margin, s.left_margin, s.right_margin = Mm(30), Mm(10), Mm(20), Mm(20)
+    else:
+        s.orientation, s.page_width, s.page_height = WD_ORIENT.PORTRAIT, Mm(210), Mm(297)
+        s.left_margin, s.right_margin, s.top_margin, s.bottom_margin = Mm(30), Mm(10), Mm(20), Mm(20)
+
+
+def image_para(doc, path, width_mm):
+    """Абзац з одним зображенням: по центру, одинарний інтервал (множник 1,5 додав би половину
+    висоти зображення над ним), тримається з наступним — із підписом."""
+    p = doc.add_paragraph(); f = p.paragraph_format
+    f.first_line_indent = Cm(0); f.alignment = C; f.line_spacing_rule = WD_LINE_SPACING.SINGLE
+    f.space_before = Pt(6); f.space_after = Pt(6); f.keep_with_next = True
+    p.add_run().add_picture(path, width=Mm(width_mm))
+    return p
+
+
+def emit_image_grid(doc, num, fig):
+    """Знімки (рисунок 4.1): таблиця без рамок, до чотирьох у ряд, у порядку назв файлів."""
+    from docx.image.image import Image as DocxImage
+    files = [os.path.join(FIG_DIR, s['file']) for s in fig['sheets']]
+    per_row = min(4, len(files)); rows = -(-len(files) // per_row)
+    gap = 4; cw = (TW - gap * (per_row - 1)) / per_row; max_h = 200 / rows
+    t = doc.add_table(rows=rows, cols=per_row)
+    t.alignment = WD_TABLE_ALIGNMENT.CENTER; t.autofit = False
+    for i, f in enumerate(files):
+        im = DocxImage.from_file(f)
+        w = min(cw, max_h * im.px_width / im.px_height)
+        c = t.rows[i // per_row].cells[i % per_row]; p = c.paragraphs[0]; pf = p.paragraph_format
+        pf.first_line_indent = Cm(0); pf.alignment = C; pf.line_spacing_rule = WD_LINE_SPACING.SINGLE
+        pf.keep_with_next = True
+        p.add_run().add_picture(f, width=Mm(w))
+    REPORT['figures'].append(f'рисунок {num}: знімків {len(files)}, у ряд до {per_row}')
+
+
+def emit_figure(doc, num):
+    fig = FIGURES[num]
+    if fig['kind'] == 'images':
+        emit_image_grid(doc, num, fig); return
+    k = _figure_scale(fig)
+    if fig.get('orientation') == 'landscape':
+        orientation_section(doc, True); LANDSCAPE_OPEN.add(num)
+    first, rest = fig['sheets'][0], fig['sheets'][1:]
+    image_para(doc, os.path.join(FIG_DIR, first['file']), first['css_px'][0] * k)
+    PENDING[num] = [(s, k) for s in rest]
+    pt = min(s['min_pt'] for s in fig['sheets'])
+    REPORT['figures'].append(f'рисунок {num}: {len(fig["sheets"])} аркуш(і), найдрібніший підпис {pt:.1f} пт'
+                             + (', альбомна сторінка' if fig.get('orientation') == 'landscape' else ''))
+
+
+def emit_pending_sheets(doc, num):
+    for k_sheet, (s, k) in enumerate(PENDING.pop(num, []), 2):
+        image_para(doc, os.path.join(FIG_DIR, s['file']), s['css_px'][0] * k)
+        para(doc, RE_SHEET_LABEL.format(num=num, k=k_sheet), indent=0, align=C, spacing=1, after=12,
+             literal=True)
+    if num in LANDSCAPE_OPEN:
+        orientation_section(doc, False); LANDSCAPE_OPEN.discard(num)
+
+
+def build(src, out, brief=None, registry=None, report=None, figures=None):
     load(src, brief)
     if registry: bind_registry(registry)
+    load_figures(figures)
     doc = new_doc()
     start = build_front(doc)
     build_body(doc, start, len(LINES) - 1)
+    if PENDING:
+        raise SystemExit(f'РИСУНОК БЕЗ ПІДПИСУ: аркуші {sorted(PENDING)} не мають підпису «Рисунок N – …» у full.md')
     for kind, items in NORMALIZED.items():
         if items: REPORT['notes'].append(f'нормалізація «{kind}»: {len(items)} замін')
     if APOSTROPHE_KV:
@@ -820,9 +953,12 @@ if __name__ == '__main__':
     ap.add_argument('--brief', help='formatter-brief.md (для запобіжника keep-verbatim)')
     ap.add_argument('--registry', default=os.path.join(HERE, 'registry.json'))
     ap.add_argument('--report', help='куди записати звіт складання (JSON)')
+    ap.add_argument('--figures', help='тека рендерів із manifest.json (render_figures.py); без неї — плейсхолдери')
     a = ap.parse_args()
-    rep = build(a.src, a.out, a.brief, a.registry, a.report)
+    rep = build(a.src, a.out, a.brief, a.registry, a.report, a.figures)
     for x in rep['notes']: print('•', x)
+    for x in rep['figures']:
+        if x.startswith('рисунок'): print('•', x)
     print(f'формул: {len(rep["formulas"])} | таблиць: {len([t for t in rep["tables"] if "підпис" not in t])} '
           f'| плейсхолдерів: {len(rep["placeholders"])}')
     print('OK ->', a.out)

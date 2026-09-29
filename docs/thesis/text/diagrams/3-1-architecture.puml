@@ -1,0 +1,61 @@
+@startuml
+' Рисунок 3.1 — Загальна архітектура системи Hourwell.
+' Джерело: текст плейсхолдера рисунка 3.1 у full.md (підрозділ 3.2) — чотири рівні, їхній склад і
+' стрілки взято звідти; нічого поза ним. Стрілка plan-request → /plan без підпису: ім’я функції
+' стоїть у блоці Edge Functions, /plan — у блоці FastAPI. Рівні (3) і (4) — на одній ВМ, як і сказано в тексті,
+' тому намальовані в одній рамці ВМ. PlantUML, а не Mermaid: розкладка Mermaid не дає вмістити
+' рисунок на сторінку з підписами не менше 8 пт (стрілку «конвеєр → Storage» вона веде в обхід).
+!pragma layout smetana
+skinparam defaultFontSize 14
+skinparam defaultFontName Arial
+skinparam monochrome true
+skinparam shadowing false
+skinparam rectangle {
+  RoundCorner 6
+}
+skinparam nodesep 18
+skinparam ranksep 34
+top to bottom direction
+
+rectangle "(1) Мобільний клієнт — React Native + Expo" as L1 {
+  rectangle "TypeScript strict\nекрани Today, Inbox, Focus, Insights\nExpo SQLite + Drizzle — офлайн-джерело\nістини та outbox операцій\nвласний хук живих запитів · chrono-node" as C
+}
+
+rectangle "(2) Supabase — регіон ЄС (eu-west-1)" as L2 {
+  rectangle "Postgres із RLS" as S1
+  rectangle "Auth: JWT, OAuth,\nанонімні сесії" as S2
+  rectangle "Edge Functions (Deno/TS)\nзокрема plan-request" as S3
+  rectangle "pg_cron" as S4
+  rectangle "Storage (ЄС):\nреєстр моделей" as S5
+  database "model_registry" as S6
+}
+
+node "ВМ Oracle Cloud «Always Free»\nAmpere A1, 2 OCPU / 12 ГБ\nFrance South (eu-marseille-1)" as VM {
+  rectangle "(3) Сервіс RecSys" as L3 {
+    rectangle "Caddy\n(автоматичний TLS)" as R0
+    rectangle "FastAPI (Python 3.12)\nу контейнері\n/plan · /feedback\n/insights · /parse-preview" as R1
+  }
+  rectangle "(4) Конвеєр навчання —\nнічний системний таймер" as L4 {
+    rectangle "псевдонімізований\nекспорт" as T1
+    rectangle "перенавчання" as T2
+    rectangle "оцінювальний\nбар’єр" as T3
+  }
+}
+
+rectangle "Реєстр контейнерів GitHub" as GH
+
+C <-down-> L2 : HTTPS,\n@supabase/supabase-js
+S3 -down-> R0
+R0 -right-> R1
+T1 -right-> T2
+T2 -right-> T3
+T3 -up-> S5
+S5 -right-> S6
+' розкладка (лише невидимі зв'язки): Supabase у два ряди, RecSys над конвеєром навчання, ВМ під Supabase
+S1 -[hidden]down- S5
+S2 -[hidden]down- S4
+R0 -[hidden]down- T1
+S4 -[hidden]down- R1
+S4 -[hidden]right- GH
+GH .down.> L3 : підтягування образу,\nбез вхідного SSH із CI
+@enduml

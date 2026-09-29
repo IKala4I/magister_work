@@ -2,6 +2,30 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — the figures in the document, and a PDF for reading (2026-09-29, post-p12/thesis-figures)
+
+- **Five figures rendered by the pipeline from sources in the repo** — 1.1 (from табл. 1.1; Sunsama
+  left out: the text gives it no price), 3.1 (PlantUML), 3.3 (PlantUML, landscape page), А.1 on
+  four sheets and Б.1 on three — every label ≥ 8 pt on paper, a gate the build enforces.
+  verify.py proves each image by SHA-256; regress.py sees images.
+- **Рисунок 3.2 written but not inserted:** the text's `user_model_state` and `user_profiles`
+  disagree with the schema (`bandit_state` / `beta_cells` / `blend_state`; `profiles`) — the
+  owner decides.
+- **A folder for 4.1's screenshots**, a **PDF** through a pinned LibreOffice with the contents page
+  built, and every tool pinned inside the pipeline (mermaid-cli, chrome-headless-shell, PlantUML,
+  LibreOffice).
+- **After a fresh-context adversarial pass:** the 8 pt gate measures the rendered SVG (Mermaid's
+  step numbers were a fixed 12 px, 6.8 pt — now 15 px); verify.py checks each figure's page
+  orientation and printed size in the .docx; the landscape page has no spare break paragraph and its
+  number sits away from the spine; 3.3 keeps only the placeholder's two relations; 1.1 and 3.1
+  tidied; every appendix starts on a new page (ДСТУ 3008).
+
+## Post-P12 — Expo SDK 57 patch alignment, again (2026-09-29, post-p12/expo-patch-bump-2)
+
+- **`npx expo install --fix`: expo 57.0.26, expo-router 57.0.24, expo-constants 57.0.20** (plus
+  @expo/ui and expo-modules-core patches). expo-doctor turned red on #83 on upstream publications
+  alone; react-native, React and Babel unchanged.
+
 ## Post-P12 — the formatter's .docx pipeline in the repo, and §6.6's opening (2026-09-28, post-p12/docx-pipeline)
 
 - **§6.6 no longer says every finding is one of the six classes.** «поділяються на шість класів» →
@@ -25,12 +49,6 @@
   `uv run --locked`, so removing a system Python or a distribution such as Anaconda no longer
   breaks the build. `pandoc` stays a system tool; 3.8, 3.8.2.1 and 3.11 reproduce the golden
   part-for-part identical.
-
-## Post-P12 — Expo SDK 57 patch alignment, again (2026-09-29, post-p12/expo-patch-bump-2)
-
-- **`npx expo install --fix`: expo 57.0.26, expo-router 57.0.24, expo-constants 57.0.20** (plus
-  @expo/ui and expo-modules-core patches). expo-doctor turned red on #83 on upstream publications
-  alone; react-native, React and Babel unchanged.
 
 ## Post-P12 — Expo SDK 57 patch alignment (2026-09-28, post-p12/expo-patch-bump)
 

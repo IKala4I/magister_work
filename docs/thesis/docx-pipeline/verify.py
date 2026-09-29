@@ -28,10 +28,14 @@ check_legend_symbols.py, audit_markdown.py і структурні переві�
      згортаються, як велить §7 брифа; структура рівняння — окремим винятком);
   5. кожна вставка з реєстру, яку застосовано, є в документі;
   6. кожен блок коду — рядок до рядка, разом із порожніми, проти абзаців коду документа
-     (до 2026-09-28 складальник викидав порожні рядки з коду, а перевірка 1 їх не бачила).
-Код виходу 1, якщо порушено будь-що з 1–6.
+     (до 2026-09-28 складальник викидав порожні рядки з коду, а перевірка 1 їх не бачила);
+  7. з --figures: кожен відрендерений рисунок стоїть на своєму місці — зображення перед підписом
+     «Рисунок N – …» і кожен наступний аркуш після нього з підписом «Рисунок N, аркуш k» —
+     і це саме той рендер: SHA-256 байтів зображення в .docx збігається з файлом рендера;
+     плейсхолдера такого рисунка в документі немає; зайвих зображень немає.
+Код виходу 1, якщо порушено будь-що з 1–7.
 """
-import argparse, os, re, sys, zipfile
+import argparse, json, os, re, sys, zipfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -142,6 +146,7 @@ def curl(raw_text):
                    for i, part in enumerate(PROTECTED.split(raw_text)))
 
 
+MIN_PT = 8.0                    # найдрібніший текст рисунка на папері (власник, 2026-09-29)
 ALLOWED = {('.', ','): 'кома', ('-', '−'): 'мінус', ("'", '’'): 'апостроф'}
 PURE_NUMBER = re.compile(r'[+\-−]?(\d+(?:\.\d+)?)(?:\s*±\s*\d+(?:\.\d+)?)?')
 
@@ -179,6 +184,86 @@ def source_tables(lines, code):
                            if not all(re.fullmatch(r':?-+:?', c) for c in ref_cells(lines[k - 1]))])
             cur = []
     return tables
+
+
+def body_elements(path):
+    """Тіло документа по порядку: [(«P»|«T», текст, [SHA-256 зображень], [ширина зображень, мм],
+    орієнтація сторінки)]. Зображення читаються з пакета за r:embed — байти, які побачить читач;
+    орієнтація — з розділу, до якого належить елемент (sectPr у абзаці закриває свій розділ)."""
+    import hashlib
+    doc = Document(path)
+    A = '{http://schemas.openxmlformats.org/drawingml/2006/main}blip'
+    R = '{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed'
+    WP = '{http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing}'
+    W = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'
+
+    def orient(sp):
+        pg = sp.find(W + 'pgSz')
+        if pg is None: return 'portrait'
+        if pg.get(W + 'orient') == 'landscape': return 'landscape'
+        return 'landscape' if int(pg.get(W + 'w', 0)) > int(pg.get(W + 'h', 0)) else 'portrait'
+
+    body = doc.element.body
+    kids = [el for el in body.iterchildren() if el.tag in (W + 'p', W + 'tbl')]
+    cur, orients = orient(body.find(W + 'sectPr')), []
+    for el in reversed(kids):
+        sp = el.find(f'{W}pPr/{W}sectPr')
+        if sp is not None: cur = orient(sp)
+        orients.append(cur)
+    orients.reverse()
+    out = []
+    for el, o in zip(kids, orients):
+        shas, widths = [], []
+        for dr in el.iter(WP + 'inline', WP + 'anchor'):
+            b, e = dr.find('.//' + A), dr.find(WP + 'extent')
+            if b is None: continue
+            shas.append(hashlib.sha256(doc.part.related_parts[b.get(R)].blob).hexdigest())
+            widths.append(int(e.get('cx')) / 36000 if e is not None else 0.0)
+        text = ws(''.join(t.text or '' for t in el.iter(W + 't')))
+        out.append(('P' if el.tag == W + 'p' else 'T', text, shas, widths, o))
+    return out
+
+
+def check_figures(fig_dir, docx, lines):
+    """Перевірка 7: рисунки на місцях і саме ті. Повертає список порушень."""
+    import hashlib
+    man = json.load(open(os.path.join(fig_dir, 'manifest.json'), encoding='utf-8'))
+    els, bad = body_elements(docx), []
+    file_sha = lambda f: hashlib.sha256(open(os.path.join(fig_dir, f), 'rb').read()).hexdigest()
+    for num, fig in man.items():
+        want = [file_sha(s['file']) for s in fig['sheets']]
+        caps = [i for i, (k, t, *_) in enumerate(els)
+                if k == 'P' and re.match(rf'^Рисунок {re.escape(num)}\s+[–—-]', t)]
+        if len(caps) != 1:
+            bad.append(f'рисунок {num}: підписів «Рисунок {num} – …» у .docx {len(caps)}, має бути 1'); continue
+        i = caps[0]
+        prev = els[i - 1] if i else ('', '', [], [], '')
+        first = want if fig['kind'] == 'images' else want[:1]
+        if prev[0] != ('T' if fig['kind'] == 'images' else 'P') or prev[2] != first:
+            bad.append(f'рисунок {num}: перед підписом не той рендер (очікувано {len(first)} зображ., '
+                       f'знайдено {len(prev[2])}, збіг SHA-256: {prev[2] == first})')
+        if fig['kind'] == 'images': continue
+        placed = [prev]
+        for k, sha in enumerate(want[1:], 2):
+            img, lab = (els[i + 2 * k - 3: i + 2 * k - 1] + [None, None])[:2]
+            if not img or img[2] != [sha]:
+                bad.append(f'рисунок {num}, аркуш {k}: після підпису не той рендер або його немає')
+            if not lab or lab[1] != f'Рисунок {num}, аркуш {k}':
+                bad.append(f'рисунок {num}, аркуш {k}: немає підпису «Рисунок {num}, аркуш {k}»')
+            placed.append(img)
+        # як рисунок стоїть насправді: орієнтація сторінки й кегль найдрібнішого тексту на папері —
+        # з ширини зображення в .docx, а не з того, що збирався зробити build.py
+        for k, (sheet, el) in enumerate(zip(fig['sheets'], placed), 1):
+            if not el or not el[3]: continue
+            if el[4] != fig['orientation']:
+                bad.append(f'рисунок {num}, аркуш {k}: сторінка {el[4]}, а має бути {fig["orientation"]}')
+            pt = sheet['min_font_px'] * el[3][0] / sheet['css_px'][0] / 0.3528
+            if pt < MIN_PT - 0.05:
+                bad.append(f'рисунок {num}, аркуш {k}: найдрібніший текст на папері {pt:.1f} пт < {MIN_PT}')
+    total = sum(len(e[2]) for e in els); expected = sum(len(f['sheets']) for f in man.values())
+    if total != expected:
+        bad.append(f'зображень у .docx {total}, відрендерено {expected}')
+    return bad, man
 
 
 def source_code_blocks(lines):
@@ -229,6 +314,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('--src', required=True); ap.add_argument('--docx', required=True)
     ap.add_argument('--brief'); ap.add_argument('--registry', default=os.path.join(HERE, 'registry.json'))
+    ap.add_argument('--figures', help='тека рендерів із manifest.json: перевірка 7')
     a = ap.parse_args()
 
     build.load(a.src, a.brief)
@@ -236,6 +322,7 @@ def main():
     LINES = build.LINES
     body, nmath = docx_text(a.docx)
     code, sections = code_lines(LINES), heading_numbers(LINES)
+    filled = set(json.load(open(os.path.join(a.figures, 'manifest.json'), encoding='utf-8'))) if a.figures else set()
     failed = False
 
     # 1, 3
@@ -243,6 +330,10 @@ def main():
     for n in range(1, len(LINES) + 1):
         s = raw(n)
         if not s.strip(): continue
+        ph = build.RE_FIG_PH.match(s)
+        if ph and ph.group(1) in filled:                         # замінено рисунком — перевірка 7
+            if strip_md(s) in body: missing.append((n, 'ПЛЕЙСХОЛДЕР ЛИШИВСЯ поруч із рисунком: ' + strip_md(s)[:60]))
+            continue
         fm = build.RE_FORMULA.match(s)
         if fm and fm.group(2) in FORMULA_TEX:
             num = fm.group(2); formulas.append(num)
@@ -312,6 +403,14 @@ def main():
     print(f'вставок із реєстру застосовано: {sum(len(v) for v in build.INSERT_AFTER.values())}; '
           f'не знайдено в .docx: {len(ins_bad)}')
     failed |= bool(ins_bad)
+
+    # 7
+    if a.figures:
+        fig_bad, man = check_figures(a.figures, a.docx, LINES)
+        print(f'рисунків відрендерено: {len(man)} (аркушів і знімків {sum(len(f["sheets"]) for f in man.values())}); '
+              f'порушень: {len(fig_bad)}')
+        for t in fig_bad: print(f'   {t}')
+        failed |= bool(fig_bad)
 
     # 6
     sb, db = source_code_blocks(LINES), docx_code_blocks(a.docx)

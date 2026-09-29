@@ -1,0 +1,9 @@
+{
+  "name": "hourwell-thesis-figures",
+  "private": true,
+  "description": "Renders the thesis diagrams (Mermaid) for the .docx pipeline; see ../README.md",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@mermaid-js/mermaid-cli": "12.0.0"
+  }
+}

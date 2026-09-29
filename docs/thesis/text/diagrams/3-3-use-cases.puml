@@ -1,0 +1,48 @@
+@startuml
+' Рисунок 3.3 — Діаграма сценаріїв використання системи.
+' Джерело: підрозділ 3.9 (UC-01…UC-10, назви дослівно) і текст плейсхолдера рисунка 3.3.
+' Зв'язки — лише ті, що названо в тексті прямо: UC-03 «include» UC-09 і UC-04 «extend» UC-03
+' (плейсхолдер рисунка 3.3). Інші можливі зв'язки (UC-01 → UC-03 через «перший план», UC-05 як
+' розширення планування) — вивід, а не текст, тож їх немає (адверсарний прохід, 2026-09-29).
+' Актори — за тригером кожного сценарію в 3.9: Користувач; «Система за першого відкриття…» (UC-03),
+' «Час блоку минає без виконання» (UC-04) — Планувальник; «Вебхук Google Calendar…» (UC-09) і
+' «опційне під’єднання Google Calendar» (UC-01) — Google Calendar.
+!pragma layout smetana
+skinparam defaultFontSize 14
+skinparam defaultFontName Arial
+skinparam monochrome true
+skinparam shadowing false
+left to right direction
+
+actor "Користувач" as U
+actor "Google Calendar" as GC
+actor "Планувальник\n(система)" as P
+
+rectangle "Hourwell" {
+  usecase "UC-01. Перший запуск\nта онбординг" as UC1
+  usecase "UC-02. Швидке\nзахоплення задачі" as UC2
+  usecase "UC-03. Генерація\nденного плану" as UC3
+  usecase "UC-04. Перепланування\nпропущеної задачі\n(«петля прощення»)" as UC4
+  usecase "UC-05. Розв’язання конфлікту\nперевантаженого дня" as UC5
+  usecase "UC-06. Фокус-сесія\nзі зворотним зв’язком" as UC6
+  usecase "UC-07. Ручне перевизначення\nяк навчання" as UC7
+  usecase "UC-08. Тижневий огляд" as UC8
+  usecase "UC-09. Синхронізація календаря\nта зовнішній конфлікт" as UC9
+  usecase "UC-10. Реалізація\nправ на дані" as UC10
+}
+
+U -- UC1
+U -- UC2
+U -- UC5
+U -- UC6
+U -- UC7
+U -- UC8
+U -- UC10
+UC1 -- GC
+UC9 -- GC
+UC3 -- P
+UC4 -- P
+
+UC3 ..> UC9 : <<include>>
+UC4 ..> UC3 : <<extend>>
+@enduml
