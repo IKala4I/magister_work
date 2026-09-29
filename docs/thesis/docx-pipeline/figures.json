@@ -10,8 +10,8 @@
       "orientation": "portrait"
     },
     "3.2": {
-      "source": "diagrams/3-2-er.mmd",
-      "orientation": "landscape"
+      "source": "diagrams/3-2-er.puml",
+      "orientation": "portrait"
     },
     "3.3": {
       "source": "diagrams/3-3-use-cases.puml",
