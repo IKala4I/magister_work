@@ -1,18 +1,19 @@
 %% Рисунок 3.2 — Логічна схема бази даних системи (ER-діаграма).
-%% НЕ ВСТАВЛЕНО в документ: чекає рішення власника (2026-09-29) — текст і міграції розходяться:
-%%   1) user_model_state — у тексті одна таблиця 1:1 з користувачем; у міграціях її немає, стан моделей
-%%      зберігають bandit_state (A, b за категоріями), beta_cells (Beta-комірки), blend_state (змішування);
-%%   2) user_profiles — у тексті; у міграціях таблиця зветься profiles (1:1 з auth.users);
-%%   3) recommendations.model_version — текстове поле без зовнішнього ключа до model_registry.
-%% Правило власника: лише сутності й зв'язки, без полів, не більше, ніж описує текст. Нижче —
-%% зв'язки плейсхолдера рисунка 3.2 дослівно; міграції їх підтверджують (крім п. 1–3 вище).
-%% user_profiles не намальовано: текст не називає її зв'язку.
+%% Правило власника (2026-09-29): лише сутності й зв'язки, без полів, не більше, ніж описує текст.
+%% Сутності — перелік підрозділу 3.4; зв'язки — дослівно з тексту плейсхолдера рисунка 3.2. Текст
+%% виправлено за схемою бази (власник, 2026-09-29): стан моделей — три таблиці bandit_state,
+%% beta_cells, blend_state; профіль — profiles. Кардинальності звірено з міграціями: profiles і
+%% blend_state мають ключ user_id (1:1), bandit_state — (user_id, category), beta_cells — комірки
+%% (1:N). recommendations.model_version — текстове поле без зовнішнього ключа, тому пунктир.
 erDiagram
+    users ||--|| profiles : ""
     users ||--o{ tasks : ""
     users ||--o{ recommendations : ""
     tasks ||--o{ recommendations : ""
     recommendations ||--o{ feedback_rewards : ""
-    users ||--|| user_model_state : ""
+    users ||--o{ bandit_state : ""
+    users ||--o{ beta_cells : ""
+    users ||--|| blend_state : ""
     users ||--o{ events : ""
     users ||--o{ calendar_events : ""
     model_registry ||..o{ recommendations : "model_version"

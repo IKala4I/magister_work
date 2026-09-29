@@ -12,7 +12,7 @@ sequenceDiagram
     participant PG as Supabase Postgres
     participant AR as Edge Fn attribute-rewards
     participant API as FastAPI RecSys
-    participant MS as user_model_state
+    participant MS as bandit_state, beta_cells, blend_state
 
     Note over K,DB: Інтервал блоку минув — фокус-сесії не було, виконання не зафіксовано
 

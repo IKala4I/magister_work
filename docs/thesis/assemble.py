@@ -1140,6 +1140,25 @@ def build() -> tuple[list[dict], dict]:
             "Евристичний резерв (NFR-R2) розміщено саме в Edge Function: «сплячий» контейнер безоплатного тарифу ML-сервісу ніколи не блокує користувача.",
             "Евристичний резерв (NFR-R2) розміщено в Edge Function: тайм-аут або недосяжність сервісу рекомендацій ніколи не блокує користувача.", "§3.2 fallback placement")
     run_sub(blocks, "events – append-only журнал поведінкових фактів", "пропуск, перетягування, корекція", "пропуск, перенесення, корекція", "§3.4 event list")
+    # §3.4 and the figure 3.2 note name the tables the schema has (owner, 2026-09-29): the draft's
+    # single user_model_state is bandit_state + beta_cells + blend_state (rollup §3.4, items 5–6),
+    # its user_profiles is profiles; cardinalities as in the migrations (profiles and blend_state
+    # keyed by user_id, bandit_state by (user_id, category), beta_cells per cell).
+    run_sub(blocks, "users, user_profiles – обліковий запис", "users, user_profiles", "users, profiles", "§3.4 profiles")
+    run_sub(blocks, "user_model_state – персональний стан моделей",
+            "user_model_state – персональний стан моделей: матриці (A, b) лінійного бандита за категоріями, "
+            "лічильники Beta-комірок із загасанням, вагові коефіцієнти змішування;",
+            "bandit_state, beta_cells, blend_state – персональний стан моделей, нормалізований на рівень комірок "
+            "(теплокарта FR-40 і оновлення приорів емпіричним Байєсом читають комірки реляційно): матриці (A, b) "
+            "лінійного бандита за категоріями (bandit_state), лічильники Beta-комірок із загасанням (beta_cells), "
+            "вагові коефіцієнти змішування (blend_state);",
+            "§3.4 model state tables")
+    run_sub(blocks, "МІСЦЕ ДЛЯ РИСУНКА 3.2", "users 1–1 user_model_state;",
+            "users 1–1 profiles; users 1–N bandit_state; users 1–N beta_cells; users 1–1 blend_state;",
+            "figure 3.2 note: model state tables")
+    run_sub(blocks, "Обробник /plan послідовно виконує", "завантаження персонального стану user_model_state;",
+            "завантаження персонального стану моделей (bandit_state, beta_cells, blend_state);",
+            "§4 /plan: model state tables")
     run_sub(blocks, "оцінка впливу на захист даних (DPIA) в документації проєкту", " в документації проєкту", "", "§3.7 DPIA pointer")
     run_sub(blocks, "Розклади pg_cron запускають нічну атрибуцію та тригери планування нового дня.",
             "Розклади pg_cron запускають нічну атрибуцію та тригери планування нового дня.",
