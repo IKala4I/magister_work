@@ -20,8 +20,11 @@ branch after every finished figure** (owner, after two dropped sessions); refres
 you go.
 
 **Done:** `docs/thesis/docx-pipeline/render/` — mermaid-cli 12.0.0 exactly, `package-lock.json`,
-project-local chrome-headless-shell 154 (`render/.cache`, git-ignored). Install: `npm ci` in
-`render/`.
+project-local chrome-headless-shell 154 (`render/.cache`, git-ignored; `run_all.sh` runs `npm ci`
+if missing). `render_figures.py` + `figures.json` (8 pt gate), `build.py --figures`, `verify.py`
+check 7 (image hashes, negative controls), `regress.py` sees images. **А.1 (4 sheets) and Б.1
+(3 sheets) are in the document**, portrait, 8.5 pt minimum; sheet boundaries are `%% аркуш`
+comments in the sources.
 
 **Owner decisions (2026-09-29):**
 

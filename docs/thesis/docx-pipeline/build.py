@@ -772,8 +772,11 @@ def build_body(doc, lo, hi):
 
         m = RE_FIG_PH.match(s)
         if m:
-            boxed(doc, s)
-            REPORT['placeholders'].append(f'ряд {n}: рисунок {m.group(1)}')
+            if m.group(1) in FIGURES:
+                emit_figure(doc, m.group(1))
+            else:
+                boxed(doc, s)
+                REPORT['placeholders'].append(f'ряд {n}: рисунок {m.group(1)}')
             n += 1; continue
 
         if RE_FILL_PH.search(s):
@@ -784,6 +787,7 @@ def build_body(doc, lo, hi):
         if RE_FIG_CAP.match(s):
             para(doc, s, indent=0, align=C, spacing=1, after=12, literal=True)
             REPORT['figures'].append(f'ряд {n}: {s[:80]}')
+            emit_pending_sheets(doc, RE_FIG_CAP.match(s).group(1))
             n += 1; continue
 
         if RE_NUM_ITEM.match(s) or RE_BULLET.match(s):
@@ -795,12 +799,90 @@ def build_body(doc, lo, hi):
     return doc
 
 
-def build(src, out, brief=None, registry=None, report=None):
+# ================================================================ рисунки
+# Рисунки рендерить render_figures.py (крок run_all.sh перед складанням) у теку з manifest.json.
+# Плейсхолдер «[МІСЦЕ ДЛЯ РИСУНКА N]» заміняється зображенням; рисунок без рендера лишається
+# плейсхолдером у рамці. Рисунок на кількох аркушах: перший аркуш — над підписом із full.md
+# (дослівно), кожен наступний — після нього з підписом «Рисунок N, аркуш k».
+
+FIGURES, PENDING = {}, {}
+FIG_DIR = None
+PORTRAIT_MM = (TW, 230)                   # область рисунка на книжковій сторінці, мм
+PX_MM = 25.4 / 96                         # CSS-піксель рендера в мм за натурального розміру
+RE_SHEET_LABEL = 'Рисунок {num}, аркуш {k}'
+
+
+def load_figures(d):
+    global FIG_DIR
+    FIGURES.clear(); PENDING.clear(); FIG_DIR = d
+    if d:
+        FIGURES.update(json.load(open(os.path.join(d, 'manifest.json'), encoding='utf-8')))
+
+
+def _figure_scale(fig):
+    """Один масштаб на всі аркуші рисунка (мм на CSS-піксель): найменший, з яким кожен аркуш
+    вміщується в область сторінки, і не більший за натуральний — кегль підписів однаковий на
+    всіх аркушах і дорівнює найменшому з виміряних render_figures.py."""
+    W, H = PORTRAIT_MM
+    return min(min(W / s['css_px'][0], H / s['css_px'][1], PX_MM) for s in fig['sheets'])
+
+
+def image_para(doc, path, width_mm):
+    """Абзац з одним зображенням: по центру, одинарний інтервал (множник 1,5 додав би половину
+    висоти зображення над ним), тримається з наступним — із підписом."""
+    p = doc.add_paragraph(); f = p.paragraph_format
+    f.first_line_indent = Cm(0); f.alignment = C; f.line_spacing_rule = WD_LINE_SPACING.SINGLE
+    f.space_before = Pt(6); f.space_after = Pt(6); f.keep_with_next = True
+    p.add_run().add_picture(path, width=Mm(width_mm))
+    return p
+
+
+def emit_image_grid(doc, num, fig):
+    """Знімки (рисунок 4.1): таблиця без рамок, до чотирьох у ряд, у порядку назв файлів."""
+    from docx.image.image import Image as DocxImage
+    files = [os.path.join(FIG_DIR, s['file']) for s in fig['sheets']]
+    per_row = min(4, len(files)); rows = -(-len(files) // per_row)
+    gap = 4; cw = (TW - gap * (per_row - 1)) / per_row; max_h = 200 / rows
+    t = doc.add_table(rows=rows, cols=per_row)
+    t.alignment = WD_TABLE_ALIGNMENT.CENTER; t.autofit = False
+    for i, f in enumerate(files):
+        im = DocxImage.from_file(f)
+        w = min(cw, max_h * im.px_width / im.px_height)
+        c = t.rows[i // per_row].cells[i % per_row]; p = c.paragraphs[0]; pf = p.paragraph_format
+        pf.first_line_indent = Cm(0); pf.alignment = C; pf.line_spacing_rule = WD_LINE_SPACING.SINGLE
+        pf.keep_with_next = True
+        p.add_run().add_picture(f, width=Mm(w))
+    REPORT['figures'].append(f'рисунок {num}: знімків {len(files)}, у ряд до {per_row}')
+
+
+def emit_figure(doc, num):
+    fig = FIGURES[num]
+    if fig['kind'] == 'images':
+        emit_image_grid(doc, num, fig); return
+    k = _figure_scale(fig)
+    first, rest = fig['sheets'][0], fig['sheets'][1:]
+    image_para(doc, os.path.join(FIG_DIR, first['file']), first['css_px'][0] * k)
+    PENDING[num] = [(s, k) for s in rest]
+    pt = min(s['min_pt'] for s in fig['sheets'])
+    REPORT['figures'].append(f'рисунок {num}: {len(fig["sheets"])} аркуш(і), найдрібніший підпис {pt:.1f} пт')
+
+
+def emit_pending_sheets(doc, num):
+    for k_sheet, (s, k) in enumerate(PENDING.pop(num, []), 2):
+        image_para(doc, os.path.join(FIG_DIR, s['file']), s['css_px'][0] * k)
+        para(doc, RE_SHEET_LABEL.format(num=num, k=k_sheet), indent=0, align=C, spacing=1, after=12,
+             literal=True)
+
+
+def build(src, out, brief=None, registry=None, report=None, figures=None):
     load(src, brief)
     if registry: bind_registry(registry)
+    load_figures(figures)
     doc = new_doc()
     start = build_front(doc)
     build_body(doc, start, len(LINES) - 1)
+    if PENDING:
+        raise SystemExit(f'РИСУНОК БЕЗ ПІДПИСУ: аркуші {sorted(PENDING)} не мають підпису «Рисунок N – …» у full.md')
     for kind, items in NORMALIZED.items():
         if items: REPORT['notes'].append(f'нормалізація «{kind}»: {len(items)} замін')
     if APOSTROPHE_KV:
@@ -820,9 +902,12 @@ if __name__ == '__main__':
     ap.add_argument('--brief', help='formatter-brief.md (для запобіжника keep-verbatim)')
     ap.add_argument('--registry', default=os.path.join(HERE, 'registry.json'))
     ap.add_argument('--report', help='куди записати звіт складання (JSON)')
+    ap.add_argument('--figures', help='тека рендерів із manifest.json (render_figures.py); без неї — плейсхолдери')
     a = ap.parse_args()
-    rep = build(a.src, a.out, a.brief, a.registry, a.report)
+    rep = build(a.src, a.out, a.brief, a.registry, a.report, a.figures)
     for x in rep['notes']: print('•', x)
+    for x in rep['figures']:
+        if x.startswith('рисунок'): print('•', x)
     print(f'формул: {len(rep["formulas"])} | таблиць: {len([t for t in rep["tables"] if "підпис" not in t])} '
           f'| плейсхолдерів: {len(rep["placeholders"])}')
     print('OK ->', a.out)

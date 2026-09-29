@@ -17,12 +17,16 @@
 
 Код виходу: 0 — ідентичні або змістовно рівні; 1 — є змістовні розбіжності.
 """
-import argparse, difflib, re, sys, zipfile
+import argparse, difflib, hashlib, posixpath, re, sys, zipfile
 from lxml import etree
 
 W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
 M = 'http://schemas.openxmlformats.org/officeDocument/2006/math'
 q = lambda tag: '{%s}%s' % (W, tag)
+MEDIA = {}                      # rId → SHA-256 байтів зображення поточного документа (body_seq)
+A_BLIP = '{http://schemas.openxmlformats.org/drawingml/2006/main}blip'
+R_EMBED = '{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed'
+WP_EXTENT = '{http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing}extent'
 PARTS = ['word/document.xml', 'word/styles.xml', 'word/settings.xml',
          'word/header1.xml', 'word/header2.xml', 'word/footer1.xml']
 
@@ -54,6 +58,11 @@ def runs_of(p):
                     out[-1] = (fmt, out[-1][1] + txt)
                 else:
                     out.append((fmt, txt))
+            elif ln == 'drawing':                     # зображення: байти (SHA-256) і розмір на сторінці
+                b, e = ch.find('.//' + A_BLIP), ch.find('.//' + WP_EXTENT)
+                sha = MEDIA.get(b.get(R_EMBED), '?')[:12] if b is not None else '?'
+                size = f'{e.get("cx")}×{e.get("cy")}' if e is not None else '?'
+                out.append(('', f'⟨зображення:{sha}:{size}⟩'))
             elif ln in ('fldChar', 'instrText', 'br', 'tab'):
                 val = ch.get(q('fldCharType')) or ch.get(q('type')) or (ch.text or '').strip()
                 out.append(('', f'⟨{ln}:{val}⟩'))
@@ -79,7 +88,15 @@ def table_sig(t):
 
 
 def body_seq(docx):
-    root = etree.fromstring(zipfile.ZipFile(docx).read('word/document.xml'))
+    z = zipfile.ZipFile(docx)
+    MEDIA.clear()
+    if 'word/_rels/document.xml.rels' in z.namelist():
+        rels = etree.fromstring(z.read('word/_rels/document.xml.rels'))
+        for r in rels:
+            t = r.get('Target', '')
+            if r.get('Type', '').endswith('/image'):
+                MEDIA[r.get('Id')] = hashlib.sha256(z.read(posixpath.normpath('word/' + t))).hexdigest()
+    root = etree.fromstring(z.read('word/document.xml'))
     body = root.find(q('body'))
     seq = []
     for el in body:
@@ -181,7 +198,8 @@ def main():
             for k in range(j1, min(j2, j1 + 3)): print(f'      + {describe(sb[k])}')
             shown += 1
 
-    other = [nm for nm in byte_diff if nm != 'word/document.xml']
+    # зображення (двійкові частини) порівнюються через маркери ⟨зображення:SHA-256⟩ у тілі документа
+    other = [nm for nm in byte_diff if nm != 'word/document.xml' and nm.endswith(('.xml', '.rels'))]
     for nm in other:
         ta = etree.fromstring(za.read(nm)) if nm in za.namelist() else None
         tb = etree.fromstring(zb.read(nm)) if nm in zb.namelist() else None
