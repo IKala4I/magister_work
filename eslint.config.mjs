@@ -18,6 +18,7 @@ export default tseslint.config(
       'services/**',
       'training/**',
       'supabase/functions/**', // Deno toolchain: deno lint / deno fmt / deno check (CI `edge` job)
+      'docs/thesis/docx-pipeline/render/**', // standalone npm tool project (thesis figure renderer, CommonJS config)
       'packages/shared/src/database.ts',
       'apps/mobile/drizzle/**',
     ],
