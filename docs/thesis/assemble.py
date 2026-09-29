@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import io
 import json
+import os
 import re
 import unicodedata
 import sys
@@ -27,7 +28,7 @@ import zipfile
 from xml.etree import ElementTree as ET
 
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
-DOCX = "docs/thesis/draft.docx"
+DOCX = None  # --draft PATH: the owner's draft lives outside the repo (MagisterDocs/sources/, 2026-09-29)
 TEXT = "docs/thesis/text/"
 OUT = TEXT + "full.md"
 
@@ -58,7 +59,7 @@ def _runs(el) -> str:
     return "".join(out)
 
 
-def extract(path: str = DOCX) -> list[dict]:
+def extract(path: str) -> list[dict]:
     root = ET.fromstring(zipfile.ZipFile(path).read("word/document.xml"))
     blocks: list[dict] = []
     for el in root.find(f"{W}body"):
@@ -871,7 +872,7 @@ def resolve_cite_keys(blocks: list[dict], head: int) -> tuple[int, list[str]]:
 
 # ----------------------------------------------------------------- the pass
 def build() -> tuple[list[dict], dict]:
-    blocks = extract()
+    blocks = extract(DOCX)
     src = {i: b.get("text", "") for i, b in enumerate(blocks) if b["kind"] == "p"}
     pay = load_quoted_payloads("anotaciya-ta-vysnovky.md")
 
@@ -1331,6 +1332,14 @@ def build() -> tuple[list[dict], dict]:
 
 
 def main() -> int:
+    global DOCX
+    if "--draft" in sys.argv[:-1]:
+        DOCX = sys.argv[sys.argv.index("--draft") + 1]
+    if not DOCX or not os.path.exists(DOCX):
+        print("usage: python3 docs/thesis/assemble.py --draft PATH/TO/draft.docx [--report]\n"
+              "The draft is private and lives outside the repository "
+              "(MagisterDocs/sources/draft.docx, see docs/thesis/ASSEMBLY.md).")
+        return 2
     blocks, stats = build()
     print("== assembly ==")
     for line in APPLIED:

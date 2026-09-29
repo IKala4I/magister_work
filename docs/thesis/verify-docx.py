@@ -10,8 +10,8 @@ What it CANNOT do: it does not verify prose, argument, or numbers it was not tol
 run means "none of the known-stale strings survive and every checked landmark is present" — not
 "the chapter is right".
 
-Run:  python3 docs/thesis/verify-docx.py [path/to/draft.docx]
-      (default: docs/thesis/draft.docx — which is git-ignored, so this is a local check)
+Run:  python3 docs/thesis/verify-docx.py path/to/full.md-or-draft.docx
+      (CI passes docs/thesis/text/full.md; the draft is private, outside the repo)
 
 Exit 1 if any check fails. Run it BEFORE assembly too: it then lists what is still to do.
 """
@@ -21,7 +21,7 @@ import re
 import sys
 import zipfile
 
-DEFAULT = "docs/thesis/draft.docx"
+DEFAULT = "docs/thesis/text/full.md"
 
 # --- (1) strings that must be GONE after assembly ------------------------------------------------
 # each is (needle, why it must go)
