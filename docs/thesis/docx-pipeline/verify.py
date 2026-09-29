@@ -149,6 +149,7 @@ def curl(raw_text):
                    for i, part in enumerate(PROTECTED.split(raw_text)))
 
 
+NAME_FIELDS = ('здобувач', 'здобувач_англійською', 'керівник_вчене_звання_і_ПІБ', 'рецензент')
 MIN_PT = 8.0                    # найдрібніший текст рисунка на папері (власник, 2026-09-29)
 ALLOWED = {('.', ','): 'кома', ('-', '−'): 'мінус', ("'", '’'): 'апостроф'}
 PURE_NUMBER = re.compile(r'[+\-−]?(\d+(?:\.\d+)?)(?:\s*±\s*\d+(?:\.\d+)?)?')
@@ -414,9 +415,22 @@ def main():
         public = open(a.src, encoding='utf-8').read()           # сирий full.md, як лежить у репозиторії
         raw_values = [str(v).strip() for k, v in json.load(open(a.private, encoding='utf-8')).items()
                       if not k.startswith('_') and str(v or '').strip()]
-        priv_bad = [f'ПРИВАТНЕ ЗНАЧЕННЯ У full.md: «{v}»' for v in raw_values if v in public]
+        norm = lambda t: re.sub(r'\s+', ' ', t).casefold()
+        priv_bad = [f'ПРИВАТНЕ ЗНАЧЕННЯ У full.md: «{v}»' for v in raw_values if norm(v) in norm(public)]
+        # прізвище — перше слово з великої літери, довше за ініціал, — цілим словом без огляду на
+        # регістр: «Прізвище І. І.» чи саме прізвище в тексті — теж витік. Ім'я окремо не
+        # шукається: імена бувають звичайними словами («Надія», «Віра»), а без прізвища не
+        # вказують на людину.
+        names = [str(v) for k, v in json.load(open(a.private, encoding='utf-8')).items()
+                 if k in NAME_FIELDS and str(v or '').strip()]
+        surnames = [next((t for t in re.findall(r"[^\W\d_][\w'’-]{2,}", v) if t[0].isupper()), None) for v in names]
+        for tok in sorted({t for t in surnames if t}):
+            if re.search(rf'(?<![\w-]){re.escape(tok)}(?![\w-])', public, re.IGNORECASE):
+                priv_bad.append(f'ПРІЗВИЩЕ У full.md: «{tok}»')
         for _, ph, _ in build.PRIVATE_FIELDS:
-            if ph not in public: continue
+            if ph not in public:
+                if ph in private: priv_bad.append(f'значення для «{ph}» задано, а плейсхолдера в full.md немає')
+                continue
             if ph in private:
                 if ph in body: priv_bad.append(f'плейсхолдер «{ph}» лишився в .docx, хоча значення задано')
                 if private[ph] not in body: priv_bad.append(f'значення для «{ph}» немає в .docx')

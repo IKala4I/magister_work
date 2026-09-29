@@ -75,6 +75,9 @@ def load_private(path):
     for key, ph, tmpl in PRIVATE_FIELDS:
         val = str(data.get(key) or '').strip()
         if val: PRIVATE[ph] = tmpl.format(val)
+    lost = [ph for ph in PRIVATE if not any(ph in ln for ln in LINES)]
+    if lost:                              # інакше заповнене ім'я мовчки не потрапило б нікуди
+        raise SystemExit(f'titulka.json: значення задано, але плейсхолдера {lost} у full.md немає')
     LINES = [_sub_private(ln) for ln in LINES]
     return PRIVATE
 

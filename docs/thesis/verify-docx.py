@@ -63,6 +63,13 @@ BANNED = [
 
 # --- (2) landmarks that must be PRESENT after assembly -------------------------------------------
 PRESENT = [
+    # the private fields stay placeholders in the public full.md; the names are substituted only at
+    # .docx build time from MagisterDocs/private/titulka.json (owner, 2026-09-29)
+    ("[ПІБ здобувача]", "title page and ANNOTATION name stay a placeholder in the public repo"),
+    ("[Student name]", "the English annotation's name stays a placeholder in the public repo"),
+    ("[науковий ступінь,", "the supervisor stays a placeholder in the public repo"),
+    ("вчене звання, ПІБ керівника]", "the supervisor stays a placeholder in the public repo"),
+    ("[ПІБ рецензента]", "the reviewer stays a placeholder in the public repo"),
     # The renumberer once rewrote «clip[0, 1]» as a citation and silently broke (2.9)/(2.10);
     # the formulas are asserted here so it can never happen unnoticed again.
     ("clip[0,1]( x(τ,c)", "формула (2.9) — the clip bounds, not a citation"),
