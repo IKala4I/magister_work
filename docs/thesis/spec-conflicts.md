@@ -580,3 +580,15 @@ analysis is part of that study (M9/#21 recomputed at the measured experiment rat
   вихідними» as the documented residual gap. This entry first also listed «за 30 хвилин» as a gap;
   the adversarial pass showed it was a defect instead — the duration grammar masked the phrase and
   a deadline was read as a 30-minute estimate — and it is fixed, not documented.
+
+## Post-P12 — the schema's table names everywhere (2026-09-29)
+
+- **L44.** File 05 §1's diagram named its model-state participant after a single table the schema
+  never had; File 07 §4 recorded the split into `bandit_state` (A, b per category), `beta_cells`
+  and `blend_state` but kept the old name as the thing split. The owner's decision (2026-09-29):
+  the thesis and the project name the tables the schema has. Evidence:
+  `supabase/migrations/20260824120000_base.sql` creates the three tables (and `profiles`, keyed by
+  `user_id`), no single model-state table and no `user_profiles`. File 05's participant now reads
+  `bandit_state, beta_cells, blend_state`; File 07's rationale is kept, without the old name. The
+  thesis text (§3.4, the §4 /plan paragraph, the notes for Рисунки 3.2 and А.1, the А.1 diagram)
+  was corrected through `assemble.py` the same day.

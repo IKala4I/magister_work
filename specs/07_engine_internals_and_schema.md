@@ -279,9 +279,9 @@ null`. **UNIQUE(recommendation_id, kind)** — corrections UPDATE the outcome ro
 
 **bandit_state** — `PK(user_id, category)`, `d smallint`, `a_matrix double precision[]` (d×d,
 row-major), `b_vector double precision[]`, `state_version int`, `updated_at`. **[INFERRED]**
-File 05's `user_model_state` participant is normalized into `bandit_state` + `beta_cells` +
-`blend_state`: /insights (FR-40) and prior refresh (File 04 §3.5) need cell-level SQL access,
-and partial updates shouldn't rewrite a monolithic blob.
+File 05's model-state participant is three tables, `bandit_state` + `beta_cells` + `blend_state`,
+not one: /insights (FR-40) and prior refresh (File 04 §3.5) need cell-level SQL access, and
+partial updates shouldn't rewrite a monolithic blob.
 
 **beta_cells** — `PK(user_id, category, daypart, day_type)`, `succ real`, `fail real`,
 `last_event_at`, `alpha0 real`, `beta0 real`, `prior_version int`, `updated_at`.
