@@ -845,6 +845,34 @@ LEGENDS: list[tuple[str, list[tuple[str, str]]]] = [
 ]
 
 
+# Guideline p. 20: formulas that follow one another with no text between them are separated by a
+# comma. Three pairs do: (2.4)–(2.5), (2.7)–(2.8), (2.17)–(2.18). Each row: (locator of the first
+# formula of the pair, the end of its expression). The same comma is typed in the pipeline's
+# formulas.py, which holds the LaTeX of every formula; docx-pipeline/verify.py compares the two.
+FORMULA_COMMAS: list[tuple[str, str]] = [
+    ("(C1) Σ(k∈F(τ)) x(τ,k) = y(τ)", "для закріплених задач"),
+    ("(C4) Σ(τ∈T(g))", "для всіх k та категорій g"),
+    ("V̂(IPS)(π) = (1/n)·Σᵢ ωᵢ·rᵢ", "Σᵢ ωᵢ·rᵢ"),
+]
+
+
+def formula_commas(blocks) -> None:
+    for locator, end in FORMULA_COMMAS:
+        try:
+            i = find_one(blocks, locator, f"formula comma {locator[:20]!r}")
+        except LookupError:
+            SKIPPED.append(f"formula comma (locator not found or ambiguous: {locator[:40]!r})")
+            continue
+        text = blocks[i]["text"]
+        m = re.search(r"\t+\(\d+\.\d+\)\s*$", text)
+        body = text[:m.start()] if m else None
+        if body is None or not fold(body).rstrip().endswith(fold(end)):
+            SKIPPED.append(f"formula comma ({locator[:30]!r} is not a numbered formula ending in {end!r})")
+            continue
+        blocks[i] = {**blocks[i], "text": body.rstrip() + "," + text[m.start():], "origin": "edited"}
+        APPLIED.append(f"formula {m.group(0).strip()}: a comma before the formula that follows it")
+
+
 def split_legends(blocks) -> None:
     run_sub(blocks, "максимізуючи очікувану корисність:", "максимізуючи очікувану корисність:",
             "максимізуючи за жорстких обмежень (дедлайни, фіксовані події, робочі години) очікувану "
@@ -1629,6 +1657,7 @@ def build() -> tuple[list[dict], dict]:
     reference_figures(blocks)
     reorder_appendices(blocks)
     split_legends(blocks)
+    formula_commas(blocks)
     sort_terms(blocks)
     count_items(blocks)
     structure_paragraph(blocks)

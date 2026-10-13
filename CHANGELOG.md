@@ -2,6 +2,14 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — a comma between consecutive formulas (2026-10-13, post-p12/formula-commas)
+
+- **(2.4), (2.7) and (2.17) end in a comma** (owner's decision; guideline p. 20: formulas that
+  follow one another with no text between them are separated by a comma) — in the `full.md` line
+  (`assemble.py`, `FORMULA_COMMAS`) and in the LaTeX (`formulas.py`). `verify.py` now compares a
+  formula's closing punctuation between the two (shown to fail with the comma in one place only);
+  `verify-guideline.py` checks the rule (16 negative controls). 165 pages, unchanged.
+
 ## Post-P12 — the department's 2026 guideline (2026-10-13, post-p12/metodychka-2026)
 
 - **Appendices follow the order the text refers to them and are lettered А Б В Д Е Ж И К Л** (no Г,
