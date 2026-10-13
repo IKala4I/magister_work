@@ -2,6 +2,14 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — Expo SDK 57 patch alignment, a third time (2026-10-13, post-p12/expo-patch-bump-3)
+
+- **`npx expo install --fix`: ten packages** — expo 57.0.28, expo-router 57.0.26, expo-constants
+  57.0.21, expo-crypto 57.0.4, expo-linking 57.0.12, expo-notifications 57.0.22, expo-sharing
+  57.0.23, expo-splash-screen 57.0.10, expo-sqlite 57.0.4, jest-expo 57.0.6 (plus their Expo-family
+  transitive patches). expo-doctor turned red on the docs-only #88 on upstream publications alone;
+  react-native and React unchanged.
+
 ## Post-P12 — ВСТУП drops the optional «Апробація» and «Публікації» (2026-09-30, post-p12/vstup-drop-optional-items)
 
 - **Both items and their headings are gone** — optional («за наявності») and empty (owner);
