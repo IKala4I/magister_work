@@ -2,7 +2,8 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-10-13 — **post-p12/metodychka-2026, IN PROGRESS** (section right below).
+> Last update: 2026-10-13 — **post-p12/metodychka-2026** (PR #88; section right below): the thesis
+> follows the department's 2026 guideline. Expo's patch drift went in first as PR #89.
 > Before it, 2026-09-29 — **post-p12/thesis-private-docs**: schema names in the text, 3.2 in,
 > private data in MagisterDocs (below). Before it, **post-p12/thesis-figures**: the figures render
 > in the pipeline and a PDF builds; the figures pass's own waiting items are superseded. Before
@@ -15,7 +16,7 @@
 > the Ukrainian sentences the draft should read, tagged Ф / П / С, every number with its measurement
 > condition. **The thesis text is assembled and green on every gate.**
 
-## IN PROGRESS (2026-10-13) — post-p12/metodychka-2026: the department guideline
+## Current state (2026-10-13) — post-p12/metodychka-2026: the department guideline (PR #88)
 
 The department's 2026 guideline for master's theses appeared (54-page PDF in
 `MagisterDocs/sources/`, **never copied into the repo, extracts included**; printed page = PDF page
@@ -114,15 +115,30 @@ checked against the title of the appendix it now points to.
   verify OK, layout self-test 12/12, **PDF 166 pages = card + 165 numbered**, реферат 3 + 2 pages;
   `pnpm typecheck / lint / format:check / test` green (2026-10-13).
 
-**Left** (the session hit its usage limit here):
+**Merged:** PR #88, after PR #89 (ten Expo SDK 57 patch releases — expo-doctor had turned red on
+upstream publications alone; the usual separate bump). CI's database job failed twice on the image
+registry's rate limit (`toomanyrequests` pulling `postgres-meta`) and passed on a rerun — a rerun is
+the fix, nothing in the repo.
 
-- [ ] push the branch, open the PR «Post-P12 — the department's 2026 guideline», merge when CI is
-      green (Python gates of `services/recsys` and `training` were not run locally — untouched);
-- [ ] owner: names in `titulka.json` and in the theses, the order number in the картка, the
-      завдання, 4.1's screenshots, the AI-use declaration; open the .docx in Word (never seen there);
-- [ ] owner decides: a comma between consecutive formulas (2.4)–(2.5), (2.7)–(2.8), (2.17)–(2.18)
-      (guideline p. 20) — not done; «Апробація» goes in after 10–11 November
-      (`para_delete` → `para_replace` in `assemble.py`).
+**Waiting on the owner:**
+
+- names in `MagisterDocs/private/titulka.json` (the student's three forms, the supervisor and the
+  supervisor's degree) and in the theses (`conference/make_tezy.py`: `SUPERVISOR`; the author comes
+  from `titulka.json`); the dean, the head of the department and the guarantor were filled from the
+  guideline's sample — to be confirmed;
+- the картка (name in the genitive, order number and date), the завдання (a form with blanks now),
+  4.1's screenshots, the AI-use declaration (the owner's own document);
+- open `hourwell.docx` in Word (never seen there): contents (Ctrl+A, F9), the run-in пункт
+  headings, the nine tables with «Продовження таблиці»;
+- decide: a comma between consecutive formulas (2.4)–(2.5), (2.7)–(2.8), (2.17)–(2.18) (guideline
+  p. 20) — reported, not done;
+- after 10–11 November 2026: «Апробація результатів» goes into ВСТУП — wording in
+  `MagisterDocs/conference/aprobatsiia.md`; in `assemble.py` the `para_delete` of the draft's
+  placeholder becomes a `para_replace`, and `verify-guideline.py` should then require the element.
+
+**Next session reads:** this section; `docs/thesis/docx-pipeline/README.md` («Верстка», «Складання
+йде в кілька проходів», «Приватні частини»); `docs/thesis/ASSEMBLY.md`, «What the 2026-10-13 pass
+changed»; `MagisterDocs/README.md`.
 
 **Resume:** `git log --oneline main..HEAD` shows what landed; the checks are
 `python3 docs/thesis/assemble.py --draft …/MagisterDocs/sources/draft.docx`, the seven CI thesis
