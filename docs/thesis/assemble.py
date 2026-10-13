@@ -312,6 +312,10 @@ CITE_SITES: list[tuple[str, str, str, str]] = [
      "За Настановами EDPB 05/2021 (v2.0) [@edpb]", "§3.7 transfer analysis (EDPB)"),
     ("за Законом України № 2297-VI, ст. 29", "за Законом України № 2297-VI, ст. 29",
      "за Законом України № 2297-VI [@zakon], ст. 29", "§3.7 Art. 29 of the Ukrainian law"),
+    # The list carries Maestro, and since the §4.6 rewrite no sentence cited it: an entry nobody
+    # cites is not a «використане джерело» (department guideline 2026, p. 13).
+    ("Наскрізні перевірки виконуються десятьма потоками Maestro", "десятьма потоками Maestro на вимогу",
+     "десятьма потоками Maestro [@maestro] на вимогу", "§4.6 Maestro citation"),
 ]
 
 # Sentences the rollup approves inline rather than as a blockquote payload.
@@ -440,6 +444,16 @@ _FOLD.update({ord(c): "-" for c in "\u2013\u2014\u2212"})
 
 def fold(t: str) -> str:
     return t.translate(_FOLD)
+
+
+def plural(n: int, one: str, few: str, many: str) -> str:
+    """Ukrainian agreement after «із N …» / «N …»: 1, 21, 71 take `one`; 2–4, 22–24 take `few`;
+    the rest, and 11–14, take `many`."""
+    if n % 10 == 1 and n % 100 != 11:
+        return one
+    if n % 10 in (2, 3, 4) and n % 100 not in (12, 13, 14):
+        return few
+    return many
 
 
 def para_replace(blocks, locator, new, label):
@@ -744,6 +758,7 @@ CITE_KEYS = {
     "lewis": "UMUX-LITE",
     "zakon": "Про захист персональних даних",
     "adan": "Horne & Östberg Morningness-Eveningness Questionnaire: A reduced scale",
+    "maestro": "Maestro: Mobile UI Testing Framework",
 }
 
 DELETE_REFS = ["Hugging Face Hub Documentation", "ONNX Runtime Documentation",
@@ -1252,6 +1267,13 @@ def build() -> tuple[list[dict], dict]:
     for u in unresolved:
         SKIPPED.append(f"unresolved citation key [@{u}]")
     SKIPPED.extend(AMBIGUOUS)
+    # ВСТУП counts the list it introduces. The draft's «66» was the draft's own list; the number
+    # is read from the list as rebuilt above, so the two cannot disagree again.
+    n_refs = sum(1 for b in blocks[head + 1:find(blocks, "ДОДАТКИ", head + 1)]
+                 if b["kind"] == "p" and re.match(r"^\d+\.\s", b["text"]))
+    run_sub(blocks, "Структура та обсяг роботи.", "із 66 найменувань",
+            f"із {n_refs} {plural(n_refs, 'найменування', 'найменувань', 'найменувань')}",
+            f"ВСТУП: the reference count is the list's own ({n_refs})")
 
     collect_listings(blocks)
     listing_solver_parameters(blocks)
