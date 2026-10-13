@@ -37,6 +37,14 @@
   order (fixing all at once left stale boundaries and six near-empty pages); never fewer than two
   rows of a table on a page. Nine tables continue, three start on a new page; five passes, ≈ 2
   min; **165 pages**. Exact for the LibreOffice PDF; Word's pagination may differ by a line or two.
+- The nine terms of «ПЕРЕЛІК УМОВНИХ ПОЗНАЧЕНЬ» stand in alphabetical order like the abbreviations
+  above them (`sort_terms`; checked by `verify-guideline.py`, 15 controls). The golden in
+  MagisterDocs is refreshed — the old one is not comparable (482 intended differences).
+- **Outside the repository, in MagisterDocs:** the conference theses for ІТЕТО-2026 (.docx, exactly
+  two pages, section 5), the «Апробація» paragraph in two variants (**not inserted** — after the
+  conference), and a list of points to check with the supervisor.
+- **Not done, reported:** the guideline separates consecutive formulas by a comma (p. 20); three
+  pairs — (2.4)–(2.5), (2.7)–(2.8), (2.17)–(2.18) — have none.
 
 ## Post-P12 — ВСТУП drops the optional «Апробація» and «Публікації» (2026-09-30, post-p12/vstup-drop-optional-items)
 

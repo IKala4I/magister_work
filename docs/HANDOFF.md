@@ -105,11 +105,24 @@ checked against the title of the appendix it now points to.
   **165 pages**; `verify.py` re-joins the parts for the cell-by-cell check and check 9 covers the
   labels (12 controls). The first pass of each run is the negative control (13 crossings found).
 
-**Left, in this order** (tick here as each lands):
+- The nine terms of the ПЕРЕЛІК sorted alphabetically (`sort_terms`); `verify-guideline.py` has 15
+  controls. Golden in MagisterDocs refreshed (the old one is not comparable: 482 intended diffs).
+- In MagisterDocs, outside the repo: `conference/tezy-iteto-2026.docx` (exactly 2 pages, section 5,
+  names are placeholders) + `make_tezy.py`; `conference/aprobatsiia.md` (two variants, **not
+  inserted**); `pytannia-do-kerivnyka.md` (22 points); `private/kartka.json`, `zavdannia.json`.
+- Final state: assemble 0 skipped / 0 drift; nine thesis checkers green; `run_all.sh` green —
+  verify OK, layout self-test 12/12, **PDF 166 pages = card + 165 numbered**, реферат 3 + 2 pages;
+  `pnpm typecheck / lint / format:check / test` green (2026-10-13).
 
-- [ ] golden refreshed, `regress.py` shown, README / ASSEMBLY / explainer / CHANGELOG / versions;
-- [ ] MagisterDocs: `titulka.json` keys, апробація wording, theses .docx, supervisor list;
-- [ ] rebuild, repeat the compliance table, PR.
+**Left** (the session hit its usage limit here):
+
+- [ ] push the branch, open the PR «Post-P12 — the department's 2026 guideline», merge when CI is
+      green (Python gates of `services/recsys` and `training` were not run locally — untouched);
+- [ ] owner: names in `titulka.json` and in the theses, the order number in the картка, the
+      завдання, 4.1's screenshots, the AI-use declaration; open the .docx in Word (never seen there);
+- [ ] owner decides: a comma between consecutive formulas (2.4)–(2.5), (2.7)–(2.8), (2.17)–(2.18)
+      (guideline p. 20) — not done; «Апробація» goes in after 10–11 November
+      (`para_delete` → `para_replace` in `assemble.py`).
 
 **Resume:** `git log --oneline main..HEAD` shows what landed; the checks are
 `python3 docs/thesis/assemble.py --draft …/MagisterDocs/sources/draft.docx`, the seven CI thesis

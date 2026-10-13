@@ -994,6 +994,23 @@ def referat(blocks) -> None:
     APPLIED.append("abstract: the object and the aim")
 
 
+def sort_terms(blocks) -> None:
+    """Guideline p. 12: the list of abbreviations and terms gives its left column in alphabetical
+    order. The draft's abbreviations already are (Cyrillic, then Latin); its terms were in the
+    order they were written."""
+    i = find(blocks, "Основні терміни вжито в такому значенні")
+    j = next(k for k in range(i + 1, len(blocks))
+             if blocks[k]["kind"] != "p" or blocks[k].get("style", "").startswith("Heading"))
+    items = blocks[i + 1:j]
+    if not all(" – " in fold(b["text"]).replace(" - ", " – ") for b in items):
+        raise SystemExit("ПЕРЕЛІК: a paragraph after «Основні терміни…» is not a «термін – значення» line")
+    latin = lambda t: t[:1].isascii()
+    ordered = sorted(items, key=lambda b: (latin(b["text"]), b["text"].casefold()))
+    if ordered != items:
+        blocks[i + 1:j] = [{**b, "origin": "edited" if b["origin"] == "draft" else b["origin"]} for b in ordered]
+        APPLIED.append(f"ПЕРЕЛІК: {len(items)} terms put in alphabetical order")
+
+
 def title_page(blocks) -> None:
     """The draft's title block gives way to the department's form (guideline, Додаток В)."""
     end = find(blocks, "РЕФЕРАТ")
@@ -1612,6 +1629,7 @@ def build() -> tuple[list[dict], dict]:
     reference_figures(blocks)
     reorder_appendices(blocks)
     split_legends(blocks)
+    sort_terms(blocks)
     count_items(blocks)
     structure_paragraph(blocks)
     referat(blocks)

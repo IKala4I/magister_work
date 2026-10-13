@@ -15,6 +15,8 @@ are checked on `text/full.md`, the product, on every change:
   figures      numbered within the chapter, every figure referred to, and never placed before
                its first reference                                                    (p. 18–19)
   sources      every entry of the list is cited                                       (p. 13)
+  list of      the abbreviations and the terms of «ПЕРЕЛІК УМОВНИХ ПОЗНАЧЕНЬ…» each stand in
+  terms        alphabetical order, Cyrillic before Latin                              (p. 12)
   counts       what ВСТУП («Структура та обсяг роботи») and the реферат say the thesis contains –
                sources, appendices, figures, tables, formulas, chapters – is what it contains;
                the page count stays a placeholder here, filled from the rendered PDF  (p. 11, 15)
@@ -142,6 +144,24 @@ def check(lines: list[str]) -> list[str]:
     for k in entries:
         if k not in cited:
             bad.append(f"sources: entry [{k}] is never cited")
+    # ---- the list of abbreviations and terms: each run of «X – Y» lines is alphabetical
+    a = next((n for s, n in heads.items() if s.startswith("# ПЕРЕЛІК УМОВНИХ")), None)
+    if a is not None:
+        b = min(n for n in heads.values() if n > a)
+        run: list[str] = []
+        for n, s in prose + [(b, "")]:
+            if not (a < n <= b) or (not s.strip() and n < b):
+                continue
+            m = re.match(r"^(\S.*?) – \S", s) if n < b else None
+            if m:
+                run.append(m.group(1))
+                continue
+            want = sorted(run, key=lambda t: (t[:1].isascii(), t.casefold()))
+            if run != want:
+                k = next(i for i, (x, y) in enumerate(zip(run, want)) if x != y)
+                bad.append(f"list of terms: «{run[k]}» stands where «{want[k]}» belongs alphabetically")
+            run = []
+
     # ---- counts stated in ВСТУП and in the реферат (both languages)
     formulas = sum(1 for n, s in prose if re.search(r"\s{2,}\(\d+\.\d+\)\s*$", s))
     n_tables = sum(1 for n, s in body if TABLE_CAP.match(s))
@@ -212,6 +232,10 @@ def mutations(text: str) -> list[tuple[str, str, str]]:
          re.sub(r"із \d+ найменуван", "із 66 найменуван", text, count=1), "ВСТУП says 66 sources"),
         ("a page count typed by hand",
          text.replace("сторінок – [кількість сторінок]", "сторінок – 162", 1), "does not state the number of pages"),
+        ("two abbreviations out of alphabetical order",
+         text.replace("\nКФ – ", "\n\x00", 1).replace("\nБД – ", "\nКФ – ", 1).replace("\n\x00", "\nБД – ", 1)
+         .replace("БД – колаборативна", "БД – база").replace("КФ – база даних", "КФ – колаборативна"),
+         "belongs alphabetically"),
         ("a source nobody cites",
          re.sub(r"\[(\d+)\] на вимогу", "на вимогу", text, count=1), "is never cited"),
     ]
