@@ -112,12 +112,12 @@ def check_text_files() -> list[tuple[bool, str, str]]:
 def check_grid() -> list[tuple[bool, str, str]]:
     """The «всі 75 комірок» claim, against the results file the appendix is generated from."""
     live = len(json.load(io.open(SENSITIVITY, encoding="utf-8"))["cells"])
-    # Only the TOTAL is a claim about the grid. З.1–З.5 count their own blocks (45, 15, 9, 12, 5)
+    # Only the TOTAL is a claim about the grid. К.1–К.5 count their own blocks (45, 15, 9, 12, 5)
     # and those are right; an earlier version of this function flagged all five.
     total = re.compile(r"(?:всі|усі|всіма|усіма|all)\s+\*{0,2}(\d+)\s*(?:cells|комірок|комірками)"
                        r"|(?<![\wа-яА-ЯіїєІЇЄ])(\d+) cells")
     hits = []
-    for path in (ASSEMBLY, "docs/thesis/text/dodatok-z.md", TEXT_README):
+    for path in (ASSEMBLY, "docs/thesis/text/dodatok-k.md", TEXT_README):
         for m in total.finditer(read(path)):
             said = int(m.group(1) or m.group(2))
             hits.append((said == live, f"{path} grid total", f"says {said}, live {live}"))

@@ -11,7 +11,7 @@ It is **generated**, never hand-edited:
 python3 docs/thesis/assemble.py --draft /Users/vladyslav/Workspace/MagisterDocs/sources/draft.docx
                                          # rebuilds text/full.md from the draft + text/*.md
 python3 docs/thesis/verify-numbers.py    # 144 study numbers, recomputed from the results JSON
-python3 docs/thesis/gen-dodatok-z.py --check
+python3 docs/thesis/gen-dodatok-k.py --check
 python3 docs/thesis/verify-docx.py docs/thesis/text/full.md   # 52 needles; 0 failures
 ```
 
@@ -362,6 +362,26 @@ than the text, and a disagreement between text and schema is the owner's to deci
   «Практичне значення» → «Особистий внесок здобувача» → «Структура та обсяг роботи», and nothing in
   the text refers to the dropped items. This also settles the open question of 2026-09-29: no
   surname can reach `full.md` from them.
+
+## What the 2026-10-13 pass changed (the department's guideline)
+
+The department's 2026 guideline for master's theses is kept in `MagisterDocs/sources/` and never
+enters the repository. The owner decided to format by it rather than by ДСТУ 3008. This section
+grows with the pass.
+
+**Appendices.** They follow the order of first reference in the text and are lettered without Г
+and З. The table of assembly steps above keeps the draft's letters (steps 24, 28, 29 are the
+draft's Додаток Г and the then-new З and И); `assemble.py`'s `APPENDICES` maps them:
+Д→А (rMEQ), Е→Б (traceability), Г→В (SQL), Ж→Д (`POST /plan`), А→Е (UC-04), Б→Ж (sync), В→И
+(colour tokens), З→К (grid), И→Л (predictions). The draft and the rollup keep the draft's letters,
+because every anchor matches draft prose; the relabelling happens inside each appendix's own range
+(`reorder_appendices`), since the old and new letter sets overlap and a sweep would map twice.
+`reference_appendices` adds the referring sentences (§2.5.1, §3.1.3, §3.4, §3.5) and
+`reference_figures` the six figure references the draft lacked.
+
+**Checked by** `verify-guideline.py` (CI): appendix letters and order, a reference to every
+appendix, table and figure, a caption on every table, a citation of every source — each rule with a
+negative control (`--self-test`).
 
 ## Coverage, and what CI can and cannot prove
 

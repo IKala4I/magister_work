@@ -83,15 +83,15 @@ PRESENT = [
     ("найраніший вільний слот", "§3.2 — the one rule compared against"),
     ("індивідуальної варіації", "the headline finding"),
     ("РОЗДІЛ 6", "the new chapter (assembly step 20)"),
-    ("Додаток З", "the 75-cell grid (assembly step 28)"),
-    ("Додаток И", "the registered predictions (assembly step 29)"),
+    ("Додаток К. Повна сітка змодельованих світів", "the 75-cell grid (assembly step 28)"),
+    ("Додаток Л. Зафіксовані передбачення", "the registered predictions (assembly step 29)"),
     ("lapseObservedEvent", "лістинг 4.1 (U15)"),
     ("Taillard", "the MEQ class-mix citation"),
     ("Chauhan", "the 2025 synchrony review"),
     ("Senyk", "the Ukrainian CSM/MCTQ instruments"),
     ("Liu", "arm A's EDF citation"),
     ("Graham", "arm A's list-scheduling citation"),
-    ("danger-text", "Додаток В's derived token (U21)"),
+    ("danger-text", "the colour-token appendix's derived token (U21)"),
     ("сумарний бал R ∈ [4, 25]", "§2.5.1 — the rMEQ range is a set after «∈», not a citation (2026-09-14)"),
 ]
 

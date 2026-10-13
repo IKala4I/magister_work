@@ -71,13 +71,16 @@ checked against the title of the appendix it now points to.
 **Done (committed on the branch):**
 
 - ВСТУП counts its own list (71) and Maestro [43] is cited (`assemble.py`).
+- Appendices reordered and relettered (table above; `APPENDICES`, `reorder_appendices`,
+  `reference_appendices`), files renamed, ten appendix tables numbered and titled, references to
+  tables 6.1–6.5 / Б.1 / И.1 and to six figures added (`reference_figures` — the first compliance
+  table wrongly said all seven figures were referenced; only 3.1 was). `verify-guideline.py` in CI
+  with ten negative controls. `run_all.sh` green, PDF 163 pages.
 
 **Left, in this order** (tick here as each lands):
 
-- [ ] text rules in `assemble.py` / `text/*.md`: chapter headings without the dot, captions,
-      «де» legends, appendix reorder + relettering + file renames (`dodatok-g/z/y.md`,
-      `gen-dodatok-z.py`, `figures.json`, diagrams), references to every appendix and table,
-      numbered appendix tables, ВСТУП «Структура», реферат;
+- [ ] text rules in `assemble.py` / `text/*.md`: chapter and appendix headings without the dot,
+      captions, «де» legends, ВСТУП «Структура», реферат;
 - [ ] `build.py` / `verify.py`: the guideline's layout (headings, captions, formulas, перелік in
       two columns, appendix headings), title page per Додаток В from `titulka.json`, картка and
       завдання from `MagisterDocs/private/`, реферат as its own file, page counts filled from the

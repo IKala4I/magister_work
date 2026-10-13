@@ -2,6 +2,16 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — the department's 2026 guideline (2026-10-13, post-p12/metodychka-2026)
+
+- **Appendices follow the order the text refers to them and are lettered А Б В Д Е Ж И К Л** (no Г,
+  no З): every appendix has a referring sentence, `assemble.py` reorders and relabels through one
+  table (`APPENDICES`), the three text files, the generator and the two diagrams are renamed to
+  their letters. Ten appendix tables gained numbers and titles; tables 6.1–6.5, Б.1, И.1 and six
+  of the seven figures gained a reference by number; ВСТУП counts its own list (71) and Maestro
+  [43] is cited again. **`verify-guideline.py`** checks these text rules in CI, with ten negative
+  controls.
+
 ## Post-P12 — ВСТУП drops the optional «Апробація» and «Публікації» (2026-09-30, post-p12/vstup-drop-optional-items)
 
 - **Both items and their headings are gone** — optional («за наявності») and empty (owner);

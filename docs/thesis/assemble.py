@@ -331,7 +331,7 @@ LITERAL_EDITS: list[tuple] = [
      "§2.3 slice frequency"),
     ("append", "Принципи взаємодії: «фізика замість оздоблення» реалізовано",
      "Досяжність одним пальцем: основні дії розміщено в нижніх 60 % екрана. Кольорову систему "
-     "та типографіку винесено в додаток В.",
+     "та типографіку винесено в додаток И (таблиця И.1).",
      "§3.8 carried forward: reachability + the Додаток В pointer"),
     ("append", "Нічний конвеєр виконується системним таймером",
      "Щоквартальний крок емпіричного Байєса (2.14) переоцінює апріорні таблиці та публікує їх "
@@ -710,6 +710,107 @@ def listing_solver_parameters(blocks: list[dict]) -> None:
         APPLIED.append("лістинг 4.2: solver parameters and the stability bonus (U16)")
         return
     SKIPPED.append("лістинг 4.2 (U16): the Solve line was not found")
+
+
+# ----------------------------------------------------------------- appendices
+# Department guideline 2026, p. 22: appendices follow the order in which the text refers to
+# them and are lettered without Г, Ґ, Є, З, І, Ї, Й, О, Ч, Ь. The draft lettered them А–Ж in the
+# order they were written and referred to three of them. So: every appendix gets a sentence
+# that refers to it where the text first needs it, and the appendices are put in that order.
+#
+# The draft and the rollup keep the draft's letters – every anchor matches draft prose – and
+# this table is the one place the two letterings meet. `None` in the middle column means the
+# block comes from a `text/*.md` file that already carries its new letter.
+APPENDICES: list[tuple[str, str | None, str]] = [
+    ("Додаток Д. Мікроопитувальник хронотипу", "Д", "А"),
+    ("Додаток Е. Матриця простежуваності", "Е", "Б"),
+    ("Додаток В. Фрагмент SQL-схеми", None, "В"),
+    ("Додаток Ж. Приклад відповіді", "Ж", "Д"),
+    ("Додаток А. Діаграма послідовності сценарію", "А", "Е"),
+    ("Додаток Б. Діаграма послідовності", "Б", "Ж"),
+    ("Додаток В. Система кольорових токенів", "В", "И"),
+    ("Додаток К. Повна сітка", None, "К"),
+    ("Додаток Л. Зафіксовані передбачення", None, "Л"),
+]
+APPENDIX_LETTERS = "АБВДЕЖИКЛМНПРСТУФХЦШЩЮЯ"   # the alphabet without the ten excluded letters
+
+
+def reference_appendices(blocks) -> None:
+    """One referring sentence per appendix the draft never mentioned, and the new letters for the
+    three it did. Runs before the reorder, so the locators are still the draft's."""
+    para_append(blocks, "Онбординг містить скорочений опитувальник",
+                "Зміст пунктів опитувальника наведено в додатку А.",
+                "§2.5.1 refers to the rMEQ appendix")
+    para_before(blocks, "3.2. Загальна архітектура системи",
+                "Простежуваність ключових вимог до розділів роботи та механізмів їх реалізації "
+                "наведено в додатку Б (таблиця Б.1).",
+                "§3.1.3 refers to the traceability appendix")
+    para_append(blocks, "Клієнтська схема дзеркальних локальних таблиць",
+                "Фрагмент SQL-схеми ключових таблиць наведено в додатку В.",
+                "§3.4 refers to the SQL appendix")
+    para_append(blocks, "Поверхня API сервісу рекомендацій навмисно мінімальна",
+                "Приклад відповіді ендпоїнта POST /plan наведено в додатку Д.",
+                "§3.5 refers to the /plan response appendix")
+    run_sub(blocks, "Конфлікти поділяються на три класи", "наведено в додатках А і Б",
+            "наведено в додатках Е і Ж", "§3.6 the two sequence diagrams' letters")
+
+
+def reference_figures(blocks) -> None:
+    """Guideline, p. 18–19: every figure is referred to in the text, and never stands before its
+    first reference. The draft named only figure 3.1; the other six were introduced by what they
+    show, not by number. Runs before the reorder: the appendix figures still carry the draft's
+    letters here and are relabelled with their appendix."""
+    run_sub(blocks, "Незайнятим на ринку лишається квадрант", "мобільність – пояснюваність»;",
+            "мобільність – пояснюваність» (рисунок 1.1);", "§1.2 refers to figure 1.1")
+    run_sub(blocks, "Схему даних побудовано навколо принципу подієвого журналювання", "Основні сутності:",
+            "Основні сутності (рисунок 3.2):", "§3.4 refers to figure 3.2")
+    run_sub(blocks, "Поведінку системи специфіковано десятьма сценаріями використання", "(UC-01…UC-10)",
+            "(UC-01…UC-10; рисунок 3.3)", "§3.9 refers to figure 3.3")
+    run_sub(blocks, "Мобільний клієнт реалізовано на React Native", "відповідає ключовим екранам підрозділу 3.8.",
+            "відповідає ключовим екранам підрозділу 3.8 (рисунок 4.1).", "§4.1 refers to figure 4.1")
+    para_before(blocks, "[МІСЦЕ ДЛЯ РИСУНКА А.1]", "Діаграму послідовності сценарію наведено на рисунку А.1.",
+                "the UC-04 appendix refers to its figure")
+    para_before(blocks, "[МІСЦЕ ДЛЯ РИСУНКА Б.1]", "Діаграму послідовності синхронізації наведено на рисунку Б.1.",
+                "the sync appendix refers to its figure")
+
+
+def reorder_appendices(blocks) -> None:
+    """Cut the appendices out, relabel the draft's, and put them back in the order of APPENDICES.
+    Old and new letter sets overlap, so the relabelling is done inside each appendix's own range
+    with that appendix's own pair – never as a sweep over the document."""
+    first = find(blocks, "ДОДАТКИ", find(blocks, "СПИСОК ВИКОРИСТАНИХ ДЖЕРЕЛ")) + 1
+    is_head = lambda b: (b["kind"] == "p" and b.get("style") == "Heading2"
+                         and b["text"].lstrip("*").startswith("Додаток "))
+    starts = [i for i in range(first, len(blocks)) if is_head(blocks[i])]
+    if starts[0] != first or len(starts) != len(APPENDICES):
+        raise SystemExit(f"appendices: {len(starts)} headings found, {len(APPENDICES)} expected, "
+                         f"first at block {starts[0]} (expected {first})")
+    ranges = {i: blocks[i:j] for i, j in zip(starts, starts[1:] + [len(blocks)])}
+    out, taken = [], set()
+    for (locator, old, new), want in zip(APPENDICES, APPENDIX_LETTERS):
+        hits = [i for i in starts if fold(locator) in fold(blocks[i]["text"])]
+        if len(hits) != 1 or new != want:
+            raise SystemExit(f"appendix {locator!r}: {len(hits)} headings match; letter {new} (next free is {want})")
+        part = ranges[hits[0]]
+        taken.add(hits[0])
+        if old is not None:
+            head = re.compile(rf"Додаток {old}\.")
+            item = re.compile(rf"(?<![\w.]){old}\.(\d)")
+            relabel = lambda t: item.sub(rf"{new}.\1", head.sub(f"Додаток {new}.", t))
+            for b in part:
+                if b["kind"] == "p":
+                    n = relabel(b["text"])
+                    if n != b["text"]:
+                        b["text"], b["origin"] = n, ("edited" if b["origin"] == "draft" else b["origin"])
+                elif b["kind"] == "table":
+                    b["rows"] = [[relabel(c) for c in r] for r in b["rows"]]
+        if not part[0]["text"].lstrip("*").startswith(f"Додаток {new}."):
+            raise SystemExit(f"appendix {locator!r} is not headed «Додаток {new}.» after relabelling")
+        out.extend(part)
+    assert taken == set(starts)
+    blocks[first:] = out
+    APPLIED.append(f"appendices: {len(APPENDICES)} put in the order the text refers to them, "
+                   f"lettered {APPENDIX_LETTERS[:len(APPENDICES)]}")
 
 
 # ----------------------------------------------------------------- references
@@ -1243,19 +1344,19 @@ def build() -> tuple[list[dict], dict]:
     para_replace(blocks, "Перспективи подальших досліджень включають", pay[18], "висновки: перспективи")
 
     # --- appendices (steps 24, 28, 29) --------------------------------------------------
-    dg = load_text_file("dodatok-g.md")
+    dg = load_text_file("dodatok-v.md")
     for b in dg:
         if b["kind"] == "p" and b.get("style", "").startswith("Heading"):
             b["style"] = f"Heading{min(int(b['style'][-1]) + 1, 3)}"
     replace_range(blocks, "Додаток Г. Фрагмент SQL-схеми", "Додаток Д. Мікроопитувальник",
-                  dg, "Додаток Г replaced")
-    for name in ("dodatok-z.md", "dodatok-y.md"):
+                  dg, "the draft's Додаток Г replaced (Додаток В of the thesis)")
+    for name in ("dodatok-k.md", "dodatok-l.md"):
         part = load_text_file(name)
         for b in part:                      # demote: an appendix is Heading2 in this document
             if b["kind"] == "p" and b.get("style", "").startswith("Heading"):
                 b["style"] = f"Heading{min(int(b['style'][-1]) + 1, 3)}"
         blocks.extend(part)
-    APPLIED.append("Додаток З and Додаток И appended")
+    APPLIED.append("Додаток К and Додаток Л appended")
 
     # --- references, then citations (step 22) -------------------------------------------
     mapping = rebuild_references(blocks)
@@ -1278,6 +1379,9 @@ def build() -> tuple[list[dict], dict]:
     collect_listings(blocks)
     listing_solver_parameters(blocks)
     fence_json_example(blocks)
+    reference_appendices(blocks)
+    reference_figures(blocks)
+    reorder_appendices(blocks)
 
     # --- global sweeps -------------------------------------------------------------------
     # Runs LAST, after every anchored edit: two ROLLUP_EDITS markers and the висновки п.5 locator
