@@ -65,11 +65,19 @@ BANNED = [
 PRESENT = [
     # the private fields stay placeholders in the public full.md; the names are substituted only at
     # .docx build time from MagisterDocs/private/titulka.json (owner, 2026-09-29)
-    ("[ПІБ здобувача]", "title page and ANNOTATION name stay a placeholder in the public repo"),
-    ("[Student name]", "the English annotation's name stays a placeholder in the public repo"),
-    ("[науковий ступінь,", "the supervisor stays a placeholder in the public repo"),
-    ("вчене звання, ПІБ керівника]", "the supervisor stays a placeholder in the public repo"),
-    ("[ПІБ рецензента]", "the reviewer stays a placeholder in the public repo"),
+    ("[ПІБ здобувача]", "the реферат's name stays a placeholder in the public repo"),
+    ("[Student name]", "the English abstract's name stays a placeholder in the public repo"),
+    # the title page is the department's form (guideline 2026, Додаток В); every name on it and the
+    # data of the form stay placeholders here
+    ("[ПІБ здобувача для титулки]", "the student stays a placeholder on the title page"),
+    ("[ПІБ керівника]", "the supervisor stays a placeholder in the public repo"),
+    ("[науковий ступінь і вчене звання керівника]", "the supervisor's degree stays a placeholder"),
+    ("[ПІБ гаранта]", "the programme guarantor stays a placeholder in the public repo"),
+    ("[ПІБ декана]", "the dean stays a placeholder in the public repo"),
+    ("[ПІБ завідувача кафедри]", "the head of the department stays a placeholder in the public repo"),
+    ("[назва кафедри]", "the department's name comes from the title-page data"),
+    ("[код і найменування спеціальності]", "the speciality comes from the title-page data"),
+    ("[кількість сторінок]", "the page count is filled from the rendered PDF, never typed"),
     # The renumberer once rewrote «clip[0, 1]» as a citation and silently broke (2.9)/(2.10);
     # the formulas are asserted here so it can never happen unnoticed again.
     ("clip[0,1]( x(τ,c)", "формула (2.9) — the clip bounds, not a citation"),

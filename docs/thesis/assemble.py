@@ -868,6 +868,142 @@ def split_legends(blocks) -> None:
             APPLIED.append(f"legend under the formula: {len(parts) - 1} symbol lines + the rest ({locator[:28]!r})")
 
 
+# ----------------------------------------------------------------- front matter and counts
+# Department guideline 2026, p. 10–12 and its Додаток В. The title page is the department's
+# form; names and the data of the form stay placeholders here and are filled at build time from
+# a file outside the repository (MagisterDocs/private/titulka.json). The реферат is not bound into
+# the thesis (it is enclosed with it), so the .docx pipeline builds it as a file of its own – it
+# stays in full.md, between the title page and ЗМІСТ, because that is where the draft has it.
+TITLE_PAGE = [                            # one printed piece per line; the pipeline lays them out
+    "НАЦІОНАЛЬНИЙ УНІВЕРСИТЕТ БІОРЕСУРСІВ І ПРИРОДОКОРИСТУВАННЯ УКРАЇНИ",
+    "Факультет інформаційних технологій",
+    "ПОГОДЖЕНО",
+    "Декан факультету інформаційних технологій",
+    "[ПІБ декана]",
+    "ДОПУСКАЄТЬСЯ ДО ЗАХИСТУ",
+    "Завідувач кафедри [назва кафедри]",
+    "[ПІБ завідувача кафедри]",
+    "МАГІСТЕРСЬКА КВАЛІФІКАЦІЙНА РОБОТА",
+    "на тему «{title}»",
+    "Спеціальність",
+    "[код і найменування спеціальності]",
+    "Освітня програма",
+    "Програмне забезпечення інформаційних систем",
+    "Орієнтація освітньої програми",
+    "освітньо-професійна",
+    "Гарант освітньої програми",
+    "[науковий ступінь і вчене звання гаранта]",
+    "[ПІБ гаранта]",
+    "Керівник магістерської кваліфікаційної роботи",
+    "[науковий ступінь і вчене звання керівника]",
+    "[ПІБ керівника]",
+    "Виконав",
+    "[ПІБ здобувача для титулки]",
+    "КИЇВ – 2026",
+]
+PAGES = "[кількість сторінок]"            # filled by the .docx pipeline from the rendered PDF
+PAGES_EN = "[number of pages]"
+COUNTS: dict[str, int] = {}
+
+
+def count_items(blocks) -> None:
+    """What ВСТУП and the реферат say the thesis contains, counted from the thesis itself."""
+    head = find(blocks, "СПИСОК ВИКОРИСТАНИХ ДЖЕРЕЛ")
+    apps = find(blocks, "ДОДАТКИ", head + 1)
+    texts = [b["text"] for b in blocks if b["kind"] == "p"]
+    COUNTS.update(
+        sources=sum(1 for b in blocks[head + 1:apps] if b["kind"] == "p" and re.match(r"^\d+\.\s", b["text"])),
+        tables=sum(1 for t in texts if re.match(rf"^Таблиця {_ITEM} [–—-] ", t)),
+        figures=sum(1 for t in texts if re.match(rf"^Рисунок {_ITEM} [–—-] ", t)),
+        formulas=sum(1 for t in texts if re.search(r"\t+\(\d+\.\d+\)\s*$", t)),
+        appendices=len(APPENDICES),
+        chapters=sum(1 for b in blocks if b["kind"] == "p" and b.get("style") == "Heading1"
+                     and re.match(r"^(?:\*\*)?РОЗДІЛ \d", b["text"])),
+    )
+    data_tables = sum(1 for b in blocks if b["kind"] == "table")
+    if COUNTS["tables"] != data_tables:
+        raise SystemExit(f"tables: {COUNTS['tables']} captions for {data_tables} tables")
+
+
+def structure_paragraph(blocks) -> None:
+    """ВСТУП, «Структура та обсяг роботи» (guideline p. 15: pages, sources, appendices, the
+    number of chapters and a short description of each). Every number is counted, not typed."""
+    c = COUNTS
+    if c["chapters"] != 6:
+        raise SystemExit(f"ВСТУП describes six chapters; the thesis has {c['chapters']}")
+    para_replace(
+        blocks, "Структура та обсяг роботи.",
+        "Структура та обсяг роботи. Кваліфікаційна робота складається зі вступу, шести розділів, "
+        f"висновків, списку використаних джерел із {c['sources']} "
+        f"{plural(c['sources'], 'найменування', 'найменувань', 'найменувань')} і {c['appendices']} "
+        f"{plural(c['appendices'], 'додатка', 'додатків', 'додатків')}. Обсяг роботи: сторінок – {PAGES}, "
+        f"рисунків – {c['figures']}, таблиць – {c['tables']}, формул – {c['formulas']}. "
+        "У першому розділі проаналізовано предметну область персонального планування часу, наявні "
+        "програмні рішення та наукові дослідження, сформульовано науковий розрив і поставлено задачу "
+        "дослідження. У другому розділі подано математичну формалізацію задачі: уніфіковану модель "
+        "«бандит – розв'язувач», метод холодного старту, методику офлайн-оцінювання політик і модель "
+        "винагород. У третьому розділі спроєктовано програмне забезпечення системи: вимоги, "
+        "архітектуру, схему даних, синхронізацію, безпеку та інтерфейс користувача. У четвертому "
+        "розділі описано програмну реалізацію мобільного клієнта, серверної частини, сервісу "
+        "рекомендацій і конвеєра навчання моделей. У п'ятому розділі викладено методику оцінювання: "
+        "протокол польового дослідження, який спроєктовано, але не виконано, і методику "
+        "симуляційного оцінювання з попередньою реєстрацією гіпотез. У шостому розділі наведено "
+        "результати симуляційного оцінювання та перевірки на реальних пристроях і обговорено межі "
+        "їх застосовності. Таблиці, рисунки та формули оформлено відповідно до методичних "
+        "рекомендацій кафедри, а в питаннях, яких вони не регламентують, – відповідно до "
+        "ДСТУ 3008:2015 [@dstuzvit]; бібліографічні описи складено за ДСТУ 8302:2015 [@dstubibl].",
+        "ВСТУП: структура та обсяг – counted, chapters described, the guideline named")
+
+
+def referat(blocks) -> None:
+    """Guideline p. 11–12: the реферат states the numbers of pages, illustrations, tables,
+    appendices and sources, and names the object and the aim. The object and the aim are the
+    introduction's own sentences, read from it, so the two cannot drift apart."""
+    c = COUNTS
+    obj = blocks[find(blocks, "Об'єкт дослідження –")]["text"]
+    aim = blocks[find(blocks, "Мета дослідження –")]["text"]
+    run_sub(blocks, "АНОТАЦІЯ", "АНОТАЦІЯ", "РЕФЕРАТ", "реферат: heading")
+    run_sub(blocks, "ANNOTATION", "ANNOTATION", "ABSTRACT", "abstract: heading")
+    run_sub(blocks, "Кваліфікаційна робота на здобуття освітнього ступеня «Магістр» за спеціальністю",
+            "Кваліфікаційна робота на здобуття освітнього ступеня «Магістр» за спеціальністю «Інженерія "
+            "програмного забезпечення»",
+            "Магістерська кваліфікаційна робота за спеціальністю «[код і найменування спеціальності]»",
+            "реферат: the speciality with its code, from the title-page data")
+    run_sub(blocks, "Master's qualification thesis in Software Engineering",
+            "Master's qualification thesis in Software Engineering",
+            "Master's qualification thesis, speciality [speciality code and name]",
+            "abstract: the speciality with its code")
+    at = para_insert_after(
+        blocks, "Магістерська кваліфікаційна робота за спеціальністю",
+        f"Обсяг роботи: сторінок – {PAGES}, рисунків – {c['figures']}, таблиць – {c['tables']}, "
+        f"додатків – {c['appendices']}, використаних джерел – {c['sources']}.",
+        "реферат: counts")
+    blocks.insert(at + 1, {"kind": "p", "style": "", "text": f"{obj} {aim}", "origin": "inserted"})
+    APPLIED.append("реферат: the object and the aim, in the introduction's words")
+    at = para_insert_after(
+        blocks, "Master's qualification thesis, speciality",
+        f"The thesis comprises {PAGES_EN} pages, {c['figures']} figures, {c['tables']} tables, "
+        f"{c['appendices']} appendices and {c['sources']} references.",
+        "abstract: counts")
+    blocks.insert(at + 1, {"kind": "p", "style": "", "origin": "inserted", "text":
+                           "The object of the study is the processes of personal task planning and time "
+                           "management of users of mobile information systems. The aim of the study is to make "
+                           "personal time planning more effective by developing methods and software that "
+                           "assign tasks to time slots as recommendations and learn online from the user's "
+                           "behavioural feedback."})
+    APPLIED.append("abstract: the object and the aim")
+
+
+def title_page(blocks) -> None:
+    """The draft's title block gives way to the department's form (guideline, Додаток В)."""
+    end = find(blocks, "РЕФЕРАТ")
+    title = next(re.sub(r"[*«»]", "", b["text"]).strip() for b in blocks[:end]
+                 if b["kind"] == "p" and "ПЕРСОНАЛІЗОВАНА ОПТИМІЗАЦІЯ" in b["text"])
+    blocks[:end] = [{"kind": "p", "style": "", "text": t.format(title=title), "origin": "inserted"}
+                    for t in TITLE_PAGE]
+    APPLIED.append(f"title page: the department's form, {len(TITLE_PAGE)} lines")
+
+
 # ----------------------------------------------------------------- the guideline's forms
 # Department guideline 2026 (owner, 2026-10-13: its forms, not ДСТУ 3008's). These are rules that
 # cross the whole document, so they run last, like the rename and the dash; the text files and
@@ -959,6 +1095,8 @@ CITE_KEYS = {
     "zakon": "Про захист персональних даних",
     "adan": "Horne & Östberg Morningness-Eveningness Questionnaire: A reduced scale",
     "maestro": "Maestro: Mobile UI Testing Framework",
+    "dstuzvit": "ДСТУ 3008:2015",
+    "dstubibl": "ДСТУ 8302:2015",
 }
 
 DELETE_REFS = ["Hugging Face Hub Documentation", "ONNX Runtime Documentation",
@@ -1467,14 +1605,6 @@ def build() -> tuple[list[dict], dict]:
     for u in unresolved:
         SKIPPED.append(f"unresolved citation key [@{u}]")
     SKIPPED.extend(AMBIGUOUS)
-    # ВСТУП counts the list it introduces. The draft's «66» was the draft's own list; the number
-    # is read from the list as rebuilt above, so the two cannot disagree again.
-    n_refs = sum(1 for b in blocks[head + 1:find(blocks, "ДОДАТКИ", head + 1)]
-                 if b["kind"] == "p" and re.match(r"^\d+\.\s", b["text"]))
-    run_sub(blocks, "Структура та обсяг роботи.", "із 66 найменувань",
-            f"із {n_refs} {plural(n_refs, 'найменування', 'найменувань', 'найменувань')}",
-            f"ВСТУП: the reference count is the list's own ({n_refs})")
-
     collect_listings(blocks)
     listing_solver_parameters(blocks)
     fence_json_example(blocks)
@@ -1482,6 +1612,13 @@ def build() -> tuple[list[dict], dict]:
     reference_figures(blocks)
     reorder_appendices(blocks)
     split_legends(blocks)
+    count_items(blocks)
+    structure_paragraph(blocks)
+    referat(blocks)
+    title_page(blocks)
+    resolved2, unresolved2 = resolve_cite_keys(blocks, find(blocks, "СПИСОК ВИКОРИСТАНИХ ДЖЕРЕЛ"))
+    for u in unresolved2:
+        SKIPPED.append(f"unresolved citation key [@{u}]")
 
     # --- global sweeps -------------------------------------------------------------------
     # Runs LAST, after every anchored edit: two ROLLUP_EDITS markers and the висновки п.5 locator

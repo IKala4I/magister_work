@@ -20,6 +20,17 @@
   in the built .docx with nine negative controls. Пункт and appendix headings reach the contents
   page through `TC` fields (tested in LibreOffice 26.8.0; **not tested in Word** — none on the
   machine).
+- **The order of parts and the title page are the guideline's.** Title page per its Додаток В
+  (no reviewer; names and the form's data are placeholders filled from
+  `MagisterDocs/private/titulka.json`, which now also holds the department and the speciality);
+  картка and завдання are private parts (`kartka.json`, `zavdannia.json`) the pipeline lays out in
+  their places; the contents page is page 3 and the first numbered one. **The реферат is a
+  separate file** (`build/referat.docx`), with the counts, the object and the aim — 3 pages in
+  Ukrainian, 2 in English, nothing removed. ВСТУП's «Структура та обсяг» counts sources,
+  appendices, figures, tables and formulas from the text and describes each chapter; **the page
+  count is a placeholder in `full.md`, read back from the rendered PDF** (`layout.py`, pdfplumber
+  0.11.10) and filled on a second pass — 161 pages. `verify-guideline.py` checks the stated counts
+  (14 negative controls); `verify.py` check 9 checks the page numbering (10 controls).
 
 ## Post-P12 — ВСТУП drops the optional «Апробація» and «Публікації» (2026-09-30, post-p12/vstup-drop-optional-items)
 

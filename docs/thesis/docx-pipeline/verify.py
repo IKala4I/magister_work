@@ -156,7 +156,7 @@ def curl(raw_text):
                    for i, part in enumerate(PROTECTED.split(raw_text)))
 
 
-NAME_FIELDS = ('здобувач', 'здобувач_англійською', 'керівник_вчене_звання_і_ПІБ', 'рецензент')
+NAME_FIELDS = tuple(k for k, _, is_name in build.PRIVATE_FIELDS if is_name)
 MIN_PT = 8.0                    # найдрібніший текст рисунка на папері (власник, 2026-09-29)
 ALLOWED = {('.', ','): 'кома', ('-', '−'): 'мінус', ("'", '’'): 'апостроф'}
 PURE_NUMBER = re.compile(r'[+\-−]?(\d+(?:\.\d+)?)(?:\s*±\s*\d+(?:\.\d+)?)?')
@@ -458,10 +458,32 @@ def check_layout(doc, lines):
             bad.append(f'перелік умовних позначень: рядків у двох колонках {rows}, у джерелі {want}')
 
     # номер сторінки: поле PAGE у верхньому колонтитулі праворуч
-    hp = doc.sections[0].header.paragraphs[0]
+    # номер сторінки: картка, титульний лист і завдання — без номера; зміст — сторінка 3,
+    # номер — поле PAGE у верхньому колонтитулі праворуч (методичка, с. 10 і 18)
+    if len(doc.sections) < 2:
+        bad.append('немає окремого розділу документа для ненумерованих перших сторінок'); return bad
+    if any(_has_field(p, 'PAGE') for p in doc.sections[0].header.paragraphs):
+        bad.append('титульний лист і завдання мають номер сторінки')
+    hp = doc.sections[1].header.paragraphs[0]
     if not _has_field(hp, 'PAGE') or _align(hp) != AL.RIGHT:
         bad.append('номер сторінки: немає поля PAGE вгорі праворуч')
+    start = doc.sections[1]._sectPr.find(WNS + 'pgNumType')
+    if start is None or start.get(WNS + 'start') != '3':
+        bad.append('зміст не є сторінкою 3: нумерований розділ не починається з трьох')
+    first_numbered = next((ws(x.text) for x in _section_start(doc, 1) if _is_p(x) and x.text.strip()), '')
+    if first_numbered != 'ЗМІСТ':
+        bad.append(f'перша нумерована сторінка починається з «{first_numbered[:30]}», а не зі змісту')
     return bad
+
+
+def _section_start(doc, k):
+    """Елементи тіла від початку k-го розділу документа (розділ закриває sectPr в останньому
+    його абзаці)."""
+    els, seen = [], 0
+    for x in _body(doc):
+        if seen >= k: els.append(x)
+        if _is_p(x) and x._p.find(f'{WNS}pPr/{WNS}sectPr') is not None: seen += 1
+    return els
 
 
 def layout_mutations():
@@ -477,7 +499,7 @@ def layout_mutations():
         h = first(doc, lambda x: _is_p(x) and x.style.name == 'Heading 1' and x.text.startswith('РОЗДІЛ'))
         for br in list(h._p.iter(WNS + 'br')): br.getparent().replace(br, parse_xml_t(' '))
     def unspace(doc):
-        h = first(doc, lambda x: _is_p(x) and _spaced(x))
+        h = first(doc, lambda x: _is_p(x) and _spaced(x) and _has_field(x, 'TC'))   # пункт, а не «ЗАВДАННЯ» форми
         for sp in list(h._p.iter(WNS + 'spacing')):
             if sp.getparent().tag == WNS + 'rPr': drop(sp)
     def no_blank_above(doc):
@@ -498,6 +520,8 @@ def layout_mutations():
         ('формула без вільного рядка над нею', no_blank_above, 'над нею немає вільного рядка'),
         ('«Додаток А» ліворуч', appendix_left, 'не праворуч'),
         ('перелік без одного рядка', legend_row, 'перелік умовних позначень'),
+        ('зміст не на третій сторінці',
+         lambda d: d.sections[1]._sectPr.find(WNS + 'pgNumType').set(WNS + 'start', '2'), 'не є сторінкою 3'),
     ]
 
 
@@ -515,6 +539,8 @@ def main():
     ap.add_argument('--brief'); ap.add_argument('--registry', default=os.path.join(HERE, 'registry.json'))
     ap.add_argument('--figures', help='тека рендерів із manifest.json: перевірка 7')
     ap.add_argument('--private', help='titulka.json: перевірка 8 (приватні імена лише в .docx)')
+    ap.add_argument('--referat', help='реферат окремим .docx: його рядки шукаються в ньому, а не в роботі')
+    ap.add_argument('--pages', type=int, help='обсяг, з яким складено документ (build.py --pages)')
     a = ap.parse_args()
 
     if a.self_test:
@@ -532,10 +558,15 @@ def main():
         return 1 if failed else 0
 
     build.load(a.src, a.brief)
-    private = dict(build.load_private(a.private))       # дані, як реєстр; перевіряє їх перевірка 8
+    private = dict(build.load_private(a.private, a.pages))   # дані, як реєстр; перевіряє їх перевірка 8
     if a.registry: build.bind_registry(a.registry)
     LINES = build.LINES
     body, nmath = docx_text(a.docx)
+    # реферат не вшивається в роботу (методичка, с. 11): його рядки мають бути в окремому файлі
+    # і НЕ мають бути в роботі
+    _, ua, en, _toc = build._front_lines()
+    referat_lines = set(range(ua[0], _toc))
+    referat_body = docx_text(a.referat)[0] if a.referat else None
     code, sections = code_lines(LINES), heading_numbers(LINES)
     filled = set(json.load(open(os.path.join(a.figures, 'manifest.json'), encoding='utf-8'))) if a.figures else set()
     failed = False
@@ -561,6 +592,14 @@ def main():
             if len(t) >= 3 and t not in body: missing.append((n, t[:90]))
             continue
         t = strip_md(s)
+        if n in referat_lines:
+            if referat_body is None: continue
+            if len(t) >= 40 and (t in body or strip_md(curl(s)) in body):
+                missing.append((n, 'РЯДОК РЕФЕРАТУ ВШИТО В РОБОТУ: ' + t[:60]))
+            if len(t) < 3 or t in referat_body: continue
+            if strip_md(curl(s)) in referat_body: apostrophes += 1
+            else: missing.append((n, 'немає в рефераті: ' + t[:70]))
+            continue
         if len(t) < 3 or t in body: continue
         if strip_md(curl(s)) in body: apostrophes += 1
         else: missing.append((n, t[:90]))
@@ -602,7 +641,8 @@ def main():
         src_txt = fold(ws(strip_md('\n'.join(LINES))))
         kv = build.KEEP_VERBATIM
         absent_src = [k for k in kv if fold(strip_md(k)) not in src_txt]
-        not_in_docx = [k for k in kv if k not in absent_src and fold(strip_md(k)) not in fold(body)]
+        printed = fold(body + ' ' + (referat_body or ''))     # робота і реферат: рядок має бути в одному з них
+        not_in_docx = [k for k in kv if k not in absent_src and fold(strip_md(k)) not in printed]
         exempt = [k for k in not_in_docx if k in DOCX_EXEMPT]
         bad = [k for k in not_in_docx if k not in DOCX_EXEMPT]
         print(f'keep-verbatim: {len(kv)} рядків; у джерелі немає {len(absent_src)}; '
@@ -623,7 +663,7 @@ def main():
     if a.private:
         public = open(a.src, encoding='utf-8').read()           # сирий full.md, як лежить у репозиторії
         raw_values = [str(v).strip() for k, v in json.load(open(a.private, encoding='utf-8')).items()
-                      if not k.startswith('_') and str(v or '').strip()]
+                      if k in NAME_FIELDS and str(v or '').strip()]   # кафедра й спеціальність — не таємниця
         norm = lambda t: re.sub(r'\s+', ' ', t).casefold()
         priv_bad = [f'ПРИВАТНЕ ЗНАЧЕННЯ У full.md: «{v}»' for v in raw_values if norm(v) in norm(public)]
         # прізвище — перше слово з великої літери, довше за ініціал, — цілим словом без огляду на
@@ -636,16 +676,21 @@ def main():
         for tok in sorted({t for t in surnames if t}):
             if re.search(rf'(?<![\w-]){re.escape(tok)}(?![\w-])', public, re.IGNORECASE):
                 priv_bad.append(f'ПРІЗВИЩЕ У full.md: «{tok}»')
+        both = body + ' ' + (referat_body or '')            # титулка — у роботі, реферат — окремим файлом
         for _, ph, _ in build.PRIVATE_FIELDS:
             if ph not in public:
-                if ph in private: priv_bad.append(f'значення для «{ph}» задано, а плейсхолдера в full.md немає')
+                priv_bad.append(f'плейсхолдера «{ph}» у full.md немає')
                 continue
             if ph in private:
-                if ph in body: priv_bad.append(f'плейсхолдер «{ph}» лишився в .docx, хоча значення задано')
-                if private[ph] not in body: priv_bad.append(f'значення для «{ph}» немає в .docx')
-            elif ph not in body:
+                if ph in both: priv_bad.append(f'плейсхолдер «{ph}» лишився в .docx, хоча значення задано')
+                if private[ph] not in both: priv_bad.append(f'значення для «{ph}» немає в .docx')
+            elif ph not in both:
                 priv_bad.append(f'незаповнений плейсхолдер «{ph}» зник із .docx')
-        print(f'приватні поля: заповнено {len(private)} з {len(build.PRIVATE_FIELDS)}; порушень: {len(priv_bad)}')
+        for ph in build.PAGE_PLACEHOLDERS:
+            if a.pages and (ph in both or str(a.pages) not in both):
+                priv_bad.append(f'обсяг {a.pages} с. не підставлено замість «{ph}»')
+        filled = sum(1 for _, ph, _ in build.PRIVATE_FIELDS if ph in private)
+        print(f'дані титулки: заповнено {filled} з {len(build.PRIVATE_FIELDS)}; порушень: {len(priv_bad)}')
         for t in priv_bad: print(f'   {t}')
         failed |= bool(priv_bad)
 

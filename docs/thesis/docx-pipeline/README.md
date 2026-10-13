@@ -15,23 +15,31 @@
 ```
 
 Третій аргумент — тека **MagisterDocs поза репозиторієм** (власник, 2026-09-29): звідти
-приватні дані (`private/titulka.json` — імена для титулки й анотацій; `full.md` лишається з
-плейсхолдерами), знімки рисунка 4.1 (`figures/4.1/`), туди — результат (`build/`: .docx, PDF,
-звіт, аудит, рендери). Там само `sources/draft.docx` (вхід `assemble.py --draft`) і `golden/`
-(еталон регресій). Будь-що з цього в репозиторій не потрапляє; `verify.py` падає, якщо приватне
-ім'я опинилося в `full.md`.
+приватні дані (`private/titulka.json` — дані титульного листа й реферату; `full.md` лишається з
+плейсхолдерами), приватні частини (`private/kartka.json`, `private/zavdannia.json`), знімки
+рисунка 4.1 (`figures/4.1/`), туди — результат (`build/`: `hourwell.docx` і `.pdf`, `referat.docx`
+і `.pdf`, звіт, аудит, рендери). Там само `sources/draft.docx` (вхід `assemble.py --draft`),
+методичка кафедри й `golden/` (еталон регресій). Будь-що з цього в репозиторій не потрапляє;
+`verify.py` падає, якщо ім'я з `titulka.json` опинилося в `full.md`.
+
+**Складання йде в кілька проходів.** Обсяг роботи в сторінках (вступ і реферат) знає лише верстка:
+`run_all.sh` складає документ, рендерить PDF, читає з нього номер останньої сторінки
+(`layout.py pages`) і складає вдруге з цим числом (`build.py --pages N`), доки число не перестане
+змінюватися. У `full.md` стоїть плейсхолдер `[кількість сторінок]` — число руками не набирається.
 
 або окремо (з цієї теки, `DOCS=/Users/vladyslav/Workspace/MagisterDocs`; `uv run` бере Python і пакети
 з власного проєкту теки):
 
 ```bash
 uv run python render_figures.py --src ../text/full.md --out $DOCS/build/figures --docs $DOCS     # рисунки
-uv run python build.py  --src ../text/full.md --brief ../formatter-brief.md --out $DOCS/build/hourwell.docx --report $DOCS/build/report.json --figures $DOCS/build/figures --private $DOCS/private/titulka.json
-uv run python verify.py --src ../text/full.md --brief ../formatter-brief.md --docx $DOCS/build/hourwell.docx --figures $DOCS/build/figures --private $DOCS/private/titulka.json
+uv run python build.py  --src ../text/full.md --brief ../formatter-brief.md --out $DOCS/build/hourwell.docx --report $DOCS/build/report.json --figures $DOCS/build/figures --private $DOCS/private/titulka.json --parts $DOCS/private --referat $DOCS/build/referat.docx --pages 161
+uv run python make_pdf.py $DOCS/build/hourwell.docx $DOCS/build/hourwell.pdf      # PDF, зі змістом
+uv run python layout.py pages $DOCS/build/hourwell.pdf                            # обсяг для --pages
+uv run python verify.py --src ../text/full.md --brief ../formatter-brief.md --docx $DOCS/build/hourwell.docx --referat $DOCS/build/referat.docx --figures $DOCS/build/figures --private $DOCS/private/titulka.json --pages 161
 uv run python check_legend_symbols.py ../text/full.md
 uv run python audit_markdown.py ../text/full.md --out $DOCS/build/audit.md
 uv run python regress.py $DOCS/golden/hourwell.docx $DOCS/build/hourwell.docx   # після зміни конвеєра
-uv run python make_pdf.py $DOCS/build/hourwell.docx $DOCS/build/hourwell.pdf      # PDF для читання, зі змістом
+uv run python make_pdf.py $DOCS/build/referat.docx $DOCS/build/referat.pdf --no-index && uv run python layout.py referat $DOCS/build/referat.pdf
 ```
 
 `cmp` чи хеш усього .docx для порівняння не годяться: у zip записано час складання, тож
@@ -71,6 +79,7 @@ git-ignored.
 | `render_figures.py`, `figures.json`            | рендер рисунків із `../text/diagrams/` (номер рисунка → вихідний файл чи тека знімків), вимога ≥ 8 пт |
 | `render/`                                      | закріплений рендерер Mermaid (npm-проєкт) і його конфігурація `mermaid.json`                          |
 | `make_pdf.py`                                  | PDF закріпленим LibreOffice, зміст оновлюється макросом                                               |
+| `layout.py`                                    | читає готовий PDF: обсяг роботи (номер останньої сторінки), сторінок у рефераті кожною мовою (≤ 3)    |
 
 ## Рішення, закладені в код, і чому
 
@@ -98,9 +107,35 @@ git-ignored.
   різним вирівнюванням не можуть бути одним заголовком, тож у зміст додаток іде записом `TC`.
 - **Перелік умовних позначень** (с. 12): рядки «X – Y» з `full.md` — таблиця без рамок у дві
   колонки, окрема для скорочень і для термінів.
+- **Порядок частин** (с. 10): картка (у файлі — перша сторінка, у відлік не входить), титульний
+  лист — сторінка 1, завдання — сторінка 2, обидва без номера; зміст — сторінка 3, з неї номери.
+  Перші сторінки — окремий розділ документа без колонтитула; нумерований розділ починається з 3.
+- **Титульний лист** — форма кафедри (Додаток В методички). Слова форми й дані стоять у `full.md`,
+  по одному надрукованому фрагменту на рядок (`assemble.py`, `TITLE_PAGE`); `build_title` їх лише
+  розкладає і додає службові позначки — місце підпису, «(підпис)», «(ПІБ)», дату.
+- **Реферат** — окремим файлом `referat.docx` (с. 11: вкладається в конверт, а не вшивається):
+  український і англійський, кожен з нової сторінки. У `full.md` він стоїть між титулкою і
+  змістом, як у чернетці. `verify.py` шукає його рядки в рефераті й валить звірку, якщо рядок
+  реферату опинився в роботі; `layout.py referat` перевіряє межу в три сторінки.
 - **Записи `TC` мають рівень 2** і для додатків, і для пунктів: Word ставить запис на вказаний
   рівень, LibreOffice 26.8.0 — на один нижче («\l 3» у зміст PDF не потрапляє зовсім). Стилі
   «toc 2» і «toc 3» мають однаковий відступ, тому різниці не видно.
+
+**Приватні частини** — картка й завдання (методичка, Додатки Б і Д): документи з підписами й
+даними наказу. Їхній текст разом зі словами форми лежить поза репозиторієм
+(`MagisterDocs/private/kartka.json`, `zavdannia.json`); тут — лише те, як такий файл розкласти.
+Запис списку `рядки` — один із: `{"текст": …, "вирівнювання": "ліворуч|центр|праворуч|ширина",
+"жирний", "підкреслений", "кегль", "перед_пт", "після_пт", "розрядка"}`; `{"колонки": [{…ті самі
+ключі…, "ширина_мм", "лінія"}], "після_пт"}` — рядок із колонок без рамок, `лінія` дає місце для
+підпису; `{"рамка": [записи]}` — рамка довкола кількох рядків; `{"порожніх_рядків": N}`. `{ключ}`
+у тексті — значення з `titulka.json`; порожнє друкується прочерком. Невідомий ключ валить
+складання. Немає файла — немає сторінки: без `zavdannia.json` на другій сторінці стоїть рамка
+«місце для завдання», без `kartka.json` картки у файлі просто немає.
+
+**Дані титулки** (`titulka.json`): імена (здобувач у трьох формах, керівник, гарант, декан,
+завідувач кафедри), ступені й звання, а також кафедра й спеціальність (власник, 2026-10-13).
+Імена не мають з'явитися в `full.md` за жодних умов; кафедра й спеціальність — не таємниця, вони
+лише зберігаються разом із рештою даних форми, і перевірка витоку їх не стосується.
 
 **Формули** — справжні рівняння OMML, не текст і не зображення. Кожна формула — невидима
 таблиця: `[мітка (C1)…(C5)] | формула | номер`. Номер у власній комірці не може «з'їхати»

@@ -388,7 +388,18 @@ explanation on its own line (2.1, 2.11, 2.13, 2.19) through a table of seams (`L
 other word stays the draft's; for (2.1) the clause «за жорстких обмежень (…)» moves in front of the
 formula so that «де» stands first under it.
 
-**Checked by** `verify-guideline.py` (CI): appendix letters and order, a reference to every
+**Front matter and counts.** `title_page` replaces the draft's title block with the department's
+form (`TITLE_PAGE`, one printed piece per line; names and the form's data are placeholders).
+`referat` renames «АНОТАЦІЯ» / «ANNOTATION» to «РЕФЕРАТ» / «ABSTRACT», writes the speciality with
+its code, and inserts the counts and the object + aim — the latter two are read from the
+introduction's own paragraphs, so they cannot drift. `structure_paragraph` rewrites «Структура та
+обсяг роботи». `count_items` counts sources, tables, figures, formulas, appendices and chapters
+from the blocks; nothing is typed. The page count is the placeholder `[кількість сторінок]`
+(`[number of pages]` in the abstract): only the layout knows it, so the .docx pipeline fills it from
+the rendered PDF. The реферат stays in `full.md` between the title page and ЗМІСТ; the pipeline
+builds it as a separate file.
+
+**Checked by** `verify-guideline.py` (CI): the counts stated in ВСТУП and the реферат, appendix letters and order, a reference to every
 appendix, table and figure, a caption on every table, a citation of every source — each rule with a
 negative control (`--self-test`). The layout itself is measured in the built .docx by
 `docx-pipeline/verify.py` check 9.

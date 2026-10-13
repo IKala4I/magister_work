@@ -15,6 +15,9 @@ are checked on `text/full.md`, the product, on every change:
   figures      numbered within the chapter, every figure referred to, and never placed before
                its first reference                                                    (p. 18–19)
   sources      every entry of the list is cited                                       (p. 13)
+  counts       what ВСТУП («Структура та обсяг роботи») and the реферат say the thesis contains –
+               sources, appendices, figures, tables, formulas, chapters – is what it contains;
+               the page count stays a placeholder here, filled from the rendered PDF  (p. 11, 15)
 
 A check that has never failed has proved nothing, so `--self-test` breaks the text once per rule
 and requires the rule to notice; CI runs both.
@@ -139,6 +142,41 @@ def check(lines: list[str]) -> list[str]:
     for k in entries:
         if k not in cited:
             bad.append(f"sources: entry [{k}] is never cited")
+    # ---- counts stated in ВСТУП and in the реферат (both languages)
+    formulas = sum(1 for n, s in prose if re.search(r"\s{2,}\(\d+\.\d+\)\s*$", s))
+    n_tables = sum(1 for n, s in body if TABLE_CAP.match(s))
+    n_figs = sum(1 for n, s in body if FIG_CAP.match(s))
+    chapters = sum(1 for s in heads if re.match(r"^# РОЗДІЛ \d", s))
+    words = {"шести": 6, "п’яти": 5, "чотирьох": 4, "семи": 7}
+    stated = [
+        ("ВСТУП", r"^Структура та обсяг роботи\.", [
+            (r"із (\d+) найменуван", len(entries), "sources"), (r"і (\d+) додатк", len(apps), "appendices"),
+            (r"рисунків – (\d+)", n_figs, "figures"), (r"таблиць – (\d+)", n_tables, "tables"),
+            (r"формул – (\d+)", formulas, "formulas"), (r"сторінок – (\[кількість сторінок\])", None, "pages")]),
+        ("реферат", r"^Обсяг роботи: ", [
+            (r"рисунків – (\d+)", n_figs, "figures"), (r"таблиць – (\d+)", n_tables, "tables"),
+            (r"додатків – (\d+)", len(apps), "appendices"), (r"джерел – (\d+)", len(entries), "sources"),
+            (r"сторінок – (\[кількість сторінок\])", None, "pages")]),
+        ("abstract", r"^The thesis comprises ", [
+            (r"(\d+) figures", n_figs, "figures"), (r"(\d+) tables", n_tables, "tables"),
+            (r"(\d+) appendices", len(apps), "appendices"), (r"(\d+) references", len(entries), "sources"),
+            (r"(\[number of pages\]) pages", None, "pages")]),
+    ]
+    for where, start, items in stated:
+        line = next((s for n, s in prose if re.match(start, s)), None)
+        if line is None:
+            bad.append(f"counts: {where} has no sentence starting «{start.strip('^')}»")
+            continue
+        for rx, want, what in items:
+            m = re.search(rx, line)
+            if not m:
+                bad.append(f"counts: {where} does not state the number of {what}")
+            elif want is not None and int(m.group(1)) != want:
+                bad.append(f"counts: {where} says {m.group(1)} {what}, the thesis has {want}")
+        if where == "ВСТУП":
+            m = re.search(r"(\w+) розділів", line)
+            if not m or words.get(m.group(1)) != chapters:
+                bad.append(f"counts: ВСТУП says «{m.group(1) if m else '?'} розділів», the thesis has {chapters}")
     return bad
 
 
@@ -168,6 +206,12 @@ def mutations(text: str) -> list[tuple[str, str, str]]:
          "3.3 (L"),
         ("a figure nobody refers to",
          text.replace("(рисунок 3.1)", "", 1), "3.1 (L"),
+        ("a table count in the реферат that the thesis does not have",
+         re.sub(r"(Обсяг роботи: [^\n]*таблиць – )\d+", r"\g<1>99", text, count=1), "реферат says 99 tables"),
+        ("a source count in ВСТУП that the list does not have",
+         re.sub(r"із \d+ найменуван", "із 66 найменуван", text, count=1), "ВСТУП says 66 sources"),
+        ("a page count typed by hand",
+         text.replace("сторінок – [кількість сторінок]", "сторінок – 162", 1), "does not state the number of pages"),
         ("a source nobody cites",
          re.sub(r"\[(\d+)\] на вимогу", "на вимогу", text, count=1), "is never cited"),
     ]

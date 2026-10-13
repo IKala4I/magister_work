@@ -88,13 +88,20 @@ checked against the title of the appendix it now points to.
   Word's style separator renders broken in LibreOffice for headings longer than a line. **Word is
   not installed here — nothing of this was seen in Word.**
 
+- Front matter per the guideline: `assemble.py` (`title_page`, `referat`, `structure_paragraph`,
+  `count_items`); `build.py` (`build_title`, `emit_private_part` for
+  `MagisterDocs/private/kartka.json` + `zavdannia.json`, an unnumbered front section, the numbered
+  section starting at 3, `build_referat` → `build/referat.docx`); `layout.py` (pdfplumber) reads
+  the page count back and `run_all.sh` rebuilds with `--pages` until it stops changing — 161 pages;
+  реферат 3 + 2 pages. `titulka.json` has new keys (README in MagisterDocs); the student's and the
+  supervisor's names are empty — the owner fills them. **Gotchas:** python-docx's `add_section`
+  copies the previous `sectPr`, including `pgNumType` — remove it or every later section restarts
+  numbering (check 9 caught a doubled `pgNumType`); keep-verbatim strings of the реферат are
+  looked for in `referat.docx` too.
+
 **Left, in this order** (tick here as each lands):
 
-- [ ] ВСТУП «Структура» (pages, sources, appendices, chapters described; the ДСТУ 3008 sentence),
-      реферат (counts, об'єкт, мета, ≤ 3 pages, separate file);
-- [ ] `build.py` / `verify.py`: title page per Додаток В from `titulka.json`, картка and завдання
-      from `MagisterDocs/private/`, the order of parts (зміст = page 3), page counts filled from
-      the render, «Продовження таблиці N» from the rendered pagination;
+- [ ] «Продовження таблиці N» from the rendered pagination (`layout.py`, second-pass split);
 - [ ] golden refreshed, `regress.py` shown, README / ASSEMBLY / explainer / CHANGELOG / versions;
 - [ ] MagisterDocs: `titulka.json` keys, апробація wording, theses .docx, supervisor list;
 - [ ] rebuild, repeat the compliance table, PR.

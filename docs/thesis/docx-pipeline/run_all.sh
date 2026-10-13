@@ -33,10 +33,25 @@ mkdir -p "$OUT"
 
 echo "== середовище: $("${PY[@]}" -c 'import sys, docx, lxml; print(f"Python {sys.version.split()[0]} (uv), python-docx {docx.__version__}, lxml {lxml.__version__}")'), $(pandoc --version | head -1)"
 echo; echo "== рисунки";        "${PY[@]}" "$HERE/render_figures.py" --src "$SRC" --out "$OUT/figures" --docs "$DOCS"
-echo; echo "== складання";      "${PY[@]}" "$HERE/build.py" --src "$SRC" --brief "$BRIEF" --out "$OUT/hourwell.docx" --report "$OUT/report.json" --figures "$OUT/figures" ${PRIVATE[@]+"${PRIVATE[@]}"}
-echo; echo "== звірка";         "${PY[@]}" "$HERE/verify.py" --src "$SRC" --brief "$BRIEF" --docx "$OUT/hourwell.docx" --figures "$OUT/figures" ${PRIVATE[@]+"${PRIVATE[@]}"}
+# Складання йде в кілька проходів, бо два числа тексту знає лише верстка: обсяг роботи в сторінках
+# (вступ і реферат) береться з готового PDF (layout.py) і підставляється наступним проходом
+# (build.py --pages), доки не перестане змінюватися. Число в тексті не набирається руками.
+BUILD=("${PY[@]}" "$HERE/build.py" --src "$SRC" --brief "$BRIEF" --out "$OUT/hourwell.docx" --report "$OUT/report.json"
+       --figures "$OUT/figures" --parts "$DOCS/private" --referat "$OUT/referat.docx" ${PRIVATE[@]+"${PRIVATE[@]}"})
+PAGES=""
+for PASS in 1 2 3 4; do
+  echo; echo "== складання, прохід $PASS${PAGES:+ (обсяг $PAGES с.)}"
+  "${BUILD[@]}" ${PAGES:+--pages "$PAGES"}
+  echo; echo "== PDF, прохід $PASS"; "${PY[@]}" "$HERE/make_pdf.py" "$OUT/hourwell.docx" "$OUT/hourwell.pdf"
+  NEW=$("${PY[@]}" "$HERE/layout.py" pages "$OUT/hourwell.pdf")
+  [ "$NEW" = "$PAGES" ] && break
+  PAGES=$NEW
+  [ "$PASS" = 4 ] && { echo "обсяг не стабілізувався за чотири проходи (останній — $NEW с.)"; exit 1; }
+done
+echo; echo "== реферат";        "${PY[@]}" "$HERE/make_pdf.py" "$OUT/referat.docx" "$OUT/referat.pdf" --no-index
+                                "${PY[@]}" "$HERE/layout.py" referat "$OUT/referat.pdf"
+echo; echo "== звірка";         "${PY[@]}" "$HERE/verify.py" --src "$SRC" --brief "$BRIEF" --docx "$OUT/hourwell.docx" --referat "$OUT/referat.docx" --figures "$OUT/figures" --pages "$PAGES" ${PRIVATE[@]+"${PRIVATE[@]}"}
 echo; echo "== самоперевірка оформлення"; "${PY[@]}" "$HERE/verify.py" --self-test --src "$SRC" --docx "$OUT/hourwell.docx"
 echo; echo "== легенди";        "${PY[@]}" "$HERE/check_legend_symbols.py" "$SRC"
 echo; echo "== аудит розмітки"; "${PY[@]}" "$HERE/audit_markdown.py" "$SRC" --out "$OUT/audit.md"
 
-echo; echo "== PDF";            "${PY[@]}" "$HERE/make_pdf.py" "$OUT/hourwell.docx" "$OUT/hourwell.pdf"
