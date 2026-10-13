@@ -1479,7 +1479,7 @@ until the nightly authority), and it omits the River step the text states elsewh
 note also points the reader at `specs/05_sequence_diagrams_RN.md` — a pre-build document whose
 Mermaid is English and, in these three places, no longer describes the system. Replace both
 paragraphs. The corrected Mermaid lives in the repository at
-`docs/thesis/text/diagrams/a1-uc04.mmd` and parses under mermaid 10.
+`docs/thesis/text/diagrams/e1-uc04.mmd` and parses under mermaid 10.
 
 Replace «Сценарій охоплює: пропуск блоку без фокус-сесії…» with:
 
@@ -1503,7 +1503,7 @@ Replace the figure note «**[МІСЦЕ ДЛЯ РИСУНКА А.1]** _Вста�
 > «**[МІСЦЕ ДЛЯ РИСУНКА А.1]** _Вставити: діаграма послідовності з учасниками: Користувач,
 > застосунок RN (Expo), Expo SQLite та outbox, Edge Fn `sync-resolve`, Supabase Postgres, Edge Fn
 > `attribute-rewards`, FastAPI RecSys, стан моделей (`bandit_state`, `beta_cells`, `blend_state`).
-> Вихідний код діаграми (`a1-uc04.mmd`) зберігається в репозиторії системи; діаграму слід
+> Вихідний код діаграми (`e1-uc04.mmd`) зберігається в репозиторії системи; діаграму слід
 > відрендерити та вставити зображенням._»
 
 ### 10.9 Додаток Б — **П**, item 64
@@ -1535,7 +1535,7 @@ Replace the figure note «**[МІСЦЕ ДЛЯ РИСУНКА Б.1]** _Вста�
 
 > «**[МІСЦЕ ДЛЯ РИСУНКА Б.1]** _Вставити: діаграма послідовності з учасниками: Користувач,
 > застосунок RN (Expo), Expo SQLite та outbox, Google Calendar, Edge Fn `gcal-webhook`, Supabase
-> Postgres, Edge Fn `sync-resolve`. Вихідний код діаграми (`b1-sync.mmd`) зберігається в
+> Postgres, Edge Fn `sync-resolve`. Вихідний код діаграми (`zh1-sync.mmd`) зберігається в
 > репозиторії системи; діаграму слід відрендерити та вставити зображенням._»
 
 ## 11. Amendments to the worklist itself

@@ -312,6 +312,10 @@ CITE_SITES: list[tuple[str, str, str, str]] = [
      "За Настановами EDPB 05/2021 (v2.0) [@edpb]", "§3.7 transfer analysis (EDPB)"),
     ("за Законом України № 2297-VI, ст. 29", "за Законом України № 2297-VI, ст. 29",
      "за Законом України № 2297-VI [@zakon], ст. 29", "§3.7 Art. 29 of the Ukrainian law"),
+    # The list carries Maestro, and since the §4.6 rewrite no sentence cited it: an entry nobody
+    # cites is not a «використане джерело» (department guideline 2026, p. 13).
+    ("Наскрізні перевірки виконуються десятьма потоками Maestro", "десятьма потоками Maestro на вимогу",
+     "десятьма потоками Maestro [@maestro] на вимогу", "§4.6 Maestro citation"),
 ]
 
 # Sentences the rollup approves inline rather than as a blockquote payload.
@@ -327,7 +331,7 @@ LITERAL_EDITS: list[tuple] = [
      "§2.3 slice frequency"),
     ("append", "Принципи взаємодії: «фізика замість оздоблення» реалізовано",
      "Досяжність одним пальцем: основні дії розміщено в нижніх 60 % екрана. Кольорову систему "
-     "та типографіку винесено в додаток В.",
+     "та типографіку винесено в додаток И (таблиця И.1).",
      "§3.8 carried forward: reachability + the Додаток В pointer"),
     ("append", "Нічний конвеєр виконується системним таймером",
      "Щоквартальний крок емпіричного Байєса (2.14) переоцінює апріорні таблиці та публікує їх "
@@ -440,6 +444,16 @@ _FOLD.update({ord(c): "-" for c in "\u2013\u2014\u2212"})
 
 def fold(t: str) -> str:
     return t.translate(_FOLD)
+
+
+def plural(n: int, one: str, few: str, many: str) -> str:
+    """Ukrainian agreement after «із N …» / «N …»: 1, 21, 71 take `one`; 2–4, 22–24 take `few`;
+    the rest, and 11–14, take `many`."""
+    if n % 10 == 1 and n % 100 != 11:
+        return one
+    if n % 10 in (2, 3, 4) and n % 100 not in (12, 13, 14):
+        return few
+    return many
 
 
 def para_replace(blocks, locator, new, label):
@@ -698,6 +712,359 @@ def listing_solver_parameters(blocks: list[dict]) -> None:
     SKIPPED.append("лістинг 4.2 (U16): the Solve line was not found")
 
 
+# ----------------------------------------------------------------- appendices
+# Department guideline 2026, p. 22: appendices follow the order in which the text refers to
+# them and are lettered without Г, Ґ, Є, З, І, Ї, Й, О, Ч, Ь. The draft lettered them А–Ж in the
+# order they were written and referred to three of them. So: every appendix gets a sentence
+# that refers to it where the text first needs it, and the appendices are put in that order.
+#
+# The draft and the rollup keep the draft's letters – every anchor matches draft prose – and
+# this table is the one place the two letterings meet. `None` in the middle column means the
+# block comes from a `text/*.md` file that already carries its new letter.
+APPENDICES: list[tuple[str, str | None, str]] = [
+    ("Додаток Д. Мікроопитувальник хронотипу", "Д", "А"),
+    ("Додаток Е. Матриця простежуваності", "Е", "Б"),
+    ("Додаток В. Фрагмент SQL-схеми", None, "В"),
+    ("Додаток Ж. Приклад відповіді", "Ж", "Д"),
+    ("Додаток А. Діаграма послідовності сценарію", "А", "Е"),
+    ("Додаток Б. Діаграма послідовності", "Б", "Ж"),
+    ("Додаток В. Система кольорових токенів", "В", "И"),
+    ("Додаток К. Повна сітка", None, "К"),
+    ("Додаток Л. Зафіксовані передбачення", None, "Л"),
+]
+APPENDIX_LETTERS = "АБВДЕЖИКЛМНПРСТУФХЦШЩЮЯ"   # the alphabet without the ten excluded letters
+
+
+def reference_appendices(blocks) -> None:
+    """One referring sentence per appendix the draft never mentioned, and the new letters for the
+    three it did. Runs before the reorder, so the locators are still the draft's."""
+    para_append(blocks, "Онбординг містить скорочений опитувальник",
+                "Зміст пунктів опитувальника наведено в додатку А.",
+                "§2.5.1 refers to the rMEQ appendix")
+    para_before(blocks, "3.2. Загальна архітектура системи",
+                "Простежуваність ключових вимог до розділів роботи та механізмів їх реалізації "
+                "наведено в додатку Б (таблиця Б.1).",
+                "§3.1.3 refers to the traceability appendix")
+    para_append(blocks, "Клієнтська схема дзеркальних локальних таблиць",
+                "Фрагмент SQL-схеми ключових таблиць наведено в додатку В.",
+                "§3.4 refers to the SQL appendix")
+    para_append(blocks, "Поверхня API сервісу рекомендацій навмисно мінімальна",
+                "Приклад відповіді ендпоїнта POST /plan наведено в додатку Д.",
+                "§3.5 refers to the /plan response appendix")
+    run_sub(blocks, "Конфлікти поділяються на три класи", "наведено в додатках А і Б",
+            "наведено в додатках Е і Ж", "§3.6 the two sequence diagrams' letters")
+    # the traceability matrix points at the two sequence diagrams from inside its cells
+    cell_sub(blocks, "2.7; 4.2–4.3; дод. А", "2.7; 4.2–4.3; дод. Е", "табл. Б.1: FR-23 points at the UC-04 diagram")
+    cell_sub(blocks, "3.6; 4.2; дод. Б", "3.6; 4.2; дод. Ж", "табл. Б.1: NFR-R1 points at the sync diagram")
+
+
+def reference_figures(blocks) -> None:
+    """Guideline, p. 18–19: every figure is referred to in the text, and never stands before its
+    first reference. The draft named only figure 3.1; the other six were introduced by what they
+    show, not by number. Runs before the reorder: the appendix figures still carry the draft's
+    letters here and are relabelled with their appendix."""
+    run_sub(blocks, "Незайнятим на ринку лишається квадрант", "мобільність – пояснюваність»;",
+            "мобільність – пояснюваність» (рисунок 1.1);", "§1.2 refers to figure 1.1")
+    run_sub(blocks, "Схему даних побудовано навколо принципу подієвого журналювання", "Основні сутності:",
+            "Основні сутності (рисунок 3.2):", "§3.4 refers to figure 3.2")
+    run_sub(blocks, "Поведінку системи специфіковано десятьма сценаріями використання", "(UC-01…UC-10)",
+            "(UC-01…UC-10; рисунок 3.3)", "§3.9 refers to figure 3.3")
+    run_sub(blocks, "Мобільний клієнт реалізовано на React Native", "відповідає ключовим екранам підрозділу 3.8.",
+            "відповідає ключовим екранам підрозділу 3.8 (рисунок 4.1).", "§4.1 refers to figure 4.1")
+    para_before(blocks, "[МІСЦЕ ДЛЯ РИСУНКА А.1]", "Діаграму послідовності сценарію наведено на рисунку А.1.",
+                "the UC-04 appendix refers to its figure")
+    para_before(blocks, "[МІСЦЕ ДЛЯ РИСУНКА Б.1]", "Діаграму послідовності синхронізації наведено на рисунку Б.1.",
+                "the sync appendix refers to its figure")
+
+
+def reorder_appendices(blocks) -> None:
+    """Cut the appendices out, relabel the draft's, and put them back in the order of APPENDICES.
+    Old and new letter sets overlap, so the relabelling is done inside each appendix's own range
+    with that appendix's own pair – never as a sweep over the document."""
+    first = find(blocks, "ДОДАТКИ", find(blocks, "СПИСОК ВИКОРИСТАНИХ ДЖЕРЕЛ")) + 1
+    is_head = lambda b: (b["kind"] == "p" and b.get("style") == "Heading2"
+                         and b["text"].lstrip("*").startswith("Додаток "))
+    starts = [i for i in range(first, len(blocks)) if is_head(blocks[i])]
+    if starts[0] != first or len(starts) != len(APPENDICES):
+        raise SystemExit(f"appendices: {len(starts)} headings found, {len(APPENDICES)} expected, "
+                         f"first at block {starts[0]} (expected {first})")
+    ranges = {i: blocks[i:j] for i, j in zip(starts, starts[1:] + [len(blocks)])}
+    out, taken = [], set()
+    for (locator, old, new), want in zip(APPENDICES, APPENDIX_LETTERS):
+        hits = [i for i in starts if fold(locator) in fold(blocks[i]["text"])]
+        if len(hits) != 1 or new != want:
+            raise SystemExit(f"appendix {locator!r}: {len(hits)} headings match; letter {new} (next free is {want})")
+        part = ranges[hits[0]]
+        taken.add(hits[0])
+        if old is not None:
+            head = re.compile(rf"Додаток {old}\.")
+            item = re.compile(rf"(?<![\w.]){old}\.(\d)")
+            relabel = lambda t: item.sub(rf"{new}.\1", head.sub(f"Додаток {new}.", t))
+            for b in part:
+                if b["kind"] == "p":
+                    n = relabel(b["text"])
+                    if n != b["text"]:
+                        b["text"], b["origin"] = n, ("edited" if b["origin"] == "draft" else b["origin"])
+                elif b["kind"] == "table":
+                    b["rows"] = [[relabel(c) for c in r] for r in b["rows"]]
+        if not part[0]["text"].lstrip("*").startswith(f"Додаток {new}."):
+            raise SystemExit(f"appendix {locator!r} is not headed «Додаток {new}.» after relabelling")
+        out.extend(part)
+    assert taken == set(starts)
+    blocks[first:] = out
+    APPLIED.append(f"appendices: {len(APPENDICES)} put in the order the text refers to them, "
+                   f"lettered {APPENDIX_LETTERS[:len(APPENDICES)]}")
+
+
+# ----------------------------------------------------------------- formula legends
+# Department guideline 2026, p. 19–20: the explanation of a formula's symbols stands directly
+# under the formula, opens with «де» from the paragraph indent, and gives each symbol on a line
+# of its own. The draft ran them on in one paragraph. Each row: (locator, [(old seam, new seam)]);
+# a «\n» in a new seam is where a new paragraph starts, everything else stays the draft's words.
+LEGENDS: list[tuple[str, list[tuple[str, str]]]] = [
+    # (2.1): the condition that followed the formula moves in front of it, so that «де» can
+    # stand first under the formula
+    ("за жорстких обмежень (дедлайни, фіксовані події, робочі години), де P(викон)", [
+        ("за жорстких обмежень (дедлайни, фіксовані події, робочі години), де P(викон)", "де P(викон)"),
+        (", v(τ) – цінність задачі, а Cost(A) –", ";\nv(τ) – цінність задачі;\nCost(A) –"),
+        ("перемикання контексту. Ключова відмінність", "перемикання контексту.\nКлючова відмінність"),
+    ]),
+    ("де σ – логістична функція, γ(g) –", [
+        ("де σ – логістична функція, γ(g) –", "де σ – логістична функція;\nγ(g) –"),
+        ("до енергії, δ(g) –", "до енергії;\nδ(g) –"),
+        ("зсув складності, δ(g,p) –", "зсув складності;\nδ(g,p) –"),
+        ("покомпонентні поправки. Параметри перетворення", "покомпонентні поправки.\nПараметри перетворення"),
+    ]),
+    ("де C(u) – діагональна матриця впевненостей", [
+        ("матриця впевненостей, p(u) –", "матриця впевненостей;\np(u) –"),
+        ("бінаризованих взаємодій. Далі користувач", "бінаризованих взаємодій.\nДалі користувач"),
+    ]),
+    ("де r̂ – пряма модель винагороди", [
+        ("на парі (x, a)). DR незміщений", "на парі (x, a)).\nDR незміщений"),
+    ]),
+]
+
+
+def split_legends(blocks) -> None:
+    run_sub(blocks, "максимізуючи очікувану корисність:", "максимізуючи очікувану корисність:",
+            "максимізуючи за жорстких обмежень (дедлайни, фіксовані події, робочі години) очікувану "
+            "корисність:", "(2.1): the hard-constraints clause moves in front of the formula")
+    for locator, seams in LEGENDS:
+        try:
+            i = find_one(blocks, locator, f"legend {locator[:24]!r}")
+        except LookupError:
+            SKIPPED.append(f"legend (locator not found or ambiguous: {locator[:44]!r})")
+            continue
+        text = blocks[i]["text"]
+        for old, new in seams:
+            if fold(text).count(fold(old)) != 1:
+                SKIPPED.append(f"legend {locator[:24]!r} (seam {old[:30]!r} found {fold(text).count(fold(old))} times)")
+                break
+            at = fold(text).find(fold(old))
+            text = text[:at] + new + text[at + len(old):]
+        else:
+            parts = text.split("\n")
+            blocks[i:i + 1] = [{**blocks[i], "text": t, "origin": "edited"} for t in parts]
+            APPLIED.append(f"legend under the formula: {len(parts) - 1} symbol lines + the rest ({locator[:28]!r})")
+
+
+# ----------------------------------------------------------------- front matter and counts
+# Department guideline 2026, p. 10–12 and its Додаток В. The title page is the department's
+# form; names and the data of the form stay placeholders here and are filled at build time from
+# a file outside the repository (MagisterDocs/private/titulka.json). The реферат is not bound into
+# the thesis (it is enclosed with it), so the .docx pipeline builds it as a file of its own – it
+# stays in full.md, between the title page and ЗМІСТ, because that is where the draft has it.
+TITLE_PAGE = [                            # one printed piece per line; the pipeline lays them out
+    "НАЦІОНАЛЬНИЙ УНІВЕРСИТЕТ БІОРЕСУРСІВ І ПРИРОДОКОРИСТУВАННЯ УКРАЇНИ",
+    "Факультет інформаційних технологій",
+    "ПОГОДЖЕНО",
+    "Декан факультету інформаційних технологій",
+    "[ПІБ декана]",
+    "ДОПУСКАЄТЬСЯ ДО ЗАХИСТУ",
+    "Завідувач кафедри [назва кафедри]",
+    "[ПІБ завідувача кафедри]",
+    "МАГІСТЕРСЬКА КВАЛІФІКАЦІЙНА РОБОТА",
+    "на тему «{title}»",
+    "Спеціальність",
+    "[код і найменування спеціальності]",
+    "Освітня програма",
+    "Програмне забезпечення інформаційних систем",
+    "Орієнтація освітньої програми",
+    "освітньо-професійна",
+    "Гарант освітньої програми",
+    "[науковий ступінь і вчене звання гаранта]",
+    "[ПІБ гаранта]",
+    "Керівник магістерської кваліфікаційної роботи",
+    "[науковий ступінь і вчене звання керівника]",
+    "[ПІБ керівника]",
+    "Виконав",
+    "[ПІБ здобувача для титулки]",
+    "КИЇВ – 2026",
+]
+PAGES = "[кількість сторінок]"            # filled by the .docx pipeline from the rendered PDF
+PAGES_EN = "[number of pages]"
+COUNTS: dict[str, int] = {}
+
+
+def count_items(blocks) -> None:
+    """What ВСТУП and the реферат say the thesis contains, counted from the thesis itself."""
+    head = find(blocks, "СПИСОК ВИКОРИСТАНИХ ДЖЕРЕЛ")
+    apps = find(blocks, "ДОДАТКИ", head + 1)
+    texts = [b["text"] for b in blocks if b["kind"] == "p"]
+    COUNTS.update(
+        sources=sum(1 for b in blocks[head + 1:apps] if b["kind"] == "p" and re.match(r"^\d+\.\s", b["text"])),
+        tables=sum(1 for t in texts if re.match(rf"^Таблиця {_ITEM} [–—-] ", t)),
+        figures=sum(1 for t in texts if re.match(rf"^Рисунок {_ITEM} [–—-] ", t)),
+        formulas=sum(1 for t in texts if re.search(r"\t+\(\d+\.\d+\)\s*$", t)),
+        appendices=len(APPENDICES),
+        chapters=sum(1 for b in blocks if b["kind"] == "p" and b.get("style") == "Heading1"
+                     and re.match(r"^(?:\*\*)?РОЗДІЛ \d", b["text"])),
+    )
+    data_tables = sum(1 for b in blocks if b["kind"] == "table")
+    if COUNTS["tables"] != data_tables:
+        raise SystemExit(f"tables: {COUNTS['tables']} captions for {data_tables} tables")
+
+
+def structure_paragraph(blocks) -> None:
+    """ВСТУП, «Структура та обсяг роботи» (guideline p. 15: pages, sources, appendices, the
+    number of chapters and a short description of each). Every number is counted, not typed."""
+    c = COUNTS
+    if c["chapters"] != 6:
+        raise SystemExit(f"ВСТУП describes six chapters; the thesis has {c['chapters']}")
+    para_replace(
+        blocks, "Структура та обсяг роботи.",
+        "Структура та обсяг роботи. Кваліфікаційна робота складається зі вступу, шести розділів, "
+        f"висновків, списку використаних джерел із {c['sources']} "
+        f"{plural(c['sources'], 'найменування', 'найменувань', 'найменувань')} і {c['appendices']} "
+        f"{plural(c['appendices'], 'додатка', 'додатків', 'додатків')}. Обсяг роботи: сторінок – {PAGES}, "
+        f"рисунків – {c['figures']}, таблиць – {c['tables']}, формул – {c['formulas']}. "
+        "У першому розділі проаналізовано предметну область персонального планування часу, наявні "
+        "програмні рішення та наукові дослідження, сформульовано науковий розрив і поставлено задачу "
+        "дослідження. У другому розділі подано математичну формалізацію задачі: уніфіковану модель "
+        "«бандит – розв'язувач», метод холодного старту, методику офлайн-оцінювання політик і модель "
+        "винагород. У третьому розділі спроєктовано програмне забезпечення системи: вимоги, "
+        "архітектуру, схему даних, синхронізацію, безпеку та інтерфейс користувача. У четвертому "
+        "розділі описано програмну реалізацію мобільного клієнта, серверної частини, сервісу "
+        "рекомендацій і конвеєра навчання моделей. У п'ятому розділі викладено методику оцінювання: "
+        "протокол польового дослідження, який спроєктовано, але не виконано, і методику "
+        "симуляційного оцінювання з попередньою реєстрацією гіпотез. У шостому розділі наведено "
+        "результати симуляційного оцінювання та перевірки на реальних пристроях і обговорено межі "
+        "їх застосовності. Таблиці, рисунки та формули оформлено відповідно до методичних "
+        "рекомендацій кафедри, а в питаннях, яких вони не регламентують, – відповідно до "
+        "ДСТУ 3008:2015 [@dstuzvit]; бібліографічні описи складено за ДСТУ 8302:2015 [@dstubibl].",
+        "ВСТУП: структура та обсяг – counted, chapters described, the guideline named")
+
+
+def referat(blocks) -> None:
+    """Guideline p. 11–12: the реферат states the numbers of pages, illustrations, tables,
+    appendices and sources, and names the object and the aim. The object and the aim are the
+    introduction's own sentences, read from it, so the two cannot drift apart."""
+    c = COUNTS
+    obj = blocks[find(blocks, "Об'єкт дослідження –")]["text"]
+    aim = blocks[find(blocks, "Мета дослідження –")]["text"]
+    run_sub(blocks, "АНОТАЦІЯ", "АНОТАЦІЯ", "РЕФЕРАТ", "реферат: heading")
+    run_sub(blocks, "ANNOTATION", "ANNOTATION", "ABSTRACT", "abstract: heading")
+    run_sub(blocks, "Кваліфікаційна робота на здобуття освітнього ступеня «Магістр» за спеціальністю",
+            "Кваліфікаційна робота на здобуття освітнього ступеня «Магістр» за спеціальністю «Інженерія "
+            "програмного забезпечення»",
+            "Магістерська кваліфікаційна робота за спеціальністю «[код і найменування спеціальності]»",
+            "реферат: the speciality with its code, from the title-page data")
+    run_sub(blocks, "Master's qualification thesis in Software Engineering",
+            "Master's qualification thesis in Software Engineering",
+            "Master's qualification thesis, speciality [speciality code and name]",
+            "abstract: the speciality with its code")
+    at = para_insert_after(
+        blocks, "Магістерська кваліфікаційна робота за спеціальністю",
+        f"Обсяг роботи: сторінок – {PAGES}, рисунків – {c['figures']}, таблиць – {c['tables']}, "
+        f"додатків – {c['appendices']}, використаних джерел – {c['sources']}.",
+        "реферат: counts")
+    blocks.insert(at + 1, {"kind": "p", "style": "", "text": f"{obj} {aim}", "origin": "inserted"})
+    APPLIED.append("реферат: the object and the aim, in the introduction's words")
+    at = para_insert_after(
+        blocks, "Master's qualification thesis, speciality",
+        f"The thesis comprises {PAGES_EN} pages, {c['figures']} figures, {c['tables']} tables, "
+        f"{c['appendices']} appendices and {c['sources']} references.",
+        "abstract: counts")
+    blocks.insert(at + 1, {"kind": "p", "style": "", "origin": "inserted", "text":
+                           "The object of the study is the processes of personal task planning and time "
+                           "management of users of mobile information systems. The aim of the study is to make "
+                           "personal time planning more effective by developing methods and software that "
+                           "assign tasks to time slots as recommendations and learn online from the user's "
+                           "behavioural feedback."})
+    APPLIED.append("abstract: the object and the aim")
+
+
+def sort_terms(blocks) -> None:
+    """Guideline p. 12: the list of abbreviations and terms gives its left column in alphabetical
+    order. The draft's abbreviations already are (Cyrillic, then Latin); its terms were in the
+    order they were written."""
+    i = find(blocks, "Основні терміни вжито в такому значенні")
+    j = next(k for k in range(i + 1, len(blocks))
+             if blocks[k]["kind"] != "p" or blocks[k].get("style", "").startswith("Heading"))
+    items = blocks[i + 1:j]
+    if not all(" – " in fold(b["text"]).replace(" - ", " – ") for b in items):
+        raise SystemExit("ПЕРЕЛІК: a paragraph after «Основні терміни…» is not a «термін – значення» line")
+    latin = lambda t: t[:1].isascii()
+    ordered = sorted(items, key=lambda b: (latin(b["text"]), b["text"].casefold()))
+    if ordered != items:
+        blocks[i + 1:j] = [{**b, "origin": "edited" if b["origin"] == "draft" else b["origin"]} for b in ordered]
+        APPLIED.append(f"ПЕРЕЛІК: {len(items)} terms put in alphabetical order")
+
+
+def title_page(blocks) -> None:
+    """The draft's title block gives way to the department's form (guideline, Додаток В)."""
+    end = find(blocks, "РЕФЕРАТ")
+    title = next(re.sub(r"[*«»]", "", b["text"]).strip() for b in blocks[:end]
+                 if b["kind"] == "p" and "ПЕРСОНАЛІЗОВАНА ОПТИМІЗАЦІЯ" in b["text"])
+    blocks[:end] = [{"kind": "p", "style": "", "text": t.format(title=title), "origin": "inserted"}
+                    for t in TITLE_PAGE]
+    APPLIED.append(f"title page: the department's form, {len(TITLE_PAGE)} lines")
+
+
+# ----------------------------------------------------------------- the guideline's forms
+# Department guideline 2026 (owner, 2026-10-13: its forms, not ДСТУ 3008's). These are rules that
+# cross the whole document, so they run last, like the rename and the dash; the text files and
+# the rollup keep writing «Таблиця 6.1 – Назва» and «Рисунок 3.1 – Назва».
+#   p. 18   «РОЗДІЛ 1» carries no full stop and its title starts on a new line – the heading is
+#           written «РОЗДІЛ 1 НАЗВА» here and the .docx pipeline breaks the line after the number;
+#   p. 22   «Додаток А» stands to the right above a centred title – written «Додаток А Назва»,
+#           and the pipeline makes the two paragraphs;
+#   p. 19   a figure is marked «Рис.», and neither its number nor its caption ends in a full
+#           stop: «Рис. 1.2 Назва»;
+#   p. 20   «Таблиця N» to the right, the title centred under it: two paragraphs.
+_ITEM = r"(?:\d+|[А-ЯІЇЄҐ])\.\d+"
+
+
+def guideline_forms(blocks) -> None:
+    out, changed = [], 0
+    for b in blocks:
+        if b["kind"] != "p":
+            out.append(b)
+            continue
+        t, st = b["text"], b.get("style", "")
+        touched = lambda nb: {**nb, "origin": "edited" if nb["origin"] == "draft" else nb["origin"]}
+        if st == "Heading1":
+            n = re.sub(r"^((?:\*\*)?РОЗДІЛ \d+)\.\s+", r"\1 ", t)
+        elif st == "Heading2":
+            n = re.sub(r"^((?:\*\*)?Додаток [А-ЯІЇЄҐ])\.\s+", r"\1 ", t)
+        elif st.startswith("Heading"):
+            n = t
+        else:
+            n = re.sub(rf"^Рисунок ({_ITEM}) – ", r"Рис. \1 ", t)
+            m = re.match(rf"^Таблиця ({_ITEM}) – (.+)$", t)
+            if m:
+                out.append(touched({**b, "text": f"Таблиця {m.group(1)}"}))
+                out.append(touched({**b, "text": m.group(2)}))
+                changed += 1
+                continue
+        if n != t:
+            b = touched({**b, "text": n})
+            changed += 1
+        out.append(b)
+    blocks[:] = out
+    APPLIED.append(f"the guideline's forms (chapter and appendix headings, captions) applied to {changed} blocks")
+
+
 # ----------------------------------------------------------------- references
 # Ukrainian-language entries the draft carried without authors or pages. Verified 2026-09-10
 # against each journal's own record; all five are Ukrainian-language, as the source-language
@@ -744,6 +1111,9 @@ CITE_KEYS = {
     "lewis": "UMUX-LITE",
     "zakon": "Про захист персональних даних",
     "adan": "Horne & Östberg Morningness-Eveningness Questionnaire: A reduced scale",
+    "maestro": "Maestro: Mobile UI Testing Framework",
+    "dstuzvit": "ДСТУ 3008:2015",
+    "dstubibl": "ДСТУ 8302:2015",
 }
 
 DELETE_REFS = ["Hugging Face Hub Documentation", "ONNX Runtime Documentation",
@@ -1228,19 +1598,19 @@ def build() -> tuple[list[dict], dict]:
     para_replace(blocks, "Перспективи подальших досліджень включають", pay[18], "висновки: перспективи")
 
     # --- appendices (steps 24, 28, 29) --------------------------------------------------
-    dg = load_text_file("dodatok-g.md")
+    dg = load_text_file("dodatok-v.md")
     for b in dg:
         if b["kind"] == "p" and b.get("style", "").startswith("Heading"):
             b["style"] = f"Heading{min(int(b['style'][-1]) + 1, 3)}"
     replace_range(blocks, "Додаток Г. Фрагмент SQL-схеми", "Додаток Д. Мікроопитувальник",
-                  dg, "Додаток Г replaced")
-    for name in ("dodatok-z.md", "dodatok-y.md"):
+                  dg, "the draft's Додаток Г replaced (Додаток В of the thesis)")
+    for name in ("dodatok-k.md", "dodatok-l.md"):
         part = load_text_file(name)
         for b in part:                      # demote: an appendix is Heading2 in this document
             if b["kind"] == "p" and b.get("style", "").startswith("Heading"):
                 b["style"] = f"Heading{min(int(b['style'][-1]) + 1, 3)}"
         blocks.extend(part)
-    APPLIED.append("Додаток З and Додаток И appended")
+    APPLIED.append("Додаток К and Додаток Л appended")
 
     # --- references, then citations (step 22) -------------------------------------------
     mapping = rebuild_references(blocks)
@@ -1252,10 +1622,21 @@ def build() -> tuple[list[dict], dict]:
     for u in unresolved:
         SKIPPED.append(f"unresolved citation key [@{u}]")
     SKIPPED.extend(AMBIGUOUS)
-
     collect_listings(blocks)
     listing_solver_parameters(blocks)
     fence_json_example(blocks)
+    reference_appendices(blocks)
+    reference_figures(blocks)
+    reorder_appendices(blocks)
+    split_legends(blocks)
+    sort_terms(blocks)
+    count_items(blocks)
+    structure_paragraph(blocks)
+    referat(blocks)
+    title_page(blocks)
+    resolved2, unresolved2 = resolve_cite_keys(blocks, find(blocks, "СПИСОК ВИКОРИСТАНИХ ДЖЕРЕЛ"))
+    for u in unresolved2:
+        SKIPPED.append(f"unresolved citation key [@{u}]")
 
     # --- global sweeps -------------------------------------------------------------------
     # Runs LAST, after every anchored edit: two ROLLUP_EDITS markers and the висновки п.5 locator
@@ -1328,6 +1709,7 @@ def build() -> tuple[list[dict], dict]:
                 b["text"] = n
                 swept += 1
     APPLIED.append(f"style sweeps (rename, apostrophe, dash, bold) touched {swept} blocks")
+    guideline_forms(blocks)
 
     stats = {
         "blocks": len(blocks),

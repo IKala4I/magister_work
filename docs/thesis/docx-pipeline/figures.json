@@ -21,13 +21,13 @@
       "images": "figures/4.1",
       "root": "docs"
     },
-    "А.1": {
-      "source": "diagrams/a1-uc04.mmd",
+    "Е.1": {
+      "source": "diagrams/e1-uc04.mmd",
       "orientation": "portrait",
       "label_chars": 16
     },
-    "Б.1": {
-      "source": "diagrams/b1-sync.mmd",
+    "Ж.1": {
+      "source": "diagrams/zh1-sync.mmd",
       "orientation": "portrait",
       "label_chars": 16
     }

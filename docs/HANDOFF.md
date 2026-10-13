@@ -2,7 +2,9 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-29 — **post-p12/thesis-private-docs**: schema names in the text, 3.2 in,
+> Last update: 2026-10-13 — **post-p12/metodychka-2026** (PR #88; section right below): the thesis
+> follows the department's 2026 guideline. Expo's patch drift went in first as PR #89.
+> Before it, 2026-09-29 — **post-p12/thesis-private-docs**: schema names in the text, 3.2 in,
 > private data in MagisterDocs (below). Before it, **post-p12/thesis-figures**: the figures render
 > in the pipeline and a PDF builds; the figures pass's own waiting items are superseded. Before
 > that, 2026-09-28 — **post-p12/docx-pipeline**: the formatter's `full.md` → `.docx` pipeline is in
@@ -14,7 +16,135 @@
 > the Ukrainian sentences the draft should read, tagged Ф / П / С, every number with its measurement
 > condition. **The thesis text is assembled and green on every gate.**
 
-## Current state (2026-09-29) — post-p12/thesis-private-docs
+## Current state (2026-10-13) — post-p12/metodychka-2026: the department guideline (PR #88)
+
+The department's 2026 guideline for master's theses appeared (54-page PDF in
+`MagisterDocs/sources/`, **never copied into the repo, extracts included**; printed page = PDF page
+− 1). The thesis was checked against it and the owner decided, 2026-10-13:
+
+1. **Formatting follows the guideline, not ДСТУ 3008** — chapter heading «РОЗДІЛ 1» with the title
+   on the next line; пункт headings run-in, spaced, with a full stop; 6–9 mm between a heading and
+   text; captions «Рис. 1.1 Назва» and «Таблиця 1.1» (right) + title (centred); a free line above
+   and below each formula, one symbol per line after «де»; «Продовження таблиці N»; appendix
+   heading «Додаток А» right + title centred; appendix letters without Г and З. The ВСТУП sentence
+   that names ДСТУ 3008 changes with it.
+2. **Order of parts and the title page per the guideline's Додаток В**; завдання and картка are
+   private parts in MagisterDocs that the pipeline puts in their places; the реферат goes out of
+   the bound document (it is enclosed in an envelope).
+3. Кафедра інженерії програмного забезпечення; спеціальність F2 «Інженерія програмного
+   забезпечення» — into `titulka.json`; the old department name must remain nowhere.
+4. Реферат: counts of pages, figures, tables, appendices, sources; names the об'єкт and the мета;
+   stays within 3 pages; **no limitation statement is removed**.
+5. Fix: ВСТУП «Структура» (pages, sources, appendices, chapters with a short description), every
+   table referenced in the text, every appendix table numbered and titled, appendices in the order
+   they are referenced, 66 → 71 sources.
+6. Six chapters stay. 7. No department publications are added. 8. The AI-use declaration is the
+   owner's own document — not written here.
+7. **«Апробація»: wording prepared, NOT inserted** — the conference is 10–11 November 2026 (ІТЕТО,
+   ФІТ НУБіП); it goes into the text only after it has happened.
+8. **Conference theses** (deadline 8 November): requirements and sections from the invitation in
+   `MagisterDocs/sources/`; numbers only from `full.md` with their conditions; the .docx goes to
+   MagisterDocs, never into the repo.
+9. A short list of decisions to check with the supervisor later — a file in MagisterDocs.
+10. At the end: rebuild and repeat the compliance check with the same table.
+
+Owner's working rule for this pass: **commit after every finished item**, this section refreshed
+after the first commit.
+
+**Appendix letters — the mapping this pass applies** (order = order of first reference in the
+text, letters without Г, Ґ, Є, З, І, Ї, Й, О, Ч, Ь):
+
+| Was | Becomes | Appendix                                | First referenced in |
+| --- | ------- | --------------------------------------- | ------------------- |
+| Д   | А       | rMEQ questionnaire                      | 2.5.1               |
+| Е   | Б       | traceability matrix (табл. Е.1 → Б.1)   | 3.1                 |
+| Г   | В       | SQL fragment (Г.1–Г.3 → В.1–В.3)        | 3.4                 |
+| Ж   | Д       | `POST /plan` response                   | 3.5                 |
+| А   | Е       | UC-04 sequence (рис. А.1 → Е.1)         | 3.6                 |
+| Б   | Ж       | sync sequence (рис. Б.1 → Ж.1)          | 3.6                 |
+| В   | И       | colour tokens (табл. В.1 → И.1)         | 3.8                 |
+| З   | К       | grid of worlds (З.1–З.7 → К.1–К.7)      | 5.5.2               |
+| И   | Л       | registered predictions (И.1–И.7 → Л.1…) | 6.1                 |
+
+Old and new letter sets overlap, so «no old letter left» cannot be a grep: each reference is
+checked against the title of the appendix it now points to.
+
+**Done (committed on the branch):**
+
+- ВСТУП counts its own list (71) and Maestro [43] is cited (`assemble.py`).
+- Appendices reordered and relettered (table above; `APPENDICES`, `reorder_appendices`,
+  `reference_appendices`), files renamed, ten appendix tables numbered and titled, references to
+  tables 6.1–6.5 / Б.1 / И.1 and to six figures added (`reference_figures` — the first compliance
+  table wrongly said all seven figures were referenced; only 3.1 was). `verify-guideline.py` in CI
+  with ten negative controls. `run_all.sh` green, PDF 163 pages.
+
+- The guideline's layout: `assemble.py` writes the forms (`guideline_forms`: `# РОЗДІЛ 1 НАЗВА`,
+  `## Додаток А Назва`, `Рис. N Назва`, `Таблиця N` + title as two paragraphs; `split_legends`),
+  `build.py` lays them out (chapter title on a new line, 18 pt under subsection headings, пункт
+  headings spaced and run in, captions, free lines round formulas, appendix heading in two
+  paragraphs, перелік in two columns), `verify.py` check 9 measures it in the .docx (9 negative
+  controls, `--self-test`, in `run_all.sh`). PDF 164 pages. **Gotchas:** пункт and appendix
+  headings are not Heading paragraphs — they reach the contents page through `TC` fields at level 2
+  (LibreOffice 26.8.0 puts a TC entry one level lower than Word; `\l 3` vanishes from the PDF);
+  Word's style separator renders broken in LibreOffice for headings longer than a line. **Word is
+  not installed here — nothing of this was seen in Word.**
+
+- Front matter per the guideline: `assemble.py` (`title_page`, `referat`, `structure_paragraph`,
+  `count_items`); `build.py` (`build_title`, `emit_private_part` for
+  `MagisterDocs/private/kartka.json` + `zavdannia.json`, an unnumbered front section, the numbered
+  section starting at 3, `build_referat` → `build/referat.docx`); `layout.py` (pdfplumber) reads
+  the page count back and `run_all.sh` rebuilds with `--pages` until it stops changing — 161 pages;
+  реферат 3 + 2 pages. `titulka.json` has new keys (README in MagisterDocs); the student's and the
+  supervisor's names are empty — the owner fills them. **Gotchas:** python-docx's `add_section`
+  copies the previous `sectPr`, including `pgNumType` — remove it or every later section restarts
+  numbering (check 9 caught a doubled `pgNumType`); keep-verbatim strings of the реферат are
+  looked for in `referat.docx` too.
+
+- «Продовження таблиці N»: `layout.py tables` (PDF → which rows on which page → `build/tables.json`
+  plan), `build.py --splits`, the pass loop in `run_all.sh` (one boundary per chapter per pass; min
+  two rows per part; rows `cantSplit`). 9 tables continue, 3 start on a new page; 5 passes ≈ 2 min;
+  **165 pages**; `verify.py` re-joins the parts for the cell-by-cell check and check 9 covers the
+  labels (12 controls). The first pass of each run is the negative control (13 crossings found).
+
+- The nine terms of the ПЕРЕЛІК sorted alphabetically (`sort_terms`); `verify-guideline.py` has 15
+  controls. Golden in MagisterDocs refreshed (the old one is not comparable: 482 intended diffs).
+- In MagisterDocs, outside the repo: `conference/tezy-iteto-2026.docx` (exactly 2 pages, section 5,
+  names are placeholders) + `make_tezy.py`; `conference/aprobatsiia.md` (two variants, **not
+  inserted**); `pytannia-do-kerivnyka.md` (22 points); `private/kartka.json`, `zavdannia.json`.
+- Final state: assemble 0 skipped / 0 drift; nine thesis checkers green; `run_all.sh` green —
+  verify OK, layout self-test 12/12, **PDF 166 pages = card + 165 numbered**, реферат 3 + 2 pages;
+  `pnpm typecheck / lint / format:check / test` green (2026-10-13).
+
+**Merged:** PR #88, after PR #89 (ten Expo SDK 57 patch releases — expo-doctor had turned red on
+upstream publications alone; the usual separate bump). CI's database job failed twice on the image
+registry's rate limit (`toomanyrequests` pulling `postgres-meta`) and passed on a rerun — a rerun is
+the fix, nothing in the repo.
+
+**Waiting on the owner:**
+
+- names in `MagisterDocs/private/titulka.json` (the student's three forms, the supervisor and the
+  supervisor's degree) and in the theses (`conference/make_tezy.py`: `SUPERVISOR`; the author comes
+  from `titulka.json`); the dean, the head of the department and the guarantor were filled from the
+  guideline's sample — to be confirmed;
+- the картка (name in the genitive, order number and date), the завдання (a form with blanks now),
+  4.1's screenshots, the AI-use declaration (the owner's own document);
+- open `hourwell.docx` in Word (never seen there): contents (Ctrl+A, F9), the run-in пункт
+  headings, the nine tables with «Продовження таблиці»;
+- decide: a comma between consecutive formulas (2.4)–(2.5), (2.7)–(2.8), (2.17)–(2.18) (guideline
+  p. 20) — reported, not done;
+- after 10–11 November 2026: «Апробація результатів» goes into ВСТУП — wording in
+  `MagisterDocs/conference/aprobatsiia.md`; in `assemble.py` the `para_delete` of the draft's
+  placeholder becomes a `para_replace`, and `verify-guideline.py` should then require the element.
+
+**Next session reads:** this section; `docs/thesis/docx-pipeline/README.md` («Верстка», «Складання
+йде в кілька проходів», «Приватні частини»); `docs/thesis/ASSEMBLY.md`, «What the 2026-10-13 pass
+changed»; `MagisterDocs/README.md`.
+
+**Resume:** `git log --oneline main..HEAD` shows what landed; the checks are
+`python3 docs/thesis/assemble.py --draft …/MagisterDocs/sources/draft.docx`, the seven CI thesis
+checkers, and `./run_all.sh` in `docs/thesis/docx-pipeline/`.
+
+## Earlier state (2026-09-29) — post-p12/thesis-private-docs
 
 **Done and green.** The text names the schema's tables (`bandit_state` + `beta_cells` +
 `blend_state`, `profiles`; assemble.py run_subs, the rollup's А.1 payload, the А.1 participant,

@@ -2,6 +2,49 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — the department's 2026 guideline (2026-10-13, post-p12/metodychka-2026)
+
+- **Appendices follow the order the text refers to them and are lettered А Б В Д Е Ж И К Л** (no Г,
+  no З): every appendix has a referring sentence, `assemble.py` reorders and relabels through one
+  table (`APPENDICES`), the three text files, the generator and the two diagrams are renamed to
+  their letters. Ten appendix tables gained numbers and titles; tables 6.1–6.5, Б.1, И.1 and six
+  of the seven figures gained a reference by number; ВСТУП counts its own list (71) and Maestro
+  [43] is cited again. **`verify-guideline.py`** checks these text rules in CI, with eleven
+  negative controls.
+- **The layout is the guideline's, not ДСТУ 3008's**: «РОЗДІЛ 1» with the title on the next line;
+  18 pt between a subsection heading and text; пункт headings spaced, with a full stop, run in with
+  the text; «Таблиця 1.1» right with the title centred under it; «Рис. 1.1 Назва»; a free line
+  above and below each formula and one symbol per line after «де»; «Додаток А» right with the title
+  centred; the abbreviations list in two columns. `assemble.py` writes the forms
+  (`guideline_forms`, `split_legends`), `build.py` lays them out, `verify.py` check 9 measures them
+  in the built .docx with nine negative controls. Пункт and appendix headings reach the contents
+  page through `TC` fields (tested in LibreOffice 26.8.0; **not tested in Word** — none on the
+  machine).
+- **The order of parts and the title page are the guideline's.** Title page per its Додаток В
+  (no reviewer; names and the form's data are placeholders filled from
+  `MagisterDocs/private/titulka.json`, which now also holds the department and the speciality);
+  картка and завдання are private parts (`kartka.json`, `zavdannia.json`) the pipeline lays out in
+  their places; the contents page is page 3 and the first numbered one. **The реферат is a
+  separate file** (`build/referat.docx`), with the counts, the object and the aim — 3 pages in
+  Ukrainian, 2 in English, nothing removed. ВСТУП's «Структура та обсяг» counts sources,
+  appendices, figures, tables and formulas from the text and describes each chapter; **the page
+  count is a placeholder in `full.md`, read back from the rendered PDF** (`layout.py`, pdfplumber
+  0.11.10) and filled on a later pass. `verify-guideline.py` checks the stated counts (14
+  negative controls); `verify.py` check 9 checks the page numbering.
+- **«Продовження таблиці N».** `layout.py tables` reads from the rendered PDF which rows of each
+  table landed on which page; `build.py --splits` splits the table there, each further part on a
+  new page under the label and a repeated header. One boundary per chapter per pass, in document
+  order (fixing all at once left stale boundaries and six near-empty pages); never fewer than two
+  rows of a table on a page. Nine tables continue, three start on a new page; five passes, ≈ 2
+  min; **165 pages**. Exact for the LibreOffice PDF; Word's pagination may differ by a line or two.
+- The nine terms of «ПЕРЕЛІК УМОВНИХ ПОЗНАЧЕНЬ» stand in alphabetical order like the abbreviations
+  above them (`sort_terms`; checked by `verify-guideline.py`, 15 controls). The golden in
+  MagisterDocs is refreshed — the old one is not comparable (482 intended differences).
+- **Outside the repository, in MagisterDocs:** the conference theses for ІТЕТО-2026 (.docx, exactly
+  two pages, section 5), the «Апробація» paragraph in two variants (**not inserted** — after the
+  conference), and a list of points to check with the supervisor.
+- **Not done, reported:** the guideline separates consecutive formulas by a comma (p. 20); three
+  pairs — (2.4)–(2.5), (2.7)–(2.8), (2.17)–(2.18) — have none.
 ## Post-P12 — Expo SDK 57 patch alignment, a third time (2026-10-13, post-p12/expo-patch-bump-3)
 
 - **`npx expo install --fix`: ten packages** — expo 57.0.28, expo-router 57.0.26, expo-constants

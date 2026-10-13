@@ -11,7 +11,7 @@ It is **generated**, never hand-edited:
 python3 docs/thesis/assemble.py --draft /Users/vladyslav/Workspace/MagisterDocs/sources/draft.docx
                                          # rebuilds text/full.md from the draft + text/*.md
 python3 docs/thesis/verify-numbers.py    # 144 study numbers, recomputed from the results JSON
-python3 docs/thesis/gen-dodatok-z.py --check
+python3 docs/thesis/gen-dodatok-k.py --check
 python3 docs/thesis/verify-docx.py docs/thesis/text/full.md   # 52 needles; 0 failures
 ```
 
@@ -362,6 +362,47 @@ than the text, and a disagreement between text and schema is the owner's to deci
   «Практичне значення» → «Особистий внесок здобувача» → «Структура та обсяг роботи», and nothing in
   the text refers to the dropped items. This also settles the open question of 2026-09-29: no
   surname can reach `full.md` from them.
+
+## What the 2026-10-13 pass changed (the department's guideline)
+
+The department's 2026 guideline for master's theses is kept in `MagisterDocs/sources/` and never
+enters the repository. The owner decided to format by it rather than by ДСТУ 3008. This section
+grows with the pass.
+
+**Appendices.** They follow the order of first reference in the text and are lettered without Г
+and З. The table of assembly steps above keeps the draft's letters (steps 24, 28, 29 are the
+draft's Додаток Г and the then-new З and И); `assemble.py`'s `APPENDICES` maps them:
+Д→А (rMEQ), Е→Б (traceability), Г→В (SQL), Ж→Д (`POST /plan`), А→Е (UC-04), Б→Ж (sync), В→И
+(colour tokens), З→К (grid), И→Л (predictions). The draft and the rollup keep the draft's letters,
+because every anchor matches draft prose; the relabelling happens inside each appendix's own range
+(`reorder_appendices`), since the old and new letter sets overlap and a sweep would map twice.
+`reference_appendices` adds the referring sentences (§2.5.1, §3.1.3, §3.4, §3.5) and
+`reference_figures` the six figure references the draft lacked.
+
+**The guideline's forms.** `guideline_forms` runs last, after the style sweeps, on every block:
+`# РОЗДІЛ 1 НАЗВА` and `## Додаток А Назва` lose the full stop after the number or letter (the
+pipeline breaks the line there), `Рисунок N – Назва` becomes `Рис. N Назва`, and `Таблиця N – Назва`
+becomes two paragraphs, `Таблиця N` and the title. The text files and the rollup keep the old
+caption form on purpose — one rule in one place. `split_legends` puts each symbol of a formula's
+explanation on its own line (2.1, 2.11, 2.13, 2.19) through a table of seams (`LEGENDS`), so every
+other word stays the draft's; for (2.1) the clause «за жорстких обмежень (…)» moves in front of the
+formula so that «де» stands first under it.
+
+**Front matter and counts.** `title_page` replaces the draft's title block with the department's
+form (`TITLE_PAGE`, one printed piece per line; names and the form's data are placeholders).
+`referat` renames «АНОТАЦІЯ» / «ANNOTATION» to «РЕФЕРАТ» / «ABSTRACT», writes the speciality with
+its code, and inserts the counts and the object + aim — the latter two are read from the
+introduction's own paragraphs, so they cannot drift. `structure_paragraph` rewrites «Структура та
+обсяг роботи». `count_items` counts sources, tables, figures, formulas, appendices and chapters
+from the blocks; nothing is typed. The page count is the placeholder `[кількість сторінок]`
+(`[number of pages]` in the abstract): only the layout knows it, so the .docx pipeline fills it from
+the rendered PDF. The реферат stays in `full.md` between the title page and ЗМІСТ; the pipeline
+builds it as a separate file.
+
+**Checked by** `verify-guideline.py` (CI): the counts stated in ВСТУП and the реферат, appendix letters and order, a reference to every
+appendix, table and figure, a caption on every table, a citation of every source — each rule with a
+negative control (`--self-test`). The layout itself is measured in the built .docx by
+`docx-pipeline/verify.py` check 9.
 
 ## Coverage, and what CI can and cannot prove
 

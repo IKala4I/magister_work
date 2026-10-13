@@ -111,6 +111,8 @@ def soffice(*args):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('docx'); ap.add_argument('pdf')
+    ap.add_argument('--no-index', action='store_true',
+                    help='документ без змісту (реферат): відсутність покажчика — не помилка')
     a = ap.parse_args()
     ensure_libreoffice()
     std = os.path.join(PROFILE, 'user', 'basic', 'Standard')
@@ -129,7 +131,7 @@ def main():
     print(f'   {a.pdf}: LibreOffice {LO_VERSION}, {stats}, сторінок {pages}, {os.path.getsize(dst) // 1024} КБ')
     if stats.startswith('ПОМИЛКА'):
         raise SystemExit(f'макрос LibreOffice: {stats}')
-    if stats.startswith('покажчиків 0'):
+    if stats.startswith('покажчиків 0') and not a.no_index:
         raise SystemExit('У PDF немає змісту: LibreOffice не знайшов у .docx жодного покажчика')
     return 0
 

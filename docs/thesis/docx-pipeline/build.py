@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Складальник магістерської роботи: full.md → .docx за стандартом НУБіП / ДСТУ 3008.
+"""Складальник магістерської роботи: full.md → .docx за методичними рекомендаціями кафедри (2026).
 
     python3 build.py --src ../text/full.md --brief ../formatter-brief.md \\
                      --registry registry.json --out $DOCS/build/hourwell.docx --report $DOCS/build/report.json \\
@@ -16,7 +16,7 @@ import argparse, json, os, re, subprocess, sys, tempfile
 
 from docx import Document
 from docx.shared import Pt, Mm, Cm, RGBColor
-from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING, WD_BREAK
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING, WD_BREAK, WD_TAB_ALIGNMENT, WD_TAB_LEADER
 from docx.enum.section import WD_SECTION, WD_ORIENT
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.oxml.ns import qn, nsdecls
@@ -46,46 +46,63 @@ _FENCE_LINES = None
 _OMML = {}
 
 
-# ================================================================ приватні дані
-# Імена на титулці й в анотаціях — приватні: у full.md (публічний репозиторій) лишаються
-# плейсхолдери, а значення підставляються лише під час складання .docx із файлу поза
-# репозиторієм (MagisterDocs/private/titulka.json, власник, 2026-09-29). Порожнє значення —
-# плейсхолдер лишається. Ключі — людські; тут вони зіставлені з плейсхолдерами full.md.
-PRIVATE_FIELDS = (                        # (ключ у titulka.json, плейсхолдер у full.md, шаблон)
-    ('здобувач', '[ПІБ здобувача]', '{}'),
-    ('здобувач_англійською', '[Student name]', '{}'),
-    ('керівник_науковий_ступінь', '[науковий ступінь,', '{},'),
-    ('керівник_вчене_звання_і_ПІБ', 'вчене звання, ПІБ керівника]', '{}'),
-    ('рецензент', '[ПІБ рецензента]', '{}'),
+# ================================================================ дані титулки
+# Титулка — форма кафедри (методичка, Додаток В). Її дані живуть поза репозиторієм, у
+# MagisterDocs/private/titulka.json (власник, 2026-09-29; кафедра й спеціальність — туди ж,
+# 2026-10-13): у full.md (публічний репозиторій) лишаються плейсхолдери, а значення підставляються
+# лише під час складання .docx. Порожнє значення — плейсхолдер лишається. Третя колонка каже, чи це
+# ім'я: імена не мають з'явитися в full.md за жодних умов (verify.py, перевірка 8); кафедра й
+# спеціальність — не таємниця, вони просто зберігаються в одному місці з рештою даних форми.
+PRIVATE_FIELDS = (                        # (ключ у titulka.json, плейсхолдер у full.md, ім'я?)
+    ('здобувач', '[ПІБ здобувача]', True),
+    ('здобувач_англійською', '[Student name]', True),
+    ('здобувач_на_титулці', '[ПІБ здобувача для титулки]', True),
+    ('керівник', '[ПІБ керівника]', True),
+    ('керівник_ступінь_і_звання', '[науковий ступінь і вчене звання керівника]', False),
+    ('гарант', '[ПІБ гаранта]', True),
+    ('гарант_ступінь_і_звання', '[науковий ступінь і вчене звання гаранта]', False),
+    ('декан', '[ПІБ декана]', True),
+    ('завідувач_кафедри', '[ПІБ завідувача кафедри]', True),
+    ('кафедра', '[назва кафедри]', False),
+    ('спеціальність', '[код і найменування спеціальності]', False),
+    ('спеціальність_англійською', '[speciality code and name]', False),
 )
+PAGE_PLACEHOLDERS = ('[кількість сторінок]', '[number of pages]')   # обсяг роботи: з готового PDF
 PRIVATE = {}                              # плейсхолдер → значення (лише заповнені)
+DATA = {}                                 # ключ titulka.json → значення: для приватних частин (картка, завдання)
 
 
-def load_private(path):
+def load_private(path, pages=None):
     """Читає titulka.json і підставляє заповнені значення в LINES. Повертає словник
     плейсхолдер → значення. Невідомий ключ у файлі валить складання (друкарська помилка в
-    ключі інакше мовчки лишила б плейсхолдер)."""
+    ключі інакше мовчки лишила б плейсхолдер). `pages` — кількість сторінок роботи, виміряна
+    на готовому PDF попереднього проходу (run_all.sh): число в тексті не набирається руками."""
     global LINES
-    PRIVATE.clear()
-    if not path: return PRIVATE
-    data = json.load(open(path, encoding='utf-8'))
-    known = {k for k, _, _ in PRIVATE_FIELDS}
-    unknown = [k for k in data if not k.startswith('_') and k not in known]
-    if unknown:
-        raise SystemExit(f'titulka.json: невідомі ключі {unknown}; відомі — {sorted(known)}')
-    for key, ph, tmpl in PRIVATE_FIELDS:
-        val = str(data.get(key) or '').strip()
-        if val: PRIVATE[ph] = tmpl.format(val)
+    PRIVATE.clear(); DATA.clear()
+    if pages:
+        for ph in PAGE_PLACEHOLDERS: PRIVATE[ph] = str(pages)
+    if path:
+        data = json.load(open(path, encoding='utf-8'))
+        known = {k for k, _, _ in PRIVATE_FIELDS}
+        unknown = [k for k in data if not k.startswith('_') and k not in known]
+        if unknown:
+            raise SystemExit(f'titulka.json: невідомі ключі {unknown}; відомі — {sorted(known)}')
+        for key, ph, _ in PRIVATE_FIELDS:
+            val = str(data.get(key) or '').strip()
+            DATA[key] = val
+            if val: PRIVATE[ph] = val
     lost = [ph for ph in PRIVATE if not any(ph in ln for ln in LINES)]
-    if lost:                              # інакше заповнене ім'я мовчки не потрапило б нікуди
+    if lost:                              # інакше заповнене значення мовчки не потрапило б нікуди
         raise SystemExit(f'titulka.json: значення задано, але плейсхолдера {lost} у full.md немає')
     LINES = [_sub_private(ln) for ln in LINES]
     return PRIVATE
 
 
 def _sub_private(line):
-    for ph, val in PRIVATE.items():
-        line = line.replace(ph, val)
+    # довші плейсхолдери першими: «[ПІБ здобувача]» є початком «[ПІБ здобувача для титулки]» лише
+    # без дужки, але порядок не має залежати від такого збігу
+    for ph in sorted(PRIVATE, key=len, reverse=True):
+        line = line.replace(ph, PRIVATE[ph])
     return line
 
 
@@ -285,7 +302,6 @@ def new_doc():
     s.page_width, s.page_height = Mm(210), Mm(297)
     s.left_margin, s.right_margin = Mm(30), Mm(10)
     s.top_margin, s.bottom_margin = Mm(20), Mm(20)
-    s.different_first_page_header_footer = True     # титулка без номера
 
     def force(style, name='Times New Roman', size=14, bold=None):
         style.font.name = name; style.font.size = Pt(size)
@@ -304,19 +320,50 @@ def new_doc():
     p.first_line_indent = Cm(1.25); p.alignment = J
     p.space_before = Pt(0); p.space_after = Pt(0)
 
-    for name, before, after, align, ind, brk in (
-            ('Heading 1', 0, 18, C, 0, True),
-            ('Heading 2', 18, 12, LEFT, 1.25, False),
-            ('Heading 3', 12, 6, LEFT, 1.25, False)):
-        st = doc.styles[name]; force(st, size=14, bold=True)
+    # Методичка, с. 17: між заголовком і текстом — 2–3 інтервали (6–9 мм); 18 пт = 6,35 мм.
+    # Заголовок пункту під це правило не підпадає: його друкують у розрядці в підбір до тексту
+    # (runin_heading) — це початок абзацу, а не стиль заголовка.
+    for name, before, after, align, ind, brk, bold in (
+            ('Heading 1', 0, 18, C, 0, True, True),
+            ('Heading 2', 18, 18, LEFT, 1.25, False, True)):
+        st = doc.styles[name]; force(st, size=14, bold=bold)
         f = st.paragraph_format
         f.space_before, f.space_after = Pt(before), Pt(after)
         f.alignment, f.first_line_indent = align, Cm(ind)
         f.line_spacing_rule = WD_LINE_SPACING.ONE_POINT_FIVE
         f.keep_with_next = True; f.page_break_before = brk
+    # Рядки змісту: без власних стилів Word і LibreOffice беруть кожен свої відступи рівнів.
+    # Підрозділи, пункти й додатки — з одним відступом: запис додатка LibreOffice ставить на
+    # рівень нижче, ніж Word, і різний відступ рівнів 2 і 3 розвів би їх у PDF.
+    from docx.enum.style import WD_STYLE_TYPE
+    for lvl, left in ((1, 0), (2, 0.5), (3, 0.5)):
+        try: st = doc.styles['toc %d' % lvl]
+        except KeyError: st = doc.styles.add_style('toc %d' % lvl, WD_STYLE_TYPE.PARAGRAPH)
+        st.base_style = doc.styles['Normal']; force(st, bold=False)
+        f = st.paragraph_format
+        f.first_line_indent = Cm(0); f.left_indent = Cm(left); f.alignment = LEFT
+        f.space_before = f.space_after = Pt(0)
+        f.tab_stops.add_tab_stop(Mm(TW), WD_TAB_ALIGNMENT.RIGHT, WD_TAB_LEADER.DOTS)
 
-    page_number(s.header.paragraphs[0])
     return doc
+
+
+def numbered_section(doc, start):
+    """Розділ документа з номером сторінки вгорі праворуч, нумерація з `start`. Усе перед ним —
+    картка, титульний лист і завдання — номерів не має (методичка, с. 10)."""
+    s = doc.add_section(WD_SECTION.NEW_PAGE)
+    brk = doc.element.body.findall(qn('w:p'))[-1]              # порожній абзац із розривом — у попередній
+    prev = brk.getprevious()
+    if prev is not None and prev.tag == qn('w:p') and prev.find(qn('w:pPr') + '/' + qn('w:sectPr')) is None:
+        ppr = prev.find(qn('w:pPr'))
+        if ppr is None: ppr = OxmlElement('w:pPr'); prev.insert(0, ppr)
+        ppr.append(brk.find(qn('w:pPr') + '/' + qn('w:sectPr'))); brk.getparent().remove(brk)
+    s.header.is_linked_to_previous = False; s.footer.is_linked_to_previous = False
+    page_number(s.header.paragraphs[0])
+    for pg in s._sectPr.findall(qn('w:pgNumType')):            # успадковане від перших сторінок («з нуля»)
+        s._sectPr.remove(pg)
+    s._sectPr.append(parse_xml('<w:pgNumType %s w:start="%d"/>' % (nsdecls('w'), start)))
+    return s
 
 
 def page_number(p):
@@ -421,7 +468,7 @@ def para(doc, text='', *, align=None, indent=None, spacing=None, size=None, bold
 
 def toc_field(doc):
     p = doc.add_paragraph(); p.paragraph_format.first_line_indent = Cm(0)
-    for kind, val in (('begin', None), ('instr', r' TOC \o "1-3" \h \z \u '), ('separate', None)):
+    for kind, val in (('begin', None), ('instr', r' TOC \o "1-3" \h \z \u \f '), ('separate', None)):
         r = p.add_run()
         if kind == 'instr':
             e = OxmlElement('w:instrText'); e.set(qn('xml:space'), 'preserve'); e.text = val
@@ -437,15 +484,90 @@ def page_break(doc):
     doc.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
 
 
+RE_CHAPTER = re.compile(r'^(РОЗДІЛ \d+) (.+)$')
+RE_APPENDIX = re.compile(r'^(Додаток [А-ЯІЇЄҐ]) (.+)$')
+
+
 def struct_head(doc, text, in_toc=True, brk=True):
-    """Структурний заголовок. in_toc=False — не потрапляє в автозміст (сам ЗМІСТ)."""
+    """Структурний заголовок. in_toc=False — не потрапляє в автозміст (сам ЗМІСТ).
+    Методичка, с. 18: «РОЗДІЛ 1» — без крапки, назва розділу — з нового рядка. Це один абзац із
+    розривом рядка: у змісті він стає одним записом «РОЗДІЛ 1 НАЗВА»."""
     if in_toc:
         p = doc.add_paragraph(style='Heading 1')
-        add_runs(p, text)
+        m = RE_CHAPTER.match(text)
+        if m:
+            add_runs(p, m.group(1)); p.runs[-1].add_break(WD_BREAK.LINE); add_runs(p, m.group(2))
+        else:
+            add_runs(p, text)
         p.paragraph_format.page_break_before = brk
     else:
         if brk: page_break(doc)
         p = para(doc, text, align=C, indent=0, bold=True, after=18, keep=True)
+    return p
+
+
+def field(p, instr):
+    """Поле Word без видимого результату (TC — запис для змісту)."""
+    for kind in ('begin', 'instr', 'end'):
+        r = p.add_run()
+        if kind == 'instr':
+            e = OxmlElement('w:instrText'); e.set(qn('xml:space'), 'preserve'); e.text = instr
+        else:
+            e = OxmlElement('w:fldChar'); e.set(qn('w:fldCharType'), kind)
+        r._r.append(e)
+
+
+def appendix_head(doc, label, title, brk):
+    """Методичка, с. 22: «Додаток А» — праворуч, під ним назва симетрично до тексту, кожен
+    додаток — з нової сторінки. Два абзаци з різним вирівнюванням не можуть бути одним
+    заголовком, тож у зміст додаток іде записом TC (поле Word), одним рядком «Додаток А Назва»."""
+    p = para(doc, label, align=R, indent=0, keep=True, literal=True)
+    p.paragraph_format.page_break_before = brk
+    field(p, ' TC "%s %s" \\l 2 ' % (label, title.replace('"', '\u201d')))
+    t = para(doc, '', align=C, indent=0, after=18, keep=True)
+    add_runs(t, title, bold_all=True)
+    return p
+
+
+SPACED = 30                               # розрядка заголовка пункту, двадцяті частки пункту: 1,5 пт
+TC_LEVEL = 2                              # рівень записів TC у змісті — див. toc_entry
+
+
+def toc_entry(p, text):
+    """Запис для змісту (поле TC) на початку абзацу `p`. Рівень 2 і для додатків, і для пунктів:
+    Word ставить запис на вказаний рівень, а LibreOffice — на один нижче (перевірено на 26.8.0:
+    «\\l 3» у зміст PDF не потрапляє зовсім), тож рівень 2 дає запис в обох, а однаковий відступ
+    стилів «toc 2» і «toc 3» робить різницю невидимою."""
+    field(p, ' TC "%s" \\l %d ' % (text.replace('"', '\u201d'), TC_LEVEL))
+
+
+def appendix_head(doc, label, title, brk):
+    """Методичка, с. 22: «Додаток А» — праворуч, під ним назва симетрично до тексту, кожен
+    додаток — з нової сторінки. Два абзаци з різним вирівнюванням не можуть бути одним
+    заголовком, тож у зміст додаток іде записом TC, одним рядком «Додаток А Назва»."""
+    p = para(doc, '', align=R, indent=0, keep=True)
+    p.paragraph_format.page_break_before = brk
+    toc_entry(p, label + ' ' + title)
+    add_literal(p, label)
+    t = para(doc, '', align=C, indent=0, after=18, keep=True)
+    add_runs(t, title, bold_all=True)
+    return p
+
+
+def runin_heading(doc, text):
+    """Заголовок пункту (методичка, с. 17): з абзацного відступу, у розрядці, у підбір до тексту,
+    з крапкою в кінці. Це початок звичайного абзацу, а не окремий абзац-заголовок: текст пункту
+    дописується в той самий абзац (build_body), і так рядок виходить однаковим у Word і в PDF.
+    Прихований знак абзацу (роздільник стилів Word) LibreOffice верстає рамкою, яка на заголовку,
+    довшому за рядок, розриває текст. У зміст пункт іде записом TC."""
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before = Pt(12); p.paragraph_format.keep_with_next = True
+    head = text if text.rstrip().endswith('.') else text.rstrip() + '.'
+    toc_entry(p, head)
+    first = len(p.runs)
+    add_runs(p, head)
+    for r in p.runs[first:]:
+        sp = OxmlElement('w:spacing'); sp.set(qn('w:val'), str(SPACED)); r._r.get_or_add_rPr().append(sp)
     return p
 
 
@@ -464,8 +586,8 @@ RE_H = re.compile(r'^(#{1,3})\s+(.*)$')
 RE_FORMULA = re.compile(r'^(.*?)\s{2,}\((\d+\.\d+)\)\s*$')
 RE_FIG_PH = re.compile(r'^(?:\*\*)?\[МІСЦЕ ДЛЯ РИСУНКА ([^\]]+)\](?:\*\*)?')
 RE_FILL_PH = re.compile(r'\[МІСЦЕ ДЛЯ ЗАПОВНЕННЯ:')
-RE_FIG_CAP = re.compile(r'^Рисунок ([\wА-ЯІЇЄҐ.]+)\s+[—–-]')
-RE_TAB_CAP = re.compile(r'^Таблиця ([\wА-ЯІЇЄҐ.]+)\s+[—–-]')
+RE_FIG_CAP = re.compile(r'^Рис\. ((?:\d+|[А-ЯІЇЄҐ])\.\d+) \S')        # «Рис. 1.2 Назва» (методичка, с. 19)
+RE_TAB_CAP = re.compile(r'^Таблиця ((?:\d+|[А-ЯІЇЄҐ])\.\d+)$')        # номер; назва — наступним абзацом
 RE_LST_CAP = re.compile(r'^Лістинг ([\w.]+)\s+[—–-]')
 RE_NUM_ITEM = re.compile(r'^\d+\.\s')
 RE_BULLET = re.compile(r'^[–—-]\s')
@@ -474,6 +596,21 @@ CYR = re.compile(r'^[А-ЯІЇЄҐа-яіїєґ«»(]')
 
 
 # ================================================================ таблиці
+SPLITS = {}                               # номер таблиці → [рядків тіла в кожній частині] (layout.py)
+NEW_PAGE = set()                          # таблиці, що починаються з нової сторінки (під головкою лишався один рядок)
+CUR_TABLE = [None]                        # номер таблиці з останнього підпису «Таблиця N»
+CONTINUED = 'Продовження таблиці'
+
+
+def load_splits(path):
+    """План поділу таблиць із layout.py (README, «Продовження таблиці»). Немає файла — таблиці цілі."""
+    SPLITS.clear(); NEW_PAGE.clear(); CUR_TABLE[0] = None
+    if path and os.path.exists(path):
+        for num, v in json.load(open(path, encoding='utf-8')).items():
+            if v.get('parts'): SPLITS[num] = v['parts']
+            if v.get('before'): NEW_PAGE.add(num)
+
+
 def split_cells(line):
     """Комірки рядка таблиці за правилами GFM: зворотна скісна екранує наступний
     символ, тож \\| лишає риску всередині комірки (|зміщення|/SE, |A_m(x)|, |приріст|),
@@ -558,14 +695,6 @@ def emit_table(doc, start):
     while over < 0:
         k = widths.index(min(widths)); widths[k] += 1; over += 1
 
-    t = doc.add_table(rows=1 + len(body), cols=ncol)
-    t.style = 'Table Grid'; t.alignment = WD_TABLE_ALIGNMENT.CENTER; t.autofit = False
-    t._tbl.tblPr.append(parse_xml('<w:tblLayout %s w:type="fixed"/>' % nsdecls('w')))
-    t._tbl.tblPr.append(parse_xml('<w:tblW %s w:w="%d" w:type="dxa"/>' % (nsdecls('w'), int(sum(widths) * 56.7))))
-    for j, w in enumerate(widths):
-        t.columns[j].width = Mm(w)                    # tblGrid — саме його читає Word
-        for row in t.rows: row.cells[j].width = Mm(w)
-
     def cell(c, txt, bold=False, center=False):
         c.text = ''
         p = c.paragraphs[0]
@@ -575,15 +704,46 @@ def emit_table(doc, start):
         p.alignment = C if center else LEFT
         add_runs(p, txt.replace('\\|', '|'), size=size, bold_all=bold)
 
-    for j, txt in enumerate(header): cell(t.rows[0].cells[j], txt, bold=True, center=True)
     numeric = [all(re.match(r'^[+−\-–—±◐~]?[\d,.\s%×()]*$', (r[j] if j < len(r) else '') or '')
                    for r in body) for j in range(ncol)]
-    for i, row in enumerate(body, 1):
-        for j in range(ncol):
-            cell(t.rows[i].cells[j], row[j] if j < len(row) else '', center=numeric[j])
-    trPr = t.rows[0]._tr.get_or_add_trPr(); trPr.append(parse_xml('<w:tblHeader %s/>' % nsdecls('w')))
+
+    def part(rows_):
+        """Одна частина таблиці: головка й рядки. Рядок не рветься між сторінками (cantSplit) —
+        інакше його половини на двох сторінках не можна ані порахувати, ані підписати."""
+        t = doc.add_table(rows=1 + len(rows_), cols=ncol)
+        t.style = 'Table Grid'; t.alignment = WD_TABLE_ALIGNMENT.CENTER; t.autofit = False
+        t._tbl.tblPr.append(parse_xml('<w:tblLayout %s w:type="fixed"/>' % nsdecls('w')))
+        t._tbl.tblPr.append(parse_xml('<w:tblW %s w:w="%d" w:type="dxa"/>' % (nsdecls('w'), int(sum(widths) * 56.7))))
+        for j, w in enumerate(widths):
+            t.columns[j].width = Mm(w)                    # tblGrid — саме його читає Word
+            for row in t.rows: row.cells[j].width = Mm(w)
+        for j, txt in enumerate(header): cell(t.rows[0].cells[j], txt, bold=True, center=True)
+        for i, row in enumerate(rows_, 1):
+            for j in range(ncol):
+                cell(t.rows[i].cells[j], row[j] if j < len(row) else '', center=numeric[j])
+        t.rows[0]._tr.get_or_add_trPr().append(parse_xml('<w:tblHeader %s/>' % nsdecls('w')))
+        for row in t.rows:
+            row._tr.get_or_add_trPr().append(parse_xml('<w:cantSplit %s/>' % nsdecls('w')))
+        for c in t.rows[0].cells:                         # головка не лишається внизу сторінки сама
+            for p in c.paragraphs: p.paragraph_format.keep_with_next = True
+
+    # Методичка, с. 20: над кожною наступною частиною таблиці, перенесеної на іншу сторінку, —
+    # «Продовження таблиці N». Де таблиця переходить на нову сторінку, знає лише верстка: поділ
+    # приходить ззовні (SPLITS — з layout.py, що читає готовий PDF попереднього проходу), і кожна
+    # наступна частина починається з нової сторінки цим написом і повтореною головкою.
+    sizes = SPLITS.get(CUR_TABLE[0]) or [len(body)]
+    if sum(sizes) != len(body) or min(sizes) < 1:
+        raise SystemExit(f'ТАБЛИЦЯ {CUR_TABLE[0]}: поділ {sizes} не відповідає {len(body)} рядкам — '
+                         f'застарілий файл поділу; почати з проходу без нього')
+    at = 0
+    for k, size_k in enumerate(sizes):
+        if k:
+            p = para(doc, f'{CONTINUED} {CUR_TABLE[0]}', indent=0, align=R, spacing=1, after=6, keep=True, literal=True)
+            p.paragraph_format.page_break_before = True
+        part(body[at:at + size_k]); at += size_k
     para(doc, '', after=6, spacing=1)
-    REPORT['tables'].append(f'ряд {start}: {ncol}×{len(body)}, кегль {size}, ширини {widths}')
+    REPORT['tables'].append(f'ряд {start}: {ncol}×{len(body)}, кегль {size}, ширини {widths}'
+                            + (f', частин {len(sizes)}: {sizes}' if len(sizes) > 1 else ''))
     return nxt
 
 
@@ -746,60 +906,236 @@ def _emit_inserts(doc, n):
         REPORT['notes'].append(f'ВСТАВКА після ряд. {n}: {extra[:50]}…')
 
 
-def build_front(doc):
-    """Титульна сторінка, анотації, ЗМІСТ. Повертає номер рядка, з якого
-    продовжує build_body. Титульний блок має фіксовану форму НУБіП."""
-    plain = lambda n: L(n).replace('**', '')
-    for n, sp in ((1, 0), (3, 0), (5, 36)):
-        para(doc, plain(n), align=C, indent=0, bold=(n == 1), after=sp)
-    para(doc, plain(7), align=C, indent=0, bold=True)
-    para(doc, plain(9), align=C, indent=0, after=18)
-    para(doc, plain(11), align=C, indent=0)
-    para(doc, plain(13), align=C, indent=0, after=24)
-    para(doc, plain(15), align=C, indent=0, after=6)
-    para(doc, plain(17), align=C, indent=0, bold=True, after=36)
-    for n in (19, 21, 23, 25, 27):
-        para(doc, plain(n), align=R, indent=0)
-        if n in (21, 25): para(doc, '')
-    para(doc, plain(29), align=C, indent=0, before=48)
+# ---------------------------------------------------------------- форми: таблиці без рамок
+def grid(doc, widths, rows=1):
+    """Таблиця без рамок фіксованої ширини — каркас форми (титулка, приватні частини)."""
+    t = doc.add_table(rows=rows, cols=len(widths))
+    t.alignment = WD_TABLE_ALIGNMENT.CENTER; t.autofit = False
+    t._tbl.tblPr.append(parse_xml('<w:tblLayout %s w:type="fixed"/>' % nsdecls('w')))
+    for j, w in enumerate(widths):
+        t.columns[j].width = Mm(w)
+        for row in t.rows: row.cells[j].width = Mm(w)
+    return t
+
+
+def cell_lines(c, lines):
+    """Рядки комірки: [(текст, {align, bold, size, underline, rule})]. `rule` — лінія для підпису
+    під порожнім абзацом (межа абзацу, а не символи підкреслення)."""
+    c.text = ''
+    for k, (txt, o) in enumerate(lines):
+        p = c.paragraphs[0] if k == 0 else c.add_paragraph()
+        f = p.paragraph_format
+        f.first_line_indent = Cm(0); f.line_spacing_rule = WD_LINE_SPACING.SINGLE
+        f.space_before = Pt(o.get('before', 0)); f.space_after = Pt(o.get('after', 0))
+        p.alignment = o.get('align', LEFT)
+        if txt:
+            r = p.add_run(txt); r.bold = o.get('bold', False); r.underline = o.get('underline', False)
+            if o.get('size'): r.font.size = Pt(o['size'])
+        if o.get('rule'):
+            p._p.get_or_add_pPr().append(parse_xml(
+                '<w:pBdr %s><w:bottom w:val="single" w:sz="6" w:space="1" w:color="000000"/></w:pBdr>' % nsdecls('w')))
+
+
+TITLE_SHAPE = {2: 'ПОГОДЖЕНО', 5: 'ДОПУСКАЄТЬСЯ ДО ЗАХИСТУ', 8: 'МАГІСТЕРСЬКА КВАЛІФІКАЦІЙНА РОБОТА',
+               10: 'Спеціальність', 12: 'Освітня програма', 14: 'Орієнтація освітньої програми',
+               16: 'Гарант освітньої програми', 19: 'Керівник магістерської кваліфікаційної роботи',
+               22: 'Виконав'}
+SMALL = 9                                 # дрібні підрядкові підписи форми, пт
+DATE_BLANK = '«___» ___________ 20__ р.'
+
+
+def build_title(doc, lines):
+    """Титульний лист за формою кафедри (методичка, Додаток В). Слова форми й дані — з full.md,
+    по одному надрукованому фрагменту на рядок (assemble.py, TITLE_PAGE); тут лише розкладка та
+    службові позначки форми — місце підпису, «(підпис)», «(ПІБ)», дата."""
+    T = [L(n) for n in lines]
+    if len(T) != 25 or any(T[i] != v for i, v in TITLE_SHAPE.items()) or not T[9].startswith('на тему ') \
+            or not T[24].startswith('КИЇВ'):
+        raise SystemExit('ТИТУЛКА: рядки full.md до «РЕФЕРАТ» не відповідають формі (assemble.py, TITLE_PAGE)')
+    b, c, r, u = {'bold': True}, {'align': C}, {'align': R}, {'underline': True}
+    para(doc, T[0], align=C, indent=0, bold=True, spacing=1)
+    para(doc, T[1], align=C, indent=0, bold=True, spacing=1, before=12, after=24)
+    t = grid(doc, (80, 90))
+    left = [(T[2], {**b, **c, 'after': 6}), (T[3], b), ('__________  ' + T[4], {**b, 'before': 6}),
+            ('(підпис)                    (ПІБ)', {'size': SMALL}), (DATE_BLANK, {'before': 4})]
+    right = [(T[5], {**b, **c, 'after': 6}), (T[6], {**b, **c}), ('__________  ' + T[7], {**b, **c, 'before': 6}),
+             ('(підпис)                    (ПІБ)', {**c, 'size': SMALL}), (DATE_BLANK, {**c, 'before': 4})]
+    cell_lines(t.rows[0].cells[0], left); cell_lines(t.rows[0].cells[1], right)
+    para(doc, T[8], align=C, indent=0, bold=True, spacing=1, before=24, after=12)
+    para(doc, T[9], align=C, indent=0, bold=True, spacing=1, after=18)
+    t = grid(doc, (62, 108), rows=3)
+    for row, (lab, val, note) in zip(t.rows, ((T[10], T[11], '(код і найменування)'), (T[12], T[13], '(назва)'),
+                                              (T[14], T[15], '(освітньо-професійна або освітньо-наукова)'))):
+        cell_lines(row.cells[0], [(lab, {})])
+        cell_lines(row.cells[1], [(val, {**c, **u}), (note, {**c, 'size': SMALL, 'after': 6})])
+    para(doc, '', indent=0, spacing=1, after=6)
+    t = grid(doc, (72, 40, 58), rows=3)
+    for row, (lab, sub_, name) in zip(t.rows, ((T[16], T[17], T[18]), (T[19], T[20], T[21]), (T[22], None, T[23]))):
+        cell_lines(row.cells[0], [(lab, b)] + ([(sub_, {})] if sub_ else []))
+        cell_lines(row.cells[1], [('', {'rule': True}), ('(підпис)', {**c, 'size': SMALL, 'after': 14})])
+        cell_lines(row.cells[2], [(name, {**b, **c, **u})])
+    para(doc, T[24], align=C, indent=0, bold=True, spacing=1, before=72)
     left = [ph for _, ph, _ in PRIVATE_FIELDS if ph not in PRIVATE]
     if left:
-        REPORT['placeholders'].append('Титульна сторінка й анотації: ' + ', '.join(left)
+        REPORT['placeholders'].append('Титульний лист і реферат: ' + ', '.join(left)
                                       + ' (заповнити в MagisterDocs/private/titulka.json)')
-    a_ua, a_en, toc = anchor('**АНОТАЦІЯ**'), anchor('**ANNOTATION**'), anchor('**ЗМІСТ**')
-    for head_n, lo, hi in ((a_ua, a_ua + 2, a_en - 1), (a_en, a_en + 2, toc - 1)):
-        struct_head(doc, plain(head_n), in_toc=True)
-        for n in range(lo, hi + 1, 2):
-            if L(n): para(doc, L(n))
-    struct_head(doc, plain(toc), in_toc=False)
+
+
+# ---------------------------------------------------------------- приватні частини
+# Картка й завдання (методичка, с. 10: картка — на обкладинці, завдання — друга сторінка) —
+# документи з підписами й даними наказу; їхній текст, разом зі словами форми, живе поза
+# репозиторієм: MagisterDocs/private/kartka.json і zavdannia.json (власник, 2026-10-13). Тут — лише
+# те, як такий файл розкласти на сторінці. Кожен запис списку «рядки» — один із:
+#   {"текст": "…", "вирівнювання": "ліворуч|центр|праворуч|ширина", "жирний": true, "кегль": 14,
+#    "перед_пт": 0, "після_пт": 0, "розрядка": true}
+#   {"колонки": [{"текст": "…", "ширина_мм": 60, …ті самі ключі…, "лінія": true}], "після_пт": 0}
+#   {"рамка": [ …записи «текст»… ]}                 — рамка довкола кількох рядків (картка)
+#   {"порожніх_рядків": 2}
+# «{ключ}» у тексті — значення з titulka.json; порожнє значення друкується прочерком для
+# заповнення від руки.
+ALIGN = {'ліворуч': LEFT, 'центр': C, 'праворуч': R, 'ширина': J}
+BLANK = '_' * 24
+
+
+def _fill(text):
+    def one(m):
+        if m.group(1) not in DATA:
+            raise SystemExit(f'приватна частина: «{{{m.group(1)}}}» — такого ключа в titulka.json немає')
+        return DATA[m.group(1)] or BLANK
+    return re.sub(r'\{([^{}]+)\}', one, text)
+
+
+def _opts(e):
+    unknown = set(e) - {'текст', 'вирівнювання', 'жирний', 'кегль', 'перед_пт', 'після_пт', 'розрядка',
+                        'ширина_мм', 'лінія', 'підкреслений'}
+    if unknown: raise SystemExit(f'приватна частина: невідомі ключі {sorted(unknown)} у записі {e}')
+    return {'align': ALIGN[e.get('вирівнювання', 'ліворуч')], 'bold': bool(e.get('жирний')),
+            'size': e.get('кегль'), 'before': e.get('перед_пт', 0), 'after': e.get('після_пт', 0),
+            'rule': bool(e.get('лінія')), 'underline': bool(e.get('підкреслений'))}
+
+
+def _form_line(doc, e):
+    o = _opts(e)
+    p = para(doc, '', align=o['align'], indent=0, spacing=1, before=o['before'], after=o['after'])
+    r = p.add_run(_fill(e.get('текст', ''))); r.bold = o['bold']; r.underline = o['underline']
+    if o['size']: r.font.size = Pt(o['size'])
+    if e.get('розрядка'):
+        sp = OxmlElement('w:spacing'); sp.set(qn('w:val'), '60'); r._r.get_or_add_rPr().append(sp)
+
+
+def emit_private_part(doc, path, name):
+    """Сторінка з приватного файлу. Повертає True, якщо файл є і сторінку складено."""
+    if not path or not os.path.exists(path):
+        REPORT['placeholders'].append(f'{name}: файла {os.path.basename(path) if path else "—"} немає — '
+                                      f'сторінку не вставлено')
+        return False
+    spec = json.load(open(path, encoding='utf-8'))
+    for e in spec['рядки']:
+        if 'колонки' in e:
+            cols = e['колонки']
+            t = grid(doc, [c_['ширина_мм'] for c_ in cols])
+            for c_, cell in zip(cols, t.rows[0].cells):
+                cell_lines(cell, [(_fill(c_.get('текст', '')), _opts(c_))])
+            if e.get('після_пт'): para(doc, '', indent=0, spacing=1, size=1, after=e['після_пт'])
+        elif 'рамка' in e:
+            # рамка — не таблиця даних: без стилю «Table Grid», за яким verify.py знаходить таблиці full.md
+            t = grid(doc, (TW,))
+            t._tbl.tblPr.append(parse_xml('<w:tblBorders %s>' % nsdecls('w') + ''.join(
+                '<w:%s w:val="single" w:sz="6" w:space="0" w:color="000000"/>' % side
+                for side in ('top', 'left', 'bottom', 'right')) + '</w:tblBorders>'))
+            cell_lines(t.rows[0].cells[0], [(_fill(x.get('текст', '')), _opts(x)) for x in e['рамка']])
+        elif 'порожніх_рядків' in e:
+            for _ in range(e['порожніх_рядків']): para(doc, '', indent=0, spacing=1)
+        else:
+            _form_line(doc, e)
+    REPORT['notes'].append(f'{name}: сторінку складено з {os.path.basename(path)}')
+    return True
+
+
+def _front_lines():
+    """Номери рядків: титулка, український і англійський реферат; номер рядка «ЗМІСТ»."""
+    ua, en, toc = anchor('**РЕФЕРАТ**'), anchor('**ABSTRACT**'), anchor('**ЗМІСТ**')
+    title = [n for n in range(1, ua) if LINES[n - 1].strip()]
+    return title, (ua, en), (en, toc), toc
+
+
+def build_front(doc, parts=None):
+    """Те, що стоїть перед вступом, у порядку методички (с. 10): картка (у файлі для перевірки —
+    перша сторінка), титульний лист — сторінка 1, завдання — сторінка 2, зміст — сторінка 3, і
+    тільки він нумерується. Реферат сюди не входить: його вкладають у конверт (build_referat).
+    Повертає номер рядка, з якого продовжує build_body."""
+    title, _, _, toc = _front_lines()
+    card = emit_private_part(doc, parts and os.path.join(parts, 'kartka.json'), 'картка')
+    if card: page_break(doc)
+    build_title(doc, title)
+    page_break(doc)
+    if not emit_private_part(doc, parts and os.path.join(parts, 'zavdannia.json'), 'завдання'):
+        boxed(doc, '[МІСЦЕ ДЛЯ ЗАВДАННЯ: друга сторінка роботи — завдання до виконання магістерської '
+                   'кваліфікаційної роботи з підписами; MagisterDocs/private/zavdannia.json]')
+    if card:                               # картка стоїть перед сторінкою 1: відлік із нуля
+        doc.sections[0]._sectPr.append(parse_xml('<w:pgNumType %s w:start="0"/>' % nsdecls('w')))
+    numbered_section(doc, 3)
+    p = para(doc, L(toc).replace('**', ''), align=C, indent=0, bold=True, after=18, keep=True)
     toc_field(doc)
     return toc + 2
+
+
+def build_referat(out, pages=None):
+    """Реферат — окремим файлом (методичка, с. 11: вкладається в конверт разом із рецензією).
+    Український і іноземною мовою, кожен з нової сторінки; текст — ті самі рядки full.md між
+    титулкою і змістом."""
+    _, ua, en, _ = _front_lines()
+    doc = new_doc()
+    for k, (head, end) in enumerate((ua, en)):
+        p = para(doc, L(head).replace('**', ''), align=C, indent=0, bold=True, after=18, keep=True)
+        p.paragraph_format.page_break_before = bool(k)
+        for n in range(head + 1, end):
+            if L(n).strip(): para(doc, L(n))
+    os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
+    doc.save(out)
 
 
 def build_body(doc, lo, hi):
     """Універсальний обробник: заголовки, код, формули, таблиці з підписами,
     лістинги, плейсхолдери, списки, проза. Текст — дослівно з full.md."""
     n, in_refs, last_heading = lo, False, ''
+    runin = None            # заголовок пункту, що чекає на свій текст
+    table_title = None      # номер таблиці, після якого наступний абзац — її назва
+    in_legend = False       # ПЕРЕЛІК УМОВНИХ ПОЗНАЧЕНЬ: рядки «X – Y» збираються у дві колонки
+    legend = []
+    after_formula = False   # після формули вже стоїть вільний рядок
     while n <= hi:
         s = L(n)
         if not s.strip(): n += 1; continue    # поза огорожею порожній рядок — межа абзаців markdown, не код
+        pending, runin = runin, None          # заголовок пункту йде в підбір лише до звичайного абзацу
+        was_formula, after_formula = after_formula, False
+
+        if legend and not (in_legend and LEGEND_ITEM.match(s)):
+            emit_legend(doc, legend); legend = []     # група скінчилася: далі заголовок або проза
 
         m = RE_H.match(s)
         if m:
             lvl, txt = len(m.group(1)), m.group(2)
             in_refs = 'СПИСОК ВИКОРИСТАНИХ ДЖЕРЕЛ' in txt
+            in_legend = lvl == 1 and txt.startswith('ПЕРЕЛІК УМОВНИХ ПОЗНАЧЕНЬ')
+            ap = RE_APPENDIX.match(txt) if lvl == 2 else None
             if lvl == 1:
                 struct_head(doc, txt)
+            elif ap:
+                # кожен додаток — з нової сторінки; перший, що йде одразу за «ДОДАТКИ», лишається
+                # з цим заголовком на його сторінці
+                appendix_head(doc, ap.group(1), ap.group(2), brk=not last_heading.startswith('ДОДАТКИ'))
+            elif lvl == 2:
+                p = doc.add_paragraph(style='Heading 2'); add_runs(p, txt)
             else:
-                p = doc.add_paragraph(style='Heading %d' % min(lvl, 3)); add_runs(p, txt)
-                # ДСТУ 3008: кожен додаток — з нової сторінки; перший, що йде одразу за «ДОДАТКИ»,
-                # лишається з цим заголовком на його сторінці
-                if lvl == 2 and txt.startswith('Додаток') and not last_heading.startswith('ДОДАТКИ'):
-                    p.paragraph_format.page_break_before = True
+                runin = runin_heading(doc, txt)
             last_heading = txt
             _emit_inserts(doc, n)
             n += 1; continue
         last_heading = ''
+
+        if in_legend and LEGEND_ITEM.match(s):
+            legend.append(s); n += 1; continue
 
         if any(a <= n <= b for a, b in CODE_RANGES):
             if not s.lstrip().startswith('```'):
@@ -810,14 +1146,29 @@ def build_body(doc, lo, hi):
             n = emit_fenced(doc, n); continue
 
         if RE_FORMULA.match(s) and RE_FORMULA.match(s).group(2) in FORMULA_TEX:
-            emit_formula(doc, n); n += 1; continue
+            # методичка, с. 19: над і під формулою — не менше одного вільного рядка; між двома
+            # формулами поспіль вільний рядок один, а не два
+            if not was_formula: para(doc, '', indent=0, keep=True)
+            emit_formula(doc, n)
+            para(doc, '', indent=0)
+            after_formula = True
+            n += 1; continue
 
         if s.startswith('|'):
             n = emit_table(doc, n); continue
 
         if RE_TAB_CAP.match(s):
-            para(doc, s, indent=0, spacing=1, before=6, after=6, keep=True, literal=True)
-            REPORT['tables'].append(f'ряд {n}: підпис «{s[:60]}»')
+            # методичка, с. 20–21: «Таблиця N» — праворуч, назва — під ним симетрично до тексту
+            p = para(doc, s, indent=0, align=R, spacing=1, before=6, keep=True, literal=True)
+            table_title = CUR_TABLE[0] = RE_TAB_CAP.match(s).group(1)
+            if table_title in NEW_PAGE: p.paragraph_format.page_break_before = True
+            n += 1; continue
+
+        if table_title is not None:
+            p = para(doc, '', indent=0, align=C, spacing=1, after=6, keep=True)
+            r = p.add_run(s); r.bold = True
+            REPORT['tables'].append(f'ряд {n}: підпис «Таблиця {table_title}» + назва «{s[:50]}»')
+            table_title = None
             n += 1; continue
 
         if RE_LST_CAP.match(s):
@@ -851,24 +1202,53 @@ def build_body(doc, lo, hi):
         if RE_NUM_ITEM.match(s) or RE_BULLET.match(s):
             para(doc, s, indent=1.25, literal=in_refs); n += 1; continue
 
-        para(doc, s)
+        if pending is not None:              # текст пункту — у підбір до його заголовка
+            pending.paragraph_format.keep_with_next = False
+            add_runs(pending, ' ' + s)
+        else:
+            para(doc, s)
         _emit_inserts(doc, n)
         n += 1
+    if legend: emit_legend(doc, legend)
     return doc
+
+
+LEGEND_ITEM = re.compile(r'^(\S.*?) – (\S.*)$')
+
+
+def emit_legend(doc, items):
+    """Перелік умовних позначень двома колонками (методичка, с. 12): зліва скорочення, справа —
+    розшифровка. Таблиця без рамок; текст кожного рядка — дослівно з full.md, тире лишається
+    на початку правої колонки."""
+    pairs = [LEGEND_ITEM.match(x).groups() for x in items]
+    left = min(60, max(len(a) for a, _ in pairs) * 2.6 + 4)          # мм: найдовше скорочення в один рядок
+    t = doc.add_table(rows=len(pairs), cols=2)
+    t.alignment = WD_TABLE_ALIGNMENT.CENTER; t.autofit = False
+    t._tbl.tblPr.append(parse_xml('<w:tblLayout %s w:type="fixed"/>' % nsdecls('w')))
+    for j, w in enumerate((left, TW - left)):
+        t.columns[j].width = Mm(w)
+        for row in t.rows: row.cells[j].width = Mm(w)
+    for row, (a, b) in zip(t.rows, pairs):
+        for c, txt in zip(row.cells, (a, '– ' + b)):
+            c.text = ''
+            p = c.paragraphs[0]; f = p.paragraph_format
+            f.first_line_indent = Cm(0); p.alignment = LEFT
+            add_runs(p, txt)
+    REPORT['notes'].append(f'перелік умовних позначень: {len(pairs)} рядків у дві колонки, ліва {left:.0f} мм')
 
 
 # ================================================================ рисунки
 # Рисунки рендерить render_figures.py (крок run_all.sh перед складанням) у теку з manifest.json.
 # Плейсхолдер «[МІСЦЕ ДЛЯ РИСУНКА N]» заміняється зображенням; рисунок без рендера лишається
 # плейсхолдером у рамці. Рисунок на кількох аркушах: перший аркуш — над підписом із full.md
-# (дослівно), кожен наступний — після нього з підписом «Рисунок N, аркуш k».
+# (дослівно), кожен наступний — після нього з підписом «Рис. N, аркуш k».
 
 FIGURES, PENDING, LANDSCAPE_OPEN = {}, {}, set()
 FIG_DIR = None
 AREA_MM = {'portrait': (TW, 240),         # область рисунка: книжкова сторінка без підпису, мм
            'landscape': (257, 150)}       # альбомна: 297 − 20 − 20; 210 − 30 − 10 − підпис
 PX_MM = 25.4 / 96                         # CSS-піксель рендера в мм за натурального розміру
-RE_SHEET_LABEL = 'Рисунок {num}, аркуш {k}'
+RE_SHEET_LABEL = 'Рис. {num}, аркуш {k}'
 
 
 def load_figures(d):
@@ -897,6 +1277,8 @@ def orientation_section(doc, landscape):
     переноситься в попередній абзац; якщо перед ним таблиця — абзац лишається, але 1 пт."""
     s = doc.add_section(WD_SECTION.NEW_PAGE)
     s.different_first_page_header_footer = False
+    for pg in s._sectPr.findall(qn('w:pgNumType')):            # новий розділ успадкував «нумерувати з 3»:
+        s._sectPr.remove(pg)                                   # нумерація має продовжуватися, а не починатися знову
     brk = doc.element.body.findall(qn('w:p'))[-1]              # новий абзац із розривом
     prev = brk.getprevious()
     if prev is not None and prev.tag == qn('w:p') and prev.find(qn('w:pPr') + '/' + qn('w:sectPr')) is None:
@@ -971,16 +1353,21 @@ def emit_pending_sheets(doc, num):
         orientation_section(doc, False); LANDSCAPE_OPEN.discard(num)
 
 
-def build(src, out, brief=None, registry=None, report=None, figures=None, private=None):
+def build(src, out, brief=None, registry=None, report=None, figures=None, private=None, parts=None,
+          referat=None, pages=None, splits=None):
     load(src, brief)
-    load_private(private)
+    load_private(private, pages)
+    load_splits(splits)
     if registry: bind_registry(registry)
     load_figures(figures)
     doc = new_doc()
-    start = build_front(doc)
+    start = build_front(doc, parts)
     build_body(doc, start, len(LINES) - 1)
+    if not pages:
+        REPORT['placeholders'].append('кількість сторінок: не задано (--pages) — у тексті лишився плейсхолдер')
+    if referat: build_referat(referat, pages)
     if PENDING:
-        raise SystemExit(f'РИСУНОК БЕЗ ПІДПИСУ: аркуші {sorted(PENDING)} не мають підпису «Рисунок N – …» у full.md')
+        raise SystemExit(f'РИСУНОК БЕЗ ПІДПИСУ: аркуші {sorted(PENDING)} не мають підпису «Рис. N …» у full.md')
     for kind, items in NORMALIZED.items():
         if items: REPORT['notes'].append(f'нормалізація «{kind}»: {len(items)} замін')
     if APOSTROPHE_KV:
@@ -1001,9 +1388,14 @@ if __name__ == '__main__':
     ap.add_argument('--registry', default=os.path.join(HERE, 'registry.json'))
     ap.add_argument('--report', help='куди записати звіт складання (JSON)')
     ap.add_argument('--figures', help='тека рендерів із manifest.json (render_figures.py); без неї — плейсхолдери')
-    ap.add_argument('--private', help='titulka.json з іменами для титулки й анотацій (поза репозиторієм)')
+    ap.add_argument('--private', help='titulka.json — дані титулки й реферату (поза репозиторієм)')
+    ap.add_argument('--parts', help='тека з приватними частинами kartka.json і zavdannia.json (MagisterDocs/private)')
+    ap.add_argument('--referat', help='куди записати реферат окремим .docx')
+    ap.add_argument('--pages', type=int, help='кількість сторінок роботи з PDF попереднього проходу')
+    ap.add_argument('--splits', help='план поділу таблиць за сторінками з PDF попереднього проходу (layout.py tables)')
     a = ap.parse_args()
-    rep = build(a.src, a.out, a.brief, a.registry, a.report, a.figures, a.private)
+    rep = build(a.src, a.out, a.brief, a.registry, a.report, a.figures, a.private, a.parts, a.referat, a.pages,
+                a.splits)
     for x in rep['notes']: print('•', x)
     for x in rep['figures']:
         if x.startswith('рисунок'): print('•', x)

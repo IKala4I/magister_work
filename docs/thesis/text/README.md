@@ -20,11 +20,18 @@ Word file.**
 | File                       | Draft destination                             | Status                                                                     |
 | -------------------------- | --------------------------------------------- | -------------------------------------------------------------------------- |
 | `rozdil-6.md`              | **РОЗДІЛ 6** (new; owner decision 2026-09-09) | ✅ written — 6.1–6.9, tables 6.1–6.7                                       |
-| `dodatok-g.md`             | **Додаток Г** (replaces the existing one)     | ✅ written — the deployed schema, not an illustration (decision D5)        |
+| `dodatok-v.md`             | **Додаток В** (the draft's Додаток Г)         | ✅ written — the deployed schema, not an illustration (decision D5)        |
 | `rozdil-5.md`              | **РОЗДІЛ 5** (rebuilt)                        | ✅ written — 5.1–5.9, tables 5.1–5.2                                       |
 | `anotaciya-ta-vysnovky.md` | **АНОТАЦІЯ**, **ANNOTATION**, **ВИСНОВКИ**    | ✅ written — all four §3 statements carried without softening              |
-| `dodatok-z.md`             | **Додаток З** (new)                           | ✅ **generated** from the results JSON by `gen-dodatok-z.py`; CI checks it |
-| `dodatok-y.md`             | **Додаток И** (new)                           | ✅ written — registered predictions, criteria, the four dating commits     |
+| `dodatok-k.md`             | **Додаток К** (new)                           | ✅ **generated** from the results JSON by `gen-dodatok-k.py`; CI checks it |
+| `dodatok-l.md`             | **Додаток Л** (new)                           | ✅ written — registered predictions, criteria, the four dating commits     |
+
+**Appendix letters (2026-10-13).** The department's guideline letters appendices without Г and З
+and in the order the text refers to them, so the files are named by the letter the appendix has in
+the thesis: `dodatok-v.md` was `dodatok-g.md`, `dodatok-k.md` was `dodatok-z.md`, `dodatok-l.md`
+was `dodatok-y.md`. The draft's own appendices keep the draft's letters in the draft and in the
+rollup; `assemble.py` (`APPENDICES`) is the one place the two letterings meet. Records dated before
+2026-10-13 use the old letters.
 
 ## Rules these files were written under
 
@@ -47,7 +54,7 @@ Both come from `corrections-rollup.md` and they are not stylistic:
 
 4. **A formatting rule lives next to the data it formats** (owner directive 2026-09-11), not in a
    sweep over the assembled text carrying a list of exceptions. The decimal comma is the worked
-   example: it belongs in `gen-dodatok-z.py`, beside the numbers that generator writes. Had it been
+   example: it belongs in `gen-dodatok-k.py`, beside the numbers that generator writes. Had it been
    a sweep over numeric-looking table cells, it would have converted Додаток Е's traceability row
    for FR-42 — the cell reads `3.7`, is entirely a number by any mechanical test, and means
    підрозділ 3.7. The sweep would have needed to know that; the generator cannot reach it. The

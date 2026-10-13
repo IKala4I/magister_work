@@ -35,8 +35,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: python3 docs/thesis/verify-numbers.py
-      - name: Додаток З matches the run it is generated from
-        run: python3 docs/thesis/gen-dodatok-z.py --check
+      - name: Додаток К (the grid of worlds) matches the run it is generated from
+        run: python3 docs/thesis/gen-dodatok-k.py --check
       - name: The assembled thesis passes the needle list
         run: python3 docs/thesis/verify-docx.py docs/thesis/text/full.md
       - name: Every approved rollup payload has a placement in full.md
@@ -45,6 +45,11 @@ jobs:
         run: python3 docs/thesis/verify-brief.py
       - name: The assembled thesis obeys the style decisions (bold, dash, listings, artefacts)
         run: python3 docs/thesis/verify-style.py
+      # The department's 2026 guideline, where the rule is about the text: appendix letters and
+      # order, captions and numbering, a reference to every table, figure and appendix, a citation
+      # of every source. The self-test breaks the text once per rule and requires the rule to notice.
+      - name: The assembled thesis obeys the department guideline (text rules)
+        run: python3 docs/thesis/verify-guideline.py && python3 docs/thesis/verify-guideline.py --self-test
       # Documentation about state drifts the way the text does, only more quietly: ASSEMBLY.md's
       # own paragraph about the inline-correction gap was false within a day of being written,
       # and a study summary carried a wrong grid claim forward into a chapter draft. A state

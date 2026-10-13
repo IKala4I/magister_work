@@ -1056,3 +1056,20 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     server still held **11 × `shown`** and `rewards_after` was empty (`server-q-first-fg.json`).
 
     Change the text to the two-event form (done — rollup §2.7 payload). Додаток Г stands unchanged.
+
+65. **Title page, АНОТАЦІЯ, ВСТУП «Структура та обсяг роботи», the appendix letters — the draft
+    follows ДСТУ 3008 and its own order; the thesis follows the department's 2026 guideline**
+    (owner's decision, 2026-10-13; the guideline is kept outside the repository). Draft: a title
+    page with «Кафедра комп'ютерних наук», «КВАЛІФІКАЦІЙНА РОБОТА на здобуття освітнього ступеня
+    «Магістр»» and a «Рецензент» line; «АНОТАЦІЯ» / «ANNOTATION» bound after it; «списку
+    використаних джерел із 66 найменувань», «на понад 70 сторінках», «відповідно до вимог ДСТУ
+    3008:2015»; appendices А–Ж in the order they were written. Thesis: the department's title form
+    (its Додаток В: «ПОГОДЖЕНО», «ДОПУСКАЄТЬСЯ ДО ЗАХИСТУ», кафедра інженерії програмного
+    забезпечення, спеціальність F2, гарант, no reviewer), with every name and the form's data as
+    placeholders filled from outside the repository; «РЕФЕРАТ» / «ABSTRACT» with the counts, the
+    object and the aim, built as a separate file because the guideline has it enclosed, not bound;
+    a «Структура» paragraph whose numbers are counted from the text (71 sources, 9 appendices, 7
+    figures, 33 tables, 20 formulas; pages from the rendered PDF) and which describes each chapter;
+    appendices А Б В Д Е Ж И К Л in the order the text refers to them. Change the draft's text
+    because the guideline is the department's requirement and the draft's numbers were the draft's
+    own (done — `assemble.py`: `title_page`, `referat`, `structure_paragraph`, `APPENDICES`).
