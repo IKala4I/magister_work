@@ -33,7 +33,7 @@ NUM = r"(?:\d+|[А-ЯІЇЄҐ])\.\d+"
 TABLE_CAP = re.compile(rf"^Таблиця ({NUM})(?:\s+–\s+\S|$)")
 FIG_CAP = re.compile(rf"^(?:Рисунок|Рис\.) ({NUM})(?:\s+–)?\s+\S")
 APP_HEAD = re.compile(r"^## Додаток ([А-ЯІЇЄҐ])\b")
-APP_REF = re.compile(r"(?i)додат(?:ок|ку|ка|ком|ки|ків|ках|ками|кам)\s+([А-ЯІЇЄҐ])(?:\s+і\s+([А-ЯІЇЄҐ]))?(?![\w’'])")
+APP_REF = re.compile(r"(?i)(?:додат(?:ок|ку|ка|ком|ки|ків|ках|ками|кам)|дод\.)\s+([А-ЯІЇЄҐ])(?:\s+і\s+([А-ЯІЇЄҐ]))?(?![\w’'])")
 CITE = re.compile(r"(?<!∈ )(?<!∈)\[(\d+(?:\s*,\s*\d+)*)(?:,\s*с\.\s*[\d–-]+)?\]")
 
 
@@ -152,6 +152,8 @@ def mutations(text: str) -> list[tuple[str, str, str]]:
          re.sub(r"(?i)наведено в додатку А\.", "наведено окремо.", text, count=1), "never referred to in the body"),
         ("a reference to an appendix that does not exist",
          text.replace("в додатку А.", "в додатку Ю.", 1), "does not exist"),
+        ("an abbreviated reference («дод. Ю») to an appendix that does not exist",
+         re.sub(r"дод\. [А-Я]", "дод. Ю", text, count=1), "does not exist"),
         ("appendices out of the order of reference",
          text.replace("в додатку А.", "в додатку Б.", 1).replace("в додатку Б (", "в додатку А (", 1), "placed in the order"),
         ("a table without a caption",

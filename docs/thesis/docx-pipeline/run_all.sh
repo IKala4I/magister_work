@@ -35,6 +35,7 @@ echo "== середовище: $("${PY[@]}" -c 'import sys, docx, lxml; print(f"
 echo; echo "== рисунки";        "${PY[@]}" "$HERE/render_figures.py" --src "$SRC" --out "$OUT/figures" --docs "$DOCS"
 echo; echo "== складання";      "${PY[@]}" "$HERE/build.py" --src "$SRC" --brief "$BRIEF" --out "$OUT/hourwell.docx" --report "$OUT/report.json" --figures "$OUT/figures" ${PRIVATE[@]+"${PRIVATE[@]}"}
 echo; echo "== звірка";         "${PY[@]}" "$HERE/verify.py" --src "$SRC" --brief "$BRIEF" --docx "$OUT/hourwell.docx" --figures "$OUT/figures" ${PRIVATE[@]+"${PRIVATE[@]}"}
+echo; echo "== самоперевірка оформлення"; "${PY[@]}" "$HERE/verify.py" --self-test --src "$SRC" --docx "$OUT/hourwell.docx"
 echo; echo "== легенди";        "${PY[@]}" "$HERE/check_legend_symbols.py" "$SRC"
 echo; echo "== аудит розмітки"; "${PY[@]}" "$HERE/audit_markdown.py" "$SRC" --out "$OUT/audit.md"
 

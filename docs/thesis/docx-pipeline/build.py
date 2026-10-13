@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Складальник магістерської роботи: full.md → .docx за стандартом НУБіП / ДСТУ 3008.
+"""Складальник магістерської роботи: full.md → .docx за методичними рекомендаціями кафедри (2026).
 
     python3 build.py --src ../text/full.md --brief ../formatter-brief.md \\
                      --registry registry.json --out $DOCS/build/hourwell.docx --report $DOCS/build/report.json \\
@@ -16,7 +16,7 @@ import argparse, json, os, re, subprocess, sys, tempfile
 
 from docx import Document
 from docx.shared import Pt, Mm, Cm, RGBColor
-from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING, WD_BREAK
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING, WD_BREAK, WD_TAB_ALIGNMENT, WD_TAB_LEADER
 from docx.enum.section import WD_SECTION, WD_ORIENT
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.oxml.ns import qn, nsdecls
@@ -304,16 +304,30 @@ def new_doc():
     p.first_line_indent = Cm(1.25); p.alignment = J
     p.space_before = Pt(0); p.space_after = Pt(0)
 
-    for name, before, after, align, ind, brk in (
-            ('Heading 1', 0, 18, C, 0, True),
-            ('Heading 2', 18, 12, LEFT, 1.25, False),
-            ('Heading 3', 12, 6, LEFT, 1.25, False)):
-        st = doc.styles[name]; force(st, size=14, bold=True)
+    # Методичка, с. 17: між заголовком і текстом — 2–3 інтервали (6–9 мм); 18 пт = 6,35 мм.
+    # Заголовок пункту під це правило не підпадає: його друкують у розрядці в підбір до тексту
+    # (runin_heading) — це початок абзацу, а не стиль заголовка.
+    for name, before, after, align, ind, brk, bold in (
+            ('Heading 1', 0, 18, C, 0, True, True),
+            ('Heading 2', 18, 18, LEFT, 1.25, False, True)):
+        st = doc.styles[name]; force(st, size=14, bold=bold)
         f = st.paragraph_format
         f.space_before, f.space_after = Pt(before), Pt(after)
         f.alignment, f.first_line_indent = align, Cm(ind)
         f.line_spacing_rule = WD_LINE_SPACING.ONE_POINT_FIVE
         f.keep_with_next = True; f.page_break_before = brk
+    # Рядки змісту: без власних стилів Word і LibreOffice беруть кожен свої відступи рівнів.
+    # Підрозділи, пункти й додатки — з одним відступом: запис додатка LibreOffice ставить на
+    # рівень нижче, ніж Word, і різний відступ рівнів 2 і 3 розвів би їх у PDF.
+    from docx.enum.style import WD_STYLE_TYPE
+    for lvl, left in ((1, 0), (2, 0.5), (3, 0.5)):
+        try: st = doc.styles['toc %d' % lvl]
+        except KeyError: st = doc.styles.add_style('toc %d' % lvl, WD_STYLE_TYPE.PARAGRAPH)
+        st.base_style = doc.styles['Normal']; force(st, bold=False)
+        f = st.paragraph_format
+        f.first_line_indent = Cm(0); f.left_indent = Cm(left); f.alignment = LEFT
+        f.space_before = f.space_after = Pt(0)
+        f.tab_stops.add_tab_stop(Mm(TW), WD_TAB_ALIGNMENT.RIGHT, WD_TAB_LEADER.DOTS)
 
     page_number(s.header.paragraphs[0])
     return doc
@@ -421,7 +435,7 @@ def para(doc, text='', *, align=None, indent=None, spacing=None, size=None, bold
 
 def toc_field(doc):
     p = doc.add_paragraph(); p.paragraph_format.first_line_indent = Cm(0)
-    for kind, val in (('begin', None), ('instr', r' TOC \o "1-3" \h \z \u '), ('separate', None)):
+    for kind, val in (('begin', None), ('instr', r' TOC \o "1-3" \h \z \u \f '), ('separate', None)):
         r = p.add_run()
         if kind == 'instr':
             e = OxmlElement('w:instrText'); e.set(qn('xml:space'), 'preserve'); e.text = val
@@ -437,15 +451,90 @@ def page_break(doc):
     doc.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
 
 
+RE_CHAPTER = re.compile(r'^(РОЗДІЛ \d+) (.+)$')
+RE_APPENDIX = re.compile(r'^(Додаток [А-ЯІЇЄҐ]) (.+)$')
+
+
 def struct_head(doc, text, in_toc=True, brk=True):
-    """Структурний заголовок. in_toc=False — не потрапляє в автозміст (сам ЗМІСТ)."""
+    """Структурний заголовок. in_toc=False — не потрапляє в автозміст (сам ЗМІСТ).
+    Методичка, с. 18: «РОЗДІЛ 1» — без крапки, назва розділу — з нового рядка. Це один абзац із
+    розривом рядка: у змісті він стає одним записом «РОЗДІЛ 1 НАЗВА»."""
     if in_toc:
         p = doc.add_paragraph(style='Heading 1')
-        add_runs(p, text)
+        m = RE_CHAPTER.match(text)
+        if m:
+            add_runs(p, m.group(1)); p.runs[-1].add_break(WD_BREAK.LINE); add_runs(p, m.group(2))
+        else:
+            add_runs(p, text)
         p.paragraph_format.page_break_before = brk
     else:
         if brk: page_break(doc)
         p = para(doc, text, align=C, indent=0, bold=True, after=18, keep=True)
+    return p
+
+
+def field(p, instr):
+    """Поле Word без видимого результату (TC — запис для змісту)."""
+    for kind in ('begin', 'instr', 'end'):
+        r = p.add_run()
+        if kind == 'instr':
+            e = OxmlElement('w:instrText'); e.set(qn('xml:space'), 'preserve'); e.text = instr
+        else:
+            e = OxmlElement('w:fldChar'); e.set(qn('w:fldCharType'), kind)
+        r._r.append(e)
+
+
+def appendix_head(doc, label, title, brk):
+    """Методичка, с. 22: «Додаток А» — праворуч, під ним назва симетрично до тексту, кожен
+    додаток — з нової сторінки. Два абзаци з різним вирівнюванням не можуть бути одним
+    заголовком, тож у зміст додаток іде записом TC (поле Word), одним рядком «Додаток А Назва»."""
+    p = para(doc, label, align=R, indent=0, keep=True, literal=True)
+    p.paragraph_format.page_break_before = brk
+    field(p, ' TC "%s %s" \\l 2 ' % (label, title.replace('"', '\u201d')))
+    t = para(doc, '', align=C, indent=0, after=18, keep=True)
+    add_runs(t, title, bold_all=True)
+    return p
+
+
+SPACED = 30                               # розрядка заголовка пункту, двадцяті частки пункту: 1,5 пт
+TC_LEVEL = 2                              # рівень записів TC у змісті — див. toc_entry
+
+
+def toc_entry(p, text):
+    """Запис для змісту (поле TC) на початку абзацу `p`. Рівень 2 і для додатків, і для пунктів:
+    Word ставить запис на вказаний рівень, а LibreOffice — на один нижче (перевірено на 26.8.0:
+    «\\l 3» у зміст PDF не потрапляє зовсім), тож рівень 2 дає запис в обох, а однаковий відступ
+    стилів «toc 2» і «toc 3» робить різницю невидимою."""
+    field(p, ' TC "%s" \\l %d ' % (text.replace('"', '\u201d'), TC_LEVEL))
+
+
+def appendix_head(doc, label, title, brk):
+    """Методичка, с. 22: «Додаток А» — праворуч, під ним назва симетрично до тексту, кожен
+    додаток — з нової сторінки. Два абзаци з різним вирівнюванням не можуть бути одним
+    заголовком, тож у зміст додаток іде записом TC, одним рядком «Додаток А Назва»."""
+    p = para(doc, '', align=R, indent=0, keep=True)
+    p.paragraph_format.page_break_before = brk
+    toc_entry(p, label + ' ' + title)
+    add_literal(p, label)
+    t = para(doc, '', align=C, indent=0, after=18, keep=True)
+    add_runs(t, title, bold_all=True)
+    return p
+
+
+def runin_heading(doc, text):
+    """Заголовок пункту (методичка, с. 17): з абзацного відступу, у розрядці, у підбір до тексту,
+    з крапкою в кінці. Це початок звичайного абзацу, а не окремий абзац-заголовок: текст пункту
+    дописується в той самий абзац (build_body), і так рядок виходить однаковим у Word і в PDF.
+    Прихований знак абзацу (роздільник стилів Word) LibreOffice верстає рамкою, яка на заголовку,
+    довшому за рядок, розриває текст. У зміст пункт іде записом TC."""
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before = Pt(12); p.paragraph_format.keep_with_next = True
+    head = text if text.rstrip().endswith('.') else text.rstrip() + '.'
+    toc_entry(p, head)
+    first = len(p.runs)
+    add_runs(p, head)
+    for r in p.runs[first:]:
+        sp = OxmlElement('w:spacing'); sp.set(qn('w:val'), str(SPACED)); r._r.get_or_add_rPr().append(sp)
     return p
 
 
@@ -464,8 +553,8 @@ RE_H = re.compile(r'^(#{1,3})\s+(.*)$')
 RE_FORMULA = re.compile(r'^(.*?)\s{2,}\((\d+\.\d+)\)\s*$')
 RE_FIG_PH = re.compile(r'^(?:\*\*)?\[МІСЦЕ ДЛЯ РИСУНКА ([^\]]+)\](?:\*\*)?')
 RE_FILL_PH = re.compile(r'\[МІСЦЕ ДЛЯ ЗАПОВНЕННЯ:')
-RE_FIG_CAP = re.compile(r'^Рисунок ([\wА-ЯІЇЄҐ.]+)\s+[—–-]')
-RE_TAB_CAP = re.compile(r'^Таблиця ([\wА-ЯІЇЄҐ.]+)\s+[—–-]')
+RE_FIG_CAP = re.compile(r'^Рис\. ((?:\d+|[А-ЯІЇЄҐ])\.\d+) \S')        # «Рис. 1.2 Назва» (методичка, с. 19)
+RE_TAB_CAP = re.compile(r'^Таблиця ((?:\d+|[А-ЯІЇЄҐ])\.\d+)$')        # номер; назва — наступним абзацом
 RE_LST_CAP = re.compile(r'^Лістинг ([\w.]+)\s+[—–-]')
 RE_NUM_ITEM = re.compile(r'^\d+\.\s')
 RE_BULLET = re.compile(r'^[–—-]\s')
@@ -780,26 +869,43 @@ def build_body(doc, lo, hi):
     """Універсальний обробник: заголовки, код, формули, таблиці з підписами,
     лістинги, плейсхолдери, списки, проза. Текст — дослівно з full.md."""
     n, in_refs, last_heading = lo, False, ''
+    runin = None            # заголовок пункту, що чекає на свій текст
+    table_title = None      # номер таблиці, після якого наступний абзац — її назва
+    in_legend = False       # ПЕРЕЛІК УМОВНИХ ПОЗНАЧЕНЬ: рядки «X – Y» збираються у дві колонки
+    legend = []
+    after_formula = False   # після формули вже стоїть вільний рядок
     while n <= hi:
         s = L(n)
         if not s.strip(): n += 1; continue    # поза огорожею порожній рядок — межа абзаців markdown, не код
+        pending, runin = runin, None          # заголовок пункту йде в підбір лише до звичайного абзацу
+        was_formula, after_formula = after_formula, False
+
+        if legend and not (in_legend and LEGEND_ITEM.match(s)):
+            emit_legend(doc, legend); legend = []     # група скінчилася: далі заголовок або проза
 
         m = RE_H.match(s)
         if m:
             lvl, txt = len(m.group(1)), m.group(2)
             in_refs = 'СПИСОК ВИКОРИСТАНИХ ДЖЕРЕЛ' in txt
+            in_legend = lvl == 1 and txt.startswith('ПЕРЕЛІК УМОВНИХ ПОЗНАЧЕНЬ')
+            ap = RE_APPENDIX.match(txt) if lvl == 2 else None
             if lvl == 1:
                 struct_head(doc, txt)
+            elif ap:
+                # кожен додаток — з нової сторінки; перший, що йде одразу за «ДОДАТКИ», лишається
+                # з цим заголовком на його сторінці
+                appendix_head(doc, ap.group(1), ap.group(2), brk=not last_heading.startswith('ДОДАТКИ'))
+            elif lvl == 2:
+                p = doc.add_paragraph(style='Heading 2'); add_runs(p, txt)
             else:
-                p = doc.add_paragraph(style='Heading %d' % min(lvl, 3)); add_runs(p, txt)
-                # ДСТУ 3008: кожен додаток — з нової сторінки; перший, що йде одразу за «ДОДАТКИ»,
-                # лишається з цим заголовком на його сторінці
-                if lvl == 2 and txt.startswith('Додаток') and not last_heading.startswith('ДОДАТКИ'):
-                    p.paragraph_format.page_break_before = True
+                runin = runin_heading(doc, txt)
             last_heading = txt
             _emit_inserts(doc, n)
             n += 1; continue
         last_heading = ''
+
+        if in_legend and LEGEND_ITEM.match(s):
+            legend.append(s); n += 1; continue
 
         if any(a <= n <= b for a, b in CODE_RANGES):
             if not s.lstrip().startswith('```'):
@@ -810,14 +916,28 @@ def build_body(doc, lo, hi):
             n = emit_fenced(doc, n); continue
 
         if RE_FORMULA.match(s) and RE_FORMULA.match(s).group(2) in FORMULA_TEX:
-            emit_formula(doc, n); n += 1; continue
+            # методичка, с. 19: над і під формулою — не менше одного вільного рядка; між двома
+            # формулами поспіль вільний рядок один, а не два
+            if not was_formula: para(doc, '', indent=0, keep=True)
+            emit_formula(doc, n)
+            para(doc, '', indent=0)
+            after_formula = True
+            n += 1; continue
 
         if s.startswith('|'):
             n = emit_table(doc, n); continue
 
         if RE_TAB_CAP.match(s):
-            para(doc, s, indent=0, spacing=1, before=6, after=6, keep=True, literal=True)
-            REPORT['tables'].append(f'ряд {n}: підпис «{s[:60]}»')
+            # методичка, с. 20–21: «Таблиця N» — праворуч, назва — під ним симетрично до тексту
+            para(doc, s, indent=0, align=R, spacing=1, before=6, keep=True, literal=True)
+            table_title = RE_TAB_CAP.match(s).group(1)
+            n += 1; continue
+
+        if table_title is not None:
+            p = para(doc, '', indent=0, align=C, spacing=1, after=6, keep=True)
+            r = p.add_run(s); r.bold = True
+            REPORT['tables'].append(f'ряд {n}: підпис «Таблиця {table_title}» + назва «{s[:50]}»')
+            table_title = None
             n += 1; continue
 
         if RE_LST_CAP.match(s):
@@ -851,24 +971,53 @@ def build_body(doc, lo, hi):
         if RE_NUM_ITEM.match(s) or RE_BULLET.match(s):
             para(doc, s, indent=1.25, literal=in_refs); n += 1; continue
 
-        para(doc, s)
+        if pending is not None:              # текст пункту — у підбір до його заголовка
+            pending.paragraph_format.keep_with_next = False
+            add_runs(pending, ' ' + s)
+        else:
+            para(doc, s)
         _emit_inserts(doc, n)
         n += 1
+    if legend: emit_legend(doc, legend)
     return doc
+
+
+LEGEND_ITEM = re.compile(r'^(\S.*?) – (\S.*)$')
+
+
+def emit_legend(doc, items):
+    """Перелік умовних позначень двома колонками (методичка, с. 12): зліва скорочення, справа —
+    розшифровка. Таблиця без рамок; текст кожного рядка — дослівно з full.md, тире лишається
+    на початку правої колонки."""
+    pairs = [LEGEND_ITEM.match(x).groups() for x in items]
+    left = min(60, max(len(a) for a, _ in pairs) * 2.6 + 4)          # мм: найдовше скорочення в один рядок
+    t = doc.add_table(rows=len(pairs), cols=2)
+    t.alignment = WD_TABLE_ALIGNMENT.CENTER; t.autofit = False
+    t._tbl.tblPr.append(parse_xml('<w:tblLayout %s w:type="fixed"/>' % nsdecls('w')))
+    for j, w in enumerate((left, TW - left)):
+        t.columns[j].width = Mm(w)
+        for row in t.rows: row.cells[j].width = Mm(w)
+    for row, (a, b) in zip(t.rows, pairs):
+        for c, txt in zip(row.cells, (a, '– ' + b)):
+            c.text = ''
+            p = c.paragraphs[0]; f = p.paragraph_format
+            f.first_line_indent = Cm(0); p.alignment = LEFT
+            add_runs(p, txt)
+    REPORT['notes'].append(f'перелік умовних позначень: {len(pairs)} рядків у дві колонки, ліва {left:.0f} мм')
 
 
 # ================================================================ рисунки
 # Рисунки рендерить render_figures.py (крок run_all.sh перед складанням) у теку з manifest.json.
 # Плейсхолдер «[МІСЦЕ ДЛЯ РИСУНКА N]» заміняється зображенням; рисунок без рендера лишається
 # плейсхолдером у рамці. Рисунок на кількох аркушах: перший аркуш — над підписом із full.md
-# (дослівно), кожен наступний — після нього з підписом «Рисунок N, аркуш k».
+# (дослівно), кожен наступний — після нього з підписом «Рис. N, аркуш k».
 
 FIGURES, PENDING, LANDSCAPE_OPEN = {}, {}, set()
 FIG_DIR = None
 AREA_MM = {'portrait': (TW, 240),         # область рисунка: книжкова сторінка без підпису, мм
            'landscape': (257, 150)}       # альбомна: 297 − 20 − 20; 210 − 30 − 10 − підпис
 PX_MM = 25.4 / 96                         # CSS-піксель рендера в мм за натурального розміру
-RE_SHEET_LABEL = 'Рисунок {num}, аркуш {k}'
+RE_SHEET_LABEL = 'Рис. {num}, аркуш {k}'
 
 
 def load_figures(d):
@@ -980,7 +1129,7 @@ def build(src, out, brief=None, registry=None, report=None, figures=None, privat
     start = build_front(doc)
     build_body(doc, start, len(LINES) - 1)
     if PENDING:
-        raise SystemExit(f'РИСУНОК БЕЗ ПІДПИСУ: аркуші {sorted(PENDING)} не мають підпису «Рисунок N – …» у full.md')
+        raise SystemExit(f'РИСУНОК БЕЗ ПІДПИСУ: аркуші {sorted(PENDING)} не мають підпису «Рис. N …» у full.md')
     for kind, items in NORMALIZED.items():
         if items: REPORT['notes'].append(f'нормалізація «{kind}»: {len(items)} замін')
     if APOSTROPHE_KV:

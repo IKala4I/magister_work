@@ -31,13 +31,19 @@ check_legend_symbols.py, audit_markdown.py і структурні переві�
   6. кожен блок коду — рядок до рядка, разом із порожніми, проти абзаців коду документа
      (до 2026-09-28 складальник викидав порожні рядки з коду, а перевірка 1 їх не бачила);
   7. з --figures: кожен відрендерений рисунок стоїть на своєму місці — зображення перед підписом
-     «Рисунок N – …» і кожен наступний аркуш після нього з підписом «Рисунок N, аркуш k» —
+     «Рис. N …» і кожен наступний аркуш після нього з підписом «Рис. N, аркуш k» —
      і це саме той рендер: SHA-256 байтів зображення в .docx збігається з файлом рендера;
      плейсхолдера такого рисунка в документі немає; зайвих зображень немає;
   8. з --private: кожен заповнений приватний плейсхолдер (титулка, анотації) у документі
      замінено значенням, незаповнений — лишився як є, і жодне приватне значення не потрапило
      у full.md (публічний репозиторій).
-Код виходу 1, якщо порушено будь-що з 1–8.
+  9. оформлення за методичними рекомендаціями кафедри (2026), виміряне в готовому .docx, а не
+     прочитане з намірів build.py: аркуш і поля, шрифт і інтервал, заголовок розділу у два рядки,
+     відстань від заголовка до тексту, заголовок пункту в розрядці в підбір до тексту, підписи
+     таблиць і рисунків, вільні рядки біля формул, заголовки додатків, перелік у дві колонки.
+     `--self-test` псує зібраний документ по разу на кожне правило й вимагає, щоб перевірка
+     це помітила.
+Код виходу 1, якщо порушено будь-що з 1–9.
 """
 import argparse, json, os, re, sys, zipfile
 
@@ -238,9 +244,9 @@ def check_figures(fig_dir, docx, lines):
     for num, fig in man.items():
         want = [file_sha(s['file']) for s in fig['sheets']]
         caps = [i for i, (k, t, *_) in enumerate(els)
-                if k == 'P' and re.match(rf'^Рисунок {re.escape(num)}\s+[–—-]', t)]
+                if k == 'P' and re.match(rf'^Рис\. {re.escape(num)} \S', t)]
         if len(caps) != 1:
-            bad.append(f'рисунок {num}: підписів «Рисунок {num} – …» у .docx {len(caps)}, має бути 1'); continue
+            bad.append(f'рисунок {num}: підписів «Рис. {num} …» у .docx {len(caps)}, має бути 1'); continue
         i = caps[0]
         prev = els[i - 1] if i else ('', '', [], [], '')
         first = want if fig['kind'] == 'images' else want[:1]
@@ -253,8 +259,8 @@ def check_figures(fig_dir, docx, lines):
             img, lab = (els[i + 2 * k - 3: i + 2 * k - 1] + [None, None])[:2]
             if not img or img[2] != [sha]:
                 bad.append(f'рисунок {num}, аркуш {k}: після підпису не той рендер або його немає')
-            if not lab or lab[1] != f'Рисунок {num}, аркуш {k}':
-                bad.append(f'рисунок {num}, аркуш {k}: немає підпису «Рисунок {num}, аркуш {k}»')
+            if not lab or lab[1] != f'Рис. {num}, аркуш {k}':
+                bad.append(f'рисунок {num}, аркуш {k}: немає підпису «Рис. {num}, аркуш {k}»')
             placed.append(img)
         # як рисунок стоїть насправді: орієнтація сторінки й кегль найдрібнішого тексту на папері —
         # з ширини зображення в .docx, а не з того, що збирався зробити build.py
@@ -315,13 +321,215 @@ def docx_code_blocks(path):
     return blocks
 
 
+# ================================================================ перевірка 9: оформлення
+WNS = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'
+MNS = '{http://schemas.openxmlformats.org/officeDocument/2006/math}'
+ITEM = r'(?:\d+|[А-ЯІЇЄҐ])\.\d+'
+HEAD_GAP_MM = (6.0, 9.0)                 # методичка, с. 17: 2–3 інтервали між заголовком і текстом
+
+
+def _body(doc):
+    """Тіло документа по порядку: абзаци й таблиці як об'єкти python-docx."""
+    from docx.text.paragraph import Paragraph
+    from docx.table import Table
+    out = []
+    for el in doc.element.body.iterchildren():
+        if el.tag == WNS + 'p': out.append(Paragraph(el, doc))
+        elif el.tag == WNS + 'tbl': out.append(Table(el, doc))
+    return out
+
+
+def _is_p(x): return x.__class__.__name__ == 'Paragraph'
+def _align(p): return p.alignment if p.alignment is not None else p.style.paragraph_format.alignment
+def _mm(length): return None if length is None else length / 36000
+def _has_field(p, name): return any((t.text or '').strip().startswith(name) for t in p._p.iter(WNS + 'instrText'))
+def _spaced(p): return any(r._r.find(f'{WNS}rPr/{WNS}spacing') is not None for r in p.runs if r.text.strip())
+
+
+def check_layout(doc, lines):
+    """Повертає список порушень оформлення. `doc` — відкритий Document (самоперевірка передає
+    зіпсований у пам'яті), `lines` — рядки full.md: із них береться лише те, скільки чого має бути."""
+    from docx.enum.text import WD_ALIGN_PARAGRAPH as AL, WD_LINE_SPACING as LS
+    bad, els = [], _body(doc)
+    text = lambda x: ws(x.text) if _is_p(x) else ''
+    near = lambda a, b: a is not None and abs(a - b) < 0.15
+
+    # аркуш і поля: книжкові розділи 30/10/20/20, альбомний (рисунок) — те саме, повернуте
+    for k, sec in enumerate(doc.sections, 1):
+        w, h = _mm(sec.page_width), _mm(sec.page_height)
+        m = [_mm(x) for x in (sec.left_margin, sec.right_margin, sec.top_margin, sec.bottom_margin)]
+        want = ([30, 10, 20, 20], (210, 297)) if h > w else ([20, 20, 30, 10], (297, 210))
+        if not (near(w, want[1][0]) and near(h, want[1][1])):
+            bad.append(f'розділ документа {k}: аркуш {w:.0f}×{h:.0f} мм, а не А4')
+        if not all(near(a, b) for a, b in zip(m, want[0])):
+            bad.append(f'розділ документа {k}: поля {[round(x) for x in m]} мм, мають бути {want[0]}')
+    n = doc.styles['Normal']; f = n.paragraph_format
+    if n.font.name != 'Times New Roman' or n.font.size is None or n.font.size.pt != 14:
+        bad.append(f'основний текст: {n.font.name} {n.font.size.pt if n.font.size else "?"} пт, а не Times New Roman 14')
+    if f.line_spacing_rule != LS.ONE_POINT_FIVE: bad.append('основний текст: інтервал не півтора')
+    if not near(_mm(f.first_line_indent), 12.5): bad.append('основний текст: абзацний відступ не 12,5 мм')
+    for name in ('Heading 1', 'Heading 2'):
+        gap = _mm(doc.styles[name].paragraph_format.space_after)
+        if gap is None or not (HEAD_GAP_MM[0] <= gap <= HEAD_GAP_MM[1]):
+            bad.append(f'{name}: до тексту {gap} мм, має бути {HEAD_GAP_MM[0]:.0f}–{HEAD_GAP_MM[1]:.0f} мм')
+
+    # заголовки розділів: «РОЗДІЛ N» без крапки, назва з нового рядка, по центру
+    chapters = [x for x in els if _is_p(x) and x.style.name == 'Heading 1' and re.match(r'РОЗДІЛ \d', x.text)]
+    want = sum(1 for s in lines if re.match(r'^# РОЗДІЛ \d', s))
+    if len(chapters) != want: bad.append(f'заголовків розділів {len(chapters)}, у джерелі {want}')
+    for x in chapters:
+        if not re.match(r'^РОЗДІЛ \d+\n\S', x.text):
+            bad.append(f'«{ws(x.text)[:30]}»: назва розділу не з нового рядка або після номера крапка')
+        if _align(x) != AL.CENTER: bad.append(f'«{ws(x.text)[:30]}»: заголовок розділу не по центру')
+
+    # заголовки пунктів: у розрядці, з крапкою, у підбір до тексту, із записом для змісту
+    src = [s for s in lines if s.strip()]
+    for i, s in enumerate(src):
+        m = re.match(r'^### (.+)$', s)
+        if not m: continue
+        head = m.group(1).rstrip('.') + '.'
+        hits = [x for x in els if _is_p(x) and x.text.startswith(head)]
+        if len(hits) != 1:
+            bad.append(f'пункт «{head[:40]}»: абзаців із таким початком {len(hits)}'); continue
+        x, nxt = hits[0], (src[i + 1] if i + 1 < len(src) else '')
+        if not _spaced(x): bad.append(f'пункт «{head[:40]}»: заголовок не в розрядці')
+        if not _has_field(x, 'TC'): bad.append(f'пункт «{head[:40]}»: немає запису для змісту')
+        if not near(_mm(x.paragraph_format.first_line_indent or f.first_line_indent), 12.5):
+            bad.append(f'пункт «{head[:40]}»: не з абзацного відступу')
+        prose = not re.match(r'^(#|\||```|Таблиця |Рис\. |Лістинг |\[МІСЦЕ|\d+\.\s|[–—-]\s)', nxt) \
+            and not build.RE_FORMULA.match(nxt)
+        if prose and len(x.text) <= len(head) + 1:
+            bad.append(f'пункт «{head[:40]}»: текст не в підбір до заголовка')
+
+    # таблиці: «Таблиця N» праворуч, назва під ним по центру, далі сама таблиця
+    caps = [i for i, x in enumerate(els) if _is_p(x) and re.fullmatch(rf'Таблиця {ITEM}', text(x))]
+    want = sum(1 for s in lines if re.fullmatch(rf'Таблиця {ITEM}', s))
+    if len(caps) != want: bad.append(f'підписів «Таблиця N» {len(caps)}, у джерелі {want}')
+    for i in caps:
+        num, title, tbl = els[i], els[i + 1], els[i + 2]
+        if _align(num) != AL.RIGHT: bad.append(f'«{text(num)}»: номер таблиці не праворуч')
+        if not _is_p(title) or _align(title) != AL.CENTER or not text(title):
+            bad.append(f'«{text(num)}»: назва таблиці не по центру під номером')
+        if _is_p(tbl): bad.append(f'«{text(num)}»: після назви немає таблиці')
+
+    # рисунки: «Рис. N Назва» під рисунком по центру, без крапки в кінці
+    figs = [x for x in els if _is_p(x) and re.match(rf'Рис\. {ITEM} \S', text(x))]
+    want = sum(1 for s in lines if re.match(rf'^Рис\. {ITEM} \S', s))
+    if len(figs) != want: bad.append(f'підписів «Рис. N» {len(figs)}, у джерелі {want}')
+    for x in figs:
+        if _align(x) != AL.CENTER: bad.append(f'«{text(x)[:30]}»: підпис рисунка не по центру')
+        if text(x).endswith('.'): bad.append(f'«{text(x)[:30]}»: крапка в кінці підпису рисунка')
+    if any(_is_p(x) and re.match(r'Рисунок \S+ [–—-]', text(x)) for x in els):
+        bad.append('лишився підпис у формі «Рисунок N – Назва»')
+
+    # формули: вільний рядок над і під кожною (між двома поспіль — один)
+    is_formula = lambda x: not _is_p(x) and x._tbl.find('.//' + MNS + 'oMath') is not None
+    blank = lambda x: _is_p(x) and not x.text.strip() and not x._p.findall('.//' + WNS + 'drawing')
+    formulas = [i for i, x in enumerate(els) if is_formula(x)]
+    if len(formulas) != len({m.group(2) for s in lines for m in [build.RE_FORMULA.match(s)] if m and m.group(2) in FORMULA_TEX}):
+        bad.append(f'формул у документі {len(formulas)}, у джерелі інша кількість')
+    for i in formulas:
+        num = re.search(r'\((\d+\.\d+)\)', ' '.join(c.text for r in els[i].rows for c in r.cells))
+        name = f'формула ({num.group(1)})' if num else 'формула'
+        if not blank(els[i - 1]): bad.append(f'{name}: над нею немає вільного рядка')
+        if i + 1 >= len(els) or not blank(els[i + 1]): bad.append(f'{name}: під нею немає вільного рядка')
+
+    # додатки: «Додаток А» праворуч, назва під ним по центру, кожен (крім першого) з нової сторінки
+    apps = [i for i, x in enumerate(els) if _is_p(x) and re.fullmatch(r'Додаток [А-ЯІЇЄҐ]', text(x))]
+    want = sum(1 for s in lines if re.match(r'^## Додаток [А-ЯІЇЄҐ] ', s))
+    if len(apps) != want: bad.append(f'заголовків «Додаток X» {len(apps)}, у джерелі {want}')
+    for k, i in enumerate(apps):
+        x, title = els[i], els[i + 1]
+        if _align(x) != AL.RIGHT: bad.append(f'«{text(x)}»: не праворуч')
+        if not _is_p(title) or _align(title) != AL.CENTER: bad.append(f'«{text(x)}»: назва додатка не по центру')
+        if not _has_field(x, 'TC'): bad.append(f'«{text(x)}»: немає запису для змісту')
+        if k and not x.paragraph_format.page_break_before: bad.append(f'«{text(x)}»: не з нової сторінки')
+
+    # перелік умовних позначень: дві колонки, рядків стільки, скільки в джерелі
+    heads = [i for i, x in enumerate(els) if _is_p(x) and x.style.name == 'Heading 1' and text(x).startswith('ПЕРЕЛІК УМОВНИХ')]
+    if heads:
+        a = next(i for i, s in enumerate(lines) if s.startswith('# ПЕРЕЛІК УМОВНИХ'))
+        b = next(i for i in range(a + 1, len(lines)) if lines[i].startswith('# '))
+        want = sum(1 for s in lines[a + 1:b] if build.LEGEND_ITEM.match(s))
+        end = next(i for i in range(heads[0] + 1, len(els)) if _is_p(els[i]) and els[i].style.name == 'Heading 1')
+        tabs = [x for x in els[heads[0]:end] if not _is_p(x)]
+        rows = sum(len(t.rows) for t in tabs)
+        if not tabs or any(len(t.columns) != 2 for t in tabs) or rows != want:
+            bad.append(f'перелік умовних позначень: рядків у двох колонках {rows}, у джерелі {want}')
+
+    # номер сторінки: поле PAGE у верхньому колонтитулі праворуч
+    hp = doc.sections[0].header.paragraphs[0]
+    if not _has_field(hp, 'PAGE') or _align(hp) != AL.RIGHT:
+        bad.append('номер сторінки: немає поля PAGE вгорі праворуч')
+    return bad
+
+
+def layout_mutations():
+    """Самоперевірка перевірки 9: (що зіпсовано, функція-псувальник, фрагмент очікуваного повідомлення)."""
+    from docx.enum.text import WD_ALIGN_PARAGRAPH as AL
+    from docx.shared import Mm, Pt
+
+    def first(doc, pred): return next(x for x in _body(doc) if pred(x))
+    def cap(doc): return first(doc, lambda x: _is_p(x) and re.fullmatch(rf'Таблиця {ITEM}', ws(x.text)))
+    def drop(el): el.getparent().remove(el)
+
+    def no_break(doc):
+        h = first(doc, lambda x: _is_p(x) and x.style.name == 'Heading 1' and x.text.startswith('РОЗДІЛ'))
+        for br in list(h._p.iter(WNS + 'br')): br.getparent().replace(br, parse_xml_t(' '))
+    def unspace(doc):
+        h = first(doc, lambda x: _is_p(x) and _spaced(x))
+        for sp in list(h._p.iter(WNS + 'spacing')):
+            if sp.getparent().tag == WNS + 'rPr': drop(sp)
+    def no_blank_above(doc):
+        els = _body(doc); i = next(i for i, x in enumerate(els) if not _is_p(x) and x._tbl.find('.//' + MNS + 'oMath') is not None)
+        drop(els[i - 1]._p)
+    def appendix_left(doc):
+        first(doc, lambda x: _is_p(x) and re.fullmatch(r'Додаток [А-ЯІЇЄҐ]', ws(x.text))).alignment = AL.LEFT
+    def legend_row(doc):
+        els = _body(doc); i = next(i for i, x in enumerate(els) if _is_p(x) and x.text.startswith('ПЕРЕЛІК УМОВНИХ'))
+        t = next(x for x in els[i:] if not _is_p(x)); drop(t.rows[0]._tr)
+    return [
+        ('поле 25 мм замість 30', lambda d: setattr(d.sections[0], 'left_margin', Mm(25)), 'поля'),
+        ('кегль 12 замість 14', lambda d: setattr(d.styles['Normal'].font, 'size', Pt(12)), 'Times New Roman 14'),
+        ('6 пт між заголовком підрозділу і текстом', lambda d: setattr(d.styles['Heading 2'].paragraph_format, 'space_after', Pt(6)), 'Heading 2'),
+        ('назва розділу в одному рядку з «РОЗДІЛ N»', no_break, 'не з нового рядка'),
+        ('заголовок пункту без розрядки', unspace, 'не в розрядці'),
+        ('номер таблиці ліворуч', lambda d: setattr(cap(d), 'alignment', AL.LEFT), 'не праворуч'),
+        ('формула без вільного рядка над нею', no_blank_above, 'над нею немає вільного рядка'),
+        ('«Додаток А» ліворуч', appendix_left, 'не праворуч'),
+        ('перелік без одного рядка', legend_row, 'перелік умовних позначень'),
+    ]
+
+
+def parse_xml_t(txt):
+    from docx.oxml import parse_xml
+    from docx.oxml.ns import nsdecls
+    return parse_xml('<w:t %s xml:space="preserve">%s</w:t>' % (nsdecls('w'), txt))
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument('--self-test', action='store_true',
+                    help='перевірка 9 на навмисно зіпсованому документі: кожне правило має спрацювати')
     ap.add_argument('--src', required=True); ap.add_argument('--docx', required=True)
     ap.add_argument('--brief'); ap.add_argument('--registry', default=os.path.join(HERE, 'registry.json'))
     ap.add_argument('--figures', help='тека рендерів із manifest.json: перевірка 7')
     ap.add_argument('--private', help='titulka.json: перевірка 8 (приватні імена лише в .docx)')
     a = ap.parse_args()
+
+    if a.self_test:
+        lines = open(a.src, encoding='utf-8').read().split('\n')
+        clean = check_layout(Document(a.docx), lines)
+        failed = len(clean)
+        for t in clean: print(f'   документ до псування вже порушує: {t}')
+        for what, spoil, needle in layout_mutations():
+            doc = Document(a.docx); spoil(doc)
+            got = check_layout(doc, lines)
+            ok = any(needle in g for g in got)
+            print(f'   {"ok  " if ok else "НЕ СПРАЦЮВАЛА"} {what}' + ('' if ok else f' — {got[:2]}'))
+            failed += not ok
+        print(f'самоперевірка оформлення: {len(layout_mutations())} псувань, не помічено {failed}')
+        return 1 if failed else 0
 
     build.load(a.src, a.brief)
     private = dict(build.load_private(a.private))       # дані, як реєстр; перевіряє їх перевірка 8
@@ -462,6 +670,12 @@ def main():
           f'розбіжностей: {len(code_bad)}')
     for t in code_bad[:20]: print(f'   {t}')
     failed |= bool(code_bad)
+
+    # 9
+    layout_bad = check_layout(Document(a.docx), open(a.src, encoding='utf-8').read().split('\n'))
+    print(f'оформлення за методичкою: порушень {len(layout_bad)}')
+    for t in layout_bad[:30]: print(f'   {t}')
+    failed |= bool(layout_bad)
 
     print('РЕЗУЛЬТАТ:', 'ПОМИЛКИ' if failed else 'OK')
     return 1 if failed else 0

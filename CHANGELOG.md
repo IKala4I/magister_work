@@ -9,8 +9,17 @@
   table (`APPENDICES`), the three text files, the generator and the two diagrams are renamed to
   their letters. Ten appendix tables gained numbers and titles; tables 6.1–6.5, Б.1, И.1 and six
   of the seven figures gained a reference by number; ВСТУП counts its own list (71) and Maestro
-  [43] is cited again. **`verify-guideline.py`** checks these text rules in CI, with ten negative
-  controls.
+  [43] is cited again. **`verify-guideline.py`** checks these text rules in CI, with eleven
+  negative controls.
+- **The layout is the guideline's, not ДСТУ 3008's**: «РОЗДІЛ 1» with the title on the next line;
+  18 pt between a subsection heading and text; пункт headings spaced, with a full stop, run in with
+  the text; «Таблиця 1.1» right with the title centred under it; «Рис. 1.1 Назва»; a free line
+  above and below each formula and one symbol per line after «де»; «Додаток А» right with the title
+  centred; the abbreviations list in two columns. `assemble.py` writes the forms
+  (`guideline_forms`, `split_legends`), `build.py` lays them out, `verify.py` check 9 measures them
+  in the built .docx with nine negative controls. Пункт and appendix headings reach the contents
+  page through `TC` fields (tested in LibreOffice 26.8.0; **not tested in Word** — none on the
+  machine).
 
 ## Post-P12 — ВСТУП drops the optional «Апробація» and «Публікації» (2026-09-30, post-p12/vstup-drop-optional-items)
 

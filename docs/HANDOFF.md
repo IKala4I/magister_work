@@ -77,14 +77,24 @@ checked against the title of the appendix it now points to.
   table wrongly said all seven figures were referenced; only 3.1 was). `verify-guideline.py` in CI
   with ten negative controls. `run_all.sh` green, PDF 163 pages.
 
+- The guideline's layout: `assemble.py` writes the forms (`guideline_forms`: `# РОЗДІЛ 1 НАЗВА`,
+  `## Додаток А Назва`, `Рис. N Назва`, `Таблиця N` + title as two paragraphs; `split_legends`),
+  `build.py` lays them out (chapter title on a new line, 18 pt under subsection headings, пункт
+  headings spaced and run in, captions, free lines round formulas, appendix heading in two
+  paragraphs, перелік in two columns), `verify.py` check 9 measures it in the .docx (9 negative
+  controls, `--self-test`, in `run_all.sh`). PDF 164 pages. **Gotchas:** пункт and appendix
+  headings are not Heading paragraphs — they reach the contents page through `TC` fields at level 2
+  (LibreOffice 26.8.0 puts a TC entry one level lower than Word; `\l 3` vanishes from the PDF);
+  Word's style separator renders broken in LibreOffice for headings longer than a line. **Word is
+  not installed here — nothing of this was seen in Word.**
+
 **Left, in this order** (tick here as each lands):
 
-- [ ] text rules in `assemble.py` / `text/*.md`: chapter and appendix headings without the dot,
-      captions, «де» legends, ВСТУП «Структура», реферат;
-- [ ] `build.py` / `verify.py`: the guideline's layout (headings, captions, formulas, перелік in
-      two columns, appendix headings), title page per Додаток В from `titulka.json`, картка and
-      завдання from `MagisterDocs/private/`, реферат as its own file, page counts filled from the
-      render, «Продовження таблиці N» from the rendered pagination;
+- [ ] ВСТУП «Структура» (pages, sources, appendices, chapters described; the ДСТУ 3008 sentence),
+      реферат (counts, об'єкт, мета, ≤ 3 pages, separate file);
+- [ ] `build.py` / `verify.py`: title page per Додаток В from `titulka.json`, картка and завдання
+      from `MagisterDocs/private/`, the order of parts (зміст = page 3), page counts filled from
+      the render, «Продовження таблиці N» from the rendered pagination;
 - [ ] golden refreshed, `regress.py` shown, README / ASSEMBLY / explainer / CHANGELOG / versions;
 - [ ] MagisterDocs: `titulka.json` keys, апробація wording, theses .docx, supervisor list;
 - [ ] rebuild, repeat the compliance table, PR.

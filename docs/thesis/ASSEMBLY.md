@@ -379,9 +379,19 @@ because every anchor matches draft prose; the relabelling happens inside each ap
 `reference_appendices` adds the referring sentences (§2.5.1, §3.1.3, §3.4, §3.5) and
 `reference_figures` the six figure references the draft lacked.
 
+**The guideline's forms.** `guideline_forms` runs last, after the style sweeps, on every block:
+`# РОЗДІЛ 1 НАЗВА` and `## Додаток А Назва` lose the full stop after the number or letter (the
+pipeline breaks the line there), `Рисунок N – Назва` becomes `Рис. N Назва`, and `Таблиця N – Назва`
+becomes two paragraphs, `Таблиця N` and the title. The text files and the rollup keep the old
+caption form on purpose — one rule in one place. `split_legends` puts each symbol of a formula's
+explanation on its own line (2.1, 2.11, 2.13, 2.19) through a table of seams (`LEGENDS`), so every
+other word stays the draft's; for (2.1) the clause «за жорстких обмежень (…)» moves in front of the
+formula so that «де» stands first under it.
+
 **Checked by** `verify-guideline.py` (CI): appendix letters and order, a reference to every
 appendix, table and figure, a caption on every table, a citation of every source — each rule with a
-negative control (`--self-test`).
+negative control (`--self-test`). The layout itself is measured in the built .docx by
+`docx-pipeline/verify.py` check 9.
 
 ## Coverage, and what CI can and cannot prove
 

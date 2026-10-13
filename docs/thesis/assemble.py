@@ -753,6 +753,9 @@ def reference_appendices(blocks) -> None:
                 "§3.5 refers to the /plan response appendix")
     run_sub(blocks, "Конфлікти поділяються на три класи", "наведено в додатках А і Б",
             "наведено в додатках Е і Ж", "§3.6 the two sequence diagrams' letters")
+    # the traceability matrix points at the two sequence diagrams from inside its cells
+    cell_sub(blocks, "2.7; 4.2–4.3; дод. А", "2.7; 4.2–4.3; дод. Е", "табл. Б.1: FR-23 points at the UC-04 diagram")
+    cell_sub(blocks, "3.6; 4.2; дод. Б", "3.6; 4.2; дод. Ж", "табл. Б.1: NFR-R1 points at the sync diagram")
 
 
 def reference_figures(blocks) -> None:
@@ -811,6 +814,102 @@ def reorder_appendices(blocks) -> None:
     blocks[first:] = out
     APPLIED.append(f"appendices: {len(APPENDICES)} put in the order the text refers to them, "
                    f"lettered {APPENDIX_LETTERS[:len(APPENDICES)]}")
+
+
+# ----------------------------------------------------------------- formula legends
+# Department guideline 2026, p. 19–20: the explanation of a formula's symbols stands directly
+# under the formula, opens with «де» from the paragraph indent, and gives each symbol on a line
+# of its own. The draft ran them on in one paragraph. Each row: (locator, [(old seam, new seam)]);
+# a «\n» in a new seam is where a new paragraph starts, everything else stays the draft's words.
+LEGENDS: list[tuple[str, list[tuple[str, str]]]] = [
+    # (2.1): the condition that followed the formula moves in front of it, so that «де» can
+    # stand first under the formula
+    ("за жорстких обмежень (дедлайни, фіксовані події, робочі години), де P(викон)", [
+        ("за жорстких обмежень (дедлайни, фіксовані події, робочі години), де P(викон)", "де P(викон)"),
+        (", v(τ) – цінність задачі, а Cost(A) –", ";\nv(τ) – цінність задачі;\nCost(A) –"),
+        ("перемикання контексту. Ключова відмінність", "перемикання контексту.\nКлючова відмінність"),
+    ]),
+    ("де σ – логістична функція, γ(g) –", [
+        ("де σ – логістична функція, γ(g) –", "де σ – логістична функція;\nγ(g) –"),
+        ("до енергії, δ(g) –", "до енергії;\nδ(g) –"),
+        ("зсув складності, δ(g,p) –", "зсув складності;\nδ(g,p) –"),
+        ("покомпонентні поправки. Параметри перетворення", "покомпонентні поправки.\nПараметри перетворення"),
+    ]),
+    ("де C(u) – діагональна матриця впевненостей", [
+        ("матриця впевненостей, p(u) –", "матриця впевненостей;\np(u) –"),
+        ("бінаризованих взаємодій. Далі користувач", "бінаризованих взаємодій.\nДалі користувач"),
+    ]),
+    ("де r̂ – пряма модель винагороди", [
+        ("на парі (x, a)). DR незміщений", "на парі (x, a)).\nDR незміщений"),
+    ]),
+]
+
+
+def split_legends(blocks) -> None:
+    run_sub(blocks, "максимізуючи очікувану корисність:", "максимізуючи очікувану корисність:",
+            "максимізуючи за жорстких обмежень (дедлайни, фіксовані події, робочі години) очікувану "
+            "корисність:", "(2.1): the hard-constraints clause moves in front of the formula")
+    for locator, seams in LEGENDS:
+        try:
+            i = find_one(blocks, locator, f"legend {locator[:24]!r}")
+        except LookupError:
+            SKIPPED.append(f"legend (locator not found or ambiguous: {locator[:44]!r})")
+            continue
+        text = blocks[i]["text"]
+        for old, new in seams:
+            if fold(text).count(fold(old)) != 1:
+                SKIPPED.append(f"legend {locator[:24]!r} (seam {old[:30]!r} found {fold(text).count(fold(old))} times)")
+                break
+            at = fold(text).find(fold(old))
+            text = text[:at] + new + text[at + len(old):]
+        else:
+            parts = text.split("\n")
+            blocks[i:i + 1] = [{**blocks[i], "text": t, "origin": "edited"} for t in parts]
+            APPLIED.append(f"legend under the formula: {len(parts) - 1} symbol lines + the rest ({locator[:28]!r})")
+
+
+# ----------------------------------------------------------------- the guideline's forms
+# Department guideline 2026 (owner, 2026-10-13: its forms, not ДСТУ 3008's). These are rules that
+# cross the whole document, so they run last, like the rename and the dash; the text files and
+# the rollup keep writing «Таблиця 6.1 – Назва» and «Рисунок 3.1 – Назва».
+#   p. 18   «РОЗДІЛ 1» carries no full stop and its title starts on a new line – the heading is
+#           written «РОЗДІЛ 1 НАЗВА» here and the .docx pipeline breaks the line after the number;
+#   p. 22   «Додаток А» stands to the right above a centred title – written «Додаток А Назва»,
+#           and the pipeline makes the two paragraphs;
+#   p. 19   a figure is marked «Рис.», and neither its number nor its caption ends in a full
+#           stop: «Рис. 1.2 Назва»;
+#   p. 20   «Таблиця N» to the right, the title centred under it: two paragraphs.
+_ITEM = r"(?:\d+|[А-ЯІЇЄҐ])\.\d+"
+
+
+def guideline_forms(blocks) -> None:
+    out, changed = [], 0
+    for b in blocks:
+        if b["kind"] != "p":
+            out.append(b)
+            continue
+        t, st = b["text"], b.get("style", "")
+        touched = lambda nb: {**nb, "origin": "edited" if nb["origin"] == "draft" else nb["origin"]}
+        if st == "Heading1":
+            n = re.sub(r"^((?:\*\*)?РОЗДІЛ \d+)\.\s+", r"\1 ", t)
+        elif st == "Heading2":
+            n = re.sub(r"^((?:\*\*)?Додаток [А-ЯІЇЄҐ])\.\s+", r"\1 ", t)
+        elif st.startswith("Heading"):
+            n = t
+        else:
+            n = re.sub(rf"^Рисунок ({_ITEM}) – ", r"Рис. \1 ", t)
+            m = re.match(rf"^Таблиця ({_ITEM}) – (.+)$", t)
+            if m:
+                out.append(touched({**b, "text": f"Таблиця {m.group(1)}"}))
+                out.append(touched({**b, "text": m.group(2)}))
+                changed += 1
+                continue
+        if n != t:
+            b = touched({**b, "text": n})
+            changed += 1
+        out.append(b)
+    blocks[:] = out
+    APPLIED.append(f"the guideline's forms (chapter and appendix headings, captions) applied to {changed} blocks")
 
 
 # ----------------------------------------------------------------- references
@@ -1382,6 +1481,7 @@ def build() -> tuple[list[dict], dict]:
     reference_appendices(blocks)
     reference_figures(blocks)
     reorder_appendices(blocks)
+    split_legends(blocks)
 
     # --- global sweeps -------------------------------------------------------------------
     # Runs LAST, after every anchored edit: two ROLLUP_EDITS markers and the висновки п.5 locator
@@ -1454,6 +1554,7 @@ def build() -> tuple[list[dict], dict]:
                 b["text"] = n
                 swept += 1
     APPLIED.append(f"style sweeps (rename, apostrophe, dash, bold) touched {swept} blocks")
+    guideline_forms(blocks)
 
     stats = {
         "blocks": len(blocks),
