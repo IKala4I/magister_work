@@ -2,7 +2,8 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-09-29 — **post-p12/thesis-private-docs**: schema names in the text, 3.2 in,
+> Last update: 2026-10-13 — **post-p12/metodychka-2026, IN PROGRESS** (section right below).
+> Before it, 2026-09-29 — **post-p12/thesis-private-docs**: schema names in the text, 3.2 in,
 > private data in MagisterDocs (below). Before it, **post-p12/thesis-figures**: the figures render
 > in the pipeline and a PDF builds; the figures pass's own waiting items are superseded. Before
 > that, 2026-09-28 — **post-p12/docx-pipeline**: the formatter's `full.md` → `.docx` pipeline is in
@@ -14,7 +15,82 @@
 > the Ukrainian sentences the draft should read, tagged Ф / П / С, every number with its measurement
 > condition. **The thesis text is assembled and green on every gate.**
 
-## Current state (2026-09-29) — post-p12/thesis-private-docs
+## IN PROGRESS (2026-10-13) — post-p12/metodychka-2026: the department guideline
+
+The department's 2026 guideline for master's theses appeared (54-page PDF in
+`MagisterDocs/sources/`, **never copied into the repo, extracts included**; printed page = PDF page
+− 1). The thesis was checked against it and the owner decided, 2026-10-13:
+
+1. **Formatting follows the guideline, not ДСТУ 3008** — chapter heading «РОЗДІЛ 1» with the title
+   on the next line; пункт headings run-in, spaced, with a full stop; 6–9 mm between a heading and
+   text; captions «Рис. 1.1 Назва» and «Таблиця 1.1» (right) + title (centred); a free line above
+   and below each formula, one symbol per line after «де»; «Продовження таблиці N»; appendix
+   heading «Додаток А» right + title centred; appendix letters without Г and З. The ВСТУП sentence
+   that names ДСТУ 3008 changes with it.
+2. **Order of parts and the title page per the guideline's Додаток В**; завдання and картка are
+   private parts in MagisterDocs that the pipeline puts in their places; the реферат goes out of
+   the bound document (it is enclosed in an envelope).
+3. Кафедра інженерії програмного забезпечення; спеціальність F2 «Інженерія програмного
+   забезпечення» — into `titulka.json`; the old department name must remain nowhere.
+4. Реферат: counts of pages, figures, tables, appendices, sources; names the об'єкт and the мета;
+   stays within 3 pages; **no limitation statement is removed**.
+5. Fix: ВСТУП «Структура» (pages, sources, appendices, chapters with a short description), every
+   table referenced in the text, every appendix table numbered and titled, appendices in the order
+   they are referenced, 66 → 71 sources.
+6. Six chapters stay. 7. No department publications are added. 8. The AI-use declaration is the
+   owner's own document — not written here.
+7. **«Апробація»: wording prepared, NOT inserted** — the conference is 10–11 November 2026 (ІТЕТО,
+   ФІТ НУБіП); it goes into the text only after it has happened.
+8. **Conference theses** (deadline 8 November): requirements and sections from the invitation in
+   `MagisterDocs/sources/`; numbers only from `full.md` with their conditions; the .docx goes to
+   MagisterDocs, never into the repo.
+9. A short list of decisions to check with the supervisor later — a file in MagisterDocs.
+10. At the end: rebuild and repeat the compliance check with the same table.
+
+Owner's working rule for this pass: **commit after every finished item**, this section refreshed
+after the first commit.
+
+**Appendix letters — the mapping this pass applies** (order = order of first reference in the
+text, letters without Г, Ґ, Є, З, І, Ї, Й, О, Ч, Ь):
+
+| Was | Becomes | Appendix                                | First referenced in |
+| --- | ------- | --------------------------------------- | ------------------- |
+| Д   | А       | rMEQ questionnaire                      | 2.5.1               |
+| Е   | Б       | traceability matrix (табл. Е.1 → Б.1)   | 3.1                 |
+| Г   | В       | SQL fragment (Г.1–Г.3 → В.1–В.3)        | 3.4                 |
+| Ж   | Д       | `POST /plan` response                   | 3.5                 |
+| А   | Е       | UC-04 sequence (рис. А.1 → Е.1)         | 3.6                 |
+| Б   | Ж       | sync sequence (рис. Б.1 → Ж.1)          | 3.6                 |
+| В   | И       | colour tokens (табл. В.1 → И.1)         | 3.8                 |
+| З   | К       | grid of worlds (З.1–З.7 → К.1–К.7)      | 5.5.2               |
+| И   | Л       | registered predictions (И.1–И.7 → Л.1…) | 6.1                 |
+
+Old and new letter sets overlap, so «no old letter left» cannot be a grep: each reference is
+checked against the title of the appendix it now points to.
+
+**Done (committed on the branch):**
+
+- ВСТУП counts its own list (71) and Maestro [43] is cited (`assemble.py`).
+
+**Left, in this order** (tick here as each lands):
+
+- [ ] text rules in `assemble.py` / `text/*.md`: chapter headings without the dot, captions,
+      «де» legends, appendix reorder + relettering + file renames (`dodatok-g/z/y.md`,
+      `gen-dodatok-z.py`, `figures.json`, diagrams), references to every appendix and table,
+      numbered appendix tables, ВСТУП «Структура», реферат;
+- [ ] `build.py` / `verify.py`: the guideline's layout (headings, captions, formulas, перелік in
+      two columns, appendix headings), title page per Додаток В from `titulka.json`, картка and
+      завдання from `MagisterDocs/private/`, реферат as its own file, page counts filled from the
+      render, «Продовження таблиці N» from the rendered pagination;
+- [ ] golden refreshed, `regress.py` shown, README / ASSEMBLY / explainer / CHANGELOG / versions;
+- [ ] MagisterDocs: `titulka.json` keys, апробація wording, theses .docx, supervisor list;
+- [ ] rebuild, repeat the compliance table, PR.
+
+**Resume:** `git log --oneline main..HEAD` shows what landed; the checks are
+`python3 docs/thesis/assemble.py --draft …/MagisterDocs/sources/draft.docx`, the seven CI thesis
+checkers, and `./run_all.sh` in `docs/thesis/docx-pipeline/`.
+
+## Earlier state (2026-09-29) — post-p12/thesis-private-docs
 
 **Done and green.** The text names the schema's tables (`bandit_state` + `beta_cells` +
 `blend_state`, `profiles`; assemble.py run_subs, the rollup's А.1 payload, the А.1 participant,
