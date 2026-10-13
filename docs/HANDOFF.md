@@ -99,9 +99,14 @@ checked against the title of the appendix it now points to.
   numbering (check 9 caught a doubled `pgNumType`); keep-verbatim strings of the реферат are
   looked for in `referat.docx` too.
 
+- «Продовження таблиці N»: `layout.py tables` (PDF → which rows on which page → `build/tables.json`
+  plan), `build.py --splits`, the pass loop in `run_all.sh` (one boundary per chapter per pass; min
+  two rows per part; rows `cantSplit`). 9 tables continue, 3 start on a new page; 5 passes ≈ 2 min;
+  **165 pages**; `verify.py` re-joins the parts for the cell-by-cell check and check 9 covers the
+  labels (12 controls). The first pass of each run is the negative control (13 crossings found).
+
 **Left, in this order** (tick here as each lands):
 
-- [ ] «Продовження таблиці N» from the rendered pagination (`layout.py`, second-pass split);
 - [ ] golden refreshed, `regress.py` shown, README / ASSEMBLY / explainer / CHANGELOG / versions;
 - [ ] MagisterDocs: `titulka.json` keys, апробація wording, theses .docx, supervisor list;
 - [ ] rebuild, repeat the compliance table, PR.

@@ -29,8 +29,14 @@
   Ukrainian, 2 in English, nothing removed. ВСТУП's «Структура та обсяг» counts sources,
   appendices, figures, tables and formulas from the text and describes each chapter; **the page
   count is a placeholder in `full.md`, read back from the rendered PDF** (`layout.py`, pdfplumber
-  0.11.10) and filled on a second pass — 161 pages. `verify-guideline.py` checks the stated counts
-  (14 negative controls); `verify.py` check 9 checks the page numbering (10 controls).
+  0.11.10) and filled on a later pass. `verify-guideline.py` checks the stated counts (14
+  negative controls); `verify.py` check 9 checks the page numbering.
+- **«Продовження таблиці N».** `layout.py tables` reads from the rendered PDF which rows of each
+  table landed on which page; `build.py --splits` splits the table there, each further part on a
+  new page under the label and a repeated header. One boundary per chapter per pass, in document
+  order (fixing all at once left stale boundaries and six near-empty pages); never fewer than two
+  rows of a table on a page. Nine tables continue, three start on a new page; five passes, ≈ 2
+  min; **165 pages**. Exact for the LibreOffice PDF; Word's pagination may differ by a line or two.
 
 ## Post-P12 — ВСТУП drops the optional «Апробація» and «Публікації» (2026-09-30, post-p12/vstup-drop-optional-items)
 

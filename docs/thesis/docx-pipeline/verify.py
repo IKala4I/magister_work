@@ -102,11 +102,25 @@ def docx_text(path):
     return ws(' '.join(out)), len(re.findall(r'<m:oMath>', xml))
 
 
+CONTINUED = re.compile(r'Продовження таблиці ((?:\d+|[А-ЯІЇЄҐ])\.\d+)')
+
+
 def docx_tables(path):
     """Таблиці даних документа по порядку, як [[текст комірки]]. Формули — теж таблиці,
-    але без стилю «Table Grid», тож сюди не потрапляють."""
-    return [[[ws(c.text) for c in row.cells] for row in t.rows]
-            for t in Document(path).tables if t.style is not None and t.style.name == 'Table Grid']
+    але без стилю «Table Grid», тож сюди не потрапляють. Таблиця, поділена на частини написом
+    «Продовження таблиці N», зшивається назад: частина після такого напису додає до попередньої
+    таблиці свої рядки без головки. Чи головка частини та сама, що в першої, перевіряє перевірка 9."""
+    doc, out, prev = Document(path), [], ''
+    for x in _body(doc):
+        if _is_p(x):
+            if x.text.strip(): prev = ws(x.text)
+            continue
+        if x.style is None or x.style.name != 'Table Grid': continue
+        rows = [[ws(c.text) for c in row.cells] for row in x.rows]
+        if CONTINUED.fullmatch(prev) and out: out[-1].extend(rows[1:])
+        else: out.append(rows)
+        prev = ''
+    return out
 
 
 def raw(n):
@@ -412,6 +426,27 @@ def check_layout(doc, lines):
             bad.append(f'«{text(num)}»: назва таблиці не по центру під номером')
         if _is_p(tbl): bad.append(f'«{text(num)}»: після назви немає таблиці')
 
+    # продовження таблиці: напис праворуч, з нової сторінки, далі частина з тією самою головкою
+    grid_row0 = lambda t: [ws(c.text) for c in t.rows[0].cells]
+    last_cap, first_head = None, {}
+    for i, x in enumerate(els):
+        if _is_p(x):
+            m = re.fullmatch(rf'Таблиця ({ITEM})', text(x))
+            if m: last_cap = m.group(1)
+            m = CONTINUED.fullmatch(text(x))
+            if not m: continue
+            num, nxt = m.group(1), (els[i + 1] if i + 1 < len(els) else None)
+            if num != last_cap: bad.append(f'«{text(x)}» стоїть після таблиці {last_cap}')
+            if _align(x) != AL.RIGHT: bad.append(f'«{text(x)}»: напис не праворуч')
+            if not x.paragraph_format.page_break_before: bad.append(f'«{text(x)}»: частина не з нової сторінки')
+            if nxt is None or _is_p(nxt): bad.append(f'«{text(x)}»: після напису немає таблиці')
+            elif grid_row0(nxt) != first_head.get(num): bad.append(f'«{text(x)}»: головка частини не та, що в таблиці')
+        elif x.style is not None and x.style.name == 'Table Grid' and last_cap not in first_head:
+            first_head[last_cap] = grid_row0(x)
+        if not _is_p(x) and x.style is not None and x.style.name == 'Table Grid':
+            if any(r._tr.find(f'{WNS}trPr/{WNS}cantSplit') is None for r in x.rows):
+                bad.append(f'таблиця {last_cap}: рядок може розірватися між сторінками'); 
+
     # рисунки: «Рис. N Назва» під рисунком по центру, без крапки в кінці
     figs = [x for x in els if _is_p(x) and re.match(rf'Рис\. {ITEM} \S', text(x))]
     want = sum(1 for s in lines if re.match(rf'^Рис\. {ITEM} \S', s))
@@ -510,6 +545,9 @@ def layout_mutations():
     def legend_row(doc):
         els = _body(doc); i = next(i for i, x in enumerate(els) if _is_p(x) and x.text.startswith('ПЕРЕЛІК УМОВНИХ'))
         t = next(x for x in els[i:] if not _is_p(x)); drop(t.rows[0]._tr)
+    def spoil_head(doc):
+        els = _body(doc); i = next(i for i, x in enumerate(els) if _is_p(x) and CONTINUED.fullmatch(ws(x.text)))
+        els[i + 1].rows[0].cells[0].paragraphs[0].add_run('?')
     return [
         ('поле 25 мм замість 30', lambda d: setattr(d.sections[0], 'left_margin', Mm(25)), 'поля'),
         ('кегль 12 замість 14', lambda d: setattr(d.styles['Normal'].font, 'size', Pt(12)), 'Times New Roman 14'),
@@ -520,6 +558,10 @@ def layout_mutations():
         ('формула без вільного рядка над нею', no_blank_above, 'над нею немає вільного рядка'),
         ('«Додаток А» ліворуч', appendix_left, 'не праворуч'),
         ('перелік без одного рядка', legend_row, 'перелік умовних позначень'),
+        ('«Продовження таблиці» ліворуч',
+         lambda d: setattr(first(d, lambda x: _is_p(x) and CONTINUED.fullmatch(ws(x.text))), 'alignment', AL.LEFT),
+         'напис не праворуч'),
+        ('частина таблиці з чужою головкою', spoil_head, 'головка частини не та'),
         ('зміст не на третій сторінці',
          lambda d: d.sections[1]._sectPr.find(WNS + 'pgNumType').set(WNS + 'start', '2'), 'не є сторінкою 3'),
     ]

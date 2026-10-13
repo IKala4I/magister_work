@@ -596,6 +596,21 @@ CYR = re.compile(r'^[А-ЯІЇЄҐа-яіїєґ«»(]')
 
 
 # ================================================================ таблиці
+SPLITS = {}                               # номер таблиці → [рядків тіла в кожній частині] (layout.py)
+NEW_PAGE = set()                          # таблиці, що починаються з нової сторінки (під головкою лишався один рядок)
+CUR_TABLE = [None]                        # номер таблиці з останнього підпису «Таблиця N»
+CONTINUED = 'Продовження таблиці'
+
+
+def load_splits(path):
+    """План поділу таблиць із layout.py (README, «Продовження таблиці»). Немає файла — таблиці цілі."""
+    SPLITS.clear(); NEW_PAGE.clear(); CUR_TABLE[0] = None
+    if path and os.path.exists(path):
+        for num, v in json.load(open(path, encoding='utf-8')).items():
+            if v.get('parts'): SPLITS[num] = v['parts']
+            if v.get('before'): NEW_PAGE.add(num)
+
+
 def split_cells(line):
     """Комірки рядка таблиці за правилами GFM: зворотна скісна екранує наступний
     символ, тож \\| лишає риску всередині комірки (|зміщення|/SE, |A_m(x)|, |приріст|),
@@ -680,14 +695,6 @@ def emit_table(doc, start):
     while over < 0:
         k = widths.index(min(widths)); widths[k] += 1; over += 1
 
-    t = doc.add_table(rows=1 + len(body), cols=ncol)
-    t.style = 'Table Grid'; t.alignment = WD_TABLE_ALIGNMENT.CENTER; t.autofit = False
-    t._tbl.tblPr.append(parse_xml('<w:tblLayout %s w:type="fixed"/>' % nsdecls('w')))
-    t._tbl.tblPr.append(parse_xml('<w:tblW %s w:w="%d" w:type="dxa"/>' % (nsdecls('w'), int(sum(widths) * 56.7))))
-    for j, w in enumerate(widths):
-        t.columns[j].width = Mm(w)                    # tblGrid — саме його читає Word
-        for row in t.rows: row.cells[j].width = Mm(w)
-
     def cell(c, txt, bold=False, center=False):
         c.text = ''
         p = c.paragraphs[0]
@@ -697,15 +704,46 @@ def emit_table(doc, start):
         p.alignment = C if center else LEFT
         add_runs(p, txt.replace('\\|', '|'), size=size, bold_all=bold)
 
-    for j, txt in enumerate(header): cell(t.rows[0].cells[j], txt, bold=True, center=True)
     numeric = [all(re.match(r'^[+−\-–—±◐~]?[\d,.\s%×()]*$', (r[j] if j < len(r) else '') or '')
                    for r in body) for j in range(ncol)]
-    for i, row in enumerate(body, 1):
-        for j in range(ncol):
-            cell(t.rows[i].cells[j], row[j] if j < len(row) else '', center=numeric[j])
-    trPr = t.rows[0]._tr.get_or_add_trPr(); trPr.append(parse_xml('<w:tblHeader %s/>' % nsdecls('w')))
+
+    def part(rows_):
+        """Одна частина таблиці: головка й рядки. Рядок не рветься між сторінками (cantSplit) —
+        інакше його половини на двох сторінках не можна ані порахувати, ані підписати."""
+        t = doc.add_table(rows=1 + len(rows_), cols=ncol)
+        t.style = 'Table Grid'; t.alignment = WD_TABLE_ALIGNMENT.CENTER; t.autofit = False
+        t._tbl.tblPr.append(parse_xml('<w:tblLayout %s w:type="fixed"/>' % nsdecls('w')))
+        t._tbl.tblPr.append(parse_xml('<w:tblW %s w:w="%d" w:type="dxa"/>' % (nsdecls('w'), int(sum(widths) * 56.7))))
+        for j, w in enumerate(widths):
+            t.columns[j].width = Mm(w)                    # tblGrid — саме його читає Word
+            for row in t.rows: row.cells[j].width = Mm(w)
+        for j, txt in enumerate(header): cell(t.rows[0].cells[j], txt, bold=True, center=True)
+        for i, row in enumerate(rows_, 1):
+            for j in range(ncol):
+                cell(t.rows[i].cells[j], row[j] if j < len(row) else '', center=numeric[j])
+        t.rows[0]._tr.get_or_add_trPr().append(parse_xml('<w:tblHeader %s/>' % nsdecls('w')))
+        for row in t.rows:
+            row._tr.get_or_add_trPr().append(parse_xml('<w:cantSplit %s/>' % nsdecls('w')))
+        for c in t.rows[0].cells:                         # головка не лишається внизу сторінки сама
+            for p in c.paragraphs: p.paragraph_format.keep_with_next = True
+
+    # Методичка, с. 20: над кожною наступною частиною таблиці, перенесеної на іншу сторінку, —
+    # «Продовження таблиці N». Де таблиця переходить на нову сторінку, знає лише верстка: поділ
+    # приходить ззовні (SPLITS — з layout.py, що читає готовий PDF попереднього проходу), і кожна
+    # наступна частина починається з нової сторінки цим написом і повтореною головкою.
+    sizes = SPLITS.get(CUR_TABLE[0]) or [len(body)]
+    if sum(sizes) != len(body) or min(sizes) < 1:
+        raise SystemExit(f'ТАБЛИЦЯ {CUR_TABLE[0]}: поділ {sizes} не відповідає {len(body)} рядкам — '
+                         f'застарілий файл поділу; почати з проходу без нього')
+    at = 0
+    for k, size_k in enumerate(sizes):
+        if k:
+            p = para(doc, f'{CONTINUED} {CUR_TABLE[0]}', indent=0, align=R, spacing=1, after=6, keep=True, literal=True)
+            p.paragraph_format.page_break_before = True
+        part(body[at:at + size_k]); at += size_k
     para(doc, '', after=6, spacing=1)
-    REPORT['tables'].append(f'ряд {start}: {ncol}×{len(body)}, кегль {size}, ширини {widths}')
+    REPORT['tables'].append(f'ряд {start}: {ncol}×{len(body)}, кегль {size}, ширини {widths}'
+                            + (f', частин {len(sizes)}: {sizes}' if len(sizes) > 1 else ''))
     return nxt
 
 
@@ -1121,8 +1159,9 @@ def build_body(doc, lo, hi):
 
         if RE_TAB_CAP.match(s):
             # методичка, с. 20–21: «Таблиця N» — праворуч, назва — під ним симетрично до тексту
-            para(doc, s, indent=0, align=R, spacing=1, before=6, keep=True, literal=True)
-            table_title = RE_TAB_CAP.match(s).group(1)
+            p = para(doc, s, indent=0, align=R, spacing=1, before=6, keep=True, literal=True)
+            table_title = CUR_TABLE[0] = RE_TAB_CAP.match(s).group(1)
+            if table_title in NEW_PAGE: p.paragraph_format.page_break_before = True
             n += 1; continue
 
         if table_title is not None:
@@ -1315,9 +1354,10 @@ def emit_pending_sheets(doc, num):
 
 
 def build(src, out, brief=None, registry=None, report=None, figures=None, private=None, parts=None,
-          referat=None, pages=None):
+          referat=None, pages=None, splits=None):
     load(src, brief)
     load_private(private, pages)
+    load_splits(splits)
     if registry: bind_registry(registry)
     load_figures(figures)
     doc = new_doc()
@@ -1352,8 +1392,10 @@ if __name__ == '__main__':
     ap.add_argument('--parts', help='тека з приватними частинами kartka.json і zavdannia.json (MagisterDocs/private)')
     ap.add_argument('--referat', help='куди записати реферат окремим .docx')
     ap.add_argument('--pages', type=int, help='кількість сторінок роботи з PDF попереднього проходу')
+    ap.add_argument('--splits', help='план поділу таблиць за сторінками з PDF попереднього проходу (layout.py tables)')
     a = ap.parse_args()
-    rep = build(a.src, a.out, a.brief, a.registry, a.report, a.figures, a.private, a.parts, a.referat, a.pages)
+    rep = build(a.src, a.out, a.brief, a.registry, a.report, a.figures, a.private, a.parts, a.referat, a.pages,
+                a.splits)
     for x in rep['notes']: print('•', x)
     for x in rep['figures']:
         if x.startswith('рисунок'): print('•', x)
