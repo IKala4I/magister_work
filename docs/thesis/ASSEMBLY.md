@@ -388,6 +388,11 @@ explanation on its own line (2.1, 2.11, 2.13, 2.19) through a table of seams (`L
 other word stays the draft's; for (2.1) the clause «за жорстких обмежень (…)» moves in front of the
 formula so that «де» stands first under it.
 
+**Commas between consecutive formulas** (guideline p. 20; owner, 2026-10-13). `formula_commas` ends
+(2.4), (2.7) and (2.17) with a comma (`FORMULA_COMMAS`); the same comma is typed in
+`docx-pipeline/formulas.py`, and `docx-pipeline/verify.py` compares the closing punctuation of each
+formula between the two places.
+
 **Front matter and counts.** `title_page` replaces the draft's title block with the department's
 form (`TITLE_PAGE`, one printed piece per line; names and the form's data are placeholders).
 `referat` renames «АНОТАЦІЯ» / «ANNOTATION» to «РЕФЕРАТ» / «ABSTRACT», writes the speciality with

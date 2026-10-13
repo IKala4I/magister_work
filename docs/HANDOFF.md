@@ -120,6 +120,10 @@ upstream publications alone; the usual separate bump). CI's database job failed 
 registry's rate limit (`toomanyrequests` pulling `postgres-meta`) and passed on a rerun — a rerun is
 the fix, nothing in the repo.
 
+**After the merge, same day:** the owner decided the one open point — (2.4), (2.7), (2.17) end in a
+comma (`FORMULA_COMMAS` in `assemble.py` + `formulas.py`; `verify.py` compares the closing
+punctuation; `verify-guideline.py` has 16 controls). 165 pages, unchanged; golden refreshed.
+
 **Waiting on the owner:**
 
 - names in `MagisterDocs/private/titulka.json` (the student's three forms, the supervisor and the
@@ -130,8 +134,6 @@ the fix, nothing in the repo.
   4.1's screenshots, the AI-use declaration (the owner's own document);
 - open `hourwell.docx` in Word (never seen there): contents (Ctrl+A, F9), the run-in пункт
   headings, the nine tables with «Продовження таблиці»;
-- decide: a comma between consecutive formulas (2.4)–(2.5), (2.7)–(2.8), (2.17)–(2.18) (guideline
-  p. 20) — reported, not done;
 - after 10–11 November 2026: «Апробація результатів» goes into ВСТУП — wording in
   `MagisterDocs/conference/aprobatsiia.md`; in `assemble.py` the `para_delete` of the draft's
   placeholder becomes a `para_replace`, and `verify-guideline.py` should then require the element.

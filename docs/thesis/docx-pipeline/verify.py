@@ -627,6 +627,13 @@ def main():
             num = fm.group(2); formulas.append(num)
             for word in re.findall(r'[А-ЯІЇЄҐа-яіїєґ]{3,}', fm.group(1)):
                 if word not in FORMULA_TEX[num]: lost_words.append((n, num, word))
+            # розділовий знак у кінці формули (кома між формулами поспіль — методичка, с. 20)
+            # набрано двічі: у рядку full.md і в LaTeX; вони мають збігатися
+            end_src = fm.group(1).rstrip()[-1:]
+            for tex in [FORMULA_TEX[num]] + ([FORMULA_SPLIT[num][-1]] if num in FORMULA_SPLIT else []):
+                end_tex = tex.rstrip()[-1:]
+                if (end_src in ',;.') != (end_tex in ',;.') or (end_src in ',;.' and end_src != end_tex):
+                    lost_words.append((n, num, f'кінцевий знак: у full.md «{end_src}», у formulas.py «{end_tex}»'))
             continue
         if s.startswith('|') and n not in code: continue            # таблиці — перевірка 2
         if n in code:
@@ -675,7 +682,7 @@ def main():
     for n, j, x, y, k in normalized[:20]: print(f'   (нормалізовано) ряд {n}, комірка {j}: «{x}» → «{y}» ({", ".join(k)})')
     print(f'формул у джерелі: {len(formulas)}; обʼєктів OMML: {nmath}'
           + (f' (з них {extra} — другі рядки розбитих)' if extra else '') + ('  ✔' if ok_f else '  ✘'))
-    for n, num, w in lost_words: print(f'   СЛОВО ЗАГУБЛЕНО У ФОРМУЛІ ({num}), ряд {n}: «{w}»')
+    for n, num, w in lost_words: print(f'   РОЗБІЖНІСТЬ У ФОРМУЛІ ({num}) між full.md і formulas.py, ряд {n}: «{w}»')
     failed |= bool(missing or cells_bad or lost_words or not ok_f)
 
     # 4
