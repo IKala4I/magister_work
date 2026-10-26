@@ -247,6 +247,7 @@ def main():
     ap.add_argument('docx', nargs='?', help='tables: .docx, з якого зроблено цей PDF')
     ap.add_argument('--plan', help='tables: план поділу, з яким складено цей .docx (JSON; може не існувати)')
     ap.add_argument('--out', help='tables: куди записати наступний план (JSON)')
+    ap.add_argument('--total', action='store_true', help='body: надрукувати лише загальний обсяг (для run_all.sh)')
     a = ap.parse_args()
     if a.what == 'tables':
         prev = json.load(open(a.plan, encoding='utf-8')) if a.plan and os.path.exists(a.plan) else {}
@@ -278,6 +279,8 @@ def main():
         return 1 if spaced or odd else 0
     if a.what == 'body':
         parts, total = body_pages(a.pdf)
+        if a.total:
+            print(total); return 0
         lo, hi = BODY_RANGE
         print(f'основний текст (ВСТУП – ВИСНОВКИ): {total} с.'
               + ('' if lo <= total <= hi else f' — ПОЗА МЕЖАМИ {lo}–{hi}'))

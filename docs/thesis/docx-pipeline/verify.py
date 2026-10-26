@@ -656,6 +656,7 @@ def main():
     ap.add_argument('--private', help='titulka.json: перевірка 8 (приватні імена лише в .docx)')
     ap.add_argument('--referat', help='реферат окремим .docx: його рядки шукаються в ньому, а не в роботі')
     ap.add_argument('--pages', type=int, help='обсяг, з яким складено документ (build.py --pages)')
+    ap.add_argument('--body-pages', type=int, help='обсяг основного тексту, з яким складено документ (build.py --body-pages)')
     a = ap.parse_args()
 
     if a.self_test:
@@ -673,7 +674,7 @@ def main():
         return 1 if failed else 0
 
     build.load(a.src, a.brief)
-    private = dict(build.load_private(a.private, a.pages))   # дані, як реєстр; перевіряє їх перевірка 8
+    private = dict(build.load_private(a.private, a.pages, a.body_pages))   # дані, як реєстр; перевіряє їх перевірка 8
     if a.registry: build.bind_registry(a.registry)
     LINES = build.LINES
     body, nmath = docx_text(a.docx)
@@ -811,6 +812,10 @@ def main():
         for ph in build.PAGE_PLACEHOLDERS:
             if a.pages and (ph in both or str(a.pages) not in both):
                 priv_bad.append(f'обсяг {a.pages} с. не підставлено замість «{ph}»')
+        # обсяг основного тексту — власне правило: число стоїть саме в реченні ВСТУПУ про основний текст
+        if a.body_pages and (build.BODY_PLACEHOLDER in body
+                             or not re.search(rf'основний текст\s–\s{a.body_pages}\sс\.', body)):
+            priv_bad.append(f'обсяг основного тексту {a.body_pages} с. не підставлено замість «{build.BODY_PLACEHOLDER}»')
         filled = sum(1 for _, ph, _ in build.PRIVATE_FIELDS if ph in private)
         print(f'дані титулки: заповнено {filled} з {len(build.PRIVATE_FIELDS)}; порушень: {len(priv_bad)}')
         for t in priv_bad: print(f'   {t}')

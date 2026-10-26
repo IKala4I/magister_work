@@ -70,19 +70,23 @@ PRIVATE_FIELDS = (                        # (ключ у titulka.json, плей�
     ('тема_англійською', '[thesis title]', False),
 )
 PAGE_PLACEHOLDERS = ('[кількість сторінок]', '[number of pages]')   # обсяг роботи: з готового PDF
+BODY_PLACEHOLDER = '[обсяг основного тексту]'   # ВСТУП: сторінки від ВСТУПУ до кінця ВИСНОВКІВ, з PDF
 PRIVATE = {}                              # плейсхолдер → значення (лише заповнені)
 DATA = {}                                 # ключ titulka.json → значення: для приватних частин (картка, завдання)
 
 
-def load_private(path, pages=None):
+def load_private(path, pages=None, body_pages=None):
     """Читає titulka.json і підставляє заповнені значення в LINES. Повертає словник
     плейсхолдер → значення. Невідомий ключ у файлі валить складання (друкарська помилка в
     ключі інакше мовчки лишила б плейсхолдер). `pages` — кількість сторінок роботи, виміряна
-    на готовому PDF попереднього проходу (run_all.sh): число в тексті не набирається руками."""
+    на готовому PDF попереднього проходу (run_all.sh): число в тексті не набирається руками;
+    `body_pages` — так само обсяг основного тексту (layout.py body --total)."""
     global LINES
     PRIVATE.clear(); DATA.clear()
     if pages:
         for ph in PAGE_PLACEHOLDERS: PRIVATE[ph] = str(pages)
+    if body_pages:
+        PRIVATE[BODY_PLACEHOLDER] = str(body_pages)
     if path:
         data = json.load(open(path, encoding='utf-8'))
         known = {k for k, _, _ in PRIVATE_FIELDS}
@@ -1522,9 +1526,9 @@ def emit_pending_sheets(doc, num):
 
 
 def build(src, out, brief=None, registry=None, report=None, figures=None, private=None, parts=None,
-          referat=None, pages=None, splits=None):
+          referat=None, pages=None, splits=None, body_pages=None):
     load(src, brief)
-    load_private(private, pages)
+    load_private(private, pages, body_pages)
     load_splits(splits)
     if registry: bind_registry(registry)
     load_figures(figures)
@@ -1533,6 +1537,8 @@ def build(src, out, brief=None, registry=None, report=None, figures=None, privat
     build_body(doc, start, len(LINES) - 1)
     if not pages:
         REPORT['placeholders'].append('кількість сторінок: не задано (--pages) — у тексті лишився плейсхолдер')
+    if not body_pages:
+        REPORT['placeholders'].append('обсяг основного тексту: не задано (--body-pages) — у тексті лишився плейсхолдер')
     if referat: build_referat(referat, pages)
     if PENDING:
         raise SystemExit(f'РИСУНОК БЕЗ ПІДПИСУ: аркуші {sorted(PENDING)} не мають підпису «Рис. N …» у full.md')
@@ -1567,10 +1573,11 @@ if __name__ == '__main__':
     ap.add_argument('--parts', help='тека з приватними частинами kartka.json і zavdannia.json (MagisterDocs/private)')
     ap.add_argument('--referat', help='куди записати реферат окремим .docx')
     ap.add_argument('--pages', type=int, help='кількість сторінок роботи з PDF попереднього проходу')
+    ap.add_argument('--body-pages', type=int, help='обсяг основного тексту з PDF попереднього проходу (layout.py body --total)')
     ap.add_argument('--splits', help='план поділу таблиць за сторінками з PDF попереднього проходу (layout.py tables)')
     a = ap.parse_args()
     rep = build(a.src, a.out, a.brief, a.registry, a.report, a.figures, a.private, a.parts, a.referat, a.pages,
-                a.splits)
+                a.splits, a.body_pages)
     for x in rep['notes']: print('•', x)
     for x in rep['figures']:
         if x.startswith('рисунок'): print('•', x)

@@ -29,8 +29,13 @@ Done: (1) pipeline typography + table keep/margin (`0f2f0b5`); (2) inline math `
 build sets Latin single letters italic, Greek upright, real sub/sup; verify has its own `$…$` rule
 and a self-test mutation; audit skips `$…$`; formula (4.1) for the world model already in place,
 so formulas are 21 until step 6 cuts them to 10). Body after (2): 77 PDF pages (4/10/16/18/26/3) —
-the table margin and (4.1) added three. Next: regress.py vs golden (closes steps 1–3), then ВСТУП →
-розділи 1–3 → general pass on 4/ВИСНОВКИ → abbreviations, sources, counts → docs. Baseline `full.md`
+the table margin and (4.1) added three. regress.py vs golden on the golden's own source: 312
+differences, all typography only (closes steps 1–3). (4) ВСТУП 4 → 3 pages, novelty 5 → 3 points,
+реферат/ABSTRACT competitor sentence carries both arm-A facts, new placeholder
+`[обсяг основного тексту]` (build `--body-pages`, `layout.py body --total`, run_all fixed point,
+verify.py + verify-guideline own checks; ВСТУП no longer states figures/tables/formulas). Next:
+розділ 1 → 2 → 3 → general pass on 4/ВИСНОВКИ → abbreviations, sources, counts → docs. Removed
+numbers so far (ВСТУП): 29/64, 45 %, 18–45, 80 %/65, 21–120+, 48/75, 172, 0,7, 30 %, ±0,4. Baseline `full.md`
 for the no-number-changed diff: `git show 2427b15:docs/thesis/text/full.md` (token diff: numbers
 only, `$…$` and Unicode subscripts normalised before comparing).
 
