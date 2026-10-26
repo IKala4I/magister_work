@@ -93,8 +93,8 @@ These are the limitations. Each was written after a version that was weaker got 
 7. `≈ 4,3 експерименти на користувача за тиждень на звичайних тижнях і 1,1–2,4 на завантажених,
 пораховані на коді придатності, а не спостережені`
    → the closing clause is the difference between a measurement and an estimate.
-8. `Хронотипні приори не знижують ризик першого тижня вимірно: їхній внесок у симуляції
-становить ±0,4 в. п.`
+8. `Хронотипне опитування й популяційні приори лишаються стартовим наближенням, а не механізмом
+переваги.`
 9. `Не всі кольорові пари відповідають WCAG 2.2 AA як текст`
    → Do not restore the older, friendlier "усі кольорові пари задовольняють WCAG 2.2 AA".
 10. `Опитувальник не перекладено.`
@@ -150,7 +150,7 @@ Each of these phrases must stay **inside the sentence with its number**:
 | `\|A_m(x)\|`                               | `A_m(x)`                                | the bars are cardinality, not emphasis                                                                                                                                                                                                                                   |
 | `0,45` — the decimal comma                 | `0.45`                                  | the Ukrainian norm. The English ANNOTATION keeps its decimal points (`+0.4 pp`, `0.3–1.4 pp`): a comma there would read as a thousands separator. Two correct norms side by side, not a discrepancy — a «one decimal mark per document» check must exempt the ANNOTATION |
 
-The code listings (§4.2, §4.4, Додаток В) are fenced code blocks: monospace, indentation kept,
+The code listings (§3.5, §3.6, Додаток В) are fenced code blocks: monospace, indentation kept,
 and no comments — every explanation is in the prose beside them (owner, 2026-09-13). They have
 already been flattened once. Two more rules from the same reading: bold is for headings only —
 a template that bolds run-in labels («Перше:», «H1», table cells) re-introduces what was removed
@@ -158,8 +158,9 @@ on purpose — and the prose dash is the spaced en dash «–»; an em dash anyw
 
 ## 8. Numbering and structure — already correct, do not "fix"
 
-- Six chapters. `ВСТУП` says `шести розділів`. Cross-references to `розділ 6` are real.
-- §4.5's nightly pipeline runs `(1) (2) (3) (4) (5)` with no gap. It previously had one; it is fixed.
+- Four chapters, per the department's guideline (2026-10-26; there were six). `ВСТУП` says
+  `чотирьох розділів`. Cross-references point at the four-chapter numbering and are checked.
+- §3.6's nightly pipeline runs `(1) (2) (3) (4) (5)` with no gap. It previously had one; it is fixed.
 - The reference list is **numbered in its final order** and citations point at those numbers. Do not
   re-sort, re-alphabetise or renumber. If an entry must move, the citation numbers move with it.
 - `Kuliahin A., Narozhnyi V., Tkachov V., Kuchuk H.` and `Meleshko Ye., Khokh V., Ulichev O.` are
@@ -208,7 +209,7 @@ N₈₀ не перевищує 60 у 13 комірках із 75
 за межами класів, які автори адаптували саме для цієї вибірки
 ніколи не вилучаються з подання
 пораховані на коді придатності, а не спостережені
-не знижують ризик першого тижня вимірно
+лишаються стартовим наближенням, а не механізмом переваги
 Не всі кольорові пари відповідають WCAG 2.2 AA як текст
 Опитувальник не перекладено
 жодного подання до магазинів не виконано
@@ -225,7 +226,7 @@ N₈₀ не перевищує 60 у 13 комірках із 75
 clip[0,1]
 E(x~D)
 |A_m(x)|
-шести розділів
+чотирьох розділів
 +0.4 pp
 0.3–1.4 pp
 ```

@@ -2,7 +2,7 @@
 # Складання й повний прогін перевірок.
 #   ./run_all.sh ../text/full.md ../formatter-brief.md /Users/vladyslav/Workspace/MagisterDocs
 # Третій аргумент — тека MagisterDocs поза репозиторієм: звідти беруться приватні дані
-# (private/titulka.json — імена для титулки) і знімки (figures/4.1), туди йде результат (build/).
+# (private/titulka.json — імена для титулки) і знімки (figures/3.4), туди йде результат (build/).
 # Python і його пакети — з власного проєкту uv цієї теки (pyproject.toml, uv.lock, Python 3.12,
 # лише керований uv), а не з того, що стоїть на машині. Рисунки — рендер render_figures.py:
 # Mermaid із render/ (npm ci за package-lock.json, власний chrome-headless-shell), PlantUML —
@@ -59,6 +59,7 @@ done
 echo; echo "== складання: звіт останнього проходу"; sed '$d' "$OUT/build.log" | sed '$d'
 echo; echo "== реферат";        "${PY[@]}" "$HERE/make_pdf.py" "$OUT/referat.docx" "$OUT/referat.pdf" --no-index
                                 "${PY[@]}" "$HERE/layout.py" referat "$OUT/referat.pdf"
+echo; echo "== обсяг";          "${PY[@]}" "$HERE/layout.py" body "$OUT/hourwell.pdf"
 echo; echo "== звірка";         "${PY[@]}" "$HERE/verify.py" --src "$SRC" --brief "$BRIEF" --docx "$OUT/hourwell.docx" --referat "$OUT/referat.docx" --figures "$OUT/figures" --pages "$PAGES" ${PRIVATE[@]+"${PRIVATE[@]}"}
 echo; echo "== самоперевірка оформлення"; "${PY[@]}" "$HERE/verify.py" --self-test --src "$SRC" --docx "$OUT/hourwell.docx"
 echo; echo "== легенди";        "${PY[@]}" "$HERE/check_legend_symbols.py" "$SRC"

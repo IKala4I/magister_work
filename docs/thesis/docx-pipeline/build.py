@@ -762,7 +762,7 @@ def emit_fenced(doc, start):
     """Блок в огорожі ```. Вміст іде дослівно, моноширинним, без розбору розмітки.
     Закривальна огорожа може стояти окремим рядком або в кінці змістового.
     Порожні рядки всередині блоку — теж код: вони відділяють у SQL Додатка Г і в
-    лістингу 4.1 одну групу інструкцій від іншої. До 2026-09-28 вони випадали."""
+    лістингу 3.1 одну групу інструкцій від іншої. До 2026-09-28 вони випадали."""
     first = L(start).lstrip()
     rest = first[3:]
     lang = rest.split()[0] if rest.split() and rest.split()[0].isalpha() else ''
@@ -1314,7 +1314,7 @@ def image_para(doc, path, width_mm):
 
 
 def emit_image_grid(doc, num, fig):
-    """Знімки (рисунок 4.1): таблиця без рамок, до чотирьох у ряд, у порядку назв файлів."""
+    """Знімки (рисунок 3.4): таблиця без рамок, до чотирьох у ряд, у порядку назв файлів."""
     from docx.image.image import Image as DocxImage
     files = [os.path.join(FIG_DIR, s['file']) for s in fig['sheets']]
     per_row = min(4, len(files)); rows = -(-len(files) // per_row)

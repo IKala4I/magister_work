@@ -196,7 +196,7 @@ def main():
     ap.add_argument('--out', required=True, help='тека для аркушів і manifest.json')
     ap.add_argument('--figures', default=os.path.join(HERE, 'figures.json'))
     ap.add_argument('--measure', action='store_true', help='кегль в обох орієнтаціях, без вимог')
-    ap.add_argument('--docs', help='тека MagisterDocs (поза репозиторієм): звідти беруться знімки рисунка 4.1')
+    ap.add_argument('--docs', help='тека MagisterDocs (поза репозиторієм): звідти беруться знімки рисунка 3.4')
     a = ap.parse_args()
 
     base = os.path.dirname(os.path.abspath(a.src))

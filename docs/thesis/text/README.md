@@ -2,7 +2,7 @@
 
 **`full.md` is the thesis's only source** (owner, 2026-10-26). Every word of the thesis — title
 page form, реферат and ABSTRACT, ПЕРЕЛІК, ВСТУП, the chapters, ВИСНОВКИ, the list of sources and
-the appendices — is edited here and nowhere else. **Розділів: 6.** The `.docx` and the PDF are built
+the appendices — is edited here and nowhere else. **Розділів: 4.** The `.docx` and the PDF are built
 from this file by `docs/thesis/docx-pipeline/run_all.sh`; a hand edit to the Word file is invisible
 to every checker in the repository.
 

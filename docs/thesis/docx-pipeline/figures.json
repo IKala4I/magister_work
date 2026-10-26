@@ -17,8 +17,8 @@
       "source": "diagrams/3-3-use-cases.puml",
       "orientation": "landscape"
     },
-    "4.1": {
-      "images": "figures/4.1",
+    "3.4": {
+      "images": "figures/3.4",
       "root": "docs"
     },
     "Е.1": {

@@ -14,6 +14,9 @@ are checked on `text/full.md`, the product, on every change:
                the chapter or appendix, and every table is referred to in the text    (p. 20)
   figures      numbered within the chapter, every figure referred to, and never placed before
                its first reference                                                    (p. 18–19)
+  sections     every «підрозділ / пункт N.N(.N)» and «розділ N» in the text names a heading the
+               thesis has – the 2026-10-26 cut renumbered six chapters into four, and a stale
+               number is the failure a reader cannot detect                         (p. 18)
   formulas     formulas that follow one another with no text between them are separated by
                a comma                                                                (p. 20)
   sources      every entry of the list is cited                                       (p. 13)
@@ -146,6 +149,24 @@ def check(lines: list[str]) -> list[str]:
     for k in entries:
         if k not in cited:
             bad.append(f"sources: entry [{k}] is never cited")
+    # ---- every reference to a subsection, пункт or chapter names a heading that exists
+    have = {m.group(1) for s in heads | {s: 0 for _, s in prose if s.startswith("##")}
+            for m in [re.match(r"^#{2,3} (\d+\.\d+(?:\.\d+)?)\. ", s)] if m}
+    have_ch = {m.group(1) for s in heads for m in [re.match(r"^# РОЗДІЛ (\d+) ", s)] if m}
+    num = r"\d+(?:\.\d+){0,2}"
+    sep = r"(?:,\s*|\s+і\s+|\s+та\s+|\s+або\s+|\s*[–-]\s*)"
+    sec_ref = re.compile(rf"(?<!\w)(?P<kw>[Пп]ідрозділ\w*|[Пп]ункт\w*|[Рр]озділ\w*)\s+(?P<nums>{num}(?:{sep}{num})*)(?!\d|\.\d)")
+    for n, s in prose:
+        if s.startswith("#") or (refs_at < n < apps_at):
+            continue
+        for m in sec_ref.finditer(s):
+            chapter = m.group("kw").lower().startswith("розділ")
+            for x in re.split(sep, m.group("nums")):
+                if chapter and "." not in x and x not in have_ch:
+                    bad.append(f"sections: L{n} refers to «{m.group('kw')} {x}», and there is no РОЗДІЛ {x}")
+                elif not chapter and "." in x and x not in have:
+                    bad.append(f"sections: L{n} refers to «{m.group('kw')} {x}», and no heading has that number")
+
     # ---- consecutive formulas are separated by a comma
     numbered = re.compile(r"^(.*?)\s{2,}\((\d+\.\d+)\)\s*$")
     solid = [(n, s) for n, s in prose if s.strip()]
@@ -248,6 +269,10 @@ def mutations(text: str) -> list[tuple[str, str, str]]:
          text.replace("\nКФ – ", "\n\x00", 1).replace("\nБД – ", "\nКФ – ", 1).replace("\n\x00", "\nБД – ", 1)
          .replace("БД – колаборативна", "БД – база").replace("КФ – база даних", "КФ – колаборативна"),
          "belongs alphabetically"),
+        ("a reference to a subsection that does not exist",
+         re.sub(r"підрозділ(\w*) 1\.4(?!\d)", r"підрозділ\g<1> 1.9", text, count=1), "no heading has that number"),
+        ("a reference to a chapter that does not exist",
+         re.sub(r"розділ(\w*) 2(?![\d.])", r"розділ\g<1> 7", text, count=1), "there is no РОЗДІЛ 7"),
         ("a source nobody cites",
          re.sub(r"\[(\d+)\] на вимогу", "на вимогу", text, count=1), "is never cited"),
     ]
