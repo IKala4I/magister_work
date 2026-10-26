@@ -95,7 +95,6 @@ PRESENT = [
     ("# РОЗДІЛ 4 РЕЗУЛЬТАТИ ДОСЛІДЖЕННЯ", "the guideline's fourth chapter (2026-10-26)"),
     ("Додаток К Повна сітка змодельованих світів", "the 75-cell grid (assembly step 28)"),
     ("Додаток Л Зафіксовані передбачення", "the registered predictions (assembly step 29)"),
-    ("lapseObservedEvent", "лістинг 4.1 (U15)"),
     ("Taillard", "the MEQ class-mix citation"),
     ("Chauhan", "the 2025 synchrony review"),
     ("Senyk", "the Ukrainian CSM/MCTQ instruments"),

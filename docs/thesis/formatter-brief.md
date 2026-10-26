@@ -150,7 +150,7 @@ Each of these phrases must stay **inside the sentence with its number**:
 | `\|A_m(x)\|`                               | `A_m(x)`                                | the bars are cardinality, not emphasis                                                                                                                                                                                                                                   |
 | `0,45` — the decimal comma                 | `0.45`                                  | the Ukrainian norm. The English ANNOTATION keeps its decimal points (`+0.4 pp`, `0.3–1.4 pp`): a comma there would read as a thousands separator. Two correct norms side by side, not a discrepancy — a «one decimal mark per document» check must exempt the ANNOTATION |
 
-The code listings (§3.5, §3.6, Додаток В) are fenced code blocks: monospace, indentation kept,
+The code fragments (Додаток В and Додаток Д; the thesis body has no listings since 2026-10-26) are fenced code blocks: monospace, indentation kept,
 and no comments — every explanation is in the prose beside them (owner, 2026-09-13). They have
 already been flattened once. Two more rules from the same reading: bold is for headings only —
 a template that bolds run-in labels («Перше:», «H1», table cells) re-introduces what was removed
