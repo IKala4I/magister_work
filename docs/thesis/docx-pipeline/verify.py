@@ -40,7 +40,8 @@ check_legend_symbols.py, audit_markdown.py і структурні переві�
   9. оформлення за методичними рекомендаціями кафедри (2026), виміряне в готовому .docx, а не
      прочитане з намірів build.py: аркуш і поля, шрифт і інтервал, заголовок розділу у два рядки,
      відстань від заголовка до тексту, заголовок пункту в розрядці в підбір до тексту, підписи
-     таблиць і рисунків, вільні рядки біля формул, заголовки додатків, перелік у дві колонки.
+     таблиць і рисунків, вільні рядки біля формул, заголовки додатків, перелік у дві колонки,
+     типографіка (нерозривні пробіли перед тире й між числом і одиницею, нерозривні дефіси).
      `--self-test` псує зібраний документ по разу на кожне правило й вимагає, щоб перевірка
      це помітила.
 Код виходу 1, якщо порушено будь-що з 1–9.
@@ -402,7 +403,7 @@ def check_layout(doc, lines):
         m = re.match(r'^### (.+)$', s)
         if not m: continue
         head = m.group(1).rstrip('.') + '.'
-        hits = [x for x in els if _is_p(x) and x.text.startswith(head)]
+        hits = [x for x in els if _is_p(x) and x.text.replace('\u00a0', ' ').startswith(head)]   # типографіка: NBSP перед тире
         if len(hits) != 1:
             bad.append(f'пункт «{head[:40]}»: абзаців із таким початком {len(hits)}'); continue
         x, nxt = hits[0], (src[i + 1] if i + 1 < len(src) else '')
@@ -508,6 +509,47 @@ def check_layout(doc, lines):
     first_numbered = next((ws(x.text) for x in _section_start(doc, 1) if _is_p(x) and x.text.strip()), '')
     if first_numbered != 'ЗМІСТ':
         bad.append(f'перша нумерована сторінка починається з «{first_numbered[:30]}», а не зі змісту')
+    bad += check_typography(doc)
+    return bad
+
+
+# Типографіка (власник, 2026-10-26) — перевіряється в готовому .docx власними правилами, не кодом
+# build.py: у тексті поза кодом і адресами не лишилося звичайного пробілу перед « –», між числом і
+# одиницею чи всередині «в. п.», звичайного дефіса в слові через дефіс і символу U+2011 (у Times New
+# Roman немає його гліфа — дефіс має бути елементом <w:noBreakHyphen/>). І навпаки: нерозривні
+# пробіли й дефіси в документі є — перевірка, що може сказати лише «нічого не знайшла», нічого не доводить.
+TY_ADDR = re.compile(r'\S*(?:https?://|www\.|@|\.md\b|\.py\b|\.json\b|\.sql\b|doi\.org)\S*')
+TY_BAD = (
+    ('звичайний пробіл перед тире', re.compile(r'\S –(\s|$)')),
+    ('звичайний пробіл між числом і одиницею', re.compile(
+        r'\d (%|в\.\s?п\.|с\.|мс|хв|год|ГБ|МБ|мм|пт|px|тис\.|млн|дол\.|євро)(?!\w)|\d с(?=[\s,;:)]|$)')),
+    ('звичайний пробіл у «в. п.»', re.compile(r'\bв\. п\.')),
+    ('звичайний дефіс у слові через дефіс', re.compile(r'[^\W_]-[^\W_]')),
+    ('символ U+2011 замість елемента Word', re.compile('‑')),
+)
+
+
+def check_typography(doc):
+    """Текст кожного абзацу збирається з його прогонів (код — пробілом, нерозривний дефіс — знаком
+    U+2027), і правила застосовуються до абзацу: дефіс, що стоїть окремим вузлом між двома словами,
+    теж помітний."""
+    bad, nbsp, nbh = [], 0, 0
+    for p in doc.element.body.iter(WNS + 'p'):
+        parts = []
+        for r in p.iter(WNS + 'r'):
+            rf = r.find(f'{WNS}rPr/{WNS}rFonts')
+            if rf is not None and 'Courier' in (rf.get(WNS + 'ascii') or ''):
+                parts.append(' '); continue
+            for el in r:
+                if el.tag == WNS + 't': parts.append(el.text or '')
+                elif el.tag == WNS + 'noBreakHyphen': parts.append('\u2027'); nbh += 1
+        txt = TY_ADDR.sub(' ', ''.join(parts))
+        nbsp += txt.count('\u00a0')
+        for what, rx in TY_BAD:
+            m = rx.search(txt)
+            if m: bad.append(f'типографіка: {what} — «{txt[max(0, m.start() - 25):m.end() + 15]}»')
+    if not nbsp: bad.append('типографіка: у документі немає жодного нерозривного пробілу')
+    if not nbh: bad.append('типографіка: у документі немає жодного нерозривного дефіса')
     return bad
 
 
@@ -545,6 +587,12 @@ def layout_mutations():
     def legend_row(doc):
         els = _body(doc); i = next(i for i, x in enumerate(els) if _is_p(x) and x.text.startswith('ПЕРЕЛІК УМОВНИХ'))
         t = next(x for x in els[i:] if not _is_p(x)); drop(t.rows[0]._tr)
+    def plain_space(doc):
+        t = next(t for t in doc.element.body.iter(WNS + 't') if '\u00a0–' in (t.text or ''))
+        t.text = t.text.replace('\u00a0–', ' –', 1)
+    def plain_hyphen(doc):
+        h = next(doc.element.body.iter(WNS + 'noBreakHyphen'))
+        h.getparent().replace(h, parse_xml_t('-'))
     def spoil_head(doc):
         els = _body(doc); i = next(i for i, x in enumerate(els) if _is_p(x) and CONTINUED.fullmatch(ws(x.text)))
         els[i + 1].rows[0].cells[0].paragraphs[0].add_run('?')
@@ -562,6 +610,8 @@ def layout_mutations():
          lambda d: setattr(first(d, lambda x: _is_p(x) and CONTINUED.fullmatch(ws(x.text))), 'alignment', AL.LEFT),
          'напис не праворуч'),
         ('частина таблиці з чужою головкою', spoil_head, 'головка частини не та'),
+        ('звичайний пробіл перед тире', plain_space, 'пробіл перед тире'),
+        ('звичайний дефіс замість нерозривного', plain_hyphen, 'дефіс у слові'),
         ('зміст не на третій сторінці',
          lambda d: d.sections[1]._sectPr.find(WNS + 'pgNumType').set(WNS + 'start', '2'), 'не є сторінкою 3'),
     ]

@@ -255,6 +255,92 @@ def L(n):
     return _normalize(n, LINES[n-1])
 
 
+# ================================================================ типографіка
+# Власник, 2026-10-26: типографіка — у конвеєрі, а не в джерелі. Останній крок перед збереженням,
+# по кожному текстовому вузлу документа (проза, заголовки, підписи, таблиці, перелік, титулка,
+# реферат), крім коду (Courier New) і адрес. Три правила, кожне — заміна одного символу на один:
+#   * пробіл перед « –» стає нерозривним: тире не починає рядка;
+#   * дефіс у слові через дефіс (між літерами чи цифрами: offline-first, FR-01) — нерозривний.
+#     У документі це елемент Word <w:noBreakHyphen/>, а не символ U+2011: у Times New Roman гліфа
+#     U+2011 немає, і символ узяв би інший шрифт; елемент Word малює звичайним дефісом шрифту;
+#   * пробіл між числом і одиницею (74 с., 30 %, 2,5 с, 15 хв, 0,4 в. п.), усередині «в. п.» і
+#     після №, ≈, ≤, ≥ — нерозривний.
+# Запобіжник той самий, що в нормалізації: довжина не змінюється, дозволені лише пари
+# (' ', NBSP) і ('-', нерозривний дефіс); інакше складання падає. verify.py перевіряє результат
+# у готовому .docx власними правилами (check_typography).
+NBSP, NBH = ' ', '‑'            # U+2011 — лише внутрішня позначка, у документ іде <w:noBreakHyphen/>
+UNITS = r'(?:%|в\.\s?п\.|с\.|с|мс|хв|год|ГБ|МБ|мм|см|пт|px|тис\.|млн|дол\.|євро|р\.)'
+TYPO_RULES = (
+    (re.compile(r'(?<=\S) (?=–(?:\s|$))'), NBSP),                    # слово – слово
+    (re.compile(r'(?<=\d) (?=' + UNITS + r'(?![\wА-Яа-яІіЇїЄєҐґ]))'), NBSP),   # 74 с., 30 %
+    (re.compile(r'(?<=\bв\.) (?=п\.)'), NBSP),                       # в. п.
+    (re.compile(r'(?<=[№≈≤≥]) (?=[\d+−-])'), NBSP),                  # № 2297, ≈ 3, ≤ 6,0
+    (re.compile(r'(?<=[^\W_’])-(?=[^\W_])'), NBH),                    # offline-first, ε-розіграш
+)
+TYPO_PROTECT = re.compile(r'\S*(?:https?://|www\.|@|\.md\b|\.py\b|\.json\b|\.sql\b|doi\.org)\S*')
+TYPO_COUNT = {'NBSP': 0, 'NBH': 0}
+
+
+def typeset(text):
+    """Типографіка одного текстового вузла. Повертає новий текст (той самий за довжиною; нерозривний
+    дефіс позначено U+2011)."""
+    holes = []
+
+    def stash(m):
+        holes.append(m.group(0)); return '\x00' * len(m.group(0))
+    out = TYPO_PROTECT.sub(stash, text)
+    for rx, ch in TYPO_RULES:
+        out = rx.sub(ch, out)
+    res = []
+    for i, c in enumerate(out):                         # повертаємо захищені фрагменти на місце
+        res.append(text[i] if c == '\x00' else c)
+    out = ''.join(res)
+    if len(out) != len(text):
+        raise SystemExit(f'ТИПОГРАФІКА ЗМІНИЛА ДОВЖИНУ: «{text[:60]}»')
+    for a, b in zip(text, out):
+        if a != b and (a, b) not in ((' ', NBSP), ('-', NBH)):
+            raise SystemExit(f'ТИПОГРАФІКА ЗМІНИЛА {a!r} → {b!r}: «{text[:60]}» — не передбачено правилами')
+    return out
+
+
+def _is_mono(r):
+    rf = r.find(qn('w:rPr') + '/' + qn('w:rFonts'))
+    return rf is not None and 'Courier' in (rf.get(qn('w:ascii')) or '')
+
+
+def typeset_document(doc):
+    """Застосовує typeset до тексту кожного абзацу (зокрема в комірках таблиць) цілком, а не до
+    окремих вузлів: «◐ – …» — це два прогони різними шрифтами, і пробіл перед тире стоїть уже в
+    другому. Довжина не змінюється, тож результат розкладається назад по вузлах за їхньою довжиною.
+    Вузли коду (Courier New) входять у контекст, але лишаються як були."""
+    for p in doc.element.body.iter(qn('w:p')):
+        nodes = []
+        for r in p.iter(qn('w:r')):
+            mono = _is_mono(r)
+            nodes += [(r, t, mono) for t in r.findall(qn('w:t')) if t.text]
+        if not nodes: continue
+        joined = ''.join(t.text for _, t, _ in nodes)
+        new = typeset(joined)
+        if new == joined: continue
+        at = 0
+        for r, t, mono in nodes:
+            old, piece = t.text, new[at:at + len(t.text)]; at += len(old)
+            if mono or piece == old: continue
+            TYPO_COUNT['NBSP'] += sum(1 for a, b in zip(old, piece) if a != b and b == NBSP)
+            if NBH not in piece:
+                t.text = piece; t.set('{http://www.w3.org/XML/1998/namespace}space', 'preserve'); continue
+            pieces = piece.split(NBH)
+            TYPO_COUNT['NBH'] += len(pieces) - 1
+            pos = list(r).index(t); r.remove(t)
+            els = []
+            for j, x in enumerate(pieces):
+                if x:
+                    nt = OxmlElement('w:t'); nt.text = x
+                    nt.set('{http://www.w3.org/XML/1998/namespace}space', 'preserve'); els.append(nt)
+                if j < len(pieces) - 1: els.append(OxmlElement('w:noBreakHyphen'))
+            for k, e in enumerate(els): r.insert(pos + k, e)
+
+
 # ================================================================ якорі й реєстр
 # Реєстр правок прив'язаний до тексту, а не до номерів рядків: після
 # перегенерації full.md номери зсуваються, а якір лишається. Ненайдений або
@@ -600,17 +686,21 @@ CYR = re.compile(r'^[А-ЯІЇЄҐа-яіїєґ«»(]')
 # ================================================================ таблиці
 SPLITS = {}                               # номер таблиці → [рядків тіла в кожній частині] (layout.py)
 NEW_PAGE = set()                          # таблиці, що починаються з нової сторінки (під головкою лишався один рядок)
+KEEP = set()                              # малі таблиці: цілі, з підписом (ланцюжок «не відривати від наступного»)
 CUR_TABLE = [None]                        # номер таблиці з останнього підпису «Таблиця N»
 CONTINUED = 'Продовження таблиці'
 
 
 def load_splits(path):
     """План поділу таблиць із layout.py (README, «Продовження таблиці»). Немає файла — таблиці цілі."""
-    SPLITS.clear(); NEW_PAGE.clear(); CUR_TABLE[0] = None
+    SPLITS.clear(); NEW_PAGE.clear(); KEEP.clear(); CUR_TABLE[0] = None
     if path and os.path.exists(path):
         for num, v in json.load(open(path, encoding='utf-8')).items():
             if v.get('parts'): SPLITS[num] = v['parts']
             if v.get('before'): NEW_PAGE.add(num)
+            if v.get('keep'): KEEP.add(num)
+    if SPLITS.keys() & KEEP:
+        raise SystemExit(f'ПЛАН ТАБЛИЦЬ СУПЕРЕЧЛИВИЙ: таблиці {sorted(SPLITS.keys() & KEEP)} і цілі, і поділені')
 
 
 def split_cells(line):
@@ -728,6 +818,12 @@ def emit_table(doc, start):
             row._tr.get_or_add_trPr().append(parse_xml('<w:cantSplit %s/>' % nsdecls('w')))
         for c in t.rows[0].cells:                         # головка не лишається внизу сторінки сама
             for p in c.paragraphs: p.paragraph_format.keep_with_next = True
+        if CUR_TABLE[0] in KEEP:
+            # мала таблиця ціла: кожен рядок, крім останнього, не відривається від наступного, тож
+            # таблиця з підписом переходить на нову сторінку цілою — так верстають і Word, і LibreOffice
+            for row in t.rows[:-1]:
+                for c in row.cells:
+                    for p in c.paragraphs: p.paragraph_format.keep_with_next = True
 
     # Методичка, с. 20: над кожною наступною частиною таблиці, перенесеної на іншу сторінку, —
     # «Продовження таблиці N». Де таблиця переходить на нову сторінку, знає лише верстка: поділ
@@ -1093,6 +1189,7 @@ def build_referat(out, pages=None):
         p.paragraph_format.page_break_before = bool(k)
         for n in range(head + 1, end):
             if L(n).strip(): para(doc, L(n))
+    typeset_document(doc)
     os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
     doc.save(out)
 
@@ -1375,6 +1472,10 @@ def build(src, out, brief=None, registry=None, report=None, figures=None, privat
     if APOSTROPHE_KV:
         REPORT['notes'].append("рядки keep-verbatim, у яких апостроф змінився з ' на ’: "
                                + '; '.join(sorted(APOSTROPHE_KV)))
+    TYPO_COUNT.update(NBSP=0, NBH=0)
+    typeset_document(doc)
+    REPORT['notes'].append(f'типографіка: нерозривних пробілів {TYPO_COUNT["NBSP"]}, '
+                           f'нерозривних дефісів {TYPO_COUNT["NBH"]}')
     os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
     doc.save(out)
     if report:
