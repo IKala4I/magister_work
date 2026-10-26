@@ -16,6 +16,20 @@
 > the Ukrainian sentences the draft should read, tagged Ф / П / С, every number with its measurement
 > condition. **The thesis text is assembled and green on every gate.**
 
+## IN PROGRESS (2026-10-26) — post-p12/second-wave: «магістерська, а не стаття»
+
+Owner-approved plan: `/Users/vladyslav/.claude/plans/pasted-content-id-bd21-plan-mode-soft-blum.md`
+(copy of its decisions below once done). Branch `post-p12/second-wave`. Owner decisions: arm-A wording
+carries both facts (protocol arm = deadline/priority/earliest-slot rule class of Motion/Reclaim by
+their public descriptions; in the simulated worlds tasks are identical, so it reduces to
+earliest-free-slot; the products themselves were never compared); body floor stays 60 pages;
+реферат/ABSTRACT — only the competitor sentence is realigned.
+
+Done: (1) pipeline typography + table keep/margin (`0f2f0b5`). Next: inline math `$…$` (build +
+independent verify), then ВСТУП → розділи 1–3 → general pass on 4/ВИСНОВКИ → abbreviations, sources,
+counts → docs. Baseline `full.md` for the no-number-changed diff is in the session scratchpad; if lost,
+use `git show 2427b15:docs/thesis/text/full.md`.
+
 ## Current state (2026-10-26) — post-p12/four-chapters: four chapters, 74 body pages
 
 The owner approved a plan (2026-10-26) and decided the blocks to remove along the way. Done and
