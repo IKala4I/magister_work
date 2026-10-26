@@ -253,7 +253,7 @@ def mutations(text: str) -> list[tuple[str, str, str]]:
         ("a table numbered out of order",
          text.replace("Таблиця 1.2", "Таблиця 1.9", 1), "expected 1.2"),
         ("a figure before its first reference",
-         text.replace("; рисунок 3.3)", ")", 1) + "\nДіаграму наведено на рисунку 3.3.\n",
+         re.sub(r"(?:\s*\(рисунок 3\.3\)|; рисунок 3\.3(?=\)))", "", text, count=1) + "\nДіаграму наведено на рисунку 3.3.\n",
          "3.3 (L"),
         ("a figure nobody refers to",
          text.replace("(рисунок 3.1)", "", 1), "3.1 (L"),
