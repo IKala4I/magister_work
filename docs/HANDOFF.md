@@ -25,10 +25,14 @@ their public descriptions; in the simulated worlds tasks are identical, so it re
 earliest-free-slot; the products themselves were never compared); body floor stays 60 pages;
 реферат/ABSTRACT — only the competitor sentence is realigned.
 
-Done: (1) pipeline typography + table keep/margin (`0f2f0b5`). Next: inline math `$…$` (build +
-independent verify), then ВСТУП → розділи 1–3 → general pass on 4/ВИСНОВКИ → abbreviations, sources,
-counts → docs. Baseline `full.md` for the no-number-changed diff is in the session scratchpad; if lost,
-use `git show 2427b15:docs/thesis/text/full.md`.
+Done: (1) pipeline typography + table keep/margin (`0f2f0b5`); (2) inline math `$…$` (`f860ad1`:
+build sets Latin single letters italic, Greek upright, real sub/sup; verify has its own `$…$` rule
+and a self-test mutation; audit skips `$…$`; formula (4.1) for the world model already in place,
+so formulas are 21 until step 6 cuts them to 10). Body after (2): 77 PDF pages (4/10/16/18/26/3) —
+the table margin and (4.1) added three. Next: regress.py vs golden (closes steps 1–3), then ВСТУП →
+розділи 1–3 → general pass on 4/ВИСНОВКИ → abbreviations, sources, counts → docs. Baseline `full.md`
+for the no-number-changed diff: `git show 2427b15:docs/thesis/text/full.md` (token diff: numbers
+only, `$…$` and Unicode subscripts normalised before comparing).
 
 ## Current state (2026-10-26) — post-p12/four-chapters: four chapters, 74 body pages
 
