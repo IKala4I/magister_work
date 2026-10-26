@@ -36,8 +36,11 @@ differences, all typography only (closes steps 1–3). (4) ВСТУП 4 → 3 pa
 verify.py + verify-guideline own checks; ВСТУП no longer states figures/tables/formulas). (5)
 Розділ 1 10 → 8 pages (≈ 7 of text; p. 16 half white under табл. 1.1): 1.3 compressed with every
 source kept (41 cited in ch. 1), 1.5 «Постановка задачі» without ДП1–ДП4, arm-A sentence in 1.2.
-Next: розділ 2 (+ formulas.py, table renumbering) → 3 → general pass on 4/ВИСНОВКИ →
-abbreviations, sources, counts → docs. Removed numbers so far — ВСТУП: 29/64, 45 %, 18–45,
+(6) Розділ 2 16 → 12 pages (pages full; plan guessed ≈ 9.5): formulas 21 → 10 (2.1–2.9 + 4.1,
+registry rewritten, FORMULA_SPLIT empty), tables 29 → 26 (2.2, 2.5, 2.6 out; 2.3 → 2.2, 2.4 → 2.3
+everywhere), API names out, ДП2 out; the 3.6 paragraph restating the CP-SAT build went here (it
+cited old (2.5)). Body 69. Next: розділ 3 → general pass on 4/ВИСНОВКИ → abbreviations, sources,
+counts → docs. Removed numbers so far — ВСТУП: 29/64, 45 %, 18–45,
 80 %/65, 21–120+, 48/75, 172, 0,7, 30 %, ±0,4; розділ 1: ±0,4 (табл. 1.1 cell), 0,3–1,4,
 0,03–17, ≈ 0–4, 19–34 дол. (prose only; table keeps it), 30 млн. Baseline `full.md`
 for the no-number-changed diff: `git show 2427b15:docs/thesis/text/full.md` (token diff: numbers

@@ -15,11 +15,11 @@ history), and the rollup and `../ASSEMBLY.md` are frozen records of how the text
 
 What lives in this folder:
 
-| Path        | What it is                                                                           |
-| ----------- | ------------------------------------------------------------------------------------ |
-| `full.md`   | the thesis; in `.prettierignore` (prettier corrupts formula (2.15) and the listings) |
-| `diagrams/` | sources of the figures the pipeline renders (`docx-pipeline/figures.json`)           |
-| `README.md` | this file                                                                            |
+| Path        | What it is                                                                          |
+| ----------- | ----------------------------------------------------------------------------------- |
+| `full.md`   | the thesis; in `.prettierignore` (prettier corrupts formula (2.6) and the listings) |
+| `diagrams/` | sources of the figures the pipeline renders (`docx-pipeline/figures.json`)          |
+| `README.md` | this file                                                                           |
 
 Two things in `full.md` are not typed freely, and a checker holds each:
 

@@ -268,7 +268,7 @@ def mutations(text: str) -> list[tuple[str, str, str]]:
         ("ВСТУП without the number of appendices",
          re.sub(r"і \d+ додатків", "і додатків", text, count=1), "ВСТУП does not state the number of appendices"),
         ("two consecutive formulas without a comma between them",
-         re.sub(r",(\s{2,}\(2\.17\))", r"\1", text, count=1), "(2.17) is followed directly by (2.18)"),
+         re.sub(r",(\s{2,}\(2\.3\))", r"\1", text, count=1), "(2.3) is followed directly by (2.4)"),
         ("two abbreviations out of alphabetical order",
          text.replace("\nКФ – ", "\n\x00", 1).replace("\nБД – ", "\nКФ – ", 1).replace("\n\x00", "\nБД – ", 1)
          .replace("БД – колаборативна", "БД – база").replace("КФ – база даних", "КФ – колаборативна"),
