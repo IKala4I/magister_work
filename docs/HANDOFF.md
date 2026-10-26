@@ -26,10 +26,16 @@ Untouched: the formalisation and formulas (2.1)–(2.20), architecture at the le
 75-world sensitivity study, the offline-evaluation results, the four strengthened claims of rollup
 §3. Conference theses keep their own title (owner, 2026-10-26).
 
-Steps (commit after each): 1 ✅ full.md is the only source (`c8a3cc6`); 2 private facts in
-MagisterDocs + theme placeholder; 3 merge chapters and renumber, no cuts; 4 cuts, one chapter per
-commit, page count after each; 5 sources (expect 0 orphaned — stop and ask if not); 6 counts,
-brief, needles, docs, golden; 7 fresh-subagent adversarial pass; 8 PR.
+Steps (commit after each): 1 ✅ full.md is the only source (`c8a3cc6`); 2 ✅ private facts in
+MagisterDocs + theme placeholder (`ef8e963`); 3 ✅ merge chapters and renumber (`b6b7815`); 4 ⏳ cuts —
+four passes done, body 119 → 114 (merge) → 86 pages; wording compression is exhausted (≈ 1 page per
+pass), so getting under 80 needs whole blocks removed, some of which the approved plan kept
+(listings, табл. 3.3) — **asked the owner which blocks go (2026-10-26)**; 5 sources (expect 0
+orphaned); 6 counts, brief, needles, docs, golden; 7 fresh-subagent adversarial pass; 8 PR.
+
+Measuring: `layout.py body hourwell.pdf` prints the body pages (run_all.sh does it, «== обсяг»).
+A snapshot build that does not touch MagisterDocs/build: copy full.md to a scratch folder with a
+`diagrams` symlink and a scratch DOCS folder whose private/figures/sources/golden link to MagisterDocs.
 
 Body page count is measured from `MagisterDocs/build/hourwell.pdf` by heading positions (ВСТУП to
 СПИСОК ВИКОРИСТАНИХ ДЖЕРЕЛ).
