@@ -2,7 +2,8 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-10-26 — **post-p12/four-chapters** (section right below): four chapters, 74 body pages. Before it, 2026-10-13 — **post-p12/metodychka-2026** (PR #88; section right below): the thesis
+> Last update: 2026-10-26 — **post-p12/second-wave** (section right below): body 70 pages, formulas 10, tables 26. Before it,
+> 2026-10-26 — **post-p12/four-chapters**: four chapters, 74 body pages. Before it, 2026-10-13 — **post-p12/metodychka-2026** (PR #88; section right below): the thesis
 > follows the department's 2026 guideline. Expo's patch drift went in first as PR #89.
 > Before it, 2026-09-29 — **post-p12/thesis-private-docs**: schema names in the text, 3.2 in,
 > private data in MagisterDocs (below). Before it, **post-p12/thesis-figures**: the figures render
@@ -16,46 +17,62 @@
 > the Ukrainian sentences the draft should read, tagged Ф / П / С, every number with its measurement
 > condition. **The thesis text is assembled and green on every gate.**
 
-## IN PROGRESS (2026-10-26) — post-p12/second-wave: «магістерська, а не стаття»
+## Current state (2026-10-26) — post-p12/second-wave: «магістерська, а не стаття»
 
-Owner-approved plan: `/Users/vladyslav/.claude/plans/pasted-content-id-bd21-plan-mode-soft-blum.md`
-(copy of its decisions below once done). Branch `post-p12/second-wave`. Owner decisions: arm-A wording
-carries both facts (protocol arm = deadline/priority/earliest-slot rule class of Motion/Reclaim by
-their public descriptions; in the simulated worlds tasks are identical, so it reduces to
-earliest-free-slot; the products themselves were never compared); body floor stays 60 pages;
-реферат/ABSTRACT — only the competitor sentence is realigned.
+Owner-approved plan: `~/.claude/plans/pasted-content-id-bd21-plan-mode-soft-blum.md` (local to the
+owner's machine). All ten steps done, one commit per block, green on every gate; PR
+«Post-P12 — друга хвиля: магістерська, а не стаття».
 
-Done: (1) pipeline typography + table keep/margin (`0f2f0b5`); (2) inline math `$…$` (`f860ad1`:
-build sets Latin single letters italic, Greek upright, real sub/sup; verify has its own `$…$` rule
-and a self-test mutation; audit skips `$…$`; formula (4.1) for the world model already in place,
-so formulas are 21 until step 6 cuts them to 10). Body after (2): 77 PDF pages (4/10/16/18/26/3) —
-the table margin and (4.1) added three. regress.py vs golden on the golden's own source: 312
-differences, all typography only (closes steps 1–3). (4) ВСТУП 4 → 3 pages, novelty 5 → 3 points,
-реферат/ABSTRACT competitor sentence carries both arm-A facts, new placeholder
-`[обсяг основного тексту]` (build `--body-pages`, `layout.py body --total`, run_all fixed point,
-verify.py + verify-guideline own checks; ВСТУП no longer states figures/tables/formulas). (5)
-Розділ 1 10 → 8 pages (≈ 7 of text; p. 16 half white under табл. 1.1): 1.3 compressed with every
-source kept (41 cited in ch. 1), 1.5 «Постановка задачі» without ДП1–ДП4, arm-A sentence in 1.2.
-(6) Розділ 2 16 → 12 pages (pages full; plan guessed ≈ 9.5): formulas 21 → 10 (2.1–2.9 + 4.1,
-registry rewritten, FORMULA_SPLIT empty), tables 29 → 26 (2.2, 2.5, 2.6 out; 2.3 → 2.2, 2.4 → 2.3
-everywhere), API names out, ДП2 out; the 3.6 paragraph restating the CP-SAT build went here (it
-cited old (2.5)). Body 69. (7) Розділ 3 18 → 16: MoSCoW → обов’язкова/бажана, stack as a plain
-list, legal text one paragraph, solver parameters one paragraph (1,5 с, 1003 → 400 мс, 20/20
-OPTIMAL, the 60 % weekly limitation kept), contrast via додаток И; fig. 3.1 source loses the hook.
-Brief rows for four strings that no longer exist anywhere were removed. Body 68. (8) Chapter 4 /
-ВИСНОВКИ light pass: arm-A wording with both facts in табл. 4.1, 4.6.1, 4.10.1, ВИСНОВКИ 7 (and
-реферат, 1.2 earlier — all «якими Motion і Reclaim.ai описують себе»); SkedPal sentence in
-4.10.1; plain openings of 4.4 and 4.6.1; ВИСНОВКИ 3–4 without ±0,4 and −0,6/+0,7. Body 70 (two
-widow pages of two lines each, end of 4.11 and of ВИСНОВКИ). (9) Перелік: abbreviations used < 3
-times leave the list (guideline p. 13) and are spelled out at first use — 32 → 16 entries (CI/CD →
-CI; БД, КФ, ПЗ, РС, ЦФ, ALS, GLMM, ILP, JITAI, MAU, MRT, OPE, ORM, OTA, SUS/UMUX-Lite, TS out);
-«Event sourcing» listed as «Подієве журналювання (event sourcing)», the form the text uses. Sources
-71, all cited; counts: figures 7, tables 26, formulas 10, appendices 9. Next: docs (text/README,
-pipeline README, CHANGELOG) → adversarial review → PR. Removed numbers so far — ВСТУП: 29/64, 45 %, 18–45,
-80 %/65, 21–120+, 48/75, 172, 0,7, 30 %, ±0,4; розділ 1: ±0,4 (табл. 1.1 cell), 0,3–1,4,
-0,03–17, ≈ 0–4, 19–34 дол. (prose only; table keeps it), 30 млн. Baseline `full.md`
-for the no-number-changed diff: `git show 2427b15:docs/thesis/text/full.md` (token diff: numbers
-only, `$…$` and Unicode subscripts normalised before comparing).
+**Owner decisions (2026-10-26):** the base-arm wording carries both facts (arm A belongs to the
+deterministic deadline/priority rule class Motion and Reclaim.ai work by according to their public
+materials — not a replica of the products; in the simulated worlds tasks are identical, so it
+reduces to earliest-free-slot; the products were never compared); body floor 60 pages;
+реферат/ABSTRACT — only the competitor sentence realigned. Табл. 4.1's wording against the older
+#8(a)/#22/H1(1) is recorded as thesis-corrections #67.
+
+**Result.** Body 74 → **70** PDF pages (ВСТУП 3, розділи 8 / 12 / 16 / 27, ВИСНОВКИ 4), total
+119 → 115. The plan expected ≈ 60–63: chapters 1 and 2 came out at 8 and 12 against ≈ 6.5 and
+≈ 9.5 with every planned cut made; nothing was cut beyond the plan. Two widow pages carry two lines
+each (end of 4.11 and of ВИСНОВКИ) in LibreOffice. Formulas 20 → **10** ((2.1)–(2.9), (4.1)),
+tables 29 → **26** (2.2, 2.5, 2.6 out; 2.3 → 2.2, 2.4 → 2.3), figures 7, sources 71 (all cited),
+abbreviations 32 → 16 (guideline p. 13).
+
+**Pipeline** (`docs/thesis/docx-pipeline/`): typography (NBSP rules, `<w:noBreakHyphen/>`),
+inline math `$…$` (build + verify's own rule + self-test mutation; audit skips it), small tables
+whole / large ones split with a 15 mm margin, `[обсяг основного тексту]` (`build.py --body-pages`,
+`layout.py body --total`, run_all fixed point). `regress.py` against the golden on the golden's
+own source: 312 differences, all typography only. **The golden in `MagisterDocs/golden` was not
+refreshed** — it still is the four-chapters build; refresh it after the owner accepts this text.
+
+**No number changed** (token diff of `full.md` against `2427b15`): nothing new except formula/table
+numbers, section references, the table count 26 and the citations [46]/[54] in табл. 4.1. Removed
+(each either still stated in chapter 4 / табл. 4.7 / додатки, or gone from the thesis):
+ВСТУП — 29/64, 45 %, 18–45, 80 %/65, 21–120+, 48/75, 172, 0,7, 30 %, ±0,4; розділ 1 — ±0,4 (табл.
+1.1), 0,3–1,4, 0,03–17, ≈ 0–4, 19–34 дол. (prose; the table keeps it), 30 млн; розділ 2 — 24
+buckets, 96, 672, 4,3 and 1,1–2,4 (in 4.2), 50 × 300 and 1,5·10⁴ (табл. 4.7), the табл. 2.5
+parameters, the AF/MD prose values (табл. 2.3 keeps them), 0,5·…+0,5·0,55, 615/154 (gone),
+930/310 (4.4); розділ 3 — #2620, EDPB 05/2021, 49(1)(a), № 2297-VI ст. 29, 78–151 мс, 30 днів,
+8–10·10³, ≈ 11 тис., 3·10³ and 1·10⁻⁴ (табл. 4.7), 8·10³, 4·10⁴, 12 із 15, 10–11 мс, 54 мс,
+0,38–1,21, 0,01, 0,3 с, ≤ 0,3 %, 4,41 %, 5,6–19,2, 1/10 → 0/10, 1/36 → 0/36, p50 135 / p90 487 мс
+(most of 3.6's stop-criterion numbers are now nowhere in the thesis), 2,1–2,98:1, 6,47:1, 6,10:1
+(додаток И has the contrasts); ВИСНОВКИ 3–4 — ±0,4, −0,6/+0,7 (4.6.4, 4.4).
+
+**Adversarial review** (fresh-context subagent): 3 blockers fixed — novelty 2 and 1.5 said every
+placement's propensity is exact (only the randomized slice is; TS traffic is Monte-Carlo), 1.2
+implied the rule-class comparison was run, табл. 4.1 vs #8(a)/#22 (recorded); ≈ 20 should-fix
+items fixed (definitions of такт, λ, x(·), D, r, q; C4 soft; label weight n₀; legal paragraph;
+2.4 vs табл. 4.7; tense of the sensitivity analysis; calque «якими … описують себе» → «за якими,
+згідно з відкритими матеріалами, працюють»). Left as they were (pre-existing, not this wave): g is
+both the urgency multiplier in (2.2) and a category; σ² in (2.3) undefined; ε/s/p each mean two
+things across chapters 2 and 4; «підрозділ 2.6.2» where «пункт» is meant (4.4, табл. 4.7).
+
+**Waiting on the owner (new):** the реферат still says «пропенсіті кожного розміщення лишається
+точно відомим» — true only on the randomized slice; the реферат was limited to the competitor
+sentence by the owner's decision, so this needs a yes. Chapter 4 beyond the light pass waits until
+the owner has read it. Earlier items below still stand (name, screenshots for рис. 3.4,
+AI declaration, Word once, «Апробація» after 10–11 November, supervisor questions).
+
+**Next session reads:** this section; `docs/thesis/text/README.md`; `docs/thesis/docx-pipeline/README.md`.
 
 ## Current state (2026-10-26) — post-p12/four-chapters: four chapters, 74 body pages
 

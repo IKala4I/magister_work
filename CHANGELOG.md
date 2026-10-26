@@ -14,10 +14,14 @@
   119 → 115. Formulas 20 → **10** ((2.1)–(2.9), world model (4.1)), tables 29 → **26**, figures 7,
   sources 71 (all cited), list of abbreviations 32 → 16 (guideline p. 13: fewer than three uses →
   spelled out in the text).
-- **Base arm wording** (owner): the protocol's arm A reproduces the deterministic deadline/priority
-  rule class that Motion and Reclaim.ai describe publicly; in the simulated worlds tasks are
-  identical, so it reduces to earliest-free-slot; the products themselves were never compared — in
-  1.2, табл. 4.1, 4.6.1, 4.10.1, ВИСНОВКИ 7, реферат and ABSTRACT.
+- **Base arm wording** (owner): the protocol's arm A belongs to the deterministic deadline/priority
+  rule class Motion and Reclaim.ai work by according to their public materials (not a replica of the
+  products); in the simulated worlds tasks are identical, so it reduces to earliest-free-slot; the
+  products themselves were never compared. All three facts in 1.2, 4.10.1, ВИСНОВКИ 7, реферат and
+  ABSTRACT; табл. 4.1 states the class, 4.6.1 the reduction (thesis-corrections #67).
+- **Adversarial review** (fresh context): 3 blockers fixed — «exact propensity for every placement»
+  in novelty 2 and 1.5 (exact only on the randomized slice), 1.2 implying the rule-class comparison
+  was run, табл. 4.1 vs #8(a)/#22 recorded — plus ≈ 20 wording and definition fixes.
 - **Pipeline**: typography (non-breaking space before a spaced dash, between a number and its unit,
   after №/≈/≤/≥; Word's `<w:noBreakHyphen/>` in hyphenated words — Times New Roman has no U+2011);
   inline math `$…$` with real sub/superscripts, checked by `verify.py`'s own rule; small tables move
