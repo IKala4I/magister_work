@@ -18,7 +18,7 @@ skinparam ranksep 34
 top to bottom direction
 
 rectangle "(1) Мобільний клієнт — React Native + Expo" as L1 {
-  rectangle "TypeScript strict\nекрани Today, Inbox, Focus, Insights\nExpo SQLite + Drizzle — офлайн-джерело\nістини та outbox операцій\nвласний хук живих запитів · chrono-node" as C
+  rectangle "TypeScript strict\nекрани Today, Inbox, Focus, Insights\nExpo SQLite + Drizzle — офлайн-джерело\nістини та outbox операцій\nchrono-node" as C
 }
 
 rectangle "(2) Supabase — регіон ЄС (eu-west-1)" as L2 {

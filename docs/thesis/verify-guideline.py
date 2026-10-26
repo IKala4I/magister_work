@@ -22,9 +22,10 @@ are checked on `text/full.md`, the product, on every change:
   sources      every entry of the list is cited                                       (p. 13)
   list of      the abbreviations and the terms of «ПЕРЕЛІК УМОВНИХ ПОЗНАЧЕНЬ…» each stand in
   terms        alphabetical order, Cyrillic before Latin                              (p. 12)
-  counts       what ВСТУП («Структура та обсяг роботи») and the реферат say the thesis contains –
-               sources, appendices, figures, tables, formulas, chapters – is what it contains;
-               the page count stays a placeholder here, filled from the rendered PDF  (p. 11, 15)
+  counts       what ВСТУП («Структура та обсяг роботи») and the реферат say the thesis contains is
+               what it contains: ВСТУП – sources, appendices, chapters, total and body pages;
+               реферат – figures, tables, appendices, sources, pages; page counts stay
+               placeholders here, filled from the rendered PDF                        (p. 11, 15)
 
 A check that has never failed has proved nothing, so `--self-test` breaks the text once per rule
 and requires the rule to notice; CI runs both.
@@ -194,7 +195,6 @@ def check(lines: list[str]) -> list[str]:
             run = []
 
     # ---- counts stated in ВСТУП and in the реферат (both languages)
-    formulas = sum(1 for n, s in prose if re.search(r"\s{2,}\(\d+\.\d+\)\s*$", s))
     n_tables = sum(1 for n, s in body if TABLE_CAP.match(s))
     n_figs = sum(1 for n, s in body if FIG_CAP.match(s))
     chapters = sum(1 for s in heads if re.match(r"^# РОЗДІЛ \d", s))
@@ -202,8 +202,8 @@ def check(lines: list[str]) -> list[str]:
     stated = [
         ("ВСТУП", r"^Структура та обсяг роботи\.", [
             (r"із (\d+) найменуван", len(entries), "sources"), (r"і (\d+) додатк", len(apps), "appendices"),
-            (r"рисунків – (\d+)", n_figs, "figures"), (r"таблиць – (\d+)", n_tables, "tables"),
-            (r"формул – (\d+)", formulas, "formulas"), (r"сторінок – (\[кількість сторінок\])", None, "pages")]),
+            (r"Загальний обсяг роботи – (\[кількість сторінок\]) с\.", None, "pages"),
+            (r"основний текст – (\[обсяг основного тексту\]) с\.", None, "body pages")]),
         ("реферат", r"^Обсяг роботи: ", [
             (r"рисунків – (\d+)", n_figs, "figures"), (r"таблиць – (\d+)", n_tables, "tables"),
             (r"додатків – (\d+)", len(apps), "appendices"), (r"джерел – (\d+)", len(entries), "sources"),
@@ -229,6 +229,15 @@ def check(lines: list[str]) -> list[str]:
             if not m or words.get(m.group(1)) != chapters:
                 bad.append(f"counts: ВСТУП says «{m.group(1) if m else '?'} розділів», the thesis has {chapters}")
     return bad
+
+
+def swap_lines(text: str, first: str, second: str) -> str:
+    """Swap the two whole lines that start with `first` and `second` (the list of abbreviations)."""
+    lines = text.split("\n")
+    i = next(k for k, ln in enumerate(lines) if ln.startswith(first))
+    j = next(k for k, ln in enumerate(lines) if ln.startswith(second))
+    lines[i], lines[j] = lines[j], lines[i]
+    return "\n".join(lines)
 
 
 # One mutation per rule: (what it breaks, find, replace, a fragment the failure message must carry).
@@ -263,11 +272,14 @@ def mutations(text: str) -> list[tuple[str, str, str]]:
          re.sub(r"із \d+ найменуван", "із 66 найменуван", text, count=1), "ВСТУП says 66 sources"),
         ("a page count typed by hand",
          text.replace("сторінок – [кількість сторінок]", "сторінок – 162", 1), "does not state the number of pages"),
+        ("a body page count typed by hand in ВСТУП",
+         text.replace("[обсяг основного тексту]", "62", 1), "does not state the number of body pages"),
+        ("ВСТУП without the number of appendices",
+         re.sub(r"і \d+ додатків", "і додатків", text, count=1), "ВСТУП does not state the number of appendices"),
         ("two consecutive formulas without a comma between them",
-         re.sub(r",(\s{2,}\(2\.17\))", r"\1", text, count=1), "(2.17) is followed directly by (2.18)"),
+         re.sub(r",(\s{2,}\(2\.3\))", r"\1", text, count=1), "(2.3) is followed directly by (2.4)"),
         ("two abbreviations out of alphabetical order",
-         text.replace("\nКФ – ", "\n\x00", 1).replace("\nБД – ", "\nКФ – ", 1).replace("\n\x00", "\nБД – ", 1)
-         .replace("БД – колаборативна", "БД – база").replace("КФ – база даних", "КФ – колаборативна"),
+         swap_lines(text, "API – ", "CI – "),
          "belongs alphabetically"),
         ("a reference to a subsection that does not exist",
          re.sub(r"підрозділ(\w*) \d+\.\d+(?![\d.])", r"підрозділ\g<1> 9.9", text, count=1), "no heading has that number"),

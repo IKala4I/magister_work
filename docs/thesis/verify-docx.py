@@ -26,7 +26,7 @@ DEFAULT = "docs/thesis/text/full.md"
 # --- (1) strings that must be GONE after assembly ------------------------------------------------
 # each is (needle, why it must go)
 BANNED = [
-    ("E(x~~D)", "prettier read формула (2.15) as strikethrough — full.md must stay in .prettierignore"),
+    ("E(x~~D)", "prettier read формула (2.6) as strikethrough — full.md must stay in .prettierignore"),
     ("‹?›", "an unresolved citation — a deleted reference is still cited somewhere"),
     ("[nn", "an unresolved rollup citation placeholder"),
     ("[@", "an unresolved symbolic citation key"),
@@ -80,11 +80,10 @@ PRESENT = [
     ("[назва кафедри]", "the department's name comes from the title-page data"),
     ("[код і найменування спеціальності]", "the speciality comes from the title-page data"),
     ("[кількість сторінок]", "the page count is filled from the rendered PDF, never typed"),
-    # The renumberer once rewrote «clip[0, 1]» as a citation and silently broke (2.9)/(2.10);
-    # the formulas are asserted here so it can never happen unnoticed again.
-    ("clip[0,1]( x(τ,c)", "формула (2.9) — the clip bounds, not a citation"),
-    ("E(x~D) E(a~π(·|x))", "формула (2.15) — the tildes are expectations, not strikethrough"),
-    ("clip[0,1]( xᵀθ̂(g)", "формула (2.10) — the clip bounds, not a citation"),
+    # The renumberer once rewrote «clip[0, 1]» as a citation and silently broke a formula
+    # (then (2.9)/(2.10)); the formulas are asserted here so it can never happen unnoticed again.
+    ("clip[0,1]( x(τ,c)", "формула (2.4) — the clip bounds, not a citation"),
+    ("E(x~D) E(a~π(·|x))", "формула (2.6) — the tildes are expectations, not strikethrough"),
     ("SASRec-lite, он-девайс ONNX-ранжувальник і текстові вкладення MiniLM віднесені до перспектив",
      "§3.3 — the three unbuilt components are named as unbuilt, not omitted"),
     ("чотирьох розділів", "ВСТУП structure sentence: four chapters since 2026-10-26"),

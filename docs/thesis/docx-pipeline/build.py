@@ -70,19 +70,23 @@ PRIVATE_FIELDS = (                        # (ключ у titulka.json, плей�
     ('тема_англійською', '[thesis title]', False),
 )
 PAGE_PLACEHOLDERS = ('[кількість сторінок]', '[number of pages]')   # обсяг роботи: з готового PDF
+BODY_PLACEHOLDER = '[обсяг основного тексту]'   # ВСТУП: сторінки від ВСТУПУ до кінця ВИСНОВКІВ, з PDF
 PRIVATE = {}                              # плейсхолдер → значення (лише заповнені)
 DATA = {}                                 # ключ titulka.json → значення: для приватних частин (картка, завдання)
 
 
-def load_private(path, pages=None):
+def load_private(path, pages=None, body_pages=None):
     """Читає titulka.json і підставляє заповнені значення в LINES. Повертає словник
     плейсхолдер → значення. Невідомий ключ у файлі валить складання (друкарська помилка в
     ключі інакше мовчки лишила б плейсхолдер). `pages` — кількість сторінок роботи, виміряна
-    на готовому PDF попереднього проходу (run_all.sh): число в тексті не набирається руками."""
+    на готовому PDF попереднього проходу (run_all.sh): число в тексті не набирається руками;
+    `body_pages` — так само обсяг основного тексту (layout.py body --total)."""
     global LINES
     PRIVATE.clear(); DATA.clear()
     if pages:
         for ph in PAGE_PLACEHOLDERS: PRIVATE[ph] = str(pages)
+    if body_pages:
+        PRIVATE[BODY_PLACEHOLDER] = str(body_pages)
     if path:
         data = json.load(open(path, encoding='utf-8'))
         known = {k for k, _, _ in PRIVATE_FIELDS}
@@ -119,6 +123,7 @@ def load(src, brief=None):
     OVERRIDE.clear(); INSERT_AFTER.clear(); CODE_RANGES.clear(); APOSTROPHE_KV.clear()
     for v in REPORT.values(): v.clear()
     for v in NORMALIZED.values(): v.clear()
+    REPORT_MATH[0] = 0
     _FENCE_LINES = None
 
 
@@ -255,6 +260,92 @@ def L(n):
     return _normalize(n, LINES[n-1])
 
 
+# ================================================================ типографіка
+# Власник, 2026-10-26: типографіка — у конвеєрі, а не в джерелі. Останній крок перед збереженням,
+# по кожному текстовому вузлу документа (проза, заголовки, підписи, таблиці, перелік, титулка,
+# реферат), крім коду (Courier New) і адрес. Три правила, кожне — заміна одного символу на один:
+#   * пробіл перед « –» стає нерозривним: тире не починає рядка;
+#   * дефіс у слові через дефіс (між літерами чи цифрами: offline-first, FR-01) — нерозривний.
+#     У документі це елемент Word <w:noBreakHyphen/>, а не символ U+2011: у Times New Roman гліфа
+#     U+2011 немає, і символ узяв би інший шрифт; елемент Word малює звичайним дефісом шрифту;
+#   * пробіл між числом і одиницею (74 с., 30 %, 2,5 с, 15 хв, 0,4 в. п.), усередині «в. п.» і
+#     після №, ≈, ≤, ≥ — нерозривний.
+# Запобіжник той самий, що в нормалізації: довжина не змінюється, дозволені лише пари
+# (' ', NBSP) і ('-', нерозривний дефіс); інакше складання падає. verify.py перевіряє результат
+# у готовому .docx власними правилами (check_typography).
+NBSP, NBH = ' ', '‑'            # U+2011 — лише внутрішня позначка, у документ іде <w:noBreakHyphen/>
+UNITS = r'(?:%|в\.\s?п\.|с\.|с|мс|хв|год|ГБ|МБ|мм|см|пт|px|тис\.|млн|дол\.|євро|р\.)'
+TYPO_RULES = (
+    (re.compile(r'(?<=\S) (?=–(?:\s|$))'), NBSP),                    # слово – слово
+    (re.compile(r'(?<=\d) (?=' + UNITS + r'(?![\wА-Яа-яІіЇїЄєҐґ]))'), NBSP),   # 74 с., 30 %
+    (re.compile(r'(?<=\bв\.) (?=п\.)'), NBSP),                       # в. п.
+    (re.compile(r'(?<=[№≈≤≥]) (?=[\d+−-])'), NBSP),                  # № 2297, ≈ 3, ≤ 6,0
+    (re.compile(r'(?<=[^\W_’])-(?=[^\W_])'), NBH),                    # offline-first, ε-розіграш
+)
+TYPO_PROTECT = re.compile(r'\S*(?:https?://|www\.|@|\.md\b|\.py\b|\.json\b|\.sql\b|doi\.org)\S*')
+TYPO_COUNT = {'NBSP': 0, 'NBH': 0}
+
+
+def typeset(text):
+    """Типографіка одного текстового вузла. Повертає новий текст (той самий за довжиною; нерозривний
+    дефіс позначено U+2011)."""
+    holes = []
+
+    def stash(m):
+        holes.append(m.group(0)); return '\x00' * len(m.group(0))
+    out = TYPO_PROTECT.sub(stash, text)
+    for rx, ch in TYPO_RULES:
+        out = rx.sub(ch, out)
+    res = []
+    for i, c in enumerate(out):                         # повертаємо захищені фрагменти на місце
+        res.append(text[i] if c == '\x00' else c)
+    out = ''.join(res)
+    if len(out) != len(text):
+        raise SystemExit(f'ТИПОГРАФІКА ЗМІНИЛА ДОВЖИНУ: «{text[:60]}»')
+    for a, b in zip(text, out):
+        if a != b and (a, b) not in ((' ', NBSP), ('-', NBH)):
+            raise SystemExit(f'ТИПОГРАФІКА ЗМІНИЛА {a!r} → {b!r}: «{text[:60]}» — не передбачено правилами')
+    return out
+
+
+def _is_mono(r):
+    rf = r.find(qn('w:rPr') + '/' + qn('w:rFonts'))
+    return rf is not None and 'Courier' in (rf.get(qn('w:ascii')) or '')
+
+
+def typeset_document(doc):
+    """Застосовує typeset до тексту кожного абзацу (зокрема в комірках таблиць) цілком, а не до
+    окремих вузлів: «◐ – …» — це два прогони різними шрифтами, і пробіл перед тире стоїть уже в
+    другому. Довжина не змінюється, тож результат розкладається назад по вузлах за їхньою довжиною.
+    Вузли коду (Courier New) входять у контекст, але лишаються як були."""
+    for p in doc.element.body.iter(qn('w:p')):
+        nodes = []
+        for r in p.iter(qn('w:r')):
+            mono = _is_mono(r)
+            nodes += [(r, t, mono) for t in r.findall(qn('w:t')) if t.text]
+        if not nodes: continue
+        joined = ''.join(t.text for _, t, _ in nodes)
+        new = typeset(joined)
+        if new == joined: continue
+        at = 0
+        for r, t, mono in nodes:
+            old, piece = t.text, new[at:at + len(t.text)]; at += len(old)
+            if mono or piece == old: continue
+            TYPO_COUNT['NBSP'] += sum(1 for a, b in zip(old, piece) if a != b and b == NBSP)
+            if NBH not in piece:
+                t.text = piece; t.set('{http://www.w3.org/XML/1998/namespace}space', 'preserve'); continue
+            pieces = piece.split(NBH)
+            TYPO_COUNT['NBH'] += len(pieces) - 1
+            pos = list(r).index(t); r.remove(t)
+            els = []
+            for j, x in enumerate(pieces):
+                if x:
+                    nt = OxmlElement('w:t'); nt.text = x
+                    nt.set('{http://www.w3.org/XML/1998/namespace}space', 'preserve'); els.append(nt)
+                if j < len(pieces) - 1: els.append(OxmlElement('w:noBreakHyphen'))
+            for k, e in enumerate(els): r.insert(pos + k, e)
+
+
 # ================================================================ якорі й реєстр
 # Реєстр правок прив'язаний до тексту, а не до номерів рядків: після
 # перегенерації full.md номери зсуваються, а якір лишається. Ненайдений або
@@ -382,7 +473,73 @@ def page_number(p):
 
 
 # ================================================================ inline-розмітка
-TOKEN = re.compile(r'(\*\*.+?\*\*|`[^`]+`|(?<![\w\\])_[^_\n]+_(?![\w]))', re.S)
+TOKEN = re.compile(r'(\$[^$\n]+\$|\*\*.+?\*\*|`[^`]+`|(?<![\w\\])_[^_\n]+_(?![\w]))', re.S)
+
+
+# ---------------------------------------------------------------- інлайнова математика
+# Власник, 2026-10-26: позначення в прозі й таблицях (A_m(x), ε, σ_shape, n₀) набираються як
+# математика, а не сирим текстом із підкресленням. У full.md — `$…$` з обмеженим синтаксисом:
+# `_x` / `_{…}` — нижній індекс, `^x` / `^{…}` — верхній, грецькі літери — самими літерами.
+# Набір — прогонами Times New Roman, як решта тексту: окрема латинська літера (разом з
+# діакритикою, як q̂) — курсивом; грецька — прямо, як ε у прозі навколо (план другої хвилі);
+# два й більше літер поспіль — назва чи мітка (shape, day, logit, ESS) — прямо; цифри, дужки й
+# знаки — прямо; індекси — справжні vertAlign, а не зменшені символи. Невідомий синтаксис (\…,
+# незакрита дужка) валить складання.
+MATH_LETTER = re.compile(r'[^\W\d_][\u0300-\u036f]*')
+
+
+def math_pieces(src):
+    """`$…$` без знаків долара → [(текст, 'base'|'sub'|'sup')]: межі індексів."""
+    if '\\' in src:
+        raise SystemExit(f'ІНЛАЙНОВА МАТЕМАТИКА: команди LaTeX не підтримуються — «${src}$»')
+    out, i, buf = [], 0, ''
+    while i < len(src):
+        c = src[i]
+        if c in '_^':
+            if buf: out.append((buf, 'base')); buf = ''
+            pos = 'sub' if c == '_' else 'sup'
+            if i + 1 < len(src) and src[i + 1] == '{':
+                j = src.find('}', i + 2)
+                if j < 0: raise SystemExit(f'ІНЛАЙНОВА МАТЕМАТИКА: незакрита «{{» у «${src}$»')
+                out.append((src[i + 2:j], pos)); i = j + 1
+            else:
+                m = MATH_LETTER.match(src, i + 1) or re.compile(r'\S').match(src, i + 1)
+                if not m: raise SystemExit(f'ІНЛАЙНОВА МАТЕМАТИКА: «{c}» без індексу в «${src}$»')
+                out.append((m.group(0), pos)); i = m.end()
+            continue
+        if c in '{}':
+            raise SystemExit(f'ІНЛАЙНОВА МАТЕМАТИКА: «{c}» поза індексом у «${src}$»')
+        buf += c; i += 1
+    if buf: out.append((buf, 'base'))
+    return out
+
+
+def math_runs(text):
+    """Текст однієї частини → [(шматок, курсив?)]: окрема латинська літера — курсивом,
+    грецька літера й слово — прямо."""
+    out, i = [], 0
+    for m in re.finditer(r'(?:[^\W\d_][\u0300-\u036f]*)+', text):
+        if m.start() > i: out.append((text[i:m.start()], False))
+        word = m.group(0)
+        single = len(MATH_LETTER.findall(word)) == 1
+        out.append((word, single and not '\u0370' <= word[0] <= '\u03ff')); i = m.end()
+    if i < len(text): out.append((text[i:], False))
+    return out
+
+
+def add_math(p, src, size=None, bold=False):
+    for piece, pos in math_pieces(src):
+        for txt, italic in math_runs(piece):
+            r = p.add_run(txt)
+            r.italic = italic
+            if bold: r.bold = True
+            if size: r.font.size = Pt(size)
+            if pos == 'sub': r.font.subscript = True
+            elif pos == 'sup': r.font.superscript = True
+    REPORT_MATH[0] += 1
+
+
+REPORT_MATH = [0]
 
 
 def _is_prose_italic(inner):
@@ -412,6 +569,8 @@ def add_runs(p, text, size=None, bold_all=False, italic_all=False):
     for part in TOKEN.split(text):
         if not part: continue
         bold, italic, mono, txt = bold_all, italic_all, False, part
+        if part.startswith('$') and part.endswith('$') and len(part) > 2:
+            add_math(p, part[1:-1], size=size, bold=bold_all); continue
         if part.startswith('**') and part.endswith('**'):
             add_runs(p, part[2:-2], size=size, bold_all=True, italic_all=italic_all); continue
         elif part.startswith('`') and part.endswith('`'):
@@ -600,17 +759,21 @@ CYR = re.compile(r'^[А-ЯІЇЄҐа-яіїєґ«»(]')
 # ================================================================ таблиці
 SPLITS = {}                               # номер таблиці → [рядків тіла в кожній частині] (layout.py)
 NEW_PAGE = set()                          # таблиці, що починаються з нової сторінки (під головкою лишався один рядок)
+KEEP = set()                              # малі таблиці: цілі, з підписом (ланцюжок «не відривати від наступного»)
 CUR_TABLE = [None]                        # номер таблиці з останнього підпису «Таблиця N»
 CONTINUED = 'Продовження таблиці'
 
 
 def load_splits(path):
     """План поділу таблиць із layout.py (README, «Продовження таблиці»). Немає файла — таблиці цілі."""
-    SPLITS.clear(); NEW_PAGE.clear(); CUR_TABLE[0] = None
+    SPLITS.clear(); NEW_PAGE.clear(); KEEP.clear(); CUR_TABLE[0] = None
     if path and os.path.exists(path):
         for num, v in json.load(open(path, encoding='utf-8')).items():
             if v.get('parts'): SPLITS[num] = v['parts']
             if v.get('before'): NEW_PAGE.add(num)
+            if v.get('keep'): KEEP.add(num)
+    if SPLITS.keys() & KEEP:
+        raise SystemExit(f'ПЛАН ТАБЛИЦЬ СУПЕРЕЧЛИВИЙ: таблиці {sorted(SPLITS.keys() & KEEP)} і цілі, і поділені')
 
 
 def split_cells(line):
@@ -667,7 +830,7 @@ def emit_table(doc, start):
                                f'{empty_hdr} — ознака розщеплення рисками, перевірити вручну')
     ncol = len(header)
     size = 12 if ncol <= 7 else (11 if ncol <= 9 else 10)
-    clean = lambda s: re.sub(r'\*\*|`|_', '', s or '')
+    clean = lambda s: re.sub(r'\*\*|`|_|\$|[{}^]', '', s or '')
     col = lambda j: [clean(header[j])] + [clean(r[j] if j < len(r) else '') for r in body]
 
     # ширина стовпця: спершу вміщаємо найдовше слово (щоб слова не рвалися),
@@ -728,6 +891,12 @@ def emit_table(doc, start):
             row._tr.get_or_add_trPr().append(parse_xml('<w:cantSplit %s/>' % nsdecls('w')))
         for c in t.rows[0].cells:                         # головка не лишається внизу сторінки сама
             for p in c.paragraphs: p.paragraph_format.keep_with_next = True
+        if CUR_TABLE[0] in KEEP:
+            # мала таблиця ціла: кожен рядок, крім останнього, не відривається від наступного, тож
+            # таблиця з підписом переходить на нову сторінку цілою — так верстають і Word, і LibreOffice
+            for row in t.rows[:-1]:
+                for c in row.cells:
+                    for p in c.paragraphs: p.paragraph_format.keep_with_next = True
 
     # Методичка, с. 20: над кожною наступною частиною таблиці, перенесеної на іншу сторінку, —
     # «Продовження таблиці N». Де таблиця переходить на нову сторінку, знає лише верстка: поділ
@@ -1093,6 +1262,7 @@ def build_referat(out, pages=None):
         p.paragraph_format.page_break_before = bool(k)
         for n in range(head + 1, end):
             if L(n).strip(): para(doc, L(n))
+    typeset_document(doc)
     os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
     doc.save(out)
 
@@ -1168,7 +1338,7 @@ def build_body(doc, lo, hi):
 
         if table_title is not None:
             p = para(doc, '', indent=0, align=C, spacing=1, after=6, keep=True)
-            r = p.add_run(s); r.bold = True
+            add_runs(p, s, bold_all=True)                 # назва може мати математику ($μ_0$)
             REPORT['tables'].append(f'ряд {n}: підпис «Таблиця {table_title}» + назва «{s[:50]}»')
             table_title = None
             n += 1; continue
@@ -1356,9 +1526,9 @@ def emit_pending_sheets(doc, num):
 
 
 def build(src, out, brief=None, registry=None, report=None, figures=None, private=None, parts=None,
-          referat=None, pages=None, splits=None):
+          referat=None, pages=None, splits=None, body_pages=None):
     load(src, brief)
-    load_private(private, pages)
+    load_private(private, pages, body_pages)
     load_splits(splits)
     if registry: bind_registry(registry)
     load_figures(figures)
@@ -1367,6 +1537,8 @@ def build(src, out, brief=None, registry=None, report=None, figures=None, privat
     build_body(doc, start, len(LINES) - 1)
     if not pages:
         REPORT['placeholders'].append('кількість сторінок: не задано (--pages) — у тексті лишився плейсхолдер')
+    if not body_pages:
+        REPORT['placeholders'].append('обсяг основного тексту: не задано (--body-pages) — у тексті лишився плейсхолдер')
     if referat: build_referat(referat, pages)
     if PENDING:
         raise SystemExit(f'РИСУНОК БЕЗ ПІДПИСУ: аркуші {sorted(PENDING)} не мають підпису «Рис. N …» у full.md')
@@ -1375,6 +1547,13 @@ def build(src, out, brief=None, registry=None, report=None, figures=None, privat
     if APOSTROPHE_KV:
         REPORT['notes'].append("рядки keep-verbatim, у яких апостроф змінився з ' на ’: "
                                + '; '.join(sorted(APOSTROPHE_KV)))
+    odd = [i for i, ln in enumerate(LINES, 1) if ln.count('$') % 2 and not _is_code_line(i)]
+    if odd: raise SystemExit(f'ІНЛАЙНОВА МАТЕМАТИКА: непарний «$» у рядках {odd[:10]}')
+    REPORT['notes'].append(f'інлайнова математика: {REPORT_MATH[0]} позначень')
+    TYPO_COUNT.update(NBSP=0, NBH=0)
+    typeset_document(doc)
+    REPORT['notes'].append(f'типографіка: нерозривних пробілів {TYPO_COUNT["NBSP"]}, '
+                           f'нерозривних дефісів {TYPO_COUNT["NBH"]}')
     os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
     doc.save(out)
     if report:
@@ -1394,10 +1573,11 @@ if __name__ == '__main__':
     ap.add_argument('--parts', help='тека з приватними частинами kartka.json і zavdannia.json (MagisterDocs/private)')
     ap.add_argument('--referat', help='куди записати реферат окремим .docx')
     ap.add_argument('--pages', type=int, help='кількість сторінок роботи з PDF попереднього проходу')
+    ap.add_argument('--body-pages', type=int, help='обсяг основного тексту з PDF попереднього проходу (layout.py body --total)')
     ap.add_argument('--splits', help='план поділу таблиць за сторінками з PDF попереднього проходу (layout.py tables)')
     a = ap.parse_args()
     rep = build(a.src, a.out, a.brief, a.registry, a.report, a.figures, a.private, a.parts, a.referat, a.pages,
-                a.splits)
+                a.splits, a.body_pages)
     for x in rep['notes']: print('•', x)
     for x in rep['figures']:
         if x.startswith('рисунок'): print('•', x)

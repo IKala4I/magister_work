@@ -92,8 +92,12 @@ def audit(lines):
                 if c.rstrip().endswith('\\'):
                     note('риски', n, f'комірка закінчується зворотною скісною: {c[:40]!r} — '
                                      f'\\\\| замість \\|: екранована скісна, а риска після неї стала роздільником', '!!')
+    # `$…$` — інлайнова математика (друга хвиля): риски й підкреслення в ній — синтаксис
+    # (|A_m(x)| — потужність, _ — індекс), build.py набирає їх сам і валить складання на чужому.
+    MATH = re.compile(r'\$[^$\n]+\$')
     for n, s in enumerate(lines, 1):
         if n in IN_TABLE or n in CODE: continue
+        s = MATH.sub('', s)
         if '|' in s: note('риски', n, f'риска в прозі: …{ctx(s, s.find("|"), 45)}…')
 
     # 2. тильди
@@ -104,7 +108,9 @@ def audit(lines):
     # 3. підкреслення
     PAIR = re.compile(r'(?<![\w\\])_[^_\n]+_(?![\w])')
     for n, s in enumerate(lines, 1):
-        if n in CODE or '_' not in s: continue
+        if n in CODE: continue
+        s = MATH.sub('', s)
+        if '_' not in s: continue
         pairs = PAIR.findall(s)
         for p in pairs:
             note('підкреслення', n, f'пара, яку рендерер зробить курсивом: {p[:60]!r}', '?' if ' ' in p else '!')

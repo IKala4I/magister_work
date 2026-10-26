@@ -21,20 +21,17 @@ agree. It does not check everything in this list, but what it does check it chec
 
 ## 1. Ranges — never round, never collapse to one end, never average
 
-| Keep exactly      | Do not write                      | Why                                                                               |
-| ----------------- | --------------------------------- | --------------------------------------------------------------------------------- |
-| `3,7–4,1 с`       | `3,7 с` · `≈ 4 с` · `близько 4 с` | two separate ten-request series, 3 and 4 September. One number implies one series |
-| `4,8–10,2 в. п.`  | `≈ 5 в. п.` · `5–10 в. п.`        | the evening-type gain across the grid; "≈ 5" was a rounding that was caught       |
-| `0,8–2,1 в. п.`   | `≈ 1 в. п.` · `до 2 в. п.`        | the morning-type loss; the upper end is the point                                 |
-| `0,3–1,4 в. п.`   | `≈ 1 в. п.`                       | the four-week personalisation gap. Rounding up makes it look like it compounds    |
-| `6,8–7,2 в. п.`   | `7 в. п.` · `≈ 8 в. п.`           | realised effect vs the nominal 8 в. п. The gap between them is the finding        |
-| `78–151 мс`       | `≈ 100 мс` · `менш ніж 200 мс`    | measured server-side cascade delete                                               |
-| `0,03–17 в. п.`   | `до 17 в. п.` · `незначна`        | the price of the randomized slice; the low end matters as much as the high        |
-| `1,1–2,4`         | `≈ 2`                             | experiments per user per week on loaded weeks                                     |
-| `0,12–0,14`       | `≈ 0,13`                          | how much more optimistic the prior level is than the world                        |
-| `34–40 учасників` | `≈ 35` · `40`                     | N for power 0,80 under the protocol's own pessimistic assumption                  |
-| `10–11 мс`        | `≈ 10 мс`                         | time to first feasible solution                                                   |
-| `0,38–1,21`       | `≈ 1`                             | the relative bound gap that never closed                                          |
+| Keep exactly                              | Do not write                             | Why                                                                                         |
+| ----------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `3,7–4,1 с`                               | `3,7 с` · `≈ 4 с` · `близько 4 с`        | two separate ten-request series, 3 and 4 September. One number implies one series           |
+| `4,8–10,2 в. п.`                          | `≈ 5 в. п.` · `5–10 в. п.`               | the evening-type gain across the grid; "≈ 5" was a rounding that was caught                 |
+| `0,8–2,1 в. п.`                           | `≈ 1 в. п.` · `до 2 в. п.`               | the morning-type loss; the upper end is the point                                           |
+| `0,3–1,4 в. п.`                           | `≈ 1 в. п.`                              | the four-week personalisation gap. Rounding up makes it look like it compounds              |
+| `6,8–7,2 в. п.`                           | `7 в. п.` · `≈ 8 в. п.`                  | realised effect vs the nominal 8 в. п. The gap between them is the finding                  |
+| `сягає 17 в. п. на рандомізованих рядках` | `17 в. п.` without its rows · `незначна` | the price of the randomized slice: the 17 is the worst case on randomized rows, not the arm |
+| `1,1–2,4`                                 | `≈ 2`                                    | experiments per user per week on loaded weeks                                               |
+| `0,12–0,14`                               | `≈ 0,13`                                 | how much more optimistic the prior level is than the world                                  |
+| `34–40 учасників`                         | `≈ 35` · `40`                            | N for power 0,80 under the protocol's own pessimistic assumption                            |
 
 ## 2. Paired numbers — both halves, in this order, or neither
 
@@ -54,15 +51,14 @@ agree. It does not check everything in this list, but what it does check it chec
 
 ## 3. Counts — never "most", "the majority", "almost all", "nearly always"
 
-| Keep exactly                                           | Do not write                  |
-| ------------------------------------------------------ | ----------------------------- |
-| `у 58 світах, грає внічию у 17 і не програє в жодному` | `перемагає майже скрізь`      |
-| `понад 120 – у 48 із 75 розглянутих світів`            | `у більшості світів`          |
-| `N₈₀ не перевищує 60 у 13 комірках із 75`              | `у частині комірок`           |
-| `розв’язувач у 12 із 15 запитів доходив до ліміту`     | `здебільшого` · `у більшості` |
-| `набір щонайменше 172 осіб`                            | `близько 170` · `≈ 200`       |
-| `40 повтореннях`                                       | `кількох повтореннях`         |
-| `N₈₀ … дорівнює 31 … а в дорослій вибірці — 33`        | either number alone           |
+| Keep exactly                                           | Do not write             |
+| ------------------------------------------------------ | ------------------------ |
+| `у 58 світах, грає внічию у 17 і не програє в жодному` | `перемагає майже скрізь` |
+| `понад 120 – у 48 світах`                              | `у більшості світів`     |
+| `$N_{80}$ не перевищує 60 у 13 комірках із 75`         | `у частині комірок`      |
+| `набір щонайменше 172 осіб`                            | `близько 170` · `≈ 200`  |
+| `40 повтореннях`                                       | `кількох повтореннях`    |
+| `N₈₀ … дорівнює 31 … а в дорослій вибірці — 33`        | either number alone      |
 
 `не програє в жодному` is **not** the same claim as `перемагає в усіх`. Do not convert it.
 
@@ -89,9 +85,9 @@ These are the limitations. Each was written after a version that was weaker got 
 6. `Розрив у персоналізації не накопичується` … `тож очікування, що перевага зростає з кожним
 тижнем, у симуляції не підтверджується`
    → the retraction of the expectation is deliberate. Keep both halves.
-7. `≈ 4,3 експерименти на користувача за тиждень на звичайних тижнях і 1,1–2,4 на завантажених,
-пораховані на коді придатності, а не спостережені`
-   → the closing clause is the difference between a measurement and an estimate.
+7. `≈ 4,3 експерименти на користувача за тиждень на звичайних тижнях і 1,1–2,4 на завантажених`
+   … `Ці величини пораховано на коді, а не спостережено.`
+   → the second sentence is the difference between a measurement and an estimate. Keep both.
 8. `Хронотипне опитування й популяційні приори лишаються стартовим наближенням, а не механізмом
 переваги.`
 9. `Не всі кольорові пари відповідають WCAG 2.2 AA як текст`
@@ -129,25 +125,25 @@ Each of these phrases must stay **inside the sentence with its number**:
 `(дві серії по десять, 3 і 4 вересня; об’єднано 4,0 с, n = 20)` ·
 `(стандартна похибка Монте-Карло ≈ 0,14 в. п.)` · `за інформативного приору` ·
 `за зареєстрованої неоднорідності` · `медіана по 40 повтореннях` ·
-`пораховані на коді придатності, а не спостережені` · `за припущеного відсіву 30 %`
+`Ці величини пораховано на коді, а не спостережено` · `з припущеним відсівом 30 %`
 
 ## 7. Characters and formulas — do not normalise
 
-| Keep                                       | A formatter or model will want to write | Consequence                                                                                                                                                                                                                                                              |
-| ------------------------------------------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `clip[0,1]` in (2.9) and (2.10)            | `clip[0, 1]`                            | tooling has already misread this as a citation and produced `clip[‹?›, 1]`                                                                                                                                                                                               |
-| `E(x~D) E(a~π(·\|x))` in (2.15)            | `E(x~~D)`                               | Markdown tooling reads `~…~` as strikethrough and doubles the tildes                                                                                                                                                                                                     |
-| `«…»` guillemets                           | `"…"` typographic quotes                | the whole document uses guillemets                                                                                                                                                                                                                                       |
-| `’` (U+2019) apostrophe                    | `'`                                     | every checker folds both, but the text is one                                                                                                                                                                                                                            |
-| `–` en dash in numeric ranges              | `-` hyphen                              | `3,7–4,1` vs `3,7-4,1`                                                                                                                                                                                                                                                   |
-| `–` spaced en dash as the prose dash       | `—` em dash                             | the whole document uses the en dash (owner, 2026-09-13)                                                                                                                                                                                                                  |
-| `в. п.` with the space                     | `в.п.`                                  | appears ~90 times                                                                                                                                                                                                                                                        |
-| Subscripts `N₈₀ α₀ β₀ μ₀ p₀ c₀`            | `N80`, `alpha0`                         | —                                                                                                                                                                                                                                                                        |
-| Superscripts `4·10⁴ 3·10³ A⁻¹ xᵀ`          | `10^4`                                  | —                                                                                                                                                                                                                                                                        |
-| `≈ ≤ ≥ ± · × → ∈ Σ σ τ λ ε φ θ μ π`        | ASCII equivalents                       | —                                                                                                                                                                                                                                                                        |
-| the four-space run before `(2.1)`…`(2.20)` | a single space                          | it is the Word tab stop for the equation number                                                                                                                                                                                                                          |
-| `\|A_m(x)\|`                               | `A_m(x)`                                | the bars are cardinality, not emphasis                                                                                                                                                                                                                                   |
-| `0,45` — the decimal comma                 | `0.45`                                  | the Ukrainian norm. The English ANNOTATION keeps its decimal points (`+0.4 pp`, `0.3–1.4 pp`): a comma there would read as a thousands separator. Two correct norms side by side, not a discrepancy — a «one decimal mark per document» check must exempt the ANNOTATION |
+| Keep                                      | A formatter or model will want to write | Consequence                                                                                                                                                                                                                                                              |
+| ----------------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `clip[0,1]` in (2.4)                      | `clip[0, 1]`                            | tooling has already misread this as a citation and produced `clip[‹?›, 1]`                                                                                                                                                                                               |
+| `E(x~D) E(a~π(·\|x))` in (2.6)            | `E(x~~D)`                               | Markdown tooling reads `~…~` as strikethrough and doubles the tildes                                                                                                                                                                                                     |
+| `«…»` guillemets                          | `"…"` typographic quotes                | the whole document uses guillemets                                                                                                                                                                                                                                       |
+| `’` (U+2019) apostrophe                   | `'`                                     | every checker folds both, but the text is one                                                                                                                                                                                                                            |
+| `–` en dash in numeric ranges             | `-` hyphen                              | `3,7–4,1` vs `3,7-4,1`                                                                                                                                                                                                                                                   |
+| `–` spaced en dash as the prose dash      | `—` em dash                             | the whole document uses the en dash (owner, 2026-09-13)                                                                                                                                                                                                                  |
+| `в. п.` with the space                    | `в.п.`                                  | appears ~90 times                                                                                                                                                                                                                                                        |
+| Inline math `$N_{80}$ $α_0$ $\|A_m(x)\|$` | `N₈₀`, `A_m(x)` as raw text             | the pipeline sets it italic with real sub/superscripts (owner, 2026-10-26)                                                                                                                                                                                               |
+| Superscripts `4·10⁴ 3·10³ A⁻¹ xᵀ`         | `10^4`                                  | —                                                                                                                                                                                                                                                                        |
+| `≈ ≤ ≥ ± · × → ∈ Σ σ τ λ ε φ θ μ π`       | ASCII equivalents                       | —                                                                                                                                                                                                                                                                        |
+| the four-space run before `(2.1)`…`(4.1)` | a single space                          | it is the Word tab stop for the equation number                                                                                                                                                                                                                          |
+| `$\|A_m(x)\|$`                            | `$A_m(x)$`                              | the bars are cardinality, not emphasis                                                                                                                                                                                                                                   |
+| `0,45` — the decimal comma                | `0.45`                                  | the Ukrainian norm. The English ANNOTATION keeps its decimal points (`+0.4 pp`, `0.3–1.4 pp`): a comma there would read as a thousands separator. Two correct norms side by side, not a discrepancy — a «one decimal mark per document» check must exempt the ANNOTATION |
 
 The code fragments (Додаток В and Додаток Д; the thesis body has no listings since 2026-10-26) are fenced code blocks: monospace, indentation kept,
 and no comments — every explanation is in the prose beside them (owner, 2026-09-13). They have
@@ -187,26 +183,22 @@ drift from the text it describes. One string per line; nothing else in this file
 0,8–2,1 в. п.
 0,3–1,4 в. п.
 6,8–7,2 в. п.
-78–151 мс
-0,03–17 в. п.
+сягає 17 в. п. на рандомізованих рядках
 1,1–2,4
 0,12–0,14
 34–40 учасників
-10–11 мс
-0,38–1,21
 у 58 світах, грає внічию у 17 і не програє в жодному
-понад 120 – у 48 із 75 розглянутих світів
-N₈₀ не перевищує 60 у 13 комірках із 75
-розв’язувач у 12 із 15 запитів доходив до ліміту
+понад 120 – у 48 світах
+$N_{80}$ не перевищує 60 у 13 комірках із 75
 набір щонайменше 172 осіб
 62,1 / 36,6 / 2,2
-порівняння з наявними планувальниками не проводилося
+із самими продуктами систему не порівнювали
 гіпотези H1–H4 лишаються неперевіреними
 лише грає внічию з евристикою
 стандартна похибка Монте-Карло ≈ 0,14 в. п.
 за межами класів, які автори адаптували саме для цієї вибірки
 ніколи не вилучаються з подання
-пораховані на коді придатності, а не спостережені
+Ці величини пораховано на коді, а не спостережено
 лишаються стартовим наближенням, а не механізмом переваги
 Не всі кольорові пари відповідають WCAG 2.2 AA як текст
 Опитувальник не перекладено
@@ -220,10 +212,10 @@ N₈₀ не перевищує 60 у 13 комірках із 75
 на 95-му перцентилі
 за інформативного приору
 за зареєстрованої неоднорідності
-за припущеного відсіву 30 %
+з припущеним відсівом 30 %
 clip[0,1]
 E(x~D)
-|A_m(x)|
+$|A_m(x)|$
 чотирьох розділів
 +0.4 pp
 0.3–1.4 pp

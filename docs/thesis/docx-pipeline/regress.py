@@ -51,8 +51,10 @@ def runs_of(p):
         fmt = canon(rpr)
         for ch in r:
             ln = etree.QName(ch).localname
-            if ln == 't':
-                txt = ch.text or ''
+            if ln in ('t', 'noBreakHyphen'):
+                # нерозривний дефіс — елемент Word, а не символ; показуємо його знаком U+2011, щоб
+                # «освітньо‑професійна» не читалася як «освітньопрофесійна» (до 2026-10-26 читалася б)
+                txt = (ch.text or '') if ln == 't' else '\u2011'
                 if not txt: continue
                 if out and out[-1][0] == fmt and not out[-1][1].startswith('⟨'):
                     out[-1] = (fmt, out[-1][1] + txt)

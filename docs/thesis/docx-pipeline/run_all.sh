@@ -34,8 +34,8 @@ mkdir -p "$OUT"
 echo "== середовище: $("${PY[@]}" -c 'import sys, docx, lxml; print(f"Python {sys.version.split()[0]} (uv), python-docx {docx.__version__}, lxml {lxml.__version__}")'), $(pandoc --version | head -1)"
 echo; echo "== рисунки";        "${PY[@]}" "$HERE/render_figures.py" --src "$SRC" --out "$OUT/figures" --docs "$DOCS"
 # Складання йде в кілька проходів, бо дві речі знає лише верстка. Обсяг роботи в сторінках (вступ
-# і реферат) береться з готового PDF (layout.py pages) і підставляється наступним проходом
-# (build.py --pages). Те, які рядки таблиці перейшли на наступну сторінку, теж читається з PDF
+# і реферат) і обсяг основного тексту (вступ) беруться з готового PDF (layout.py pages, layout.py
+# body --total) і підставляються наступним проходом (build.py --pages, --body-pages). Те, які рядки таблиці перейшли на наступну сторінку, теж читається з PDF
 # (layout.py tables), і наступний прохід ділить таблицю там із написом «Продовження таблиці N»
 # (build.py --splits): по одній межі на розділ за прохід, бо кожна межа зсуває все, що нижче.
 # Проходи тривають, доки обсяг і план поділу не перестануть змінюватися. Руками нічого не набирається.
@@ -43,24 +43,26 @@ PLAN="$OUT/tables.json"
 BUILD=("${PY[@]}" "$HERE/build.py" --src "$SRC" --brief "$BRIEF" --out "$OUT/hourwell.docx" --report "$OUT/report.json"
        --figures "$OUT/figures" --parts "$DOCS/private" --referat "$OUT/referat.docx" --splits "$PLAN"
        ${PRIVATE[@]+"${PRIVATE[@]}"})
-PAGES=""; MAX_PASSES=14
+PAGES=""; BODY=""; MAX_PASSES=14
 rm -f "$PLAN" "$PLAN.next" "$OUT/splits.json" "$OUT/splits.next.json"
 for PASS in $(seq 1 $MAX_PASSES); do
-  echo; echo "== складання, прохід $PASS${PAGES:+ (обсяг $PAGES с.)}"
-  "${BUILD[@]}" ${PAGES:+--pages "$PAGES"} > "$OUT/build.log"; tail -2 "$OUT/build.log"
+  echo; echo "== складання, прохід $PASS${PAGES:+ (обсяг $PAGES с., основний текст $BODY с.)}"
+  "${BUILD[@]}" ${PAGES:+--pages "$PAGES"} ${BODY:+--body-pages "$BODY"} > "$OUT/build.log"; tail -2 "$OUT/build.log"
   "${PY[@]}" "$HERE/make_pdf.py" "$OUT/hourwell.docx" "$OUT/hourwell.pdf"
   NEW=$("${PY[@]}" "$HERE/layout.py" pages "$OUT/hourwell.pdf")
+  NEWBODY=$("${PY[@]}" "$HERE/layout.py" body --total "$OUT/hourwell.pdf")
   MOVED=0
   "${PY[@]}" "$HERE/layout.py" tables "$OUT/hourwell.pdf" "$OUT/hourwell.docx" --plan "$PLAN" --out "$PLAN.next" || MOVED=1
-  if [ "$NEW" = "$PAGES" ] && [ "$MOVED" = 0 ]; then rm -f "$PLAN.next"; break; fi
+  if [ "$NEW" = "$PAGES" ] && [ "$NEWBODY" = "$BODY" ] && [ "$MOVED" = 0 ]; then rm -f "$PLAN.next"; break; fi
   [ "$PASS" = "$MAX_PASSES" ] && { echo "верстка не стабілізувалася за $MAX_PASSES проходів (обсяг $NEW с.)"; exit 1; }
-  PAGES=$NEW; mv "$PLAN.next" "$PLAN"
+  PAGES=$NEW; BODY=$NEWBODY; mv "$PLAN.next" "$PLAN"
 done
 echo; echo "== складання: звіт останнього проходу"; sed '$d' "$OUT/build.log" | sed '$d'
 echo; echo "== реферат";        "${PY[@]}" "$HERE/make_pdf.py" "$OUT/referat.docx" "$OUT/referat.pdf" --no-index
                                 "${PY[@]}" "$HERE/layout.py" referat "$OUT/referat.pdf"
 echo; echo "== обсяг";          "${PY[@]}" "$HERE/layout.py" body "$OUT/hourwell.pdf"
-echo; echo "== звірка";         "${PY[@]}" "$HERE/verify.py" --src "$SRC" --brief "$BRIEF" --docx "$OUT/hourwell.docx" --referat "$OUT/referat.docx" --figures "$OUT/figures" --pages "$PAGES" ${PRIVATE[@]+"${PRIVATE[@]}"}
+echo; echo "== типографіка в PDF"; "${PY[@]}" "$HERE/layout.py" typography "$OUT/hourwell.pdf"
+echo; echo "== звірка";         "${PY[@]}" "$HERE/verify.py" --src "$SRC" --brief "$BRIEF" --docx "$OUT/hourwell.docx" --referat "$OUT/referat.docx" --figures "$OUT/figures" --pages "$PAGES" --body-pages "$BODY" ${PRIVATE[@]+"${PRIVATE[@]}"}
 echo; echo "== самоперевірка оформлення"; "${PY[@]}" "$HERE/verify.py" --self-test --src "$SRC" --docx "$OUT/hourwell.docx"
 echo; echo "== легенди";        "${PY[@]}" "$HERE/check_legend_symbols.py" "$SRC"
 echo; echo "== аудит розмітки"; "${PY[@]}" "$HERE/audit_markdown.py" "$SRC" --out "$OUT/audit.md"

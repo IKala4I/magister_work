@@ -6,6 +6,8 @@
     python3 layout.py referat referat.pdf             # сторінок у рефераті кожною мовою (≤ 3)
     python3 layout.py tables  hourwell.pdf hourwell.docx --plan tables.json --out tables.next.json
                                                       # які рядки кожної таблиці на якій сторінці
+    python3 layout.py typography hourwell.pdf         # тире на початку рядка, шрифт дефісів
+    python3 layout.py body    hourwell.pdf            # обсяг основного тексту за частинами
 
 Номер сторінки в .docx — поле, а кількість сторінок залежить від верстки, тож число «сторінок – N»
 у вступі й рефераті не можна ані набрати руками, ані порахувати з .docx. run_all.sh складає
@@ -30,6 +32,8 @@
 Код виходу 0, коли план більше не змінюється і жодна частина не переходить сторінку без напису.
 
 Рядки таблиць не рвуться між сторінками (cantSplit у build.py) — інакше рядок рахувався б двічі.
+Мала таблиця (не вища за половину текстового блоку) не ділиться зовсім, а межа великої ставиться
+із запасом 15 мм над нижнім полем — див. table_plan (власник, 2026-10-26).
 
 Обсяг — номер останньої сторінки за нумерацією роботи (методичка, с. 10): титульний лист — 1,
 завдання — 2, зміст — 3. Картка, якщо вона стоїть у файлі першою, у відлік не входить.
@@ -115,39 +119,59 @@ def docx_parts(path):
 
 
 def pdf_fragments(path, skip):
-    """Таблиці з лінійками на сторінках PDF по порядку: [(сторінка, рядків, стовпців)]. Перші
-    `skip` сторінок (картка, титульний лист, завдання) таблиць даних не мають; рамки без
-    стовпців (плейсхолдер рисунка) — не таблиці."""
+    """Таблиці з лінійками на сторінках PDF по порядку: [(сторінка, рядків, стовпців, [низ кожного
+    рядка, пт від верху сторінки], висота головки, пт)]. Перші `skip` сторінок (картка, титульний
+    лист, завдання) таблиць даних не мають; рамки без стовпців (плейсхолдер рисунка) — не таблиці."""
     out = []
     with pdfplumber.open(path) as pdf:
         for i, page in enumerate(pdf.pages):
             if i < skip: continue
             for t in sorted(page.find_tables(), key=lambda t: t.bbox[1]):
                 cols = max(len(r.cells) for r in t.rows)
-                if cols > 1: out.append((i + 1, len(t.rows), cols))
+                if cols > 1:
+                    bottoms = [r.bbox[3] for r in t.rows]
+                    out.append((i + 1, len(t.rows), cols, bottoms, t.rows[0].bbox[3] - t.rows[0].bbox[1]))
     return out
+
+
+PT_MM = 72 / 25.4
+TEXT_BOTTOM = (297 - 20) * PT_MM          # низ текстового блоку, пт від верху аркуша (нижнє поле 20 мм)
+SAFE_MM = 15                              # запас під частиною, що переходить сторінку: ≈ 3 рядки по 12 пт
+SAFE_BOTTOM = TEXT_BOTTOM - SAFE_MM * PT_MM
+KEEP_MM = (297 - 40) / 2                  # «мала» таблиця: не вища за половину текстового блоку (≈ 128 мм)
 
 
 MIN_ROWS = 2                              # менше рядків тіла частина таблиці на сторінці не лишає
 
 
 def table_plan(pdf, docx, prev):
-    """Наступний план поділу таблиць і те, чи він відрізняється від попереднього.
-    План: {номер: {"before": таблиця з нової сторінки, "parts": [рядків тіла в частинах] або null,
-    "final": поділ зафіксовано}}."""
+    """Наступний план таблиць і те, чи він відрізняється від попереднього.
+    План: {номер: {"keep": мала таблиця — ціла, разом із підписом, "before": таблиця з нової сторінки,
+    "parts": [рядків тіла в частинах] або null, "final": рішення зафіксовано}}.
+
+    Мала таблиця (не вища за половину текстового блоку) не ділиться ніколи: build.py ставить
+    «не відривати від наступного» на всі її рядки, крім останнього, і вона переходить на нову
+    сторінку цілою, з підписом, без «Продовження». Цей ланцюжок виконують і Word, і LibreOffice,
+    тож рішення від верстки не залежить. Велика таблиця ділиться там, де її рядки опускаються нижче
+    за SAFE_BOTTOM — за 15 мм до нижнього поля, а не там, де LibreOffice фізично переніс рядок: Word
+    верстає рядки трохи інакше, і без запасу перша частина у Word переповзає на наступну сторінку,
+    а жорсткий розрив перед «Продовження таблиці» лишає після неї майже порожню сторінку."""
     _, _, front = thesis_pages(pdf)
     parts, frags = docx_parts(docx), pdf_fragments(pdf, front)
-    tables, k = {}, 0                                    # номер → [[рядків тіла у фрагментах] на кожну частину .docx]
+    tables, height, k = {}, {}, 0                        # номер → [[фрагменти] на кожну частину .docx]
     for num, rows, cols in parts:
         left, pieces = rows - 1, []
         while left > 0:
             if k >= len(frags):
                 raise SystemExit(f'таблиця {num}: у PDF скінчилися таблиці (фрагментів {len(frags)})')
-            page, frows, fcols = frags[k]; k += 1
+            page, frows, fcols, bottoms, head = frags[k]; k += 1
             if fcols != cols or frows - 1 > left or frows < 2:
                 raise SystemExit(f'таблиця {num}: фрагмент на с. {page} має {frows} рядків і {fcols} стовпців, '
                                  f'а очікувано ≤ {left + 1} рядків і {cols} стовпців — PDF і .docx не від одного проходу?')
-            pieces.append(frows - 1); left -= frows - 1
+            pieces.append((frows - 1, bottoms)); left -= frows - 1
+            # висота таблиці: головка один раз, тіло кожного фрагмента
+            h = height.get(num, head)
+            height[num] = h + (bottoms[-1] - bottoms[0])
         tables.setdefault(num, []).append(pieces)
     if k != len(frags):
         raise SystemExit(f'у PDF {len(frags)} фрагментів таблиць, а таблицям .docx відповідає лише {k}')
@@ -155,28 +179,39 @@ def table_plan(pdf, docx, prev):
     plan, changed, crossed, closed = {}, False, 0, set()
     for num, per_part in tables.items():
         unit = num.split('.')[0]                         # розділ або додаток: починається з нової сторінки
-        old = prev.get(num) or {'before': False, 'parts': None, 'final': False}
-        cur = {'before': bool(old['before']), 'parts': old['parts'], 'final': bool(old['final'])}
+        old = prev.get(num) or {'keep': False, 'before': False, 'parts': None, 'final': False}
         whole = all(len(p) == 1 for p in per_part)
         crossed += not whole
+        if old.get('keep') or height[num] <= KEEP_MM * PT_MM:
+            cur = {'keep': True, 'before': False, 'parts': None, 'final': True}
+            if not old.get('keep') and not whole: closed.add(unit)   # переїде цілою: нижче все зсунеться
+            plan[num] = cur; changed |= cur != old
+            continue
+        cur = {'keep': False, 'before': bool(old['before']), 'parts': old['parts'], 'final': bool(old['final'])}
         if unit in closed:                               # вище в цьому розділі щойно з'явилася межа:
-            plan[num] = {'before': False, 'parts': None, 'final': False}   # ця таблиця чекає цілою
+            plan[num] = {'keep': False, 'before': False, 'parts': None, 'final': False}   # ця таблиця чекає цілою
             changed |= plan[num] != old
             continue
-        if whole:
+        done, tail = per_part[:-1], per_part[-1]
+        first_rows, bottoms = tail[0]
+        safe = sum(1 for b in bottoms[1:] if b <= SAFE_BOTTOM)          # рядки тіла вище за запас
+        if any(len(p) != 1 for p in done):
+            # зафіксована частина перестала вміщатися: верстка вище змінилася — починаємо таблицю знову
+            cur = {'keep': False, 'before': False, 'parts': None, 'final': False}
+            closed.add(unit)
+        elif len(tail) == 1 and safe >= first_rows:      # остання частина вміщається із запасом
             cur['final'] = True
         else:
-            done, tail = per_part[:-1], per_part[-1]
-            if any(len(p) != 1 for p in done) or len(tail) == 1:
-                # зафіксована частина перестала вміщатися: верстка вище змінилася — починаємо таблицю знову
-                cur = {'before': False, 'parts': None, 'final': False}
-            elif not done and not cur['before'] and tail[0] < MIN_ROWS:
-                cur['before'] = True                     # під головкою один рядок — уся таблиця на нову сторінку
-            else:
-                first, rest = tail[0], sum(tail) - tail[0]
-                if rest < MIN_ROWS and first - (MIN_ROWS - rest) >= MIN_ROWS:
-                    first -= MIN_ROWS - rest             # остання частина не лишається з одним рядком
-                cur['parts'] = [p[0] for p in done] + [first, sum(tail) - first]
+            total = sum(n for n, _ in tail)
+            first = min(safe, first_rows)
+            if total - first < MIN_ROWS:
+                first -= MIN_ROWS - (total - first)      # остання частина не лишається з одним рядком
+            if first >= MIN_ROWS:
+                cur['parts'] = [p[0][0] for p in done] + [first, total - first]
+            elif not done and not cur['before']:
+                cur['before'] = True                     # під головкою не вміщається двох рядків — з нової сторінки
+            else:                                        # на свіжій сторінці менше двох рядків — не буває; лишаємо як є
+                raise SystemExit(f'таблиця {num}: частина з нової сторінки вміщає лише {safe} рядків тіла')
             cur['final'] = False
             closed.add(unit)
         plan[num] = cur
@@ -184,20 +219,44 @@ def table_plan(pdf, docx, prev):
     return plan, changed, crossed
 
 
+LEFT_EDGE = 30 * PT_MM + 5                # лівий край текстового блоку (поле 30 мм) із допуском, пт
+
+
+def typography(path):
+    """Що типографіка дала на сторінках: рядки, які починаються з тире, що стояло між словами
+    (« – »), — тире, перенесене на початок рядка; і шрифти, якими намальовано дефіси. Тире на початку
+    абзацу (маркер переліку) стоїть з абзацного відступу, а не біля лівого краю, і порушенням не є.
+    Тире діапазону без пробілів («P. 272–279») LibreOffice теж переносить на новий рядок; Word перед
+    таким тире рядка не розриває, а знака, який заборонив би розрив і мав гліф у Times New Roman,
+    немає (U+2060 немає ні в Times New Roman, ні в Liberation Serif) — такі рядки лише рахуються."""
+    spaced, ranges, fonts = [], [], {}
+    with pdfplumber.open(path) as pdf:
+        for i, page in enumerate(pdf.pages):
+            for ln in page.extract_text_lines():
+                if ln['chars'][0]['x0'] < LEFT_EDGE and ln['text'].startswith('–'):
+                    (spaced if re.match(r'^–\s', ln['text']) else ranges).append((i + 1, ln['text'][:50]))
+            for c in page.chars:
+                if c['text'] in '-\u2011':
+                    key = c['fontname'].split('+')[-1]; fonts[key] = fonts.get(key, 0) + 1
+    return spaced, ranges, fonts
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument('what', choices=('pages', 'referat', 'tables', 'body')); ap.add_argument('pdf')
+    ap.add_argument('what', choices=('pages', 'referat', 'tables', 'body', 'typography')); ap.add_argument('pdf')
     ap.add_argument('docx', nargs='?', help='tables: .docx, з якого зроблено цей PDF')
     ap.add_argument('--plan', help='tables: план поділу, з яким складено цей .docx (JSON; може не існувати)')
     ap.add_argument('--out', help='tables: куди записати наступний план (JSON)')
+    ap.add_argument('--total', action='store_true', help='body: надрукувати лише загальний обсяг (для run_all.sh)')
     a = ap.parse_args()
     if a.what == 'tables':
         prev = json.load(open(a.plan, encoding='utf-8')) if a.plan and os.path.exists(a.plan) else {}
         plan, changed, crossed = table_plan(a.pdf, a.docx, prev)
         if a.out: json.dump(plan, open(a.out, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
         split = {k: v for k, v in plan.items() if v['parts'] or v['before']}
-        print(f'таблиць {len(plan)}; поділено або перенесено {len(split)}; частин, що перейшли сторінку '
-              f'без напису: {crossed}; план {"змінився" if changed else "без змін"}')
+        keep = sum(1 for v in plan.values() if v.get('keep'))
+        print(f'таблиць {len(plan)}; малих (цілих) {keep}; поділено або перенесено {len(split)}; частин, що '
+              f'перейшли сторінку без напису: {crossed}; план {"змінився" if changed else "без змін"}')
         if not changed and not crossed:
             for k, v in split.items():
                 print(f'   {k}: ' + ('з нової сторінки' if v['before'] else '')
@@ -209,8 +268,19 @@ def main():
         print(last)
         print(f'обсяг {last} с.: у PDF {total} сторінок, перед змістом {front}', file=sys.stderr)
         return 0
+    if a.what == 'typography':
+        spaced, ranges, fonts = typography(a.pdf)
+        odd = {f: n for f, n in fonts.items() if not re.match(r'(TimesNewRoman|LiberationSerif|LiberationMono|CourierNew)', f)}
+        print(f'рядків, що починаються з тире між словами: {len(spaced)}; з тире діапазону (лише LibreOffice): '
+              f'{len(ranges)}; дефіси за шрифтами: {fonts}')
+        for pg, t in spaced[:10]: print(f'   с. {pg}: «{t}»')
+        for pg, t in ranges[:10]: print(f'   (діапазон) с. {pg}: «{t}»')
+        if odd: print(f'   ДЕФІСИ ЧУЖИМ ШРИФТОМ: {odd}')
+        return 1 if spaced or odd else 0
     if a.what == 'body':
         parts, total = body_pages(a.pdf)
+        if a.total:
+            print(total); return 0
         lo, hi = BODY_RANGE
         print(f'основний текст (ВСТУП – ВИСНОВКИ): {total} с.'
               + ('' if lo <= total <= hi else f' — ПОЗА МЕЖАМИ {lo}–{hi}'))

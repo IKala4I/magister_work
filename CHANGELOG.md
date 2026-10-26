@@ -2,6 +2,33 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — second wave: a thesis, not an article (2026-10-26, post-p12/second-wave)
+
+- **Text** (owner-approved plan; no number changed, nothing invented — a token diff of the body
+  finds no new number except formula/table numbers and page counts). ВСТУП 4 → 3 pages, novelty
+  5 → 3 points; розділ 1 10 → 8 (1.5 «Постановка задачі» without ДП1–ДП4); розділ 2 16 → 12
+  (formulas 20 → 9 there: constraints, CP-SAT objective, category transform, Beta prior, replay,
+  clipped IPS/SNIPS in words; LinUCB, fold-in ALS, method of moments out; propensity is display
+  formula (2.5)); розділ 3 18 → 16 (MoSCoW, stack details, article-level legal analysis and three
+  solver paragraphs out); chapter 4 and ВИСНОВКИ: light pass. Body 74 → **70** PDF pages, total
+  119 → 115. Formulas 20 → **10** ((2.1)–(2.9), world model (4.1)), tables 29 → **26**, figures 7,
+  sources 71 (all cited), list of abbreviations 32 → 16 (guideline p. 13: fewer than three uses →
+  spelled out in the text).
+- **Base arm wording** (owner): the protocol's arm A belongs to the deterministic deadline/priority
+  rule class Motion and Reclaim.ai work by according to their public materials (not a replica of the
+  products); in the simulated worlds tasks are identical, so it reduces to earliest-free-slot; the
+  products themselves were never compared. All three facts in 1.2, 4.10.1, ВИСНОВКИ 7, реферат and
+  ABSTRACT; табл. 4.1 states the class, 4.6.1 the reduction (thesis-corrections #67).
+- **Adversarial review** (fresh context): 3 blockers fixed — «exact propensity for every placement»
+  in novelty 2 and 1.5 (exact only on the randomized slice), 1.2 implying the rule-class comparison
+  was run, табл. 4.1 vs #8(a)/#22 recorded — plus ≈ 20 wording and definition fixes.
+- **Pipeline**: typography (non-breaking space before a spaced dash, between a number and its unit,
+  after №/≈/≤/≥; Word's `<w:noBreakHyphen/>` in hyphenated words — Times New Roman has no U+2011);
+  inline math `$…$` with real sub/superscripts, checked by `verify.py`'s own rule; small tables move
+  whole, large ones split 15 mm above the bottom margin; `[обсяг основного тексту]` filled from the
+  PDF like the page count. `regress.py` against the golden on the golden's own source: 312
+  differences, all typography.
+
 ## Post-P12 — four chapters, 74 body pages (2026-10-26, post-p12/four-chapters)
 
 - **Four chapters per the department's guideline (p. 15)**: Системний аналіз предметної області ·
