@@ -40,6 +40,7 @@ FORMULA_TEX = {
  '2.18': r'\hat{V}_{\text{clip}}(\pi) = \frac{1}{n}\cdot\sum_{i} \min(\omega_{i}, M)\cdot r_{i}; \quad \hat{V}_{\text{SNIPS}}(\pi) = \frac{\sum_{i} \omega_{i}\cdot r_{i}}{\sum_{i} \omega_{i}}',
  '2.19': r'\hat{V}_{\text{DR}}(\pi) = \frac{1}{n}\cdot\sum_{i} \left[\, \hat{r}(x_{i}, \pi(x_{i})) + \omega_{i}\cdot\left( r_{i} - \hat{r}(x_{i}, a_{i}) \right) \,\right]',
  '2.20': r'\mathrm{ESS} = \frac{\left( \sum_{i} \omega_{i} \right)^{2}}{\sum_{i} \omega_{i}^{2}}',
+ '4.1':  r'\operatorname{logit} q(u, c, d) = \operatorname{logit}(p_{0}) + s \cdot T(k_{u}, c) + \delta_{u,c} + \varepsilon_{u,d}',
 }
 
 # Формули, які не вміщаються в 152 мм комірки навіть на 12 пт: два рядки, номер на другому.

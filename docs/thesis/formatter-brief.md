@@ -58,7 +58,7 @@ agree. It does not check everything in this list, but what it does check it chec
 | ------------------------------------------------------ | ----------------------------- |
 | `у 58 світах, грає внічию у 17 і не програє в жодному` | `перемагає майже скрізь`      |
 | `понад 120 – у 48 із 75 розглянутих світів`            | `у більшості світів`          |
-| `N₈₀ не перевищує 60 у 13 комірках із 75`              | `у частині комірок`           |
+| `$N_{80}$ не перевищує 60 у 13 комірках із 75`         | `у частині комірок`           |
 | `розв’язувач у 12 із 15 запитів доходив до ліміту`     | `здебільшого` · `у більшості` |
 | `набір щонайменше 172 осіб`                            | `близько 170` · `≈ 200`       |
 | `40 повтореннях`                                       | `кількох повтореннях`         |
@@ -142,11 +142,11 @@ Each of these phrases must stay **inside the sentence with its number**:
 | `–` en dash in numeric ranges              | `-` hyphen                              | `3,7–4,1` vs `3,7-4,1`                                                                                                                                                                                                                                                   |
 | `–` spaced en dash as the prose dash       | `—` em dash                             | the whole document uses the en dash (owner, 2026-09-13)                                                                                                                                                                                                                  |
 | `в. п.` with the space                     | `в.п.`                                  | appears ~90 times                                                                                                                                                                                                                                                        |
-| Subscripts `N₈₀ α₀ β₀ μ₀ p₀ c₀`            | `N80`, `alpha0`                         | —                                                                                                                                                                                                                                                                        |
+| Inline math `$N_{80}$ $α_0$ $\|A_m(x)\|$`  | `N₈₀`, `A_m(x)` as raw text             | the pipeline sets it italic with real sub/superscripts (owner, 2026-10-26)                                                                                                                                                                                               |
 | Superscripts `4·10⁴ 3·10³ A⁻¹ xᵀ`          | `10^4`                                  | —                                                                                                                                                                                                                                                                        |
 | `≈ ≤ ≥ ± · × → ∈ Σ σ τ λ ε φ θ μ π`        | ASCII equivalents                       | —                                                                                                                                                                                                                                                                        |
 | the four-space run before `(2.1)`…`(2.20)` | a single space                          | it is the Word tab stop for the equation number                                                                                                                                                                                                                          |
-| `\|A_m(x)\|`                               | `A_m(x)`                                | the bars are cardinality, not emphasis                                                                                                                                                                                                                                   |
+| `$\|A_m(x)\|$`                             | `$A_m(x)$`                              | the bars are cardinality, not emphasis                                                                                                                                                                                                                                   |
 | `0,45` — the decimal comma                 | `0.45`                                  | the Ukrainian norm. The English ANNOTATION keeps its decimal points (`+0.4 pp`, `0.3–1.4 pp`): a comma there would read as a thousands separator. Two correct norms side by side, not a discrepancy — a «one decimal mark per document» check must exempt the ANNOTATION |
 
 The code fragments (Додаток В and Додаток Д; the thesis body has no listings since 2026-10-26) are fenced code blocks: monospace, indentation kept,
@@ -196,7 +196,7 @@ drift from the text it describes. One string per line; nothing else in this file
 0,38–1,21
 у 58 світах, грає внічию у 17 і не програє в жодному
 понад 120 – у 48 із 75 розглянутих світів
-N₈₀ не перевищує 60 у 13 комірках із 75
+$N_{80}$ не перевищує 60 у 13 комірках із 75
 розв’язувач у 12 із 15 запитів доходив до ліміту
 набір щонайменше 172 осіб
 62,1 / 36,6 / 2,2
@@ -223,7 +223,7 @@ N₈₀ не перевищує 60 у 13 комірках із 75
 за припущеного відсіву 30 %
 clip[0,1]
 E(x~D)
-|A_m(x)|
+$|A_m(x)|$
 чотирьох розділів
 +0.4 pp
 0.3–1.4 pp

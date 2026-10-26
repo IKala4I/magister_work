@@ -119,6 +119,7 @@ def load(src, brief=None):
     OVERRIDE.clear(); INSERT_AFTER.clear(); CODE_RANGES.clear(); APOSTROPHE_KV.clear()
     for v in REPORT.values(): v.clear()
     for v in NORMALIZED.values(): v.clear()
+    REPORT_MATH[0] = 0
     _FENCE_LINES = None
 
 
@@ -468,7 +469,73 @@ def page_number(p):
 
 
 # ================================================================ inline-розмітка
-TOKEN = re.compile(r'(\*\*.+?\*\*|`[^`]+`|(?<![\w\\])_[^_\n]+_(?![\w]))', re.S)
+TOKEN = re.compile(r'(\$[^$\n]+\$|\*\*.+?\*\*|`[^`]+`|(?<![\w\\])_[^_\n]+_(?![\w]))', re.S)
+
+
+# ---------------------------------------------------------------- інлайнова математика
+# Власник, 2026-10-26: позначення в прозі й таблицях (A_m(x), ε, σ_shape, n₀) набираються як
+# математика, а не сирим текстом із підкресленням. У full.md — `$…$` з обмеженим синтаксисом:
+# `_x` / `_{…}` — нижній індекс, `^x` / `^{…}` — верхній, грецькі літери — самими літерами.
+# Набір — прогонами Times New Roman, як решта тексту: окрема латинська літера (разом з
+# діакритикою, як q̂) — курсивом; грецька — прямо, як ε у прозі навколо (план другої хвилі);
+# два й більше літер поспіль — назва чи мітка (shape, day, logit, ESS) — прямо; цифри, дужки й
+# знаки — прямо; індекси — справжні vertAlign, а не зменшені символи. Невідомий синтаксис (\…,
+# незакрита дужка) валить складання.
+MATH_LETTER = re.compile(r'[^\W\d_][\u0300-\u036f]*')
+
+
+def math_pieces(src):
+    """`$…$` без знаків долара → [(текст, 'base'|'sub'|'sup')]: межі індексів."""
+    if '\\' in src:
+        raise SystemExit(f'ІНЛАЙНОВА МАТЕМАТИКА: команди LaTeX не підтримуються — «${src}$»')
+    out, i, buf = [], 0, ''
+    while i < len(src):
+        c = src[i]
+        if c in '_^':
+            if buf: out.append((buf, 'base')); buf = ''
+            pos = 'sub' if c == '_' else 'sup'
+            if i + 1 < len(src) and src[i + 1] == '{':
+                j = src.find('}', i + 2)
+                if j < 0: raise SystemExit(f'ІНЛАЙНОВА МАТЕМАТИКА: незакрита «{{» у «${src}$»')
+                out.append((src[i + 2:j], pos)); i = j + 1
+            else:
+                m = MATH_LETTER.match(src, i + 1) or re.compile(r'\S').match(src, i + 1)
+                if not m: raise SystemExit(f'ІНЛАЙНОВА МАТЕМАТИКА: «{c}» без індексу в «${src}$»')
+                out.append((m.group(0), pos)); i = m.end()
+            continue
+        if c in '{}':
+            raise SystemExit(f'ІНЛАЙНОВА МАТЕМАТИКА: «{c}» поза індексом у «${src}$»')
+        buf += c; i += 1
+    if buf: out.append((buf, 'base'))
+    return out
+
+
+def math_runs(text):
+    """Текст однієї частини → [(шматок, курсив?)]: окрема латинська літера — курсивом,
+    грецька літера й слово — прямо."""
+    out, i = [], 0
+    for m in re.finditer(r'(?:[^\W\d_][\u0300-\u036f]*)+', text):
+        if m.start() > i: out.append((text[i:m.start()], False))
+        word = m.group(0)
+        single = len(MATH_LETTER.findall(word)) == 1
+        out.append((word, single and not '\u0370' <= word[0] <= '\u03ff')); i = m.end()
+    if i < len(text): out.append((text[i:], False))
+    return out
+
+
+def add_math(p, src, size=None, bold=False):
+    for piece, pos in math_pieces(src):
+        for txt, italic in math_runs(piece):
+            r = p.add_run(txt)
+            r.italic = italic
+            if bold: r.bold = True
+            if size: r.font.size = Pt(size)
+            if pos == 'sub': r.font.subscript = True
+            elif pos == 'sup': r.font.superscript = True
+    REPORT_MATH[0] += 1
+
+
+REPORT_MATH = [0]
 
 
 def _is_prose_italic(inner):
@@ -498,6 +565,8 @@ def add_runs(p, text, size=None, bold_all=False, italic_all=False):
     for part in TOKEN.split(text):
         if not part: continue
         bold, italic, mono, txt = bold_all, italic_all, False, part
+        if part.startswith('$') and part.endswith('$') and len(part) > 2:
+            add_math(p, part[1:-1], size=size, bold=bold_all); continue
         if part.startswith('**') and part.endswith('**'):
             add_runs(p, part[2:-2], size=size, bold_all=True, italic_all=italic_all); continue
         elif part.startswith('`') and part.endswith('`'):
@@ -757,7 +826,7 @@ def emit_table(doc, start):
                                f'{empty_hdr} — ознака розщеплення рисками, перевірити вручну')
     ncol = len(header)
     size = 12 if ncol <= 7 else (11 if ncol <= 9 else 10)
-    clean = lambda s: re.sub(r'\*\*|`|_', '', s or '')
+    clean = lambda s: re.sub(r'\*\*|`|_|\$|[{}^]', '', s or '')
     col = lambda j: [clean(header[j])] + [clean(r[j] if j < len(r) else '') for r in body]
 
     # ширина стовпця: спершу вміщаємо найдовше слово (щоб слова не рвалися),
@@ -1265,7 +1334,7 @@ def build_body(doc, lo, hi):
 
         if table_title is not None:
             p = para(doc, '', indent=0, align=C, spacing=1, after=6, keep=True)
-            r = p.add_run(s); r.bold = True
+            add_runs(p, s, bold_all=True)                 # назва може мати математику ($μ_0$)
             REPORT['tables'].append(f'ряд {n}: підпис «Таблиця {table_title}» + назва «{s[:50]}»')
             table_title = None
             n += 1; continue
@@ -1472,6 +1541,9 @@ def build(src, out, brief=None, registry=None, report=None, figures=None, privat
     if APOSTROPHE_KV:
         REPORT['notes'].append("рядки keep-verbatim, у яких апостроф змінився з ' на ’: "
                                + '; '.join(sorted(APOSTROPHE_KV)))
+    odd = [i for i, ln in enumerate(LINES, 1) if ln.count('$') % 2 and not _is_code_line(i)]
+    if odd: raise SystemExit(f'ІНЛАЙНОВА МАТЕМАТИКА: непарний «$» у рядках {odd[:10]}')
+    REPORT['notes'].append(f'інлайнова математика: {REPORT_MATH[0]} позначень')
     TYPO_COUNT.update(NBSP=0, NBH=0)
     typeset_document(doc)
     REPORT['notes'].append(f'типографіка: нерозривних пробілів {TYPO_COUNT["NBSP"]}, '

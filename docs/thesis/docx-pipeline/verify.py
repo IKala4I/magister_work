@@ -77,7 +77,14 @@ def ref_cells(line):
     return [c.strip().replace('\\|', '|') for c in cells]
 
 
+def unmath(s):
+    """`$…$` → те, що читається в .docx: без знаків долара, підкреслень, «^» і фігурних дужок
+    (індекс — це положення прогону, а не символ). Власне правило, не код build.py."""
+    return re.sub(r'\$([^$\n]+)\$', lambda m: re.sub(r'[_^{}]', '', m.group(1)), s)
+
+
 def strip_md(s):
+    s = unmath(s)
     s = re.sub(r'^\s*```[a-z]*\s*', '', s)
     s = re.sub(r'\s*```\s*$', '', s)
     s = re.sub(r'\*\*(.+?)\*\*', r'\1', s)
@@ -549,6 +556,17 @@ def check_typography(doc):
             m = rx.search(txt)
             if m: bad.append(f'типографіка: {what} — «{txt[max(0, m.start() - 25):m.end() + 15]}»')
     if not nbsp: bad.append('типографіка: у документі немає жодного нерозривного пробілу')
+    # інлайнова математика: індекси — справжні (vertAlign), і сирого «σ_shape», «A_m(x)» у тексті
+    # поза кодом немає: окрема літера, підкреслення, індекс. Ідентифікатори на кшталт calendar_events
+    # (слово перед підкресленням) правилом не зачіпаються.
+    subs = sum(1 for v in doc.element.body.iter(WNS + 'vertAlign') if v.get(WNS + 'val') == 'subscript')
+    if not subs: bad.append('математика: у документі немає жодного справжнього нижнього індексу')
+    for p in doc.element.body.iter(WNS + 'p'):
+        txt = ''.join(t.text or '' for r in p.iter(WNS + 'r')
+                      if not ((rf := r.find(f'{WNS}rPr/{WNS}rFonts')) is not None and 'Courier' in (rf.get(WNS + 'ascii') or ''))
+                      for t in r.findall(WNS + 't'))
+        m = re.search(r'(?<![\w])[^\W\d_][\u0300-\u036f]*_[\w{(]|\$[^$]+\$', TY_ADDR.sub(' ', txt))
+        if m: bad.append(f'математика: сира розмітка в тексті — «{txt[max(0, m.start() - 20):m.end() + 15]}»')
     if not nbh: bad.append('типографіка: у документі немає жодного нерозривного дефіса')
     return bad
 
@@ -593,6 +611,10 @@ def layout_mutations():
     def plain_hyphen(doc):
         h = next(doc.element.body.iter(WNS + 'noBreakHyphen'))
         h.getparent().replace(h, parse_xml_t('-'))
+    def raw_math(doc):
+        v = next(v for v in doc.element.body.iter(WNS + 'vertAlign') if v.get(WNS + 'val') == 'subscript')
+        r = v.getparent().getparent(); t = r.find(WNS + 't'); t.text = '_' + t.text
+        v.getparent().remove(v)
     def spoil_head(doc):
         els = _body(doc); i = next(i for i, x in enumerate(els) if _is_p(x) and CONTINUED.fullmatch(ws(x.text)))
         els[i + 1].rows[0].cells[0].paragraphs[0].add_run('?')
@@ -612,6 +634,7 @@ def layout_mutations():
         ('частина таблиці з чужою головкою', spoil_head, 'головка частини не та'),
         ('звичайний пробіл перед тире', plain_space, 'пробіл перед тире'),
         ('звичайний дефіс замість нерозривного', plain_hyphen, 'дефіс у слові'),
+        ('індекс набрано сирим «_»', raw_math, 'сира розмітка'),
         ('зміст не на третій сторінці',
          lambda d: d.sections[1]._sectPr.find(WNS + 'pgNumType').set(WNS + 'start', '2'), 'не є сторінкою 3'),
     ]
