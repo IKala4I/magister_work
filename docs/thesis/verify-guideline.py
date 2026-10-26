@@ -270,7 +270,7 @@ def mutations(text: str) -> list[tuple[str, str, str]]:
          .replace("БД – колаборативна", "БД – база").replace("КФ – база даних", "КФ – колаборативна"),
          "belongs alphabetically"),
         ("a reference to a subsection that does not exist",
-         re.sub(r"підрозділ(\w*) 1\.4(?!\d)", r"підрозділ\g<1> 1.9", text, count=1), "no heading has that number"),
+         re.sub(r"підрозділ(\w*) \d+\.\d+(?![\d.])", r"підрозділ\g<1> 9.9", text, count=1), "no heading has that number"),
         ("a reference to a chapter that does not exist",
          re.sub(r"розділ(\w*) 2(?![\d.])", r"розділ\g<1> 7", text, count=1), "there is no РОЗДІЛ 7"),
         ("a source nobody cites",
