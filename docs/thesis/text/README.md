@@ -91,7 +91,8 @@ Both come from `corrections-rollup.md` and they are not stylistic:
    second kind. `verify-style.py` checks the mechanical rules in CI; the last one is a per-sentence
    decision recorded in the rollup, not a sweep.
 
-Percentage points are «в. п.»; the research questions are ДП1–ДП4.
+Percentage points are «в. п.». Inline notation is written `$…$` (`$A_m(x)$`, `$n_0$`,
+`$σ_{shape}$`): the pipeline sets it as math, with real sub- and superscripts.
 
 ## What was corrected in the sources while writing
 
