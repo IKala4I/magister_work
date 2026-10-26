@@ -28,7 +28,6 @@ agree. It does not check everything in this list, but what it does check it chec
 | `0,8–2,1 в. п.`   | `≈ 1 в. п.` · `до 2 в. п.`        | the morning-type loss; the upper end is the point                                 |
 | `0,3–1,4 в. п.`   | `≈ 1 в. п.`                       | the four-week personalisation gap. Rounding up makes it look like it compounds    |
 | `6,8–7,2 в. п.`   | `7 в. п.` · `≈ 8 в. п.`           | realised effect vs the nominal 8 в. п. The gap between them is the finding        |
-| `0,11–0,53 с`     | `< 1 с`                           | measured alarm latency, plugged and unplugged                                     |
 | `78–151 мс`       | `≈ 100 мс` · `менш ніж 200 мс`    | measured server-side cascade delete                                               |
 | `0,03–17 в. п.`   | `до 17 в. п.` · `незначна`        | the price of the randomized slice; the low end matters as much as the high        |
 | `1,1–2,4`         | `≈ 2`                             | experiments per user per week on loaded weeks                                     |
@@ -188,7 +187,6 @@ drift from the text it describes. One string per line; nothing else in this file
 0,8–2,1 в. п.
 0,3–1,4 в. п.
 6,8–7,2 в. п.
-0,11–0,53 с
 78–151 мс
 0,03–17 в. п.
 1,1–2,4
