@@ -9,7 +9,8 @@ Two of these have already gone stale, and neither was caught by reading:
     were wrong, and the wrong version had been quoted forward into a chapter draft.
   * `ASSEMBLY.md` said the inline-correction gap was "recorded but not closed, re-read §1.2/§1.4/
     §1.5 by hand". It had been closed the previous day, by the checker described two paragraphs
-    above it in the same file.
+    above it in the same file. (ASSEMBLY.md is a frozen record since 2026-10-26; the claims pinned
+    now are the ones `text/README.md` makes about the single source.)
 
 Documentation about state drifts exactly the way the thesis text drifts, only more quietly,
 because nobody re-reads it. The defence is the one that worked for the numbers: a claim that can
@@ -23,21 +24,14 @@ Run:  python3 docs/thesis/verify-state.py
 """
 from __future__ import annotations
 
-import importlib.util
 import io
 import json
+import os
 import re
 import sys
 
-sys.path.insert(0, "docs/thesis")
-import assemble as A  # noqa: E402
-
-_spec = importlib.util.spec_from_file_location("vp", "docs/thesis/verify-payloads.py")
-vp = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(vp)
-
-ASSEMBLY = "docs/thesis/ASSEMBLY.md"
 TEXT_README = "docs/thesis/text/README.md"
+FULL = "docs/thesis/text/full.md"
 SENSITIVITY = "docs/study/results/sensitivity.json"
 
 
@@ -45,68 +39,24 @@ def read(path: str) -> str:
     return io.open(path, encoding="utf-8").read()
 
 
-def check_counts() -> list[tuple[bool, str, str]]:
-    """Numbers the prose states about payload coverage, against what the checker reports."""
-    c = vp.classify()
-    asm = read(ASSEMBLY)
-    out = []
+def check_single_source() -> list[tuple[bool, str, str]]:
+    """text/README says full.md is the only source: then the folder holds nothing a reader could
+    mistake for another source of the text, and the retired assembler is gone."""
+    said = "**`full.md` is the thesis's only source**" in read(TEXT_README)
+    files = sorted(n for n in os.listdir("docs/thesis/text") if n.endswith(".md"))
+    extra = [n for n in files if n not in ("full.md", "README.md")]
+    gone = not os.path.exists("docs/thesis/assemble.py")
+    return [(said and not extra and gone, "text/README 'full.md is the only source'",
+             f"claim={said}, other .md in text/: {extra or 'none'}, assemble.py gone={gone}")]
 
-    m = re.search(r"\*\*(\d+) of (\d+) accounted for\.\*\*", asm)
-    live = (c["accounted"], c["total"])
+
+def check_chapters() -> list[tuple[bool, str, str]]:
+    """text/README's «Розділів: N.» against the chapters full.md has."""
+    m = re.search(r"\*\*Розділів: (\d+)\.\*\*", read(TEXT_README))
+    live = len(re.findall(r"^# РОЗДІЛ \d+ ", read(FULL), re.M))
     if m is None:
-        out.append((False, "ASSEMBLY.md payload coverage",
-                    f"no '**N of M accounted for.**' sentence found; live is {live[0]} of {live[1]}"))
-    else:
-        said = (int(m.group(1)), int(m.group(2)))
-        out.append((said == live, "ASSEMBLY.md payload coverage",
-                    f"says {said[0]} of {said[1]}, live {live[0]} of {live[1]}"))
-
-    m = re.search(r"reached `full\.md` — (\d+) of (\d+)", asm)
-    live = (len(c["inline_ok"]), c["inline_total"])
-    if m is None:
-        out.append((False, "ASSEMBLY.md inline coverage",
-                    f"no 'reached `full.md` — N of M' sentence found; live is {live[0]} of {live[1]}"))
-    else:
-        said = (int(m.group(1)), int(m.group(2)))
-        out.append((said == live, "ASSEMBLY.md inline coverage",
-                    f"says {said[0]} of {said[1]}, live {live[0]} of {live[1]}"))
-
-    # "Three of the twelve pass on a witness rather than on the text itself"
-    witnessed = sum(1 for row in c["inline_ok"] if row[3])
-    m = re.search(r"(\w+) of the twelve pass on a witness", asm)
-    words = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6}
-    if m is None:
-        out.append((False, "ASSEMBLY.md witness count",
-                    f"no 'N of the twelve pass on a witness' sentence; live is {witnessed}"))
-    else:
-        said = words.get(m.group(1).lower())
-        out.append((said == witnessed, "ASSEMBLY.md witness count",
-                    f"says {m.group(1)} ({said}), live {witnessed}"))
-    return out
-
-
-def check_closed_claim() -> list[tuple[bool, str, str]]:
-    """`ASSEMBLY.md` claims the inline-correction gap is closed. It is closed only while the
-    checker actually runs the check — the sentence that went stale said the opposite."""
-    asm = read(ASSEMBLY)
-    says_closed = "the class of miss is\nclosed" in asm or "class of miss is closed" in asm
-    has_check = hasattr(vp, "check_inline") and hasattr(vp, "CELL_WITNESS")
-    return [(says_closed == has_check, "ASSEMBLY.md 'class of miss is closed'",
-             f"prose says closed={says_closed}, verify-payloads has the check={has_check}")]
-
-
-def check_text_files() -> list[tuple[bool, str, str]]:
-    """Every file the text/README table marks ✅ must exist and be reachable by the assembler."""
-    out = []
-    for m in re.finditer(r"^\| `([\w.-]+\.md)`\s*\|.*\|\s*✅", read(TEXT_README), re.M):
-        name = m.group(1)
-        try:
-            blocks = A.load_text_file(name)
-            out.append((bool(blocks), f"text/README ✅ {name}",
-                        f"{len(blocks)} blocks" if blocks else "loads empty"))
-        except Exception as e:  # noqa: BLE001
-            out.append((False, f"text/README ✅ {name}", f"does not load: {type(e).__name__}"))
-    return out
+        return [(False, "text/README chapter count", f"no '**Розділів: N.**' sentence; live is {live}")]
+    return [(int(m.group(1)) == live, "text/README chapter count", f"says {m.group(1)}, live {live}")]
 
 
 def check_grid() -> list[tuple[bool, str, str]]:
@@ -117,7 +67,7 @@ def check_grid() -> list[tuple[bool, str, str]]:
     total = re.compile(r"(?:всі|усі|всіма|усіма|all)\s+\*{0,2}(\d+)\s*(?:cells|комірок|комірками)"
                        r"|(?<![\wа-яА-ЯіїєІЇЄ])(\d+) cells")
     hits = []
-    for path in (ASSEMBLY, "docs/thesis/text/dodatok-k.md", TEXT_README):
+    for path in (FULL, TEXT_README):
         for m in total.finditer(read(path)):
             said = int(m.group(1) or m.group(2))
             hits.append((said == live, f"{path} grid total", f"says {said}, live {live}"))
@@ -126,7 +76,7 @@ def check_grid() -> list[tuple[bool, str, str]]:
 
 def main() -> int:
     rows: list[tuple[bool, str, str]] = []
-    for fn in (check_counts, check_closed_claim, check_text_files, check_grid):
+    for fn in (check_single_source, check_chapters, check_grid):
         rows.extend(fn())
     bad = [r for r in rows if not r[0]]
     for ok, what, detail in rows:

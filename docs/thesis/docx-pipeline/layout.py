@@ -42,6 +42,7 @@ from docx.table import Table
 from docx.text.paragraph import Paragraph
 
 REFERAT_MAX = 3                           # методичка, с. 12: «Обсяг реферату до 3-х сторінок»
+BODY_RANGE = (60, 80)                     # основний текст, ВСТУП – ВИСНОВКИ включно (власник, 2026-10-26)
 
 
 def page_texts(path):
@@ -70,6 +71,27 @@ def referat_pages(path):
     if not texts or not texts[0].startswith('РЕФЕРАТ') or en is None:
         raise SystemExit(f'{path}: не знайдено сторінок, що починаються з «РЕФЕРАТ» і «ABSTRACT»')
     return en, len(texts) - en
+
+
+def body_pages(path):
+    """Обсяг основного тексту — від ВСТУПУ до кінця ВИСНОВКІВ — і кожної його частини, у сторінках.
+    Кожна частина починається з нової сторінки, тож межі — це сторінки, на яких заголовок стоїть
+    окремим рядком (у змісті він іде з крапками й номером і не рахується). Повертає [(назва,
+    перша друкована сторінка, сторінок)] і загальний обсяг."""
+    marks = []
+    with pdfplumber.open(path) as pdf:
+        texts = [(p.extract_text() or '').split('\n') for p in pdf.pages]
+    toc = next(i for i, t in enumerate(texts) if t and re.match(r'^3\s*$', t[0].strip()) and 'ЗМІСТ' in ' '.join(t[:3]))
+    for i, lines in enumerate(texts):
+        for ln in (x.strip() for x in lines):
+            if ln in ('ВСТУП', 'ВИСНОВКИ', 'СПИСОК ВИКОРИСТАНИХ ДЖЕРЕЛ') or re.fullmatch(r'РОЗДІЛ \d+', ln):
+                marks.append((ln, i)); break
+    names = [m[0] for m in marks]
+    if 'ВСТУП' not in names or 'СПИСОК ВИКОРИСТАНИХ ДЖЕРЕЛ' not in names:
+        raise SystemExit(f'{path}: не знайдено сторінок «ВСТУП» і «СПИСОК ВИКОРИСТАНИХ ДЖЕРЕЛ»')
+    a, b = names.index('ВСТУП'), names.index('СПИСОК ВИКОРИСТАНИХ ДЖЕРЕЛ')
+    parts = [(n, i - toc + 3, nxt - i) for (n, i), (_, nxt) in zip(marks[a:b], marks[a + 1:b + 1])]
+    return parts, marks[b][1] - marks[a][1]
 
 
 WNS = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'
@@ -164,7 +186,7 @@ def table_plan(pdf, docx, prev):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument('what', choices=('pages', 'referat', 'tables')); ap.add_argument('pdf')
+    ap.add_argument('what', choices=('pages', 'referat', 'tables', 'body')); ap.add_argument('pdf')
     ap.add_argument('docx', nargs='?', help='tables: .docx, з якого зроблено цей PDF')
     ap.add_argument('--plan', help='tables: план поділу, з яким складено цей .docx (JSON; може не існувати)')
     ap.add_argument('--out', help='tables: куди записати наступний план (JSON)')
@@ -186,6 +208,14 @@ def main():
         last, total, front = thesis_pages(a.pdf)
         print(last)
         print(f'обсяг {last} с.: у PDF {total} сторінок, перед змістом {front}', file=sys.stderr)
+        return 0
+    if a.what == 'body':
+        parts, total = body_pages(a.pdf)
+        lo, hi = BODY_RANGE
+        print(f'основний текст (ВСТУП – ВИСНОВКИ): {total} с.'
+              + ('' if lo <= total <= hi else f' — ПОЗА МЕЖАМИ {lo}–{hi}'))
+        for n, first, k in parts:
+            print(f'   {n:12s} з с. {first:3d}: {k} с.')
         return 0
     ua, en = referat_pages(a.pdf)
     print(f'реферат: українською {ua} с., іноземною {en} с. (межа — {REFERAT_MAX})')

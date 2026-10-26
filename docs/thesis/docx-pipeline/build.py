@@ -66,6 +66,8 @@ PRIVATE_FIELDS = (                        # (ключ у titulka.json, плей�
     ('кафедра', '[назва кафедри]', False),
     ('спеціальність', '[код і найменування спеціальності]', False),
     ('спеціальність_англійською', '[speciality code and name]', False),
+    ('тема', '[тема роботи]', False),            # тема з наказу — титулка, реферат, завдання
+    ('тема_англійською', '[thesis title]', False),
 )
 PAGE_PLACEHOLDERS = ('[кількість сторінок]', '[number of pages]')   # обсяг роботи: з готового PDF
 PRIVATE = {}                              # плейсхолдер → значення (лише заповнені)
@@ -760,7 +762,7 @@ def emit_fenced(doc, start):
     """Блок в огорожі ```. Вміст іде дослівно, моноширинним, без розбору розмітки.
     Закривальна огорожа може стояти окремим рядком або в кінці змістового.
     Порожні рядки всередині блоку — теж код: вони відділяють у SQL Додатка Г і в
-    лістингу 4.1 одну групу інструкцій від іншої. До 2026-09-28 вони випадали."""
+    лістингу 3.1 одну групу інструкцій від іншої. До 2026-09-28 вони випадали."""
     first = L(start).lstrip()
     rest = first[3:]
     lang = rest.split()[0] if rest.split() and rest.split()[0].isalpha() else ''
@@ -946,12 +948,12 @@ DATE_BLANK = '«___» ___________ 20__ р.'
 
 def build_title(doc, lines):
     """Титульний лист за формою кафедри (методичка, Додаток В). Слова форми й дані — з full.md,
-    по одному надрукованому фрагменту на рядок (assemble.py, TITLE_PAGE); тут лише розкладка та
+    по одному надрукованому фрагменту на рядок (25 рядків форми); тут лише розкладка та
     службові позначки форми — місце підпису, «(підпис)», «(ПІБ)», дата."""
     T = [L(n) for n in lines]
     if len(T) != 25 or any(T[i] != v for i, v in TITLE_SHAPE.items()) or not T[9].startswith('на тему ') \
             or not T[24].startswith('КИЇВ'):
-        raise SystemExit('ТИТУЛКА: рядки full.md до «РЕФЕРАТ» не відповідають формі (assemble.py, TITLE_PAGE)')
+        raise SystemExit('ТИТУЛКА: рядки full.md до «РЕФЕРАТ» не відповідають формі (25 рядків, TITLE_SHAPE)')
     b, c, r, u = {'bold': True}, {'align': C}, {'align': R}, {'underline': True}
     para(doc, T[0], align=C, indent=0, bold=True, spacing=1)
     para(doc, T[1], align=C, indent=0, bold=True, spacing=1, before=12, after=24)
@@ -1312,7 +1314,7 @@ def image_para(doc, path, width_mm):
 
 
 def emit_image_grid(doc, num, fig):
-    """Знімки (рисунок 4.1): таблиця без рамок, до чотирьох у ряд, у порядку назв файлів."""
+    """Знімки (рисунок 3.4): таблиця без рамок, до чотирьох у ряд, у порядку назв файлів."""
     from docx.image.image import Image as DocxImage
     files = [os.path.join(FIG_DIR, s['file']) for s in fig['sheets']]
     per_row = min(4, len(files)); rows = -(-len(files) // per_row)

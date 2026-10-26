@@ -9,8 +9,7 @@ project-internal artefacts do not belong in a thesis at all, so no font decision
 needed. Each rule is stated once here and checked on every change; a rule that is only written
 down in the README drifts the way every other description of state has (README rule 5).
 
-Runs on `text/full.md`, the product, because `assemble.py` cannot run in CI (it reads the
-git-ignored `draft.docx`).
+Runs on `text/full.md`, the thesis's only source since 2026-10-26.
 
 Run:  python3 docs/thesis/verify-style.py
 """

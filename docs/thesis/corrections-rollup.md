@@ -1,5 +1,12 @@
 # Corrections rollup — the paste-ready edit set for `draft.docx`
 
+> **Frozen 2026-10-26 — a record, not a procedure.** The thesis was cut to four chapters and
+> 60–80 pages, and from that pass on `text/full.md` is its only source: wording is edited there
+> directly, nothing is assembled from the draft, and `assemble.py` and `verify-payloads.py` have
+> left the tree (they remain in git history). What this file says about the assembler, payload
+> coverage and chapter numbers describes the six-chapter text before the cut. The current rules
+> are in `text/README.md`.
+
 > What this file is now. Not an index of instructions any more: for each of the 63 worklist
 > items it carries the Ukrainian sentences the draft should read, anchored to the place in the
 > draft they replace, tagged by how much of the text moves, with the evidence for every number

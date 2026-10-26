@@ -2,6 +2,26 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — four chapters, 74 body pages (2026-10-26, post-p12/four-chapters)
+
+- **Four chapters per the department's guideline (p. 15)**: Системний аналіз предметної області ·
+  Моделювання системи · Розробка системи (old 3 + 4) · Результати дослідження (old 5 + 6). The body
+  (ВСТУП → ВИСНОВКИ) went from 119 to **74 PDF pages** — a real cut, no new appendices, none grew.
+  Removed as blocks (owner's decisions): old 1.5 with табл. 1.3, the listings, табл. 3.3 (now a
+  paragraph with the same sources), табл. 4.2 and the separate E2 subsection with табл. 4.4 (folded
+  into 4.2), most of the hardware-pass chronicle; the rest is repetition and recap. Untouched: the
+  formulas (2.1)–(2.20) and tables of chapter 2, the estimator table (now 4.2), the 75-world grid
+  (now 4.4), the four strengthened claims, every number (a diff of number tokens before and after
+  finds none new), all 71 sources still cited. Tables 33 → 29; figures 7 (рис. 4.1 → 3.4).
+- **`text/full.md` is the thesis's only source**: `assemble.py`, `verify-payloads.py` and the
+  chapter files left the tree; the rollup and `ASSEMBLY.md` are frozen records. `gen-dodatok-k.py
+  --check` reads Додаток К in `full.md`; `verify-state.py` pins the new claims; `verify-guideline.py`
+  checks that every «підрозділ / пункт / розділ N» names an existing heading (18 negative controls);
+  `layout.py body` prints the body page count in every build.
+- **The theme of the order** («Мобільний додаток для оптимізації особистого часу із застосуванням
+  рекомендаційних алгоритмів», наказ № 2721 «С» від 07.11.2025) comes from `titulka.json` into the
+  title page, реферат, ABSTRACT and завдання; the conference theses keep their own title.
+
 ## Post-P12 — eight Expo SDK 57 patch releases (2026-10-26, post-p12/expo-patches-2026-10-26)
 
 - `npx expo install --fix`: expo 57.0.31, expo-router 57.0.29, expo-notifications 57.0.24,

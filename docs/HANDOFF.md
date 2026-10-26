@@ -2,7 +2,7 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-10-13 — **post-p12/metodychka-2026** (PR #88; section right below): the thesis
+> Last update: 2026-10-26 — **post-p12/four-chapters** (section right below): four chapters, 74 body pages. Before it, 2026-10-13 — **post-p12/metodychka-2026** (PR #88; section right below): the thesis
 > follows the department's 2026 guideline. Expo's patch drift went in first as PR #89.
 > Before it, 2026-09-29 — **post-p12/thesis-private-docs**: schema names in the text, 3.2 in,
 > private data in MagisterDocs (below). Before it, **post-p12/thesis-figures**: the figures render
@@ -15,6 +15,42 @@
 > (PR #79), and the corrections rollup (2026-09-09), which is no longer an index: all 63 items carry
 > the Ukrainian sentences the draft should read, tagged Ф / П / С, every number with its measurement
 > condition. **The thesis text is assembled and green on every gate.**
+
+## Current state (2026-10-26) — post-p12/four-chapters: four chapters, 74 body pages
+
+The owner approved a plan (2026-10-26) and decided the blocks to remove along the way. Done and
+green on every gate:
+
+- **`text/full.md` is the thesis's only source.** `assemble.py`, `verify-payloads.py` and the chapter
+  files left the tree; `corrections-rollup.md` and `ASSEMBLY.md` are frozen records. Edit `full.md`
+  directly. `gen-dodatok-k.py --check` compares Додаток К's rows in `full.md` with the run;
+  `verify-state.py` pins the single-source claims; `verify-guideline.py` also checks that every
+  «підрозділ / пункт / розділ N» names an existing heading (18 negative controls).
+- **Four chapters** (guideline p. 15): Системний аналіз · Моделювання системи (математична модель) ·
+  Розробка системи Hourwell (old 3 + 4) · Результати дослідження (old 5 + 6). Body (ВСТУП →
+  ВИСНОВКИ) **74 PDF pages** (ВСТУП 4, 9 / 15 / 18 / 25, ВИСНОВКИ 3; was 119), owner's limit ≤ 75 with
+  margin for рис. 3.4 screenshots, «Апробація» and Word drift. `layout.py body` prints it in every build.
+- Removed as blocks (owner): old 1.5 + табл. 1.3; лістинги 3.1–3.2; табл. 3.3 → a paragraph with the
+  same sources; табл. 4.2 (secondary metrics); E2 (old 4.5, табл. 4.4) folded into 4.2; the
+  hardware-pass chronicle (4.8 keeps табл. 4.6 and four findings). Everything else is repetition and
+  recap. Tables 29, figures 7 (рис. 4.1 → 3.4; `MagisterDocs/figures/3.4`), formulas 20, sources 71
+  (all cited; [61] only in дод. А, as before). Estimator table is now 4.2, grid table 4.4.
+- No number changed: a token diff of the body against the pre-cut text finds none new. A
+  fresh-context adversarial review found one blocker (an H1/H4 sentence that had lost «а не про
+  людей») and six should-fix items — all fixed in `97f3e5c`.
+- **Theme of the order** in `MagisterDocs/private/titulka.json` (`тема`, `тема_англійською`);
+  `full.md` carries placeholders; title page, реферат, ABSTRACT, завдання get it from the pipeline.
+  Conference theses keep their own title (owner). Supervisor, order number and the deans' degrees are
+  recorded there and in `kartka.json` / `zavdannia.json` / `make_tezy.py`.
+- Golden refreshed in `MagisterDocs/golden` (120 PDF pages = card + 119 numbered).
+
+**Waiting on the owner:** student's name (three forms) in `titulka.json`, the card's name in the
+genitive; screenshots for рис. 3.4; the AI-use declaration; open `hourwell.docx` in Word once;
+«Апробація» after 10–11 November (wording in `MagisterDocs/conference/aprobatsiia.md`; in `full.md`
+it now goes in directly — there is no assembler any more); supervisor questions 23–24 in
+`MagisterDocs/pytannia-do-kerivnyka.md` (`.docx` copy not regenerated).
+
+**Next session reads:** this section; `docs/thesis/text/README.md`; `docs/thesis/docx-pipeline/README.md`.
 
 ## Current state (2026-10-13) — post-p12/metodychka-2026: the department guideline (PR #88)
 

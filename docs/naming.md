@@ -26,5 +26,6 @@ before store submission.
 says Kairos and is never edited in place, so the substitution is a global sweep at the end of
 `docs/thesis/assemble.py` — after every anchored edit, because two `ROLLUP_EDITS` markers and the
 «висновки п.5» locator match draft prose that still contains «Kairos». It covers headings, table
-cells and text-file chapters, not only paragraphs: 14 blocks. `specs/` keeps the codename — it is
+cells and text-file chapters, not only paragraphs: 14 blocks. Since 2026-10-26 `text/full.md` is
+the only source and already carries the public name; `assemble.py` has left the tree. `specs/` keeps the codename — it is
 design history, not a claim about the product.

@@ -66,6 +66,8 @@ PRESENT = [
     # the private fields stay placeholders in the public full.md; the names are substituted only at
     # .docx build time from MagisterDocs/private/titulka.json (owner, 2026-09-29)
     ("[ПІБ здобувача]", "the реферат's name stays a placeholder in the public repo"),
+    ("на тему «[тема роботи]»", "the theme of the order lives in MagisterDocs/private/titulka.json"),
+    ("[Student name]. [thesis title].", "the ABSTRACT takes the English theme from titulka.json too"),
     ("[Student name]", "the English abstract's name stays a placeholder in the public repo"),
     # the title page is the department's form (guideline 2026, Додаток В); every name on it and the
     # data of the form stay placeholders here
@@ -85,15 +87,14 @@ PRESENT = [
     ("clip[0,1]( xᵀθ̂(g)", "формула (2.10) — the clip bounds, not a citation"),
     ("SASRec-lite, он-девайс ONNX-ранжувальник і текстові вкладення MiniLM віднесені до перспектив",
      "§3.3 — the three unbuilt components are named as unbuilt, not omitted"),
-    ("шести розділів", "ВСТУП structure sentence (assembly step 30)"),
+    ("чотирьох розділів", "ВСТУП structure sentence: four chapters since 2026-10-26"),
     ("поза межами роботи", "the standing scope phrase (ADR-0020)"),
     ("цінювання виконано в симуляції", "the standing scope phrase, second half"),
     ("найраніший вільний слот", "§3.2 — the one rule compared against"),
     ("індивідуальної варіації", "the headline finding"),
-    ("РОЗДІЛ 6", "the new chapter (assembly step 20)"),
+    ("# РОЗДІЛ 4 РЕЗУЛЬТАТИ ДОСЛІДЖЕННЯ", "the guideline's fourth chapter (2026-10-26)"),
     ("Додаток К Повна сітка змодельованих світів", "the 75-cell grid (assembly step 28)"),
     ("Додаток Л Зафіксовані передбачення", "the registered predictions (assembly step 29)"),
-    ("lapseObservedEvent", "лістинг 4.1 (U15)"),
     ("Taillard", "the MEQ class-mix citation"),
     ("Chauhan", "the 2025 synchrony review"),
     ("Senyk", "the Ukrainian CSM/MCTQ instruments"),
