@@ -2,7 +2,7 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-10-13 — **post-p12/metodychka-2026** (PR #88; section right below): the thesis
+> Last update: 2026-10-26 — **post-p12/four-chapters** (in progress; section right below). Before it, 2026-10-13 — **post-p12/metodychka-2026** (PR #88; section right below): the thesis
 > follows the department's 2026 guideline. Expo's patch drift went in first as PR #89.
 > Before it, 2026-09-29 — **post-p12/thesis-private-docs**: schema names in the text, 3.2 in,
 > private data in MagisterDocs (below). Before it, **post-p12/thesis-figures**: the figures render
@@ -15,6 +15,24 @@
 > (PR #79), and the corrections rollup (2026-09-09), which is no longer an index: all 63 items carry
 > the Ukrainian sentences the draft should read, tagged Ф / П / С, every number with its measurement
 > condition. **The thesis text is assembled and green on every gate.**
+
+## Current state (2026-10-26) — post-p12/four-chapters (IN PROGRESS, branch not merged)
+
+The owner approved a plan (2026-10-26): four chapters per the guideline (p. 15), 60–80 pages of body
+text (ВСТУП → ВИСНОВКИ; 119 before, target ≈ 68), a real cut — no new appendices, none grows. The
+plan, with the per-subsection page budget, what is cut and why, and what stays untouched, is
+`/Users/vladyslav/.claude/plans/pasted-content-id-7a49-plan-mode-bubbly-flame.md` (outside the repo).
+Untouched: the formalisation and formulas (2.1)–(2.20), architecture at the level of decisions, the
+75-world sensitivity study, the offline-evaluation results, the four strengthened claims of rollup
+§3. Conference theses keep their own title (owner, 2026-10-26).
+
+Steps (commit after each): 1 ✅ full.md is the only source (`c8a3cc6`); 2 private facts in
+MagisterDocs + theme placeholder; 3 merge chapters and renumber, no cuts; 4 cuts, one chapter per
+commit, page count after each; 5 sources (expect 0 orphaned — stop and ask if not); 6 counts,
+brief, needles, docs, golden; 7 fresh-subagent adversarial pass; 8 PR.
+
+Body page count is measured from `MagisterDocs/build/hourwell.pdf` by heading positions (ВСТУП to
+СПИСОК ВИКОРИСТАНИХ ДЖЕРЕЛ).
 
 ## Current state (2026-10-13) — post-p12/metodychka-2026: the department guideline (PR #88)
 
