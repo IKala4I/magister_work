@@ -8,11 +8,13 @@ registered block, showing only the factors that vary inside that block, with fiv
 effect ± MC SE, verdict, efficiency, N₈₀ and the share of replicates with a positive effect.
 
 Generated, never hand-edited – CI regenerates it and fails on a diff, so the appendix cannot drift
-from the run. Per-class effects and the attainable ceilings stay in the repository (see the file's
+from the run. Since 2026-10-26 `text/full.md` is the thesis's only source, so the check reads the
+appendix there: every table row of Додаток К in full.md must equal a generated row, in order, and
+the summary sentence must match. The prose around the tables is the thesis's own text. Per-class effects and the attainable ceilings stay in the repository (see the file's
 own closing note); printing them would add five columns for a claim that does not need them.
 
-Usage:  python3 docs/thesis/gen-dodatok-k.py            # writes docs/thesis/text/dodatok-k.md
-        python3 docs/thesis/gen-dodatok-k.py --check    # exit 1 if the file is out of date
+Usage:  python3 docs/thesis/gen-dodatok-k.py            # prints the generated appendix (to paste)
+        python3 docs/thesis/gen-dodatok-k.py --check    # exit 1 if full.md's К tables drifted
 """
 from __future__ import annotations
 
@@ -23,7 +25,7 @@ import re
 import sys
 
 SRC = "docs/study/results/sensitivity.json"
-OUT = "docs/thesis/text/dodatok-k.md"
+FULL = "docs/thesis/text/full.md"
 VERDICT = {"WIN": "В", "TIE": "Н", "LOSS": "П"}
 
 
@@ -187,37 +189,45 @@ def main() -> int:
     text = "\n".join(parts).rstrip() + "\n"
 
     if "--check" in sys.argv:
-        try:
-            current = io.open(OUT, encoding="utf-8").read()
-        except FileNotFoundError:
-            print(f"FAIL {OUT} does not exist; run python3 {sys.argv[0]}")
+        full = io.open(FULL, encoding="utf-8").read()
+        m = re.search(r"^## Додаток К .*?(?=^## Додаток )", full, re.S | re.M)
+        if not m:
+            print(f"FAIL no «## Додаток К» section in {FULL}")
             return 1
-        # Prettier pads markdown table cells and normalises blank lines, so compare with runs of
-        # whitespace collapsed and empty lines dropped: that tolerates the formatter and still
-        # catches any changed value, added row or removed row, since values live on non-empty lines.
-        def norm(t: str) -> str:
+
+        # Prettier pads markdown table cells, so rows compare with runs of whitespace collapsed;
+        # a separator row compares as a separator. Values live only in table rows and in the
+        # summary sentence, so those two are what must match.
+        def rows(t: str) -> list[str]:
             out = []
-            for line in t.strip().split("\n"):
-                line = " ".join(line.split())
-                if not line:
+            for line in t.split("\n"):
+                if not line.startswith("|"):
                     continue
-                # a table's separator row: prettier widens the dashes to the column width
+                line = " ".join(line.split())
                 if set(line) <= set("|- "):
                     line = re.sub(r"-+", "-", line)
                 out.append(line)
-            return "\n".join(out)
+            return out
 
-        if norm(current) != norm(text):
-            print(f"FAIL {OUT} is out of date with {SRC}; regenerate it")
+        def summary(t: str) -> str:
+            hit = re.search(r"Підсумок за всіма[^.]*\.", " ".join(t.split()))
+            return hit.group(0) if hit else ""
+
+        want, have = rows(text), rows(m.group(0))
+        bad = want != have or summary(text) != summary(m.group(0)) or not summary(text)
+        if bad:
+            diff = next((i for i, (a, b) in enumerate(zip(want, have)) if a != b), min(len(want), len(have)))
+            print(f"FAIL Додаток К in {FULL} drifted from {SRC}: {len(have)} rows vs {len(want)} generated; "
+                  f"first difference at row {diff}; summary {'ok' if summary(text) == summary(m.group(0)) else 'differs'}")
             return 1
-        print(f"ok   {OUT} matches {SRC} ({len(cells)} cells)")
+        print(f"ok   Додаток К in {FULL} matches {SRC} ({len(cells)} cells, {len(want)} table rows)")
         return 0
 
-    io.open(OUT, "w", encoding="utf-8").write(text)
-    print(f"wrote {OUT}: {len(cells)} cells, {verdicts.count('WIN')} WIN / "
-          f"{verdicts.count('TIE')} TIE / {verdicts.count('LOSS')} LOSS")
+    sys.stdout.write(text)
+    print(f"\n<!-- {len(cells)} cells, {verdicts.count('WIN')} WIN / "
+          f"{verdicts.count('TIE')} TIE / {verdicts.count('LOSS')} LOSS -->")
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())

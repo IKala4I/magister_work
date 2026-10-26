@@ -83,8 +83,9 @@
   code — this check is part of the adversarial pass.
 - **The owner's thesis draft** (`/Users/vladyslav/Workspace/MagisterDocs/sources/draft.docx`,
   outside the repo since 2026-09-29, with every other private file and build output) is a
-  consistency target, NOT a spec (never publish it from this public repo); `assemble.py --draft`
-  reads it. When a decision contradicts the draft, keep the better choice and append one line to
+  consistency target, NOT a spec (never publish it from this public repo). Since 2026-10-26
+  `docs/thesis/text/full.md` is the thesis's only source; nothing reads the draft any more.
+  When a decision contradicts the draft, keep the better choice and append one line to
   `docs/thesis/thesis-corrections.md` ("draft §X says A, system does B, change text because …").
 - **`docs/thesis/spec-conflicts.md`** is the errata layer over frozen specs/ — check it before
   implementing anything a spec file describes.

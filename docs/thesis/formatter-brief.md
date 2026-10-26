@@ -170,9 +170,9 @@ on purpose — and the prose dash is the spaced en dash «–»; an em dash anyw
 
 ## 9. If a sentence must change
 
-Anything that changes wording goes back through `assemble.py`, not into the `.docx`:
-`docs/thesis/text/full.md` is generated, and a hand edit to the Word file is invisible to every
-checker in this repository. See `ASSEMBLY.md`.
+Anything that changes wording goes into `docs/thesis/text/full.md`, not into the `.docx`: since
+2026-10-26 it is the thesis's only source, and a hand edit to the Word file is invisible to every
+checker in this repository. See `text/README.md`.
 
 ---
 

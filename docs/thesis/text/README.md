@@ -1,37 +1,42 @@
-# `docs/thesis/text/` — finished Ukrainian, ready to move into the draft
+# `docs/thesis/text/` — the thesis text
 
-Two kinds of artefact live in `docs/thesis/`, and the split is deliberate.
+**`full.md` is the thesis's only source** (owner, 2026-10-26). Every word of the thesis — title
+page form, реферат and ABSTRACT, ПЕРЕЛІК, ВСТУП, the chapters, ВИСНОВКИ, the list of sources and
+the appendices — is edited here and nowhere else. **Розділів: 6.** The `.docx` and the PDF are built
+from this file by `docs/thesis/docx-pipeline/run_all.sh`; a hand edit to the Word file is invisible
+to every checker in the repository.
 
-| File                       | What it is                                                                                                                          |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `../corrections-rollup.md` | The **edit set** for chapters that already exist: "replace this phrase at this anchor with that text". Anchored fragments.          |
-| `text/*.md`                | **Whole chapters and appendices that the draft does not have yet**, written as continuous Ukrainian prose to be moved in as a unit. |
+Until 2026-10-26 `full.md` was generated: `assemble.py` read the owner's `draft.docx`, applied the
+anchored edits of `../corrections-rollup.md` and spliced in whole chapters written here as separate
+files (`rozdil-5.md`, `rozdil-6.md`, `anotaciya-ta-vysnovky.md`, `dodatok-*.md`). Cutting the text by
+two fifths to four chapters would have meant one more anchor per removed sentence, so the chain was
+retired: the assembler, its payload checker and the chapter files left the tree (they remain in git
+history), and the rollup and `../ASSEMBLY.md` are frozen records of how the text got here.
 
-A chapter that does not exist is not an edit, and mixing the two makes both unusable: the rollup
-becomes impossible to scan for "what do I paste into §3.3", and the chapter becomes impossible to
-read as a chapter. So the rollup keeps the anchored edits for Розділи 1–4, the annotation, the
-introduction, the conclusions and the existing appendices, and points here for the rest.
+What lives in this folder:
 
-**The .docx is assembled by the owner in a separate session. Nothing in this repository touches the
-Word file.**
+| Path        | What it is                                                                           |
+| ----------- | ------------------------------------------------------------------------------------ |
+| `full.md`   | the thesis; in `.prettierignore` (prettier corrupts formula (2.15) and the listings) |
+| `diagrams/` | sources of the figures the pipeline renders (`docx-pipeline/figures.json`)           |
+| `README.md` | this file                                                                            |
 
-## Contents
+Two things in `full.md` are not typed freely, and a checker holds each:
 
-| File                       | Draft destination                             | Status                                                                     |
-| -------------------------- | --------------------------------------------- | -------------------------------------------------------------------------- |
-| `rozdil-6.md`              | **РОЗДІЛ 6** (new; owner decision 2026-09-09) | ✅ written — 6.1–6.9, tables 6.1–6.7                                       |
-| `dodatok-v.md`             | **Додаток В** (the draft's Додаток Г)         | ✅ written — the deployed schema, not an illustration (decision D5)        |
-| `rozdil-5.md`              | **РОЗДІЛ 5** (rebuilt)                        | ✅ written — 5.1–5.9, tables 5.1–5.2                                       |
-| `anotaciya-ta-vysnovky.md` | **АНОТАЦІЯ**, **ANNOTATION**, **ВИСНОВКИ**    | ✅ written — all four §3 statements carried without softening              |
-| `dodatok-k.md`             | **Додаток К** (new)                           | ✅ **generated** from the results JSON by `gen-dodatok-k.py`; CI checks it |
-| `dodatok-l.md`             | **Додаток Л** (new)                           | ✅ written — registered predictions, criteria, the four dating commits     |
+- **Додаток К** is generated: `python3 docs/thesis/gen-dodatok-k.py` prints it from
+  `docs/study/results/sensitivity.json`, and `--check` (in CI) fails if any table row or the
+  summary sentence in `full.md` differs from the run.
+- **The counts** in ВСТУП («Структура та обсяг роботи») and in the реферат — sources, appendices,
+  figures, tables, formulas, chapters — are written by hand and checked by `verify-guideline.py`
+  against what the text contains; the page count stays a placeholder that the pipeline fills from
+  the rendered PDF.
+
+Names and the data of the title page, the card and the task sheet never enter `full.md`: they live
+in `MagisterDocs/private/` and the pipeline substitutes them for the placeholders.
 
 **Appendix letters (2026-10-13).** The department's guideline letters appendices without Г and З
-and in the order the text refers to them, so the files are named by the letter the appendix has in
-the thesis: `dodatok-v.md` was `dodatok-g.md`, `dodatok-k.md` was `dodatok-z.md`, `dodatok-l.md`
-was `dodatok-y.md`. The draft's own appendices keep the draft's letters in the draft and in the
-rollup; `assemble.py` (`APPENDICES`) is the one place the two letterings meet. Records dated before
-2026-10-13 use the old letters.
+and in the order the text refers to them. Records dated before 2026-10-13 use the old letters
+(the mapping is in `docs/HANDOFF.md`).
 
 ## Rules these files were written under
 
@@ -60,8 +65,9 @@ Both come from `corrections-rollup.md` and they are not stylistic:
    підрозділ 3.7. The sweep would have needed to know that; the generator cannot reach it. The
    English ANNOTATION keeps its decimal points for the same structural reason rather than by an
    exception. Where a rule genuinely must cross the whole document — the Kairos → Hourwell rename,
-   the apostrophe, the en dash, no bold inside a paragraph — it runs last in `assemble.py`, after every anchored edit, because the anchors
-   match draft prose that still carries the old form.
+   the apostrophe, the en dash, no bold inside a paragraph — it used to run last in the assembler;
+   since `full.md` became the source the text simply carries those forms, and `verify-style.py`
+   holds them.
 
 5. **A claim about state is checked, not described** (owner directive 2026-09-11). Documentation
    about the pipeline rots the way the thesis text rots, only more quietly, because nobody

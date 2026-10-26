@@ -946,12 +946,12 @@ DATE_BLANK = '«___» ___________ 20__ р.'
 
 def build_title(doc, lines):
     """Титульний лист за формою кафедри (методичка, Додаток В). Слова форми й дані — з full.md,
-    по одному надрукованому фрагменту на рядок (assemble.py, TITLE_PAGE); тут лише розкладка та
+    по одному надрукованому фрагменту на рядок (25 рядків форми); тут лише розкладка та
     службові позначки форми — місце підпису, «(підпис)», «(ПІБ)», дата."""
     T = [L(n) for n in lines]
     if len(T) != 25 or any(T[i] != v for i, v in TITLE_SHAPE.items()) or not T[9].startswith('на тему ') \
             or not T[24].startswith('КИЇВ'):
-        raise SystemExit('ТИТУЛКА: рядки full.md до «РЕФЕРАТ» не відповідають формі (assemble.py, TITLE_PAGE)')
+        raise SystemExit('ТИТУЛКА: рядки full.md до «РЕФЕРАТ» не відповідають формі (25 рядків, TITLE_SHAPE)')
     b, c, r, u = {'bold': True}, {'align': C}, {'align': R}, {'underline': True}
     para(doc, T[0], align=C, indent=0, bold=True, spacing=1)
     para(doc, T[1], align=C, indent=0, bold=True, spacing=1, before=12, after=24)

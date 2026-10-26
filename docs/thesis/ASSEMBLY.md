@@ -1,5 +1,12 @@
 # Assembly of `draft.docx`
 
+> **Frozen 2026-10-26 — a record, not a procedure.** The thesis was cut to four chapters and
+> 60–80 pages, and from that pass on `text/full.md` is its only source: wording is edited there
+> directly, nothing is assembled from the draft, and `assemble.py` and `verify-payloads.py` have
+> left the tree (they remain in git history). What this file says about the assembler, payload
+> coverage and chapter numbers describes the six-chapter text before the cut. The current rules
+> are in `text/README.md`.
+
 **The thirty-step manual pass is superseded.** `docs/thesis/text/full.md` is the whole thesis in
 document order with every correction already applied — six chapters, references renumbered,
 citations rewritten, appendices in place. Your job is moving continuous text into a formatted

@@ -39,8 +39,6 @@ jobs:
         run: python3 docs/thesis/gen-dodatok-k.py --check
       - name: The assembled thesis passes the needle list
         run: python3 docs/thesis/verify-docx.py docs/thesis/text/full.md
-      - name: Every approved rollup payload has a placement in full.md
-        run: python3 docs/thesis/verify-payloads.py
       - name: The formatter brief still quotes the text verbatim
         run: python3 docs/thesis/verify-brief.py
       - name: The assembled thesis obeys the style decisions (bold, dash, listings, artefacts)
@@ -56,10 +54,9 @@ jobs:
       # claim that can be checked is checked. Reads only committed files, so it runs here.
       - name: The docs' claims about the pipeline match the pipeline
         run: python3 docs/thesis/verify-state.py
-      # assemble.py cannot run here: it reads the owner's draft.docx, which lives outside the
-      # repository (MagisterDocs) and is never published. So CI checks the product, not the process —
-      # the three checkers above all read full.md itself. Re-running the assembler and
-      # committing the result stays a local step; ASSEMBLY.md says so.
+      # Since 2026-10-26 docs/thesis/text/full.md is the thesis's only source (the draft-based
+      # assembler and its payload checker left the tree with the cut to four chapters), so every
+      # checker above reads the text itself.
 
   db:
     name: Database gates (pgTAP + contract sync)
