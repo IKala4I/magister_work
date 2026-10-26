@@ -80,7 +80,7 @@ def e1() -> None:
     check("E1 ESS/n deterministic", 0.333, round(sum(det) / len(det) / n, 3), 5e-4)
     check("E1 ESS/n replay", 0.361, round(sum(rep) / len(rep) / n, 3), 5e-4)
 
-    # the field-study projection quoted in §4.2.6 and §4.4 (section numbers: four-chapter text, 2026-10-26)
+    # the field-study projection quoted in §4.2 and §4.4 (section numbers: four-chapter text after the cut, 2026-10-26)
     check("ESS from 930 plain-week rows", 310, round(930 * 0.333), 1)
     check("ESS from 240 heavy-week rows", 80, round(240 * 0.333), 1)
     check("ESS from 520 heavy-week rows", 175, round(520 * 0.333), 2)
@@ -91,7 +91,7 @@ def e1() -> None:
 
 # --------------------------------------------------------------------------- E2
 def e2() -> None:
-    print("\n== E2 — power (§4.5, §4.2.6) ==")
+    print("\n== E2 — power (§4.2, folded in on 2026-10-26) ==")
     d = load("e2_power.json")
     cells = {(round(c["icc"], 2), round(math.exp(c["log_or"]), 2)): c for c in d["cells"]}
     for icc, claimed_t, claimed_w, claimed_d in [(0.10, 0.836, 0.816, 7.23), (0.20, 0.817, 0.799, 6.75)]:
@@ -121,7 +121,7 @@ def e2() -> None:
 
 # --------------------------------------------------------------------------- E3
 def e3() -> None:
-    print("\n== E3 — closed loop (§4.6) ==")
+    print("\n== E3 — closed loop (§4.5) ==")
     cells = load("e3_closedloop.json")["cells"]
     for key, eff, se, ceil, effic, share, rej in [
         ("base/informative", 2.54, 0.14, 4.12, 0.62, 0.96, 0.26),
@@ -144,7 +144,7 @@ def e3() -> None:
     for cls, claimed in [("DM", -0.85), ("MM", -2.26), ("INT", -0.09), ("ME", 11.47), ("DE", 18.57)]:
         check(f"E3 amp/inf per-class {cls}", claimed, round(per_a[cls]["mean"] * 100, 2), 6e-3)
 
-    # §4.6 says morning types lose 0.9-2.3 pp across the informative cells
+    # §4.5 says morning types lose 0.9-2.3 pp across the informative cells
     morning = [per[c]["mean"] * 100 for c in ("DM", "MM")] + [per_a[c]["mean"] * 100 for c in ("DM", "MM")]
     # written unrounded: rounding 0.85 up to "0.9" is a rounding the text should not make
     check("E3 morning-type loss range, low", 0.85, round(-max(morning), 2), 6e-3)
@@ -168,7 +168,7 @@ def e3() -> None:
 
 # --------------------------------------------------------------------------- sensitivity
 def sens() -> None:
-    print("\n== Sensitivity grid (§4.7–§4.8, §4.8, rollup §2.1) ==")
+    print("\n== Sensitivity grid (§4.6–§4.7, rollup §2.1) ==")
     cells = load("sensitivity.json")["cells"]
     v = [c["verdict"] for c in cells]
     check("grid cells", 75, len(cells))
@@ -267,21 +267,21 @@ def sens() -> None:
     check("max exploration cost, arm B (pp)", 17, round(max(costs)), 0.5)
     check("min exploration cost, arm B (pp)", 0.03, round(min(abs(x) for x in costs), 2), 0.02)
 
-    # mix comparison quoted in §4.2.7 as "twice as large at s >= 1"
+    # mix comparison quoted in §4.2 as "twice as large at s >= 1"
     u1 = cell(s=1.0, sigma_shape=0.3, sigma_day=0.6, mix="uniform", p0=0.45, tasks=4, prior="informative")
     a1 = cell(s=1.0, sigma_shape=0.3, sigma_day=0.6, mix="adult", p0=0.45, tasks=4, prior="informative")
     check("uniform vs adult at s=1 (pp)", 2.87, round(u1["effect"]["mean"] * 100, 2), 6e-3)
     check("adult at s=1 (pp)", 1.44, round(a1["effect"]["mean"] * 100, 2), 6e-3)
     check("ratio uniform/adult at s=1", 2.0, round(u1["effect"]["mean"] / a1["effect"]["mean"], 1), 0.05)
 
-    # K sweep quoted in §4.7.4
+    # K sweep quoted in §4.6.4
     k6 = cell(s=1.0, sigma_shape=0.3, sigma_day=0.6, mix="adult", p0=0.45, tasks=6, prior="informative")
     check("K=6 at s=1 (pp)", 2.83, round(k6["effect"]["mean"] * 100, 2), 6e-3)
 
 
 # --------------------------------------------------------------------------- loss decomposition
 def decomposition() -> None:
-    print("\n== Loss decomposition (§4.7.3, rollup §3.1) ==")
+    print("\n== Loss decomposition (§4.6.3, rollup §3.1) ==")
     d = load("exploratory_sensitivity.json")
     reg, tsz, lvl = d["registered"], d["ts_variance_to_zero"], d["prior_level_matched"]
     for cls, share_name, claimed in [("DM", "about half", 0.5), ("MM", "about a quarter", 0.25), ("INT", "about a sixth", 1 / 6)]:
