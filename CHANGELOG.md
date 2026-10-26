@@ -22,6 +22,14 @@
   рекомендаційних алгоритмів», наказ № 2721 «С» від 07.11.2025) comes from `titulka.json` into the
   title page, реферат, ABSTRACT and завдання; the conference theses keep their own title.
 
+## Post-P12 — eight Expo SDK 57 patch releases (2026-10-26, post-p12/expo-patches-2026-10-26)
+
+- `npx expo install --fix`: expo 57.0.31, expo-router 57.0.29, expo-notifications 57.0.24,
+  expo-sharing 57.0.24, expo-constants 57.0.22, expo-linking 57.0.13, expo-network 57.0.3,
+  @expo/metro-runtime 57.0.17. React Native 0.86.3 and React 19.2.3 unchanged. expo-doctor turned
+  red on upstream publications alone, on the docs-only thesis PR (#91); a separate bump before the
+  merge, as in #82, #84, #89.
+
 ## Post-P12 — a comma between consecutive formulas (2026-10-13, post-p12/formula-commas)
 
 - **(2.4), (2.7) and (2.17) end in a comma** (owner's decision; guideline p. 20: formulas that
