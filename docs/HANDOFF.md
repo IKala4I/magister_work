@@ -30,7 +30,17 @@ Steps (commit after each): 1 ✅ full.md is the only source (`c8a3cc6`); 2 ✅ p
 MagisterDocs + theme placeholder (`ef8e963`); 3 ✅ merge chapters and renumber (`b6b7815`); 4 ⏳ cuts —
 four passes done, body 119 → 114 (merge) → 86 pages; wording compression is exhausted (≈ 1 page per
 pass), so getting under 80 needs whole blocks removed, some of which the approved plan kept
-(listings, табл. 3.3) — **asked the owner which blocks go (2026-10-26)**; 5 sources (expect 0
+(listings, табл. 3.3) — **owner decided (2026-10-26): remove all four blocks — listings 3.1–3.2 and табл. 3.3 (✅ `59f6bea`),
+protocol 4.2 to its substance with табл. 4.2 gone, E2 (old 4.5, табл. 4.4) folded into 4.2, hardware 4.9
+to табл. 4.8 + four findings (Kiev, empty cards, reward defects, latency/NFR-P1); then more prose from
+ch. 2 (between formulas), ch. 1 review/competitors, ch. 3 scenarios/client, ВСТУП/ВИСНОВКИ recap.
+Hard target: ≤ 75 PDF pages (fig. 3.4, «Апробація» and Word/LibreOffice drift add 1–3). Untouchable:
+the four claims, the estimator table (now 4.3) and the grid table (now 4.6), every number; if 75 is
+not reachable without weakening them — stop and report the count.** Next step in hand: the 4.2/E2
+fold. Draft text and script are in `MagisterDocs/build/cut-scripts/` (`new42.py`, `fold42.py`); the
+script's caption renumbering produced duplicate table numbers (renumber captions after the block
+swap, sequentially per chapter) and the brief line «за зареєстрованої неоднорідності» must be updated.
+After the fold: tables 31 → 29 (ВСТУП, реферат, ABSTRACT), subsections 4.6–4.12 → 4.5–4.11; 5 sources (expect 0
 orphaned); 6 counts, brief, needles, docs, golden; 7 fresh-subagent adversarial pass; 8 PR.
 
 Measuring: `layout.py body hourwell.pdf` prints the body pages (run_all.sh does it, «== обсяг»).
