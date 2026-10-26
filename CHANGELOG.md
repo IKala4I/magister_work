@@ -22,6 +22,8 @@
 - **Adversarial review** (fresh context): 3 blockers fixed — «exact propensity for every placement»
   in novelty 2 and 1.5 (exact only on the randomized slice), 1.2 implying the rule-class comparison
   was run, табл. 4.1 vs #8(a)/#22 recorded — plus ≈ 20 wording and definition fixes.
+- **Реферат / ABSTRACT propensity** (owner, follow-up): exact on the randomized slice, a Monte Carlo
+  estimate elsewhere — as in the novelty and 1.5; nothing else in the реферат changed.
 - **Pipeline**: typography (non-breaking space before a spaced dash, between a number and its unit,
   after №/≈/≤/≥; Word's `<w:noBreakHyphen/>` in hyphenated words — Times New Roman has no U+2011);
   inline math `$…$` with real sub/superscripts, checked by `verify.py`'s own rule; small tables move
