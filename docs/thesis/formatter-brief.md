@@ -28,13 +28,10 @@ agree. It does not check everything in this list, but what it does check it chec
 | `0,8–2,1 в. п.`                           | `≈ 1 в. п.` · `до 2 в. п.`               | the morning-type loss; the upper end is the point                                           |
 | `0,3–1,4 в. п.`                           | `≈ 1 в. п.`                              | the four-week personalisation gap. Rounding up makes it look like it compounds              |
 | `6,8–7,2 в. п.`                           | `7 в. п.` · `≈ 8 в. п.`                  | realised effect vs the nominal 8 в. п. The gap between them is the finding                  |
-| `78–151 мс`                               | `≈ 100 мс` · `менш ніж 200 мс`           | measured server-side cascade delete                                                         |
 | `сягає 17 в. п. на рандомізованих рядках` | `17 в. п.` without its rows · `незначна` | the price of the randomized slice: the 17 is the worst case on randomized rows, not the arm |
 | `1,1–2,4`                                 | `≈ 2`                                    | experiments per user per week on loaded weeks                                               |
 | `0,12–0,14`                               | `≈ 0,13`                                 | how much more optimistic the prior level is than the world                                  |
 | `34–40 учасників`                         | `≈ 35` · `40`                            | N for power 0,80 under the protocol's own pessimistic assumption                            |
-| `10–11 мс`                                | `≈ 10 мс`                                | time to first feasible solution                                                             |
-| `0,38–1,21`                               | `≈ 1`                                    | the relative bound gap that never closed                                                    |
 
 ## 2. Paired numbers — both halves, in this order, or neither
 
@@ -54,15 +51,14 @@ agree. It does not check everything in this list, but what it does check it chec
 
 ## 3. Counts — never "most", "the majority", "almost all", "nearly always"
 
-| Keep exactly                                           | Do not write                  |
-| ------------------------------------------------------ | ----------------------------- |
-| `у 58 світах, грає внічию у 17 і не програє в жодному` | `перемагає майже скрізь`      |
-| `понад 120 – у 48 світах`                              | `у більшості світів`          |
-| `$N_{80}$ не перевищує 60 у 13 комірках із 75`         | `у частині комірок`           |
-| `розв’язувач у 12 із 15 запитів доходив до ліміту`     | `здебільшого` · `у більшості` |
-| `набір щонайменше 172 осіб`                            | `близько 170` · `≈ 200`       |
-| `40 повтореннях`                                       | `кількох повтореннях`         |
-| `N₈₀ … дорівнює 31 … а в дорослій вибірці — 33`        | either number alone           |
+| Keep exactly                                           | Do not write             |
+| ------------------------------------------------------ | ------------------------ |
+| `у 58 світах, грає внічию у 17 і не програє в жодному` | `перемагає майже скрізь` |
+| `понад 120 – у 48 світах`                              | `у більшості світів`     |
+| `$N_{80}$ не перевищує 60 у 13 комірках із 75`         | `у частині комірок`      |
+| `набір щонайменше 172 осіб`                            | `близько 170` · `≈ 200`  |
+| `40 повтореннях`                                       | `кількох повтореннях`    |
+| `N₈₀ … дорівнює 31 … а в дорослій вибірці — 33`        | either number alone      |
 
 `не програє в жодному` is **not** the same claim as `перемагає в усіх`. Do not convert it.
 
@@ -187,17 +183,13 @@ drift from the text it describes. One string per line; nothing else in this file
 0,8–2,1 в. п.
 0,3–1,4 в. п.
 6,8–7,2 в. п.
-78–151 мс
 сягає 17 в. п. на рандомізованих рядках
 1,1–2,4
 0,12–0,14
 34–40 учасників
-10–11 мс
-0,38–1,21
 у 58 світах, грає внічию у 17 і не програє в жодному
 понад 120 – у 48 світах
 $N_{80}$ не перевищує 60 у 13 комірках із 75
-розв’язувач у 12 із 15 запитів доходив до ліміту
 набір щонайменше 172 осіб
 62,1 / 36,6 / 2,2
 порівняння з наявними планувальниками не проводилося
