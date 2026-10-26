@@ -21,20 +21,20 @@ agree. It does not check everything in this list, but what it does check it chec
 
 ## 1. Ranges — never round, never collapse to one end, never average
 
-| Keep exactly      | Do not write                      | Why                                                                               |
-| ----------------- | --------------------------------- | --------------------------------------------------------------------------------- |
-| `3,7–4,1 с`       | `3,7 с` · `≈ 4 с` · `близько 4 с` | two separate ten-request series, 3 and 4 September. One number implies one series |
-| `4,8–10,2 в. п.`  | `≈ 5 в. п.` · `5–10 в. п.`        | the evening-type gain across the grid; "≈ 5" was a rounding that was caught       |
-| `0,8–2,1 в. п.`   | `≈ 1 в. п.` · `до 2 в. п.`        | the morning-type loss; the upper end is the point                                 |
-| `0,3–1,4 в. п.`   | `≈ 1 в. п.`                       | the four-week personalisation gap. Rounding up makes it look like it compounds    |
-| `6,8–7,2 в. п.`   | `7 в. п.` · `≈ 8 в. п.`           | realised effect vs the nominal 8 в. п. The gap between them is the finding        |
-| `78–151 мс`       | `≈ 100 мс` · `менш ніж 200 мс`    | measured server-side cascade delete                                               |
-| `0,03–17 в. п.`   | `до 17 в. п.` · `незначна`        | the price of the randomized slice; the low end matters as much as the high        |
-| `1,1–2,4`         | `≈ 2`                             | experiments per user per week on loaded weeks                                     |
-| `0,12–0,14`       | `≈ 0,13`                          | how much more optimistic the prior level is than the world                        |
-| `34–40 учасників` | `≈ 35` · `40`                     | N for power 0,80 under the protocol's own pessimistic assumption                  |
-| `10–11 мс`        | `≈ 10 мс`                         | time to first feasible solution                                                   |
-| `0,38–1,21`       | `≈ 1`                             | the relative bound gap that never closed                                          |
+| Keep exactly                              | Do not write                             | Why                                                                                         |
+| ----------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `3,7–4,1 с`                               | `3,7 с` · `≈ 4 с` · `близько 4 с`        | two separate ten-request series, 3 and 4 September. One number implies one series           |
+| `4,8–10,2 в. п.`                          | `≈ 5 в. п.` · `5–10 в. п.`               | the evening-type gain across the grid; "≈ 5" was a rounding that was caught                 |
+| `0,8–2,1 в. п.`                           | `≈ 1 в. п.` · `до 2 в. п.`               | the morning-type loss; the upper end is the point                                           |
+| `0,3–1,4 в. п.`                           | `≈ 1 в. п.`                              | the four-week personalisation gap. Rounding up makes it look like it compounds              |
+| `6,8–7,2 в. п.`                           | `7 в. п.` · `≈ 8 в. п.`                  | realised effect vs the nominal 8 в. п. The gap between them is the finding                  |
+| `78–151 мс`                               | `≈ 100 мс` · `менш ніж 200 мс`           | measured server-side cascade delete                                                         |
+| `сягає 17 в. п. на рандомізованих рядках` | `17 в. п.` without its rows · `незначна` | the price of the randomized slice: the 17 is the worst case on randomized rows, not the arm |
+| `1,1–2,4`                                 | `≈ 2`                                    | experiments per user per week on loaded weeks                                               |
+| `0,12–0,14`                               | `≈ 0,13`                                 | how much more optimistic the prior level is than the world                                  |
+| `34–40 учасників`                         | `≈ 35` · `40`                            | N for power 0,80 under the protocol's own pessimistic assumption                            |
+| `10–11 мс`                                | `≈ 10 мс`                                | time to first feasible solution                                                             |
+| `0,38–1,21`                               | `≈ 1`                                    | the relative bound gap that never closed                                                    |
 
 ## 2. Paired numbers — both halves, in this order, or neither
 
@@ -188,7 +188,7 @@ drift from the text it describes. One string per line; nothing else in this file
 0,3–1,4 в. п.
 6,8–7,2 в. п.
 78–151 мс
-0,03–17 в. п.
+сягає 17 в. п. на рандомізованих рядках
 1,1–2,4
 0,12–0,14
 34–40 учасників

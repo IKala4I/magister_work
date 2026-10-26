@@ -33,9 +33,13 @@ the table margin and (4.1) added three. regress.py vs golden on the golden's own
 differences, all typography only (closes steps 1–3). (4) ВСТУП 4 → 3 pages, novelty 5 → 3 points,
 реферат/ABSTRACT competitor sentence carries both arm-A facts, new placeholder
 `[обсяг основного тексту]` (build `--body-pages`, `layout.py body --total`, run_all fixed point,
-verify.py + verify-guideline own checks; ВСТУП no longer states figures/tables/formulas). Next:
-розділ 1 → 2 → 3 → general pass on 4/ВИСНОВКИ → abbreviations, sources, counts → docs. Removed
-numbers so far (ВСТУП): 29/64, 45 %, 18–45, 80 %/65, 21–120+, 48/75, 172, 0,7, 30 %, ±0,4. Baseline `full.md`
+verify.py + verify-guideline own checks; ВСТУП no longer states figures/tables/formulas). (5)
+Розділ 1 10 → 8 pages (≈ 7 of text; p. 16 half white under табл. 1.1): 1.3 compressed with every
+source kept (41 cited in ch. 1), 1.5 «Постановка задачі» without ДП1–ДП4, arm-A sentence in 1.2.
+Next: розділ 2 (+ formulas.py, table renumbering) → 3 → general pass on 4/ВИСНОВКИ →
+abbreviations, sources, counts → docs. Removed numbers so far — ВСТУП: 29/64, 45 %, 18–45,
+80 %/65, 21–120+, 48/75, 172, 0,7, 30 %, ±0,4; розділ 1: ±0,4 (табл. 1.1 cell), 0,3–1,4,
+0,03–17, ≈ 0–4, 19–34 дол. (prose only; table keeps it), 30 млн. Baseline `full.md`
 for the no-number-changed diff: `git show 2427b15:docs/thesis/text/full.md` (token diff: numbers
 only, `$…$` and Unicode subscripts normalised before comparing).
 
