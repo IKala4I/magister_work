@@ -16,7 +16,7 @@
 
 МАГІСТЕРСЬКА КВАЛІФІКАЦІЙНА РОБОТА
 
-на тему «ПЕРСОНАЛІЗОВАНА ОПТИМІЗАЦІЯ ЧАСУ КОРИСТУВАЧА НА ОСНОВІ РЕКОМЕНДАЦІЙНИХ СИСТЕМ: МЕТОДИ ТА ПРОГРАМНА РЕАЛІЗАЦІЯ МОБІЛЬНОГО ЗАСТОСУНКУ HOURWELL»
+на тему «[тема роботи]»
 
 Спеціальність
 
@@ -50,7 +50,7 @@
 
 **РЕФЕРАТ**
 
-[ПІБ здобувача]. Персоналізована оптимізація часу користувача на основі рекомендаційних систем: методи та програмна реалізація мобільного застосунку Hourwell. – Магістерська кваліфікаційна робота за спеціальністю «[код і найменування спеціальності]» (освітньо-професійна програма «Програмне забезпечення інформаційних систем»). – Національний університет біоресурсів і природокористування України, Київ, 2026.
+[ПІБ здобувача]. [тема роботи]. – Магістерська кваліфікаційна робота за спеціальністю «[код і найменування спеціальності]» (освітньо-професійна програма «Програмне забезпечення інформаційних систем»). – Національний університет біоресурсів і природокористування України, Київ, 2026.
 
 Обсяг роботи: сторінок – [кількість сторінок], рисунків – 7, таблиць – 33, додатків – 9, використаних джерел – 71.
 
@@ -66,7 +66,7 @@
 
 **ABSTRACT**
 
-[Student name]. Personalized time optimization based on recommender systems: methods and software implementation of the Hourwell mobile application. – Master’s qualification thesis, speciality [speciality code and name] (educational programme «Software of Information Systems»). – National University of Life and Environmental Sciences of Ukraine, Kyiv, 2026.
+[Student name]. [thesis title]. – Master’s qualification thesis, speciality [speciality code and name] (educational programme «Software of Information Systems»). – National University of Life and Environmental Sciences of Ukraine, Kyiv, 2026.
 
 The thesis comprises [number of pages] pages, 7 figures, 33 tables, 9 appendices and 71 references.
 

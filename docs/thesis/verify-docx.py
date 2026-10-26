@@ -66,6 +66,8 @@ PRESENT = [
     # the private fields stay placeholders in the public full.md; the names are substituted only at
     # .docx build time from MagisterDocs/private/titulka.json (owner, 2026-09-29)
     ("[ПІБ здобувача]", "the реферат's name stays a placeholder in the public repo"),
+    ("на тему «[тема роботи]»", "the theme of the order lives in MagisterDocs/private/titulka.json"),
+    ("[Student name]. [thesis title].", "the ABSTRACT takes the English theme from titulka.json too"),
     ("[Student name]", "the English abstract's name stays a placeholder in the public repo"),
     # the title page is the department's form (guideline 2026, Додаток В); every name on it and the
     # data of the form stay placeholders here
