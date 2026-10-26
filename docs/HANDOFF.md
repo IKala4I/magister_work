@@ -46,8 +46,12 @@ Brief rows for four strings that no longer exist anywhere were removed. Body 68.
 ВИСНОВКИ light pass: arm-A wording with both facts in табл. 4.1, 4.6.1, 4.10.1, ВИСНОВКИ 7 (and
 реферат, 1.2 earlier — all «якими Motion і Reclaim.ai описують себе»); SkedPal sentence in
 4.10.1; plain openings of 4.4 and 4.6.1; ВИСНОВКИ 3–4 without ±0,4 and −0,6/+0,7. Body 70 (two
-widow pages of two lines each, end of 4.11 and of ВИСНОВКИ). Next: abbreviations, sources, counts →
-docs → adversarial review → PR. Removed numbers so far — ВСТУП: 29/64, 45 %, 18–45,
+widow pages of two lines each, end of 4.11 and of ВИСНОВКИ). (9) Перелік: abbreviations used < 3
+times leave the list (guideline p. 13) and are spelled out at first use — 32 → 16 entries (CI/CD →
+CI; БД, КФ, ПЗ, РС, ЦФ, ALS, GLMM, ILP, JITAI, MAU, MRT, OPE, ORM, OTA, SUS/UMUX-Lite, TS out);
+«Event sourcing» listed as «Подієве журналювання (event sourcing)», the form the text uses. Sources
+71, all cited; counts: figures 7, tables 26, formulas 10, appendices 9. Next: docs (text/README,
+pipeline README, CHANGELOG) → adversarial review → PR. Removed numbers so far — ВСТУП: 29/64, 45 %, 18–45,
 80 %/65, 21–120+, 48/75, 172, 0,7, 30 %, ±0,4; розділ 1: ±0,4 (табл. 1.1 cell), 0,3–1,4,
 0,03–17, ≈ 0–4, 19–34 дол. (prose only; table keeps it), 30 млн. Baseline `full.md`
 for the no-number-changed diff: `git show 2427b15:docs/thesis/text/full.md` (token diff: numbers

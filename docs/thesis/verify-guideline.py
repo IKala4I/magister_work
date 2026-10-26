@@ -231,6 +231,15 @@ def check(lines: list[str]) -> list[str]:
     return bad
 
 
+def swap_lines(text: str, first: str, second: str) -> str:
+    """Swap the two whole lines that start with `first` and `second` (the list of abbreviations)."""
+    lines = text.split("\n")
+    i = next(k for k, ln in enumerate(lines) if ln.startswith(first))
+    j = next(k for k, ln in enumerate(lines) if ln.startswith(second))
+    lines[i], lines[j] = lines[j], lines[i]
+    return "\n".join(lines)
+
+
 # One mutation per rule: (what it breaks, find, replace, a fragment the failure message must carry).
 def mutations(text: str) -> list[tuple[str, str, str]]:
     first_table = next(m.group(0) for m in re.finditer(r"(?m)^Таблиця 1\.1.*$", text))
@@ -270,8 +279,7 @@ def mutations(text: str) -> list[tuple[str, str, str]]:
         ("two consecutive formulas without a comma between them",
          re.sub(r",(\s{2,}\(2\.3\))", r"\1", text, count=1), "(2.3) is followed directly by (2.4)"),
         ("two abbreviations out of alphabetical order",
-         text.replace("\nКФ – ", "\n\x00", 1).replace("\nБД – ", "\nКФ – ", 1).replace("\n\x00", "\nБД – ", 1)
-         .replace("БД – колаборативна", "БД – база").replace("КФ – база даних", "КФ – колаборативна"),
+         swap_lines(text, "API – ", "CI – "),
          "belongs alphabetically"),
         ("a reference to a subsection that does not exist",
          re.sub(r"підрозділ(\w*) \d+\.\d+(?![\d.])", r"підрозділ\g<1> 9.9", text, count=1), "no heading has that number"),
