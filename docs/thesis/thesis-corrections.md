@@ -1167,3 +1167,9 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     and 2.2 defines it and derives 14 = 6 × 2 + 2. (4) The theses `.docx` has no OMML object;
     `make_tezy.py` now fails if one appears, if raw markup is left, or if subscripts are missing
     (three negative controls fire).
+    Adversarial review (fresh context): no blocker; applied — the exact p is written by
+    `plan-request` in both engines (not «сервіс», which means FastAPI in chapter 3); a learned row
+    without model state is skipped and retried nightly, not NULL for good; the Monte Carlo estimate
+    uses the model state at fill time over every bucket of the day type (sensitivity analysis);
+    ВСТУП «Практичне значення»: Monte Carlo «для решти розміщень навченого планувальника»; only
+    `busy` calendar events count. Left: реферат/ABSTRACT «для решти розміщень» (about the method).
