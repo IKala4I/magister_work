@@ -1173,3 +1173,8 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     uses the model state at fill time over every bucket of the day type (sensitivity analysis);
     ВСТУП «Практичне значення»: Monte Carlo «для решти розміщень навченого планувальника»; only
     `busy` calendar events count. Left: реферат/ABSTRACT «для решти розміщень» (about the method).
+72. **Owner, 2026-10-27 — реферат and ABSTRACT scoped like ВСТУП.** «для решти розміщень
+    оцінюється методом Монте-Карло» → «для решти розміщень навченого планувальника …»; ABSTRACT
+    «Monte Carlo estimates elsewhere» → «… for the remaining placements of the learned planner».
+    #94 settled «exact only on the slice»; this detail is new (#71), and the реферат must not claim
+    more than ВСТУП. Both stay 3 pages.
