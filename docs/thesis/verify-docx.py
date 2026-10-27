@@ -90,7 +90,7 @@ PRESENT = [
     ("поза межами роботи", "the standing scope phrase (ADR-0020)"),
     ("цінювання виконано в симуляції", "the standing scope phrase, second half"),
     ("найраніший вільний слот", "§3.2 — the one rule compared against"),
-    ("індивідуальної варіації", "the headline finding"),
+    ("індивідуально відхиляються від профілю свого хронотипу", "the headline finding (third wave wording)"),
     ("# РОЗДІЛ 4 РЕЗУЛЬТАТИ ДОСЛІДЖЕННЯ", "the guideline's fourth chapter (2026-10-26)"),
     ("Додаток К Повна сітка змодельованих світів", "the 75-cell grid (assembly step 28)"),
     ("Додаток Л Зафіксовані передбачення", "the registered predictions (assembly step 29)"),
