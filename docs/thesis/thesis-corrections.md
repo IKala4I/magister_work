@@ -1146,3 +1146,24 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     cells with s ≤ 0,5, σ_shape = 0,6 also give N₈₀ 33–44,5); Додаток В says the nightly job writes a
     Monte Carlo propensity on Thompson-sampling rows; +8 labelled as the protocol's assumption in
     4.5/4.7 too; the simulated person «має» tasks the planner places.
+
+71. **External review, 2026-10-27 — four findings, checked against the source and the code.**
+    (1) «Beta-модель енергії : холодного старту» in табл. 4.1 does **not** reproduce: `full.md`,
+    the built `.docx` and the PDF (text layer and the rendered page) all read «з». The pipeline
+    cannot produce it — `typeset` may only swap space → NBSP and hyphen → non-breaking hyphen and
+    aborts on anything else, and verify.py check 2 compares every table cell with `full.md`; a
+    one-off mutation of exactly this substitution makes verify fail on row 699 («заміна 'з' → ':'
+    не передбачена»). No « : » anywhere in the PDF outside ДСТУ 8302 references. (2) Додаток В said
+    both «оцінка Монте-Карло, яку записує нічний конвеєр» and «NULL поза рандомізованим зрізом» (the
+    #70 fix added the first and left the second). Now written from the code: exact p on the slice,
+    written with the row (planner.py, heuristic.ts); every other row written NULL; the nightly
+    backfill fills only `engine = 'learned'` non-experiment rows, and skips a row whose user has no
+    `bandit_state` for the task's category, so it stays NULL (pipeline.py `_stage_mc_backfill`);
+    baseline-rule rows outside the slice stay NULL for good. (3) The bucket's third component was
+    «клас відносної позиції» (2.2) / «клас позиції» (Додаток В), never defined; the theses said
+    «попередня зайнятість». In code it is `position ∈ {fresh, fatigued}` — fatigued when an occupied
+    run (fixed events ∪ pinned tasks) of ≥ 90 min ends ≤ 15 min before the tick, on weekday MO and AF
+    only (contexts.py, params.py) — so the thesis now says «попередня зайнятість» as the theses do,
+    and 2.2 defines it and derives 14 = 6 × 2 + 2. (4) The theses `.docx` has no OMML object;
+    `make_tezy.py` now fails if one appears, if raw markup is left, or if subscripts are missing
+    (three negative controls fire).
