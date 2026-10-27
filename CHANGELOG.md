@@ -15,6 +15,8 @@
   undefined «клас відносної позиції»); 2.2 defines it from `contexts.py` and derives 14 = 6 × 2 + 2.
 - **Theses** (outside git): no OMML; `make_tezy.py` now fails on OMML, raw markup or missing
   subscripts. Still 2 pages, text unchanged. Body 72 pages, unchanged. thesis-corrections #71.
+- **Реферат and ABSTRACT** (owner): the Monte Carlo estimate scoped to the learned planner, as in
+  ВСТУП; both stay 3 pages (#72).
 
 ## Post-P12 — third wave: plain engineering prose (2026-10-27, post-p12/third-wave)
 

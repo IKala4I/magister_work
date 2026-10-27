@@ -38,6 +38,9 @@ Each finding checked against the source and the code first (thesis-corrections #
    missing subscripts (three negative controls fire). Still 2 pages, PDF text identical. The theses
    PDF is made with `docx-pipeline/make_pdf.py <docx> <pdf>`.
 
+5. **Реферат and ABSTRACT** (owner, follow-up PR): Monte Carlo «для решти розміщень навченого
+   планувальника», as in ВСТУП; both 3 pages (#72).
+
 Gates green (full list below in the third-wave gotcha); `run_all.sh` exit 0, body 72 / total 117.
 **Golden in `MagisterDocs/golden` NOT refreshed** — owner has not accepted chapter 4 yet. Waiting
 on the owner: unchanged from the third wave.
