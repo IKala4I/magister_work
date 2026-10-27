@@ -51,6 +51,12 @@ one); the golden in `MagisterDocs/golden` stays un-refreshed until the owner acc
 Reviewer NITs left as they were (pre-existing): «умовне програмування» → «програмування в
 обмеженнях» (ВСТУП «Методи», 1.3.5).
 
+**Gotcha (this wave).** The local thesis gate list is what CI runs, all of it: `verify-numbers`,
+`verify-state`, `verify-style`, `verify-guideline` **and `--self-test`**, `verify-brief`,
+`verify-docx.py docs/thesis/text/full.md`, `gen-dodatok-k.py --check`. Two CI failures here came from
+the two this session had left out (a landmark phrase in `verify-docx.py`; a self-test control that
+keys on the first «Таблиця 1.1» in the text).
+
 **Next session reads:** this section; `docs/thesis/text/README.md`; `docs/thesis/docx-pipeline/README.md`.
 
 ## Current state (2026-10-26) — post-p12/second-wave: «магістерська, а не стаття»
