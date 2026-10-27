@@ -1093,3 +1093,56 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     узгоджена рандомізація» and the EDF [42] / list-scheduling [26] citations — so it does not
     claim a faithful replica, and the 10-26 decision governs. Found by the second wave's adversarial
     review.
+
+68. **Third wave, 2026-10-27 — two claims stronger than the evidence, found while planning the
+    style pass.** (a) ВСТУП «Практичне значення» said the event log carries «пропенсіті кожної
+    рекомендації» — the same overclaim #94 fixed in the реферат: it is exact only on the randomized
+    slice and a Monte Carlo estimate elsewhere (§2.6.4, §3.6). Now says so; the conclusion of
+    розділ 3 and §4.10.3 say «пропенсіті зрізу». (b) «≈ 3 тис. активних користувачів на місяць
+    в межах безоплатних тарифів (оцінка аудиту тарифів)» (ВСТУП, табл. NFR-Sc1, ВИСНОВКИ п. 5) has no
+    audit behind it in the repository: it is File 03's "Phase 4 audit" number for the Hugging Face
+    architecture, which ADR-0009 kept "verbatim" for Oracle by argument (2 cores ≈ 1 plan/s), never
+    re-derived. Derived now from the code and the provider's quota (Supabase docs via Context7,
+    2026-10-27): the binding limit is 500 000 Edge Function invocations a month on the Free plan;
+    the cron ticks take a fixed ≈ 11 900 (attribution every 15 min, calendar sweep every 5 min),
+    leaving ≈ 16 300 a day; the client calls `sync-resolve` on every foreground, after every write
+    (2 s debounce) and every 60 s while open (`apps/mobile/src/sync/engine.ts`), plus `plan-request`.
+    So the ceiling is ≈ 16 300 / (invocations per active user-day): ≈ 8 000 daily users at the
+    floor of 2 (one foreground, one plan), ≈ 1 600 for a user who keeps the app open 10 minutes.
+    No measurement of that rate exists, so «≈ 3 тис.» cannot be stated; the text now says the
+    system runs within the free tiers at the scale of the designed field study (42 participants:
+    ≤ 42 × 30 × 50 + 11 900 ≈ 75 000 invocations a month even at 50 a day) and that the ceiling for
+    more users is set by invocations per user and was not established by a load test. The
+    «≈ 25 дол./міс. на 50 тис. MAU» migration figure goes with it (the Pro plan's 2 M invocations
+    would not cover 50 000 daily users at this rate). Spec record: spec-conflicts M17.
+
+69. **Third wave, 2026-10-27 — chapter 4 in plain prose; three wordings that read the opposite
+    way.** (a) The arms are «базове» and «навчене» everywhere (owner, 2026-10-27): табл. 4.1's
+    row is now «A – базове плече: детерміноване правило + узгоджена рандомізація», superseding the
+    name #67 kept; the rule class, the [42]/[26] citations and «це не репліка самих продуктів»
+    are unchanged. (b) §4.7 said every $N_{80}$ «є парними нижніми межами» and that the mixed model
+    «дала б менші значення» — a lower bound that others undercut reads backwards; the paired
+    figure is conservative (an over-estimate of N), and the sentence now says so. (c) Додаток Л.6
+    said «Перша не спрацювала; друга – спрацювала», which reads as the method succeeding; it now
+    names each outcome (the grid is not too lenient; the failure criterion was met, no gain).
+    §4.6.5 «контрольні тести … пройдено» likewise → «сітка не виявилася надто поблажливою».
+    E1–E3, the grid and §4.7 open with one-sentence «Мета» and «Висновок»; no number changed
+    (the leads repeat the subsection's own values). `verify-style.py` now fails on the retired
+    phrasing (епістемічний, у вбранні, субстрат, солом’яне опудало, евристичне плече, «тест …
+    спрацював»).
+
+70. **Third wave, 2026-10-27 — adversarial review (fresh context).** Blocker: the реферат and
+    ABSTRACT headline had been simplified from «потребує індивідуальної варіації» to «вартий
+    складності лише тоді, коли люди індивідуально відхиляються» — false on `sensitivity.json` (6 of
+    the 58 wins have σ_shape = 0, at s = 1,5 and 2) and against the text's own two-condition
+    boundary. Both now state the two conditions, as ВСТУП does; «метод потребує індивідуальних
+    відхилень, щоб бути вартим складності» (4.10.2, 4.11, ВИСНОВКИ) → «вартий складності насамперед
+    там, де …», and 4.6.3 «залежить не від сили візерунка» → «насамперед не від». Should-fix: ВСТУП
+    condition made exact (0,3 логіта / 1,5 раза; «розпорядок» was not σ_shape); the Thompson-sampling
+    definition speaks of plans, not slots; MRT's plain name is «вбудований експеримент на рівні
+    блоків», not a near-copy of the slice's «експериментальні блоки»; «double precision … без
+    округлення» → «щоб округлення 1/3 не спотворювало ваг 1/p»; the free-tier sentences say
+    «за розрахунком квоти викликів», not «працює»; 4.7 «N ≈ 30–45 – лише якщо» loses «лише» (adult
+    cells with s ≤ 0,5, σ_shape = 0,6 also give N₈₀ 33–44,5); Додаток В says the nightly job writes a
+    Monte Carlo propensity on Thompson-sampling rows; +8 labelled as the protocol's assumption in
+    4.5/4.7 too; the simulated person «має» tasks the planner places.

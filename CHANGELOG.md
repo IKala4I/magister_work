@@ -2,6 +2,29 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — third wave: plain engineering prose (2026-10-27, post-p12/third-wave)
+
+- **Text** (owner-approved plan; style only — `docs/thesis/number-diff.py eff63e9` lists every
+  numeric token added or removed, each justified in its commit). ПЕРЕЛІК gives each scientific term
+  its plain equivalent (модель навчання, імовірнісний вибір слотів, імовірність розміщення,
+  експериментальні блоки, стартові оцінки) and adds «в. п.». One idea per sentence throughout; a
+  «Простими словами» sentence after each of the 10 formulas; E1–E3, the grid and 4.7 open with
+  «Мета» / «Висновок»; chapter 3 without narrow maths (propensity type one sentence, «сума ваг
+  завжди дорівнює 1»). Arms are «базове» / «навчене» everywhere. Body 70 → **72** PDF pages (ВСТУП
+  4, розділи 8 / 13 / 16 / 27, ВИСНОВКИ 4), total 117; реферат and ABSTRACT 3 pages each (limit 3).
+- **Claims weaker, not stronger.** ВСТУП «пропенсіті кожної рекомендації» → exact on the slice only;
+  the unaudited «≈ 3 тис. активних користувачів» free-tier ceiling removed after re-deriving it from
+  the Supabase quota and the client's sync cadence (thesis-corrections #68, spec-conflicts M17).
+  Headline names both win conditions (checked on `sensitivity.json`: every win meets one; 8 of the
+  66 worlds that meet one tie). Three wordings that read backwards fixed: «N₈₀ – парні нижні межі»,
+  «друга перевірка спрацювала», «тест на невдачу спрацював» (#69).
+- **Adversarial review** (fresh context): 1 blocker fixed — the реферат/ABSTRACT headline had become
+  «worth its complexity only where people deviate» (6 of 58 wins have no individual deviation); now
+  both conditions, as in ВСТУП — plus 11 should-fix wording items (#70).
+- **Checks.** `verify-style.py` fails on the retired phrasing (епістемічний, у вбранні, субстрат,
+  солом’яне опудало, семантичний стрижень, евристичне плече, «тест … спрацював»). (2.2)'s urgency
+  multiplier is h (g is the category), σ² defined; `formulas.py` follows.
+
 ## Post-P12 — second wave: a thesis, not an article (2026-10-26, post-p12/second-wave)
 
 - **Text** (owner-approved plan; no number changed, nothing invented — a token diff of the body

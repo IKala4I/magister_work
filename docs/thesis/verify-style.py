@@ -23,6 +23,18 @@ FULL = "docs/thesis/text/full.md"
 
 WHOLLY_BOLD = re.compile(r"^\*\*[^*]+\*\*$")
 PLACEHOLDER = re.compile(r"^\*\*\[МІСЦЕ ДЛЯ")
+# Owner directive 2026-10-27 (third wave): plain engineering prose. Phrasing retired on reading,
+# each with what to write instead; a retired phrase that comes back fails here, not on a re-read.
+RETIRED = [
+    (re.compile(r"епістемічн", re.I), "philosophy — state the engineering consequence"),
+    (re.compile(r"у вбранні", re.I), "metaphor — say what the defect does to the data"),
+    (re.compile(r"субстрат", re.I), "metaphor — say what the log makes possible"),
+    (re.compile(r"солом’ян", re.I), "metaphor — say why the world is realistic"),
+    (re.compile(r"семантичн\w* стриж", re.I), "metaphor — name the principle plainly"),
+    (re.compile(r"евристичн\w* плеч", re.I), "the arms are «базове» and «навчене»"),
+    (re.compile(r"тест\w*[^.]{0,60}спрацюва", re.I),
+     "«спрацював» reads as success — name the outcome («критерій виконався, виграшу немає»)"),
+]
 COMMENT = {
     "typescript": re.compile(r"\s//"),
     "python": re.compile(r"\s#"),
@@ -45,6 +57,9 @@ def main() -> int:
             if rx and rx.search(line):
                 bad.append((n, "listing", f"comment in a {fence} listing — the explanation goes to prose"))
             continue
+        for rx, why in RETIRED:
+            if rx.search(line):
+                bad.append((n, "retired", why))
         if "\u2014" in line:
             bad.append((n, "dash", "em dash — the prose dash is the spaced en dash «–»"))
         if "**" in line and not (line.startswith("#") or WHOLLY_BOLD.match(line.strip())
