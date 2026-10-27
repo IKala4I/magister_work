@@ -1115,3 +1115,18 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     more users is set by invocations per user and was not established by a load test. The
     «≈ 25 дол./міс. на 50 тис. MAU» migration figure goes with it (the Pro plan's 2 M invocations
     would not cover 50 000 daily users at this rate). Spec record: spec-conflicts M17.
+
+69. **Third wave, 2026-10-27 — chapter 4 in plain prose; three wordings that read the opposite
+    way.** (a) The arms are «базове» and «навчене» everywhere (owner, 2026-10-27): табл. 4.1's
+    row is now «A – базове плече: детерміноване правило + узгоджена рандомізація», superseding the
+    name #67 kept; the rule class, the [42]/[26] citations and «це не репліка самих продуктів»
+    are unchanged. (b) §4.7 said every $N_{80}$ «є парними нижніми межами» and that the mixed model
+    «дала б менші значення» — a lower bound that others undercut reads backwards; the paired
+    figure is conservative (an over-estimate of N), and the sentence now says so. (c) Додаток Л.6
+    said «Перша не спрацювала; друга – спрацювала», which reads as the method succeeding; it now
+    names each outcome (the grid is not too lenient; the failure criterion was met, no gain).
+    §4.6.5 «контрольні тести … пройдено» likewise → «сітка не виявилася надто поблажливою».
+    E1–E3, the grid and §4.7 open with one-sentence «Мета» and «Висновок»; no number changed
+    (the leads repeat the subsection's own values). `verify-style.py` now fails on the retired
+    phrasing (епістемічний, у вбранні, субстрат, солом’яне опудало, евристичне плече, «тест …
+    спрацював»).
