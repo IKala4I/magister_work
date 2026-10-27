@@ -1093,3 +1093,25 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     узгоджена рандомізація» and the EDF [42] / list-scheduling [26] citations — so it does not
     claim a faithful replica, and the 10-26 decision governs. Found by the second wave's adversarial
     review.
+
+68. **Third wave, 2026-10-27 — two claims stronger than the evidence, found while planning the
+    style pass.** (a) ВСТУП «Практичне значення» said the event log carries «пропенсіті кожної
+    рекомендації» — the same overclaim #94 fixed in the реферат: it is exact only on the randomized
+    slice and a Monte Carlo estimate elsewhere (§2.6.4, §3.6). Now says so; the conclusion of
+    розділ 3 and §4.10.3 say «пропенсіті зрізу». (b) «≈ 3 тис. активних користувачів на місяць
+    в межах безоплатних тарифів (оцінка аудиту тарифів)» (ВСТУП, табл. NFR-Sc1, ВИСНОВКИ п. 5) has no
+    audit behind it in the repository: it is File 03's "Phase 4 audit" number for the Hugging Face
+    architecture, which ADR-0009 kept "verbatim" for Oracle by argument (2 cores ≈ 1 plan/s), never
+    re-derived. Derived now from the code and the provider's quota (Supabase docs via Context7,
+    2026-10-27): the binding limit is 500 000 Edge Function invocations a month on the Free plan;
+    the cron ticks take a fixed ≈ 11 900 (attribution every 15 min, calendar sweep every 5 min),
+    leaving ≈ 16 300 a day; the client calls `sync-resolve` on every foreground, after every write
+    (2 s debounce) and every 60 s while open (`apps/mobile/src/sync/engine.ts`), plus `plan-request`.
+    So the ceiling is ≈ 16 300 / (invocations per active user-day): ≈ 8 000 daily users at the
+    floor of 2 (one foreground, one plan), ≈ 1 600 for a user who keeps the app open 10 minutes.
+    No measurement of that rate exists, so «≈ 3 тис.» cannot be stated; the text now says the
+    system runs within the free tiers at the scale of the designed field study (42 participants:
+    ≤ 42 × 30 × 50 + 11 900 ≈ 75 000 invocations a month even at 50 a day) and that the ceiling for
+    more users is set by invocations per user and was not established by a load test. The
+    «≈ 25 дол./міс. на 50 тис. MAU» migration figure goes with it (the Pro plan's 2 M invocations
+    would not cover 50 000 daily users at this rate). Spec record: spec-conflicts M17.

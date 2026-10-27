@@ -592,3 +592,15 @@ analysis is part of that study (M9/#21 recomputed at the measured experiment rat
   `bandit_state, beta_cells, blend_state`; File 07's rationale is kept, without the old name. The
   thesis text (§3.4, the §4 /plan paragraph, the notes for Рисунки 3.2 and А.1, the А.1 diagram)
   was corrected through `assemble.py` the same day.
+
+## Post-P12 third wave (2026-10-27)
+
+- **M17.** NFR-Sc1 «≈ 3 k MAU within the free tiers» (File 02, amended by M1) and the
+  «≈ $25/mo at 50 k» migration tier are not derivable for the system as built. The binding Free-plan
+  quota is Edge Function invocations (500 000 / month, Supabase billing docs, verified 2026-10-27),
+  and the client's sync cadence (foreground, write-debounce 2 s, 60 s poll while open — all through
+  `sync-resolve`) makes the ceiling depend on an unmeasured per-user invocation rate: ≈ 8 000 daily
+  users at 2 invocations a day, ≈ 1 600 at 10. **Resolution:** the thesis states the free-tier claim
+  only at the field study's scale (42 participants, ≈ 75 000 invocations a month even at 50 a day)
+  and names the invocation rate as what sets the ceiling; the spec keeps the old figure with this
+  entry as its errata. Thesis text: corrections #68. **Status: applied in the thesis; spec errata.**
