@@ -2,6 +2,20 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — external review fixes (2026-10-27, post-p12/review-fixes)
+
+- **Табл. 4.1 «енергії : холодного старту» — not reproducible.** Source, `.docx` and PDF (text layer
+  and rendered page) read «з»; the typography step may only swap space → NBSP and hyphen →
+  non-breaking hyphen, and verify.py check 2 fails on exactly this substitution (one-off mutation,
+  row 699). No « : » in the PDF outside ДСТУ 8302 references. Nothing changed in the pipeline.
+- **Додаток В, `propensity`** — no longer contradicts itself; written from the code: exact on the
+  slice; NULL elsewhere until the nightly job writes a Monte Carlo estimate (learned rows only);
+  NULL for good without the user's model state for the category, and on baseline-rule rows.
+- **Bucket's third component** is «попередня зайнятість» in the thesis as in the theses (was the
+  undefined «клас відносної позиції»); 2.2 defines it from `contexts.py` and derives 14 = 6 × 2 + 2.
+- **Theses** (outside git): no OMML; `make_tezy.py` now fails on OMML, raw markup or missing
+  subscripts. Still 2 pages, text unchanged. Body 72 pages, unchanged. thesis-corrections #71.
+
 ## Post-P12 — third wave: plain engineering prose (2026-10-27, post-p12/third-wave)
 
 - **Text** (owner-approved plan; style only — `docs/thesis/number-diff.py eff63e9` lists every

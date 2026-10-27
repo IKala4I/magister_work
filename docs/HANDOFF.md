@@ -2,7 +2,8 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-10-27 — **post-p12/third-wave** (section right below): body 72 pages. Before it,
+> Last update: 2026-10-27 — **post-p12/review-fixes** (section right below): four external-review
+> findings; body 72 pages, unchanged. Before it, 2026-10-27 — **post-p12/third-wave**: body 72 pages. Before it,
 > 2026-10-26 — **post-p12/second-wave**: body 70 pages, formulas 10, tables 26. Before it,
 > 2026-10-26 — **post-p12/four-chapters**: four chapters, 74 body pages. Before it, 2026-10-13 — **post-p12/metodychka-2026** (PR #88; section right below): the thesis
 > follows the department's 2026 guideline. Expo's patch drift went in first as PR #89.
@@ -17,6 +18,31 @@
 > (PR #79), and the corrections rollup (2026-09-09), which is no longer an index: all 63 items carry
 > the Ukrainian sentences the draft should read, tagged Ф / П / С, every number with its measurement
 > condition. **The thesis text is assembled and green on every gate.**
+
+## Current state (2026-10-27) — post-p12/review-fixes: чотири знахідки зовнішньої рецензії
+
+Each finding checked against the source and the code first (thesis-corrections #71):
+
+1. **Табл. 4.1 «енергії : холодного старту» — not reproducible.** `full.md`, `.docx`, PDF text layer
+   and the rendered page all read «з». `typeset` allows only space → NBSP and hyphen → non-breaking
+   hyphen (aborts otherwise); verify.py check 2 compares every cell — a one-off mutation of exactly
+   this substitution fails verify on row 699. No « : » in the PDF outside ДСТУ 8302 references.
+   Pipeline unchanged.
+2. **Додаток В `propensity`** — rewritten from the code (planner.py:642, heuristic.ts:511,
+   pipeline.py `_stage_mc_backfill`): exact on the slice; NULL elsewhere until the nightly job
+   writes a Monte Carlo estimate (only `engine = 'learned'` rows); NULL for good when the user has
+   no `bandit_state` for the category, and on baseline-rule rows.
+3. **Bucket's third component** — «попередня зайнятість» in thesis and theses alike; 2.2 defines it
+   (≥ 90 min occupied run ending ≤ 15 min before the tick; weekday MO/AF only → 14 = 6 × 2 + 2).
+4. **Theses** — no OMML; `MagisterDocs/conference/make_tezy.py` now fails on OMML, raw markup or
+   missing subscripts (three negative controls fire). Still 2 pages, PDF text identical. The theses
+   PDF is made with `docx-pipeline/make_pdf.py <docx> <pdf>`.
+
+Gates green (full list below in the third-wave gotcha); `run_all.sh` exit 0, body 72 / total 117.
+**Golden in `MagisterDocs/golden` NOT refreshed** — owner has not accepted chapter 4 yet. Waiting
+on the owner: unchanged from the third wave.
+
+**Next session reads:** this section; `docs/thesis/text/README.md`; `docs/thesis/docx-pipeline/README.md`.
 
 ## Current state (2026-10-27) — post-p12/third-wave: проста інженерна мова
 
