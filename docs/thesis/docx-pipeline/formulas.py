@@ -24,7 +24,7 @@ SNIPS сказані словами; LinUCB, fold-in ALS і метод моме�
 
 FORMULA_TEX = {
  '2.1':  r'A^{*} = \operatorname{argmax}_{A} \sum_{(\tau,s)\in A} P\left(\text{викон}(\tau,s) \mid x(u), x(\tau), x(s)\right) \cdot v(\tau) - \lambda \cdot \text{Cost}(A)',
- '2.2':  r'w(\tau,k) = v(\tau) \cdot \hat{q}(\tau, \varphi(k)) \cdot g(dl(\tau) - k)',
+ '2.2':  r'w(\tau,k) = v(\tau) \cdot \hat{q}(\tau, \varphi(k)) \cdot h(dl(\tau) - k)',
  '2.3':  r'\tilde{\theta}(g) \sim N\left(\hat{\theta}(g), \sigma^{2}\cdot A(g)^{-1}\right),',
  '2.4':  r'\hat{q}(\tau,c) = \operatorname{clip}[0,1]\left( x(\tau,c)^{\mathsf{T}}\cdot\tilde{\theta}(g(\tau)) \right)',
  '2.5':  r'p = \frac{\varepsilon}{|A_{m}(x)|}',
