@@ -30,6 +30,7 @@ RETIRED = [
     (re.compile(r"у вбранні", re.I), "metaphor — say what the defect does to the data"),
     (re.compile(r"субстрат", re.I), "metaphor — say what the log makes possible"),
     (re.compile(r"солом’ян", re.I), "metaphor — say why the world is realistic"),
+    (re.compile(r"семантичн\w* стриж", re.I), "metaphor — name the principle plainly"),
     (re.compile(r"евристичн\w* плеч", re.I), "the arms are «базове» and «навчене»"),
     (re.compile(r"тест\w*[^.]{0,60}спрацюва", re.I),
      "«спрацював» reads as success — name the outcome («критерій виконався, виграшу немає»)"),
