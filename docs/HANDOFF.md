@@ -42,7 +42,8 @@ inline math `$…$` (build + verify's own rule + self-test mutation; audit skips
 whole / large ones split with a 15 mm margin, `[обсяг основного тексту]` (`build.py --body-pages`,
 `layout.py body --total`, run_all fixed point). `regress.py` against the golden on the golden's
 own source: 312 differences, all typography only. **The golden in `MagisterDocs/golden` was not
-refreshed** — it still is the four-chapters build; refresh it after the owner accepts this text.
+refreshed** — it still is the four-chapters build and stays so until the owner has read chapter 4 and
+accepted the text.
 
 **No number changed** (token diff of `full.md` against `2427b15`): nothing new except formula/table
 numbers, section references, the table count 26 and the citations [46]/[54] in табл. 4.1. Removed
@@ -66,10 +67,11 @@ items fixed (definitions of такт, λ, x(·), D, r, q; C4 soft; label weight 
 both the urgency multiplier in (2.2) and a category; σ² in (2.3) undefined; ε/s/p each mean two
 things across chapters 2 and 4; «підрозділ 2.6.2» where «пункт» is meant (4.4, табл. 4.7).
 
-**Waiting on the owner (new):** the реферат still says «пропенсіті кожного розміщення лишається
-точно відомим» — true only on the randomized slice; the реферат was limited to the competitor
-sentence by the owner's decision, so this needs a yes. Chapter 4 beyond the light pass waits until
-the owner has read it. Earlier items below still stand (name, screenshots for рис. 3.4,
+**Реферат propensity sentence — done (owner, same day, PR after #93):** реферат and ABSTRACT now say
+the propensity is exact on the randomized slice and a Monte Carlo estimate elsewhere; the rest of
+the реферат untouched; ABSTRACT stays 2 pages. **Waiting on the owner:** chapter 4 beyond the light
+pass waits until the owner has read it; **the golden in `MagisterDocs/golden` is NOT refreshed until
+the owner has read chapter 4 and accepted the text** (owner, 2026-10-26). Earlier items below still stand (name, screenshots for рис. 3.4,
 AI declaration, Word once, «Апробація» after 10–11 November, supervisor questions).
 
 **Next session reads:** this section; `docs/thesis/text/README.md`; `docs/thesis/docx-pipeline/README.md`.
