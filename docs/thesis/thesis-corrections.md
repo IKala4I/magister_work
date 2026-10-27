@@ -1130,3 +1130,19 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     (the leads repeat the subsection's own values). `verify-style.py` now fails on the retired
     phrasing (епістемічний, у вбранні, субстрат, солом’яне опудало, евристичне плече, «тест …
     спрацював»).
+
+70. **Third wave, 2026-10-27 — adversarial review (fresh context).** Blocker: the реферат and
+    ABSTRACT headline had been simplified from «потребує індивідуальної варіації» to «вартий
+    складності лише тоді, коли люди індивідуально відхиляються» — false on `sensitivity.json` (6 of
+    the 58 wins have σ_shape = 0, at s = 1,5 and 2) and against the text's own two-condition
+    boundary. Both now state the two conditions, as ВСТУП does; «метод потребує індивідуальних
+    відхилень, щоб бути вартим складності» (4.10.2, 4.11, ВИСНОВКИ) → «вартий складності насамперед
+    там, де …», and 4.6.3 «залежить не від сили візерунка» → «насамперед не від». Should-fix: ВСТУП
+    condition made exact (0,3 логіта / 1,5 раза; «розпорядок» was not σ_shape); the Thompson-sampling
+    definition speaks of plans, not slots; MRT's plain name is «вбудований експеримент на рівні
+    блоків», not a near-copy of the slice's «експериментальні блоки»; «double precision … без
+    округлення» → «щоб округлення 1/3 не спотворювало ваг 1/p»; the free-tier sentences say
+    «за розрахунком квоти викликів», not «працює»; 4.7 «N ≈ 30–45 – лише якщо» loses «лише» (adult
+    cells with s ≤ 0,5, σ_shape = 0,6 also give N₈₀ 33–44,5); Додаток В says the nightly job writes a
+    Monte Carlo propensity on Thompson-sampling rows; +8 labelled as the protocol's assumption in
+    4.5/4.7 too; the simulated person «має» tasks the planner places.
