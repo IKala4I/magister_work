@@ -2,7 +2,8 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-10-26 — **post-p12/second-wave** (section right below): body 70 pages, formulas 10, tables 26. Before it,
+> Last update: 2026-10-27 — **post-p12/third-wave IN PROGRESS** (section right below). Before it,
+> 2026-10-26 — **post-p12/second-wave**: body 70 pages, formulas 10, tables 26. Before it,
 > 2026-10-26 — **post-p12/four-chapters**: four chapters, 74 body pages. Before it, 2026-10-13 — **post-p12/metodychka-2026** (PR #88; section right below): the thesis
 > follows the department's 2026 guideline. Expo's patch drift went in first as PR #89.
 > Before it, 2026-09-29 — **post-p12/thesis-private-docs**: schema names in the text, 3.2 in,
@@ -16,6 +17,19 @@
 > (PR #79), and the corrections rollup (2026-09-09), which is no longer an index: all 63 items carry
 > the Ukrainian sentences the draft should read, tagged Ф / П / С, every number with its measurement
 > condition. **The thesis text is assembled and green on every gate.**
+
+## Current state (2026-10-27) — post-p12/third-wave: проста інженерна мова (IN PROGRESS)
+
+Owner-approved plan: `~/.claude/plans/pasted-content-id-8055-plan-mode-dynamic-liskov.md` (local).
+Style only: no number changes, nothing new claimed. Wave rule (owner): a simplified sentence must
+not be readable the opposite way («лише», «тест спрацював», «не програє»). Order: findings →
+ПЕРЕЛІК → ВСТУП + реферат/ABSTRACT → ВИСНОВКИ + 4.11 → розділ 4 → розділи 1–3 → adversarial →
+PR. Owner's own remarks on chapter 4 arrive separately — a separate pass on top.
+
+**Done:** step 1 (`bfe693c`) — ВСТУП propensity overclaim fixed; the unaudited «≈ 3 тис.» ceiling
+removed (thesis-corrections #68, spec-conflicts M17).
+**Number check:** scratch `numdiff.py` (multiset diff of numeric tokens per `# ` section vs base
+`eff63e9`); every changed token is listed in the commit message.
 
 ## Current state (2026-10-26) — post-p12/second-wave: «магістерська, а не стаття»
 
