@@ -8,7 +8,7 @@ Not a gate — it has no notion of "allowed"; it is the evidence the gates canno
 Run from the repository root:  python3 docs/thesis/number-diff.py <base-commit> [section-prefix]
 """
 import collections
-import io
+import pathlib
 import re
 import subprocess
 import sys
@@ -28,8 +28,10 @@ def sections(text):
     return {k: collections.Counter(NUM.findall("\n".join(v))) for k, v in out.items()}
 
 
-base = subprocess.run(["git", "show", f"{sys.argv[1]}:{P}"], capture_output=True, text=True).stdout
-now = io.open(P, encoding="utf-8").read()
+base = subprocess.run(
+    ["git", "show", f"{sys.argv[1]}:{P}"], capture_output=True, text=True, check=True
+).stdout
+now = pathlib.Path(P).read_text(encoding="utf-8")
 b, n = sections(base), sections(now)
 only = sys.argv[2] if len(sys.argv) > 2 else ""
 tot = 0
