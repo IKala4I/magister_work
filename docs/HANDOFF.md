@@ -2,7 +2,7 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-10-27 — **post-p12/third-wave IN PROGRESS** (section right below). Before it,
+> Last update: 2026-10-27 — **post-p12/third-wave** (section right below): body 72 pages. Before it,
 > 2026-10-26 — **post-p12/second-wave**: body 70 pages, formulas 10, tables 26. Before it,
 > 2026-10-26 — **post-p12/four-chapters**: four chapters, 74 body pages. Before it, 2026-10-13 — **post-p12/metodychka-2026** (PR #88; section right below): the thesis
 > follows the department's 2026 guideline. Expo's patch drift went in first as PR #89.
@@ -18,18 +18,40 @@
 > the Ukrainian sentences the draft should read, tagged Ф / П / С, every number with its measurement
 > condition. **The thesis text is assembled and green on every gate.**
 
-## Current state (2026-10-27) — post-p12/third-wave: проста інженерна мова (IN PROGRESS)
+## Current state (2026-10-27) — post-p12/third-wave: проста інженерна мова
 
 Owner-approved plan: `~/.claude/plans/pasted-content-id-8055-plan-mode-dynamic-liskov.md` (local).
-Style only: no number changes, nothing new claimed. Wave rule (owner): a simplified sentence must
-not be readable the opposite way («лише», «тест спрацював», «не програє»). Order: findings →
-ПЕРЕЛІК → ВСТУП + реферат/ABSTRACT → ВИСНОВКИ + 4.11 → розділ 4 → розділи 1–3 → adversarial →
-PR. Owner's own remarks on chapter 4 arrive separately — a separate pass on top.
+Style only. Wave rule (owner): a simplified sentence must not be readable the opposite way
+(«лише», «тест спрацював», «не програє») — memory `simplify-without-inverting-meaning`. All steps
+done, one commit per block, green on every gate; PR «Post-P12 — третя хвиля: проста інженерна мова».
 
-**Done:** step 1 (`bfe693c`) — ВСТУП propensity overclaim fixed; the unaudited «≈ 3 тис.» ceiling
-removed (thesis-corrections #68, spec-conflicts M17).
-**Number check:** scratch `numdiff.py` (multiset diff of numeric tokens per `# ` section vs base
-`eff63e9`); every changed token is listed in the commit message.
+**Result.** ПЕРЕЛІК: plain equivalents (модель навчання, імовірнісний вибір слотів, імовірність
+розміщення, експериментальні блоки, вбудований експеримент на рівні блоків, стартові оцінки) + «в.
+п.». One idea per sentence everywhere; «Простими словами» after all 10 formulas; E1–E3, the grid and
+4.7 open with Мета/Висновок; chapter 3 without narrow maths; arms «базове»/«навчене». Body 70 →
+**72** PDF pages (ВСТУП 4, розділи 8 / 13 / 16 / 27, ВИСНОВКИ 4), total 117; реферат and ABSTRACT 3
+pages each (the guideline limit; ABSTRACT was 2). Typography note: LibreOffice breaks «H1–H4» at the
+dash on p. 12 (Word will lay out differently).
+
+**Claims made weaker or exact, never stronger** (thesis-corrections #68–#70, spec-conflicts M17):
+ВСТУП propensity exact only on the slice; the unaudited «≈ 3 тис. MAU» free-tier ceiling removed
+(re-derived: Supabase Free 500 000 Edge Function invocations/month, client syncs every 60 s while
+open → ceiling depends on an unmeasured per-user rate); headline names both win conditions
+(σ_shape ≥ 0,3 or s ≥ 1,5 — checked on `sensitivity.json`); three wordings that read backwards
+fixed («N₈₀ – нижні межі», «друга перевірка спрацювала», «тест спрацював»). Adversarial review
+(fresh context): 1 blocker (реферат/ABSTRACT «лише тоді, коли люди відхиляються» — 6 of 58 wins
+have no deviation) + 11 should-fix, all fixed.
+
+**Tools.** `docs/thesis/number-diff.py <base>` — numeric-token diff per section (wave total vs
+`eff63e9`: every token justified in commits). `verify-style.py` retires the philosophical phrasing.
+(2.2)'s urgency multiplier is h (g = category); σ² defined; `formulas.py` follows.
+
+**Waiting on the owner:** remarks on chapter 4 (owner reads it next; a separate pass on top of this
+one); the golden in `MagisterDocs/golden` stays un-refreshed until the owner accepts chapter 4.
+Reviewer NITs left as they were (pre-existing): «умовне програмування» → «програмування в
+обмеженнях» (ВСТУП «Методи», 1.3.5).
+
+**Next session reads:** this section; `docs/thesis/text/README.md`; `docs/thesis/docx-pipeline/README.md`.
 
 ## Current state (2026-10-26) — post-p12/second-wave: «магістерська, а не стаття»
 
