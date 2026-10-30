@@ -12,7 +12,9 @@
 - **Scope:** a new `changes` job lets a pull request skip the db job when it touches nothing the
   job reads (`supabase/`, `packages/shared/`, `scripts/normalize-db-types.sh`, `services/recsys/`,
   `ci.yml`). The check stays required: a skipped job reports Success, so the db job runs whenever
-  `changes` fails or gives no answer; every push to `main` and every manual run runs it in full.
+  `changes` fails or gives no answer, and renames count under the old path (`--no-renames`); every
+  push to `main` and every manual run runs it in full. Trade: with the override the CLI has no
+  fallback registry, so a ghcr.io outage fails the gate.
 
 ## Post-P12 — screenshots for рис. 3.4 and the poster (2026-10-30, post-p12/thesis-screenshots)
 
