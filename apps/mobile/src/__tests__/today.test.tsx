@@ -423,7 +423,7 @@ describe('Today', () => {
     expect(screen.getByText('expense sheet')).toBeTruthy();
     expect(screen.getByText('You finish Deep work best in the morning (+30%).')).toBeTruthy();
     expect(
-      screen.getByText('Experiment: trying Admin in the afternoon to learn what works for you.'),
+      screen.getByText('Trying Admin in the afternoon to learn what works for you.'),
     ).toBeTruthy();
     expect(screen.getByText(en['block.experiment'])).toBeTruthy();
     expect(screen.getByText(en['today.replan'])).toBeTruthy();
@@ -546,7 +546,7 @@ describe('Today', () => {
     expect(mockBlockActions.correctLapseAction).toHaveBeenCalledTimes(1);
   });
 
-  it('a completed block shows "Done" with no actions; a running block shows "In progress" and blocks Start elsewhere', async () => {
+  it('a completed block shows "Done" with no actions; a running block shows "In progress" and Start is not offered elsewhere', async () => {
     rows({
       plans: [plan()],
       recs: [
@@ -560,12 +560,10 @@ describe('Today', () => {
     await render(withSafeArea(<TodayScreen />));
     expect(screen.getByText(en['block.status.completed'])).toBeTruthy();
     expect(screen.getByText(en['block.status.active'])).toBeTruthy();
-    // only the third block has a Start button, and it is disabled while another session runs
-    const starts = screen.getAllByText(en['block.action.start']);
-    expect(starts).toHaveLength(1);
-    await act(async () => {
-      fireEvent.press(starts[0]!);
-    });
+    // while another block's session runs no block offers Start; the third keeps Done/Skip/Move
+    expect(screen.queryByText(en['block.action.start'])).toBeNull();
+    expect(screen.getByText(en['block.action.done'])).toBeTruthy();
+    expect(screen.getByText(en['block.action.move'])).toBeTruthy();
     expect(mockBlockActions.startFocusAction).not.toHaveBeenCalled();
   });
 

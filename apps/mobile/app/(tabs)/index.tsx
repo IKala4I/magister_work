@@ -374,7 +374,7 @@ export default function TodayScreen() {
             : null;
 
   return (
-    <Screen>
+    <Screen bottomInset={false}>
       <View style={styles.header}>
         <ThemedText variant="h2">
           {formatDate(now, { weekday: 'long', day: 'numeric', month: 'long' })}

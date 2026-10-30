@@ -162,7 +162,16 @@ describe('InsightsScreen', () => {
     await renderScreen();
     expect(screen.getByText(en['insights.learningMode.title'])).toBeTruthy();
     expect(screen.getByText(/a moderate morning type/)).toBeTruthy();
+    // the navigation header carries the screen title; the body does not repeat it (рис. 3.4)
+    expect(screen.queryByText(en['tabs.insights'])).toBeNull();
+    expect(screen.getByText(/^Updated /)).toBeTruthy();
     expect(screen.getByTestId('heatmap-grid')).toBeTruthy();
+    // the key above the map names the outline, not just the colour ramp
+    // (hidden from screen readers: the grid's summary and the text view carry the same facts)
+    expect(screen.getByTestId('heatmap-legend', { includeHiddenElements: true })).toBeTruthy();
+    expect(
+      screen.getByText(en['heatmap.legend.personal'], { includeHiddenElements: true }),
+    ).toBeTruthy();
     expect(screen.getByTestId('heatmap-cell-9-0')).toBeTruthy();
     expect(screen.getByText(en['beliefs.title'])).toBeTruthy();
     expect(
@@ -188,6 +197,7 @@ describe('InsightsScreen', () => {
     mockFetch.mockResolvedValue({ kind: 'offline' });
     await renderScreen();
     expect(screen.getByText(/Offline — showing what Hourwell knew 3 min ago/)).toBeTruthy();
+    expect(screen.getByText(en['insights.personalMode.title'])).toBeTruthy();
     expect(screen.getByText(en['insights.personalMode.body'])).toBeTruthy();
     expect(screen.getByText(en['insights.chronotype.skipped'])).toBeTruthy();
   });
@@ -202,6 +212,8 @@ describe('InsightsScreen', () => {
     expect(screen.getByText(en['heatmap.text.weekday'])).toBeTruthy();
     expect(screen.getByText('morning: 74 percent (from your days)')).toBeTruthy();
     expect(screen.queryByTestId('heatmap-grid')).toBeNull();
+    // the text view needs no colour key
+    expect(screen.queryByTestId('heatmap-legend', { includeHiddenElements: true })).toBeNull();
     await fireEvent.press(screen.getByTestId('heatmap-category-admin'));
     expect(screen.getAllByText(/No modelled hours yet/).length).toBe(2);
   });

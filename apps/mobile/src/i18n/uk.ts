@@ -53,7 +53,7 @@ export const uk: Record<MessageKey, string> = {
   'daypart.NT': 'вночі',
 
   'rationale.pinned': 'Ви це закріпили.',
-  'rationale.experiment': 'Експеримент: {category} {daypart} — щоб зрозуміти, як вам краще.',
+  'rationale.experiment': '{category} {daypart} — щоб зрозуміти, як вам краще.',
   'rationale.deadline_pressure':
     'Дедлайн приблизно через {hours} год — поставили раніше, щоб устигнути.',
   'rationale.deadline_pressure.generic': 'Поставили раніше, щоб устигнути до дедлайну.',
@@ -115,17 +115,17 @@ export const uk: Record<MessageKey, string> = {
   'diagnostic.notImportant.result': 'В архіві. Більше не заважатиме.',
   'insights.empty.title': 'Ще вчимося',
   'insights.empty.body': 'Тут з’явиться те, що Hourwell дізнається про ваші найкращі години.',
-  'insights.title': 'Аналітика',
   'insights.refresh': 'Оновити',
   'insights.refreshing': 'Оновлюємо…',
   'insights.offline': 'Офлайн — показуємо те, що Hourwell знав {when}.',
   'insights.unavailable': 'Сервіс навчання відпочиває — показуємо те, що Hourwell знав {when}.',
   'insights.noSession': 'Увійдіть, щоб побачити, чого навчився Hourwell.',
   'insights.error': 'Не вдалося завантажити аналітику.',
-  'insights.asOf': 'Станом на {when}',
+  'insights.asOf': 'Оновлено {when}',
   'insights.learningMode.title': 'Режим навчання',
   'insights.learningMode.body':
-    'Ці години здебільшого взяті від людей зі схожим хронотипом. Кожен завершений блок робить їх вашими.',
+    'Ці години спираються на дані людей зі схожим хронотипом. Кожен завершений блок робить їх вашими.',
+  'insights.personalMode.title': 'Ваші години',
   'insights.personalMode.body': 'Більшість цих годин уже з ваших власних днів.',
   'insights.chronotype.body': 'Опитувальник визначив вас як {label} — звідти й початкові години.',
   'insights.chronotype.skipped':
@@ -141,6 +141,7 @@ export const uk: Record<MessageKey, string> = {
   'heatmap.category.a11y': 'Показати: {category}',
   'heatmap.legend.low': 'нижче',
   'heatmap.legend.high': 'вище',
+  'heatmap.legend.personal': 'рамка — уже з ваших днів',
   'heatmap.legend.solidity': 'Насичені клітинки мають більше даних; бліді — це поки що припущення.',
   'heatmap.legend.resolution':
     'Модель вчиться за частинами доби та буднями-вихідними, тому сусідні години мають однаковий колір.',

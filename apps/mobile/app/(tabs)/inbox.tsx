@@ -68,7 +68,7 @@ export default function InboxScreen() {
   }, [pendingUndos]);
 
   return (
-    <Screen>
+    <Screen bottomInset={false}>
       <QuickAddBar
         onSubmit={(draft, nlParseUsed) =>
           createTaskAction(draft, { source: 'quick_add', nlParseUsed })

@@ -167,7 +167,8 @@ export function RecommendationCard({
 }
 
 const styles = StyleSheet.create({
-  header: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 8 },
+  // time always under the title: a wrapping row put it beside short titles only (рис. 3.4)
+  header: { gap: 2 },
   title: { flexShrink: 1, fontFamily: 'Inter_600SemiBold' },
   rationale: { marginTop: 6 },
   status: { marginTop: 6 },

@@ -167,10 +167,17 @@ export default function InsightsScreen() {
   const when = fetchedAt === null ? '' : formatRelative(fetchedAt);
 
   return (
-    <Screen>
+    <Screen bottomInset={false}>
       <ScrollView contentContainerStyle={styles.content}>
+        {/* the navigation header already says «Аналітика»; this row is freshness + refresh */}
         <View style={styles.header}>
-          <ThemedText variant="h2">{t('insights.title')}</ThemedText>
+          <ThemedText variant="caption" tone="secondary" style={styles.notice}>
+            {noticeKey
+              ? t(noticeKey, { when })
+              : fetchedAt !== null
+                ? t('insights.asOf', { when })
+                : ''}
+          </ThemedText>
           <Button
             label={status === 'loading' ? t('insights.refreshing') : t('insights.refresh')}
             kind="secondary"
@@ -178,15 +185,6 @@ export default function InsightsScreen() {
             disabled={status === 'loading'}
           />
         </View>
-        {noticeKey ? (
-          <ThemedText variant="caption" tone="secondary" style={styles.notice}>
-            {t(noticeKey, { when })}
-          </ThemedText>
-        ) : fetchedAt !== null ? (
-          <ThemedText variant="caption" tone="secondary" style={styles.notice}>
-            {t('insights.asOf', { when })}
-          </ThemedText>
-        ) : null}
 
         {doc === null ? (
           <EmptyState title={t('insights.empty.title')} body={t('insights.empty.body')} />
@@ -194,7 +192,9 @@ export default function InsightsScreen() {
           <>
             <GlassPanel solidity={1} style={styles.badge} accessibilityRole="summary">
               <ThemedText variant="body">
-                {doc.learning_mode ? t('insights.learningMode.title') : t('insights.title')}
+                {doc.learning_mode
+                  ? t('insights.learningMode.title')
+                  : t('insights.personalMode.title')}
               </ThemedText>
               <ThemedText variant="caption" tone="secondary">
                 {doc.learning_mode
@@ -266,9 +266,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 8,
-    marginBottom: 8,
+    marginBottom: 12,
   },
-  notice: { marginBottom: 12 },
+  notice: { flex: 1, minWidth: 160 },
   badge: { marginBottom: 16, gap: 4 },
   section: { gap: 8, marginBottom: 20 },
 });
