@@ -2,6 +2,15 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — Skia out, рис. 3.4 caption (2026-10-30, post-p12/skia-caption)
+
+- **Skia removed from the thesis** (owner): §3.2 no longer lists it and source 52 is gone; 53–71 →
+  52–70 in the list and every citation; реферат, ABSTRACT and ВСТУП say 70 sources.
+- **рис. 3.4 caption** «Інтерфейс застосунку на прикладі заповненого дня: екрани «Сьогодні»,
+  «Фокус», «Аналітика» і швидке додавання задачі»; chapter 3 (§3.7, рис. 3.4 note, рис. 3.1
+  diagram) and Додаток Б name the screens as the app labels them. thesis-corrections #74.
+- Rebuilt: `run_all.sh` exit 0, body 72 pages, total 117, рис. 3.4 on page 49.
+
 ## CI — database gates off the rate-limited registry (2026-10-30, ci/db-gate-registry)
 
 - **Cause:** the Supabase CLI pulls from `public.ecr.aws` by default; its anonymous pulls share a

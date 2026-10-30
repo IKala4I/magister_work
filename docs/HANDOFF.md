@@ -2,9 +2,11 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-10-30 — **ci/db-gate-registry**: the database gates pull from ghcr.io and
-> run on PRs only when they touch what the gates read. Before it, 2026-10-30 — **post-p12/thesis-screenshots** (section right below): рис. 3.4 and the
-> poster screenshots; body 72 pages, unchanged. Before it, 2026-10-27 — **post-p12/review-fixes**: four
+> Last update: 2026-10-30 — **post-p12/skia-caption** (section right below): Skia out of the
+> thesis (sources 70), рис. 3.4 caption and Ukrainian screen names; body 72 pages. Before it,
+> 2026-10-30 — **ci/db-gate-registry**: the database gates pull from ghcr.io and run on PRs only
+> when they touch what the gates read. Before it, 2026-10-30 — **post-p12/thesis-screenshots**:
+> рис. 3.4 and the poster screenshots; body 72 pages, unchanged. Before it, 2026-10-27 — **post-p12/review-fixes**: four
 > external-review findings. Before it, 2026-10-27 — **post-p12/third-wave**: body 72 pages. Before it,
 > 2026-10-26 — **post-p12/second-wave**: body 70 pages, formulas 10, tables 26. Before it,
 > 2026-10-26 — **post-p12/four-chapters**: four chapters, 74 body pages. Before it, 2026-10-13 — **post-p12/metodychka-2026** (PR #88; section right below): the thesis
@@ -20,6 +22,21 @@
 > (PR #79), and the corrections rollup (2026-09-09), which is no longer an index: all 63 items carry
 > the Ukrainian sentences the draft should read, tagged Ф / П / С, every number with its measurement
 > condition. **The thesis text is assembled and green on every gate.**
+
+## Current state (2026-10-30) — post-p12/skia-caption: Skia, підпис рис. 3.4
+
+Done, all gates green. The owner's two calls from the screenshot pass, both applied
+(thesis-corrections #74):
+
+- **Skia** gone from §3.2 and the list; sources 53–71 → 52–70 everywhere (citations renumbered by
+  the same script as the list); реферат / ABSTRACT / ВСТУП say 70.
+- **рис. 3.4 caption** «Інтерфейс застосунку на прикладі заповненого дня: екрани «Сьогодні»,
+  «Фокус», «Аналітика» і швидке додавання задачі». Chapter 3 now names the screens by their
+  Ukrainian tab labels in §3.7, the рис. 3.4 note and the рис. 3.1 diagram
+  (`docs/thesis/text/diagrams/3-1-architecture.puml`); Додаток Б says «онбординг».
+- `run_all.sh` exit 0: body 72 pages, total 117, рис. 3.1 page 38, рис. 3.4 page 49.
+
+**Waiting on the owner:** as in the post-p12/thesis-screenshots section, minus the two calls above.
 
 ## Current state (2026-10-30) — ci/db-gate-registry: перевірка бази без ліміту реєстру
 

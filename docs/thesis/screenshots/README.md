@@ -38,6 +38,7 @@ key is in the bundle and nothing leaves the simulator — and seeds one demo day
   `make.sh` clears Metro's cache before and after, so the flag cannot reach a later normal build.
   The seed module and its JSON are still in every bundle (Metro keeps a required module), inert.
 
-The figure illustrates the interface. Its caption says so and claims nothing about the numbers.
+The figure illustrates the interface. Its caption («… на прикладі заповненого дня …») says it is an
+example and claims nothing about the numbers.
 
 Simulator only: nothing here is device evidence (CLAUDE.md, "Simulator evidence").

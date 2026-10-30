@@ -1184,3 +1184,13 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     says the token is unused, and the figure's placeholder note follows. The caption of рис. 3.4
     becomes neutral («Інтерфейс застосунку: …»): the screens show an invented demo day
     (`docs/thesis/screenshots/README.md`), so the caption claims nothing about the data on them.
+74. **Owner, 2026-10-30 — Skia out; рис. 3.4 caption and screen names.** (1) §3.2 listed «Skia [52]»
+    among the client's libraries; the app has no Skia dependency (heatmap = Views, #41; no focus
+    ring, #73). The thesis must not claim a library the app does not use: the mention and entry 52
+    are removed, 53–71 → 52–70 in the list and in every citation (one script, list stays
+    alphabetical); реферат «джерел – 70», ABSTRACT «70 references», ВСТУП «70 найменувань».
+    (2) Caption → «Інтерфейс застосунку на прикладі заповненого дня: екрани «Сьогодні», «Фокус»,
+    «Аналітика» і швидке додавання задачі» — the words the app prints on its tabs. Chapter 3 named
+    the screens Today/Inbox/Focus/Insights/Onboarding in §3.7, the рис. 3.4 note and the рис. 3.1
+    diagram (`3-1-architecture.puml`); all now use the Ukrainian labels, and Додаток Б's «екран
+    Onboarding» reads «онбординг», as the text does elsewhere. Body 72 pages, unchanged.
