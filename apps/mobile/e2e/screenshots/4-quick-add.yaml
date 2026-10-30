@@ -1,0 +1,9 @@
+appId: com.hourwell.app
+---
+- tapOn: 'Вхідні(, tab.*)?'
+- tapOn: 'Швидке додавання завдання'
+- inputText: 'кошторис 2 год до вівторка'
+- extendedWaitUntil:
+    visible: '120 хв'
+    timeout: 10000
+- waitForAnimationToEnd

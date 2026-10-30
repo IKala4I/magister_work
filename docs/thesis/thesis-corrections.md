@@ -1178,3 +1178,9 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     «Monte Carlo estimates elsewhere» → «… for the remaining placements of the learned planner».
     #94 settled «exact only on the slice»; this detail is new (#71), and the реферат must not claim
     more than ВСТУП. Both stay 3 pages.
+73. **2026-10-30 — рис. 3.4 screenshots.** Додаток И, табл. И.1 said focus-gradient is used for
+    «кільце таймера фокус-сесії»; the Focus screen draws a plain progress bar and no component
+    reads the token (`app/(tabs)/focus.tsx` header: the Skia ring was never built). The row now
+    says the token is unused, and the figure's placeholder note follows. The caption of рис. 3.4
+    becomes neutral («Інтерфейс застосунку: …»): the screens show an invented demo day
+    (`docs/thesis/screenshots/README.md`), so the caption claims nothing about the data on them.

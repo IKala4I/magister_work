@@ -1,0 +1,8 @@
+appId: com.hourwell.app
+---
+- tapOn: 'Аналітика(, tab.*)?'
+- extendedWaitUntil:
+    visible: 'Режим навчання'
+    timeout: 10000
+- assertNotVisible: 'Увійдіть, щоб побачити, чого навчився Hourwell.'
+- waitForAnimationToEnd

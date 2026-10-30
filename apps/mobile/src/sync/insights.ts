@@ -5,6 +5,7 @@
  * the model service (invariant 1) and never computes a belief — it renders what the server says.
  */
 import { supabase } from '../auth/client';
+import { SCREENSHOT_FIXTURE } from '../fixture/clock';
 import { type InsightsDocument, isInsightsDocument } from '../domain/heatmap';
 import { appStorage, StorageKeys } from '../storage/mmkv';
 
@@ -43,6 +44,14 @@ export function clearInsightsCache(): void {
 }
 
 export async function fetchInsights(now: Date = new Date()): Promise<InsightsOutcome> {
+  if (SCREENSHOT_FIXTURE) {
+    // the fixture build has no server: the seeded document stands in for the edge function
+    const raw = appStorage.getString(StorageKeys.insightsCache);
+    if (raw === undefined) return { kind: 'no-session' };
+    const seeded = JSON.parse(raw) as CachedInsights;
+    if (!isInsightsDocument(seeded.doc)) return { kind: 'failed', detail: 'malformed document' };
+    return { kind: 'ok', doc: seeded.doc, fetchedAt: seeded.fetchedAt };
+  }
   if (!supabase) return { kind: 'no-session' };
   const { data } = await supabase.auth.getSession();
   if (!data.session) return { kind: 'no-session' };

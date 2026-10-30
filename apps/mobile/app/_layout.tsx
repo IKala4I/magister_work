@@ -3,6 +3,8 @@
  * gesture-handler root, themed navigation chrome, Settings as a modal over the tab shell, and
  * the one in-app dialog host (ADR-0021) — RN Modal presents above the native modal screens.
  */
+// first: in the screenshot-fixture build this shifts the clock before anything reads it
+import { seedFixtureOnce } from '../src/fixture/install';
 import {
   Inter_400Regular,
   Inter_500Medium,
@@ -24,6 +26,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import migrations from '../drizzle/migrations';
 import { initAuth } from '../src/auth/session';
 import { db } from '../src/db/client';
+import type { LocalDb } from '../src/db/writes';
 import { t } from '../src/i18n';
 import { initLanguage, useLanguageStore } from '../src/state/language';
 import { NotificationResponder } from '../src/notifications/NotificationResponder';
@@ -78,6 +81,8 @@ function RootLayout() {
   if (!ready) {
     return null; // splash stays up; fonts and migrations are local, this is milliseconds
   }
+
+  if (dbReady) seedFixtureOnce(db as unknown as LocalDb); // no-op outside the fixture build
 
   if (dbError !== undefined) {
     // Fail visibly: an offline-first app without its database must not pretend to work.

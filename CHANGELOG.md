@@ -2,6 +2,20 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — screenshots for рис. 3.4 and the poster (2026-10-30, post-p12/thesis-screenshots)
+
+- **Screenshot fixture build** (`EXPO_PUBLIC_SCREENSHOT_FIXTURE=1`, Release, `EXPO_NO_DOTENV=1`):
+  local-only, seeds an invented Ukrainian demo day on a clean install and pins the app clock at
+  09:41 to match the status bar; inert in every other build. The Insights document comes from the
+  recsys `insights()` builder over v0 priors plus invented outcomes
+  (`services/recsys/scripts/screenshot_insights.py`); only the adherence trend is hand-set.
+- **`docs/thesis/screenshots/make.sh`**: simulator setup, clean status bar, four Maestro flows,
+  full-resolution `simctl` shots into MagisterDocs (`figures/3.4/`, `poster/screens/`). iPhone 17
+  Pro Max simulator, 1320 × 2868.
+- **Thesis:** рис. 3.4 in place (four screens in a row), caption neutral; табл. И.1 no longer says
+  focus-gradient draws a timer ring (the Focus screen has a progress bar) — thesis-corrections #73.
+  Body 72 pages, total 117, unchanged.
+
 ## Post-P12 — external review fixes (2026-10-27, post-p12/review-fixes)
 
 - **Табл. 4.1 «енергії : холодного старту» — not reproducible.** Source, `.docx` and PDF (text layer

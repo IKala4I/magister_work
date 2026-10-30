@@ -24,6 +24,11 @@ declare const process: {
      * pinged at first frame. Passed inline to one-off builds, never set in .env.
      */
     EXPO_PUBLIC_STARTUP_MARKER_URL?: string;
+    /**
+     * Screenshot builds only (src/fixture, docs/thesis/screenshots): '1' seeds an invented demo
+     * day and pins the clock at 09:41. Passed inline with no backend keys, never set in .env.
+     */
+    EXPO_PUBLIC_SCREENSHOT_FIXTURE?: string;
     NODE_ENV?: 'development' | 'production' | 'test';
   };
 };

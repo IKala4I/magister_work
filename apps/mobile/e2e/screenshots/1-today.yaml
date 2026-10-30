@@ -1,0 +1,14 @@
+# Screenshot fixture build only (docs/thesis/screenshots/README.md): a clean install seeds the
+# demo day, so every run starts from the same state. The shot itself is taken by the runner
+# (simctl, full resolution, the overridden status bar) once this flow has settled the screen.
+appId: com.hourwell.app
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+- extendedWaitUntil:
+    visible: '.*Чернетка квартального звіту.*'
+    timeout: 20000
+- assertVisible: '.*Експеримент.*'
+- assertNotVisible: 'Плануємо ваш день…'
+- waitForAnimationToEnd
