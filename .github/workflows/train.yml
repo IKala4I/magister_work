@@ -17,8 +17,20 @@ jobs:
   synthetic-e2e:
     name: Seed synthetic cohort → nightly pipeline → assertions
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    env:
+      # same registry as ci.yml's db job: public.ecr.aws hits its anonymous data limit
+      SUPABASE_INTERNAL_IMAGE_REGISTRY: ghcr.io
     steps:
       - uses: actions/checkout@v4
+      - name: Log in to ghcr.io
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "$TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin \
+            || echo "::warning::ghcr.io login failed — pulling the public images anonymously"
       - uses: supabase/setup-cli@v1
         with:
           version: 2.115.0

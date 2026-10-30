@@ -4,6 +4,7 @@ on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   ts:
@@ -58,11 +59,58 @@ jobs:
       # assembler and its payload checker left the tree with the cut to four chapters), so every
       # checker above reads the text itself.
 
-  db:
-    name: Database gates (pgTAP + contract sync)
+  # Which gates a pull request needs. Only the database gates are narrowed: they pull the Supabase
+  # stack's images and check nothing a thesis or app-only change can break. A push to main (and a manual
+  # run) always runs everything.
+  changes:
+    name: Changed paths
     runs-on: ubuntu-latest
+    outputs:
+      db: ${{ steps.filter.outputs.db }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: filter
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+          # what the db job reads: migrations, pgTAP tests, config; the committed types and their
+          # normaliser; the recsys PostgresRepo and its test; this workflow
+          DB_PATHS: '^(supabase/|packages/shared/|scripts/normalize-db-types\.sh$|services/recsys/|\.github/workflows/ci\.yml$)'
+        run: |
+          if [ "$EVENT" != pull_request ]; then echo db=true >> "$GITHUB_OUTPUT"; exit 0; fi
+          if ! files=$(git diff --name-only "$BASE...$HEAD"); then
+            echo "::warning::cannot diff $BASE...$HEAD — running the database gates"
+            echo db=true >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          if printf '%s\n' "$files" | grep -qE "$DB_PATHS"; then db=true; else db=false; fi
+          echo "db=$db" | tee -a "$GITHUB_OUTPUT"
+
+  db:
+    name: Database gates (pgTAP + contract sync)
+    needs: changes
+    # Skipped only on an explicit db=false: a skipped job reports Success to branch protection, so
+    # a failed or missing `changes` result must run the gates rather than wave them through.
+    if: ${{ !cancelled() && (needs.changes.result != 'success' || needs.changes.outputs.db != 'false') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    env:
+      # The CLI's default registry is public.ecr.aws, whose anonymous pulls share a data limit per
+      # runner IP («Data limit exceeded»: repeated red runs since Oct 2026, none caused by code). Supabase publishes the same
+      # images on ghcr.io; pulls there are authenticated with the job token.
+      SUPABASE_INTERNAL_IMAGE_REGISTRY: ghcr.io
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to ghcr.io
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "$TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin \
+            || echo "::warning::ghcr.io login failed — pulling the public images anonymously"
       - uses: supabase/setup-cli@v1
         with:
           version: 2.115.0

@@ -2,7 +2,8 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-10-30 — **post-p12/thesis-screenshots** (section right below): рис. 3.4 and the
+> Last update: 2026-10-30 — **ci/db-gate-registry**: the database gates pull from ghcr.io and
+> run on PRs only when they touch what the gates read. Before it, 2026-10-30 — **post-p12/thesis-screenshots** (section right below): рис. 3.4 and the
 > poster screenshots; body 72 pages, unchanged. Before it, 2026-10-27 — **post-p12/review-fixes**: four
 > external-review findings. Before it, 2026-10-27 — **post-p12/third-wave**: body 72 pages. Before it,
 > 2026-10-26 — **post-p12/second-wave**: body 70 pages, formulas 10, tables 26. Before it,
@@ -19,6 +20,17 @@
 > (PR #79), and the corrections rollup (2026-09-09), which is no longer an index: all 63 items carry
 > the Ukrainian sentences the draft should read, tagged Ф / П / С, every number with its measurement
 > condition. **The thesis text is assembled and green on every gate.**
+
+## Current state (2026-10-30) — ci/db-gate-registry: перевірка бази без ліміту реєстру
+
+The required «Database gates» check went red on registry limits, never on code. Fixed at the cause:
+the db job (and `train.yml`) pulls the Supabase images from ghcr.io, logged in with the job token,
+instead of `public.ecr.aws`. Pull requests that touch none of `supabase/`, `packages/shared/`,
+`scripts/normalize-db-types.sh`, `services/recsys/`, `ci.yml` skip the db job (the `changes` job
+decides; a failed `changes` runs it). Pushes to `main` always run it.
+
+**Gotcha:** never move this filter to workflow-level `paths:` — a required check skipped that way
+stays Pending and blocks every PR. Job-level `if:` skips report Success.
 
 ## Current state (2026-10-30) — post-p12/thesis-screenshots: знімки для рис. 3.4 і постера
 
