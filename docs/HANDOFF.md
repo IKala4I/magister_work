@@ -2,8 +2,9 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-10-27 — **post-p12/review-fixes** (section right below): four external-review
-> findings; body 72 pages, unchanged. Before it, 2026-10-27 — **post-p12/third-wave**: body 72 pages. Before it,
+> Last update: 2026-10-30 — **post-p12/thesis-screenshots** (section right below): рис. 3.4 and the
+> poster screenshots; body 72 pages, unchanged. Before it, 2026-10-27 — **post-p12/review-fixes**: four
+> external-review findings. Before it, 2026-10-27 — **post-p12/third-wave**: body 72 pages. Before it,
 > 2026-10-26 — **post-p12/second-wave**: body 70 pages, formulas 10, tables 26. Before it,
 > 2026-10-26 — **post-p12/four-chapters**: four chapters, 74 body pages. Before it, 2026-10-13 — **post-p12/metodychka-2026** (PR #88; section right below): the thesis
 > follows the department's 2026 guideline. Expo's patch drift went in first as PR #89.
@@ -18,6 +19,35 @@
 > (PR #79), and the corrections rollup (2026-09-09), which is no longer an index: all 63 items carry
 > the Ukrainian sentences the draft should read, tagged Ф / П / С, every number with its measurement
 > condition. **The thesis text is assembled and green on every gate.**
+
+## Current state (2026-10-30) — post-p12/thesis-screenshots: знімки для рис. 3.4 і постера
+
+Done, all gates green, PR «Post-P12 — знімки для рис. 3.4 і постера».
+
+- **Fixture build** `apps/mobile/src/fixture/` (`EXPO_PUBLIC_SCREENSHOT_FIXTURE=1`, Release,
+  `EXPO_NO_DOTENV=1` → local-only): invented Ukrainian demo day seeded on a clean install, JS clock
+  pinned at 09:41, Insights document from `services/recsys/scripts/screenshot_insights.py` (real
+  `insights()` builder; adherence trend hand-set). Inert in other builds; refuses to start if a backend key was inlined; date pinned to
+  30 Oct 2026. 8 jest tests.
+- **Re-shoot:** `docs/thesis/screenshots/make.sh <udid> /Users/vladyslav/Workspace/MagisterDocs
+[--no-build]` (README beside it). Writes `MagisterDocs/figures/3.4/1-…4-*.png` and
+  `MagisterDocs/poster/screens/{today,focus,insights}.png`; raw shots + logs in `build/screenshots/`.
+  Made on iPhone 17 Pro Max simulator (iOS 26.5), 1320 × 2868.
+- **Thesis:** рис. 3.4 in place (page 49), caption «Інтерфейс застосунку: екрани Today, Focus,
+  Insights і швидке додавання задачі»; табл. И.1 focus-gradient row corrected (no ring exists) —
+  thesis-corrections #73. `run_all.sh` exit 0, body 72 / total 117.
+
+**Gotchas.** `apps/mobile/ios` is generated and was stale (pod install failed on Expo patch drift):
+`npx expo prebuild -p ios --clean` fixed it. Maestro sees a block card as one accessible element, so
+match card text with `.*…*` patterns. `--batteryState charged` draws a bolt; use `discharging` at 100.
+The Focus screen has a progress bar, not the ring File 02 describes.
+
+**Waiting on the owner:** unchanged from below, minus the рис. 3.4 screenshots; plus two calls from
+the adversarial pass — whether рис. 3.4's caption should say the data are demo data (owner asked for a
+neutral caption without claims about the data), and §3.1's «Skia [52]» (not a dependency; removing
+it renumbers sources 53–71, `docs/decisions/revisit.md`).
+
+**Next session reads:** this section; `docs/thesis/screenshots/README.md` if re-shooting.
 
 ## Current state (2026-10-27) — post-p12/review-fixes: чотири знахідки зовнішньої рецензії
 
