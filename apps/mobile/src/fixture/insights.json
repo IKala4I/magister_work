@@ -1,0 +1,589 @@
+{
+  "heatmap": [
+    {
+      "category": "deep",
+      "daypart": "EM",
+      "day_type": "weekday",
+      "mean": 0.6698,
+      "ci": [0.4072, 0.8987],
+      "n_effective": 1.435,
+      "personal": false
+    },
+    {
+      "category": "deep",
+      "daypart": "MO",
+      "day_type": "weekday",
+      "mean": 0.7998,
+      "ci": [0.684, 0.9025],
+      "n_effective": 12.983,
+      "personal": true
+    },
+    {
+      "category": "deep",
+      "daypart": "MD",
+      "day_type": "weekday",
+      "mean": 0.562,
+      "ci": [0.3757, 0.7431],
+      "n_effective": 3.604,
+      "personal": false
+    },
+    {
+      "category": "deep",
+      "daypart": "AF",
+      "day_type": "weekday",
+      "mean": 0.5078,
+      "ci": [0.3451, 0.67],
+      "n_effective": 7.212,
+      "personal": false
+    },
+    {
+      "category": "deep",
+      "daypart": "EV",
+      "day_type": "weekday",
+      "mean": 0.5712,
+      "ci": [0.3178, 0.8123],
+      "n_effective": 2.159,
+      "personal": false
+    },
+    {
+      "category": "deep",
+      "daypart": "NT",
+      "day_type": "weekday",
+      "mean": 0.36,
+      "ci": [0.092, 0.6686],
+      "n_effective": 0.0,
+      "personal": false
+    },
+    {
+      "category": "deep",
+      "daypart": "EM",
+      "day_type": "weekend",
+      "mean": 0.723,
+      "ci": [0.3678, 0.9772],
+      "n_effective": 0.707,
+      "personal": false
+    },
+    {
+      "category": "deep",
+      "daypart": "MO",
+      "day_type": "weekend",
+      "mean": 0.8009,
+      "ci": [0.5896, 0.9633],
+      "n_effective": 4.326,
+      "personal": true
+    },
+    {
+      "category": "deep",
+      "daypart": "MD",
+      "day_type": "weekend",
+      "mean": 0.5562,
+      "ci": [0.2243, 0.8683],
+      "n_effective": 1.435,
+      "personal": false
+    },
+    {
+      "category": "deep",
+      "daypart": "AF",
+      "day_type": "weekend",
+      "mean": 0.5521,
+      "ci": [0.2697, 0.8227],
+      "n_effective": 2.882,
+      "personal": true
+    },
+    {
+      "category": "deep",
+      "daypart": "EV",
+      "day_type": "weekend",
+      "mean": 0.3805,
+      "ci": [0.0655, 0.7519],
+      "n_effective": 0.707,
+      "personal": false
+    },
+    {
+      "category": "deep",
+      "daypart": "NT",
+      "day_type": "weekend",
+      "mean": 0.455,
+      "ci": [0.0731, 0.8683],
+      "n_effective": 0.0,
+      "personal": false
+    },
+    {
+      "category": "admin",
+      "daypart": "EM",
+      "day_type": "weekday",
+      "mean": 0.6528,
+      "ci": [0.3455, 0.9159],
+      "n_effective": 0.0,
+      "personal": false
+    },
+    {
+      "category": "admin",
+      "daypart": "MO",
+      "day_type": "weekday",
+      "mean": 0.7124,
+      "ci": [0.5523, 0.858],
+      "n_effective": 5.769,
+      "personal": false
+    },
+    {
+      "category": "admin",
+      "daypart": "MD",
+      "day_type": "weekday",
+      "mean": 0.6922,
+      "ci": [0.5374, 0.8352],
+      "n_effective": 7.212,
+      "personal": false
+    },
+    {
+      "category": "admin",
+      "daypart": "AF",
+      "day_type": "weekday",
+      "mean": 0.6878,
+      "ci": [0.5394, 0.8257],
+      "n_effective": 8.655,
+      "personal": true
+    },
+    {
+      "category": "admin",
+      "daypart": "EV",
+      "day_type": "weekday",
+      "mean": 0.5619,
+      "ci": [0.293, 0.8183],
+      "n_effective": 1.435,
+      "personal": false
+    },
+    {
+      "category": "admin",
+      "daypart": "NT",
+      "day_type": "weekday",
+      "mean": 0.4978,
+      "ci": [0.1939, 0.8023],
+      "n_effective": 0.0,
+      "personal": false
+    },
+    {
+      "category": "admin",
+      "daypart": "EM",
+      "day_type": "weekend",
+      "mean": 0.6014,
+      "ci": [0.1788, 0.9541],
+      "n_effective": 0.0,
+      "personal": false
+    },
+    {
+      "category": "admin",
+      "daypart": "MO",
+      "day_type": "weekend",
+      "mean": 0.6758,
+      "ci": [0.3774, 0.9259],
+      "n_effective": 2.159,
+      "personal": true
+    },
+    {
+      "category": "admin",
+      "daypart": "MD",
+      "day_type": "weekend",
+      "mean": 0.7083,
+      "ci": [0.4383, 0.9314],
+      "n_effective": 2.882,
+      "personal": true
+    },
+    {
+      "category": "admin",
+      "daypart": "AF",
+      "day_type": "weekend",
+      "mean": 0.7137,
+      "ci": [0.4449, 0.9345],
+      "n_effective": 2.882,
+      "personal": true
+    },
+    {
+      "category": "admin",
+      "daypart": "EV",
+      "day_type": "weekend",
+      "mean": 0.6688,
+      "ci": [0.3014, 0.9576],
+      "n_effective": 0.707,
+      "personal": false
+    },
+    {
+      "category": "admin",
+      "daypart": "NT",
+      "day_type": "weekend",
+      "mean": 0.5239,
+      "ci": [0.1162, 0.9149],
+      "n_effective": 0.0,
+      "personal": false
+    },
+    {
+      "category": "physical",
+      "daypart": "EM",
+      "day_type": "weekday",
+      "mean": 0.7103,
+      "ci": [0.483, 0.906],
+      "n_effective": 2.882,
+      "personal": false
+    },
+    {
+      "category": "physical",
+      "daypart": "MO",
+      "day_type": "weekday",
+      "mean": 0.6501,
+      "ci": [0.431, 0.8502],
+      "n_effective": 0.0,
+      "personal": false
+    },
+    {
+      "category": "physical",
+      "daypart": "MD",
+      "day_type": "weekday",
+      "mean": 0.5435,
+      "ci": [0.3375, 0.745],
+      "n_effective": 1.435,
+      "personal": false
+    },
+    {
+      "category": "physical",
+      "daypart": "AF",
+      "day_type": "weekday",
+      "mean": 0.6419,
+      "ci": [0.4393, 0.8296],
+      "n_effective": 1.435,
+      "personal": false
+    },
+    {
+      "category": "physical",
+      "daypart": "EV",
+      "day_type": "weekday",
+      "mean": 0.6977,
+      "ci": [0.5119, 0.8653],
+      "n_effective": 6.491,
+      "personal": true
+    },
+    {
+      "category": "physical",
+      "daypart": "NT",
+      "day_type": "weekday",
+      "mean": 0.4461,
+      "ci": [0.1521, 0.7558],
+      "n_effective": 0.0,
+      "personal": false
+    },
+    {
+      "category": "physical",
+      "daypart": "EM",
+      "day_type": "weekend",
+      "mean": 0.7,
+      "ci": [0.3385, 0.9697],
+      "n_effective": 0.707,
+      "personal": false
+    },
+    {
+      "category": "physical",
+      "daypart": "MO",
+      "day_type": "weekend",
+      "mean": 0.6,
+      "ci": [0.1776, 0.9535],
+      "n_effective": 0.0,
+      "personal": false
+    },
+    {
+      "category": "physical",
+      "daypart": "MD",
+      "day_type": "weekend",
+      "mean": 0.4011,
+      "ci": [0.0767, 0.7725],
+      "n_effective": 0.707,
+      "personal": false
+    },
+    {
+      "category": "physical",
+      "daypart": "AF",
+      "day_type": "weekend",
+      "mean": 0.7052,
+      "ci": [0.345, 0.9715],
+      "n_effective": 0.707,
+      "personal": false
+    },
+    {
+      "category": "physical",
+      "daypart": "EV",
+      "day_type": "weekend",
+      "mean": 0.64,
+      "ci": [0.3372, 0.9042],
+      "n_effective": 2.159,
+      "personal": true
+    },
+    {
+      "category": "physical",
+      "daypart": "NT",
+      "day_type": "weekend",
+      "mean": 0.498,
+      "ci": [0.0987, 0.8987],
+      "n_effective": 0.0,
+      "personal": false
+    },
+    {
+      "category": "learning",
+      "daypart": "EM",
+      "day_type": "weekday",
+      "mean": 0.6615,
+      "ci": [0.3554, 0.9211],
+      "n_effective": 0.0,
+      "personal": false
+    },
+    {
+      "category": "learning",
+      "daypart": "MO",
+      "day_type": "weekday",
+      "mean": 0.6721,
+      "ci": [0.4923, 0.8377],
+      "n_effective": 3.604,
+      "personal": false
+    },
+    {
+      "category": "learning",
+      "daypart": "MD",
+      "day_type": "weekday",
+      "mean": 0.5148,
+      "ci": [0.3231, 0.7051],
+      "n_effective": 2.882,
+      "personal": false
+    },
+    {
+      "category": "learning",
+      "daypart": "AF",
+      "day_type": "weekday",
+      "mean": 0.5254,
+      "ci": [0.3269, 0.7214],
+      "n_effective": 2.159,
+      "personal": false
+    },
+    {
+      "category": "learning",
+      "daypart": "EV",
+      "day_type": "weekday",
+      "mean": 0.6996,
+      "ci": [0.5201, 0.862],
+      "n_effective": 7.212,
+      "personal": true
+    },
+    {
+      "category": "learning",
+      "daypart": "NT",
+      "day_type": "weekday",
+      "mean": 0.4258,
+      "ci": [0.1717, 0.6948],
+      "n_effective": 1.435,
+      "personal": false
+    },
+    {
+      "category": "learning",
+      "daypart": "EM",
+      "day_type": "weekend",
+      "mean": 0.6058,
+      "ci": [0.1828, 0.9559],
+      "n_effective": 0.0,
+      "personal": false
+    },
+    {
+      "category": "learning",
+      "daypart": "MO",
+      "day_type": "weekend",
+      "mean": 0.6027,
+      "ci": [0.2693, 0.9001],
+      "n_effective": 1.435,
+      "personal": false
+    },
+    {
+      "category": "learning",
+      "daypart": "MD",
+      "day_type": "weekend",
+      "mean": 0.3895,
+      "ci": [0.0703, 0.761],
+      "n_effective": 0.707,
+      "personal": false
+    },
+    {
+      "category": "learning",
+      "daypart": "AF",
+      "day_type": "weekend",
+      "mean": 0.4085,
+      "ci": [0.0809, 0.7796],
+      "n_effective": 0.707,
+      "personal": false
+    },
+    {
+      "category": "learning",
+      "daypart": "EV",
+      "day_type": "weekend",
+      "mean": 0.6877,
+      "ci": [0.4137, 0.9193],
+      "n_effective": 2.882,
+      "personal": true
+    },
+    {
+      "category": "learning",
+      "daypart": "NT",
+      "day_type": "weekend",
+      "mean": 0.6005,
+      "ci": [0.2291, 0.9242],
+      "n_effective": 0.707,
+      "personal": false
+    }
+  ],
+  "adherence": [
+    {
+      "week": "2026-W37",
+      "par": 0.48,
+      "n": 14
+    },
+    {
+      "week": "2026-W38",
+      "par": 0.52,
+      "n": 17
+    },
+    {
+      "week": "2026-W39",
+      "par": 0.5,
+      "n": 16
+    },
+    {
+      "week": "2026-W40",
+      "par": 0.57,
+      "n": 19
+    },
+    {
+      "week": "2026-W41",
+      "par": 0.61,
+      "n": 18
+    },
+    {
+      "week": "2026-W42",
+      "par": 0.59,
+      "n": 20
+    },
+    {
+      "week": "2026-W43",
+      "par": 0.66,
+      "n": 19
+    },
+    {
+      "week": "2026-W44",
+      "par": 0.69,
+      "n": 9
+    }
+  ],
+  "beliefs": [
+    {
+      "category": "deep",
+      "day_type": "weekday",
+      "daypart": "MO",
+      "mean": 0.7998,
+      "factor": 1.38,
+      "confidence": 0.829,
+      "n_effective": 12.983,
+      "personal": true,
+      "affinity": true,
+      "state_ref": "beta:deep.MO.weekday",
+      "label": null
+    },
+    {
+      "category": "deep",
+      "day_type": "weekend",
+      "daypart": "MO",
+      "mean": 0.8009,
+      "factor": 1.39,
+      "confidence": 0.705,
+      "n_effective": 4.326,
+      "personal": true,
+      "affinity": true,
+      "state_ref": "beta:deep.MO.weekend",
+      "label": null
+    },
+    {
+      "category": "admin",
+      "day_type": "weekday",
+      "daypart": "MO",
+      "mean": 0.7124,
+      "factor": 1.12,
+      "confidence": 0.764,
+      "n_effective": 5.769,
+      "personal": false,
+      "affinity": false,
+      "state_ref": "beta:admin.MO.weekday",
+      "label": null
+    },
+    {
+      "category": "admin",
+      "day_type": "weekend",
+      "daypart": "AF",
+      "mean": 0.7137,
+      "factor": 1.1,
+      "confidence": 0.627,
+      "n_effective": 2.882,
+      "personal": true,
+      "affinity": false,
+      "state_ref": "beta:admin.AF.weekend",
+      "label": null
+    },
+    {
+      "category": "physical",
+      "day_type": "weekday",
+      "daypart": "EM",
+      "mean": 0.7103,
+      "factor": 1.16,
+      "confidence": 0.677,
+      "n_effective": 2.882,
+      "personal": false,
+      "affinity": true,
+      "state_ref": "beta:physical.EM.weekday",
+      "label": null
+    },
+    {
+      "category": "physical",
+      "day_type": "weekend",
+      "daypart": "AF",
+      "mean": 0.7052,
+      "factor": 1.19,
+      "confidence": 0.526,
+      "n_effective": 0.707,
+      "personal": false,
+      "affinity": true,
+      "state_ref": "beta:physical.AF.weekend",
+      "label": null
+    },
+    {
+      "category": "learning",
+      "day_type": "weekday",
+      "daypart": "EV",
+      "mean": 0.6996,
+      "factor": 1.2,
+      "confidence": 0.738,
+      "n_effective": 7.212,
+      "personal": true,
+      "affinity": true,
+      "state_ref": "beta:learning.EV.weekday",
+      "label": null
+    },
+    {
+      "category": "learning",
+      "day_type": "weekend",
+      "daypart": "EV",
+      "mean": 0.6877,
+      "factor": 1.25,
+      "confidence": 0.618,
+      "n_effective": 2.882,
+      "personal": true,
+      "affinity": true,
+      "state_ref": "beta:learning.EV.weekend",
+      "label": null
+    }
+  ],
+  "learning_mode": true,
+  "labels": [],
+  "chronotype_class": "MM",
+  "survey_skipped": false,
+  "generated_at": "2026-10-30T07:41:00Z"
+}

@@ -1,0 +1,8 @@
+appId: com.hourwell.app
+---
+- tapOn: 'Фокус(, tab.*)?'
+- extendedWaitUntil:
+    visible: 'У фокусі'
+    timeout: 10000
+- assertVisible: '.*Чернетка квартального звіту.*'
+- waitForAnimationToEnd
