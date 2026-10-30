@@ -149,15 +149,17 @@ export const FIXTURE_BLOCKS: readonly FixtureBlock[] = [
     isExperiment: true,
   },
   {
+    // two hours after the experiment block: the timeline's gap spacer is at its cap, so the
+    // Today shot ends in whitespace below the experiment card instead of a cut-off card
     task: 'fx-slides',
-    start: [14, 0],
+    start: [15, 0],
     confidence: 0.72,
     rationaleKey: 'deadline_pressure',
-    rationaleParams: { hours_to_deadline: 4 },
+    rationaleParams: { hours_to_deadline: 3 },
   },
   {
     task: 'fx-bills',
-    start: [16, 0],
+    start: [16, 30],
     confidence: 0.58,
     rationaleKey: 'best_available',
     rationaleParams: { category: 'admin', daypart: 'AF' },

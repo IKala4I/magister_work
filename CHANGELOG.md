@@ -2,6 +2,22 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — interface fixes found on the рис. 3.4 shots, re-shot (2026-10-30, post-p12/ui-polish-screens)
+
+- **Insights:** the body no longer repeats the header title — one row «Оновлено {when}» + Refresh;
+  «Станом на» → «Оновлено»; learning-mode body «спираються на дані людей …»; the non-learning card
+  is titled «Ваші години». The energy map gets a key above it: the colour ramp and the outline
+  («рамка — уже з ваших днів» = the cell's own evidence outweighs its prior, `is_personal`).
+- **Today:** the action row is one line when the buttons fit and an even grid when not (measured,
+  `actionColumns`); no Start while another block runs a session (the card's screen-reader actions
+  already left it out); the block time always sits under the title; the experiment rationale no
+  longer repeats «Експеримент» (the label says it).
+- **Tab screens:** `Screen bottomInset={false}` — the tab bar already pads for the home indicator,
+  so the second inset (≈34 pt) cut the Today list and the Insights map early.
+- Re-shot with `make.sh`: Insights scrolled to the whole map; Today ends below the experiment card
+  (fixture: the next block two hours later); the poster's Focus cropped to the card
+  (`crop_top.py`). 715 jest tests; thesis body 72 pages, unchanged.
+
 ## Post-P12 — Skia out, рис. 3.4 caption (2026-10-30, post-p12/skia-caption)
 
 - **Skia removed from the thesis** (owner): §3.2 no longer lists it and source 52 is gone; 53–71 →

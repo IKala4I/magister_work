@@ -15,7 +15,16 @@ Results go outside the repo:
 | `poster/screens/today.png`, `focus.png`, `insights.png` | the poster                 |
 | `build/screenshots/`                                    | raw shots, build/flow logs |
 
-Made on the iPhone 17 Pro Max simulator (1320 × 2868 px, iOS 26.5), 2026-10-30.
+Made on the iPhone 17 Pro Max simulator (1320 × 2868 px, iOS 26.5), 2026-10-30; re-shot the same
+day after the interface fixes the owner found on the first set.
+
+- **Insights** is scrolled (a slow drag in `3-insights.yaml`) so the frame holds the energy map
+  whole: its key, all eighteen hours (06–23) and the notes under it. The freshness row and the
+  learning-mode card above are out of this frame.
+- **Today** ends in whitespace below the experiment card: the next block starts two hours later,
+  so the timeline's gap spacer is at its cap (48 pt) and the next card begins below the tab bar.
+- **The poster's Focus** is cropped to the card (`crop_top.py`: the bottom edge is found in the
+  image, not fixed); рис. 3.4 keeps the full screen so its four shots stay the same size.
 
 ## What is on the screens
 
