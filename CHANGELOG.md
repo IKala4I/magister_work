@@ -7,7 +7,8 @@
 - **Insights:** the body no longer repeats the header title — one row «Оновлено {when}» + Refresh;
   «Станом на» → «Оновлено»; learning-mode body «спираються на дані людей …»; the non-learning card
   is titled «Ваші години». The energy map gets a key above it: the colour ramp and the outline
-  («рамка — уже з ваших днів» = the cell's own evidence outweighs its prior, `is_personal`).
+  («рамка — уже з ваших днів» = `is_personal`: the cell's own evidence outweighs its prior, or the
+  user labelled it).
 - **Today:** the action row is one line when the buttons fit and an even grid when not (measured,
   `actionColumns`); no Start while another block runs a session (the card's screen-reader actions
   already left it out); the block time always sits under the title; the experiment rationale no

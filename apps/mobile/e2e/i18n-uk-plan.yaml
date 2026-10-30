@@ -28,7 +28,8 @@ appId: com.hourwell.app
 - takeScreenshot: uk-14-today-planned
 # The action row itself: «Почати» «Готово» «Пропустити» «Перенести…» — the tightest row in
 # Ukrainian (`Skip`→«Пропустити» is +150 % on the English label).
-# The action row — «Почати» «Готово» «Пропустити», with «Перенести…» wrapping to its own line at
-# this text size — is on the card in that screenshot. It is deliberately not asserted here: which
+# The action row — «Почати» «Готово» «Пропустити» «Перенести…»; since 2026-10-30 it is one line when
+# the buttons fit and two even columns when not, never «Перенести…» alone — is on the card in that
+# screenshot. It is deliberately not asserted here: which
 # actions a card offers depends on the block's state, and re-planning returns a different plan
 # every run. The screenshot is the evidence; a person reads it.
