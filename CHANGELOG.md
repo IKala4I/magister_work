@@ -2,6 +2,20 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## CI — database gates off the rate-limited registry (2026-10-30, ci/db-gate-registry)
+
+- **Cause:** the Supabase CLI pulls from `public.ecr.aws` by default; its anonymous pulls share a
+  data limit per runner IP, and «Data limit exceeded» turned the required database check red on
+  PRs that changed no code. `ci.yml` (db job) and `train.yml` now set
+  `SUPABASE_INTERNAL_IMAGE_REGISTRY=ghcr.io` (Supabase publishes the same tags there) and log in
+  to ghcr.io with the job token.
+- **Scope:** a new `changes` job lets a pull request skip the db job when it touches nothing the
+  job reads (`supabase/`, `packages/shared/`, `scripts/normalize-db-types.sh`, `services/recsys/`,
+  `ci.yml`). The check stays required: a skipped job reports Success, so the db job runs whenever
+  `changes` fails or gives no answer, and renames count under the old path (`--no-renames`); every
+  push to `main` and every manual run runs it in full. Trade: with the override the CLI has no
+  fallback registry, so a ghcr.io outage fails the gate.
+
 ## Post-P12 — screenshots for рис. 3.4 and the poster (2026-10-30, post-p12/thesis-screenshots)
 
 - **Screenshot fixture build** (`EXPO_PUBLIC_SCREENSHOT_FIXTURE=1`, Release, `EXPO_NO_DOTENV=1`):
