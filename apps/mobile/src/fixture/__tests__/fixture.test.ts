@@ -21,6 +21,7 @@ import { RATIONALE_KEYS } from '../../domain/rationale';
 import { appStorage, StorageKeys } from '../../storage/mmkv';
 import { cachedInsights } from '../../sync/insights';
 import { installFixtureClock, uninstallFixtureClock } from '../clock';
+import { assertNoBackend } from '../install';
 import insights from '../insights.json';
 import { FIXTURE_BLOCKS, FIXTURE_INBOX, FIXTURE_TASKS, seedFixture } from '../seed';
 
@@ -38,8 +39,8 @@ function fixtureMorning(): Date {
 describe('fixture clock', () => {
   afterEach(() => uninstallFixtureClock());
 
-  it('starts "now" at 09:41 today and leaves explicit dates alone', () => {
-    const real = new Date(2026, 9, 30, 14, 6, 15).getTime();
+  it('starts "now" at the fixture morning on any day and leaves explicit dates alone', () => {
+    const real = new Date(2027, 2, 3, 14, 6, 15).getTime(); // a re-shoot months later
     const offset = installFixtureClock(real);
     expect(offset).toBe(new Date(2026, 9, 30, 9, 41).getTime() - real);
     const now = new Date();
@@ -128,5 +129,21 @@ describe('fixture day', () => {
     const cached = cachedInsights(currentUserId());
     expect(cached?.doc.heatmap).toHaveLength(48);
     expect(cached?.fetchedAt).toBe(now.getTime() - 4 * 60_000);
+  });
+});
+
+describe('fixture guard', () => {
+  it('refuses any backend key, accepts none or empty', () => {
+    expect(() => assertNoBackend({})).not.toThrow();
+    expect(() => assertNoBackend({ EXPO_PUBLIC_SUPABASE_URL: '' })).not.toThrow();
+    for (const key of [
+      'EXPO_PUBLIC_SUPABASE_URL',
+      'EXPO_PUBLIC_SUPABASE_ANON_KEY',
+      'EXPO_PUBLIC_SENTRY_DSN',
+      'EXPO_PUBLIC_POSTHOG_API_KEY',
+      'EXPO_PUBLIC_POSTHOG_HOST',
+    ]) {
+      expect(() => assertNoBackend({ [key]: 'x' })).toThrow(/backend key/);
+    }
   });
 });

@@ -49,6 +49,7 @@ export async function fetchInsights(now: Date = new Date()): Promise<InsightsOut
     const raw = appStorage.getString(StorageKeys.insightsCache);
     if (raw === undefined) return { kind: 'no-session' };
     const seeded = JSON.parse(raw) as CachedInsights;
+    if (!isInsightsDocument(seeded.doc)) return { kind: 'failed', detail: 'malformed document' };
     return { kind: 'ok', doc: seeded.doc, fetchedAt: seeded.fetchedAt };
   }
   if (!supabase) return { kind: 'no-session' };
