@@ -1194,3 +1194,9 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     the screens Today/Inbox/Focus/Insights/Onboarding in §3.7, the рис. 3.4 note and the рис. 3.1
     diagram (`3-1-architecture.puml`); all now use the Ukrainian labels, and Додаток Б's «екран
     Onboarding» reads «онбординг», as the text does elsewhere. Body 72 pages, unchanged.
+75. **2026-10-30 — рис. 3.4 re-shot after interface fixes.** The Insights shot now shows the
+    energy map whole with its key (the freshness row and the learning-mode card are scrolled out),
+    so the рис. 3.4 placeholder note says «з теплокартою енергії … і легендою кольорів» instead of
+    «… та трендом дотримання», which no shot shows. Chapter 3.7 and Додаток И quote none of the
+    changed interface strings («Станом на …», «здебільшого взяті …», «Експеримент: …»); nothing
+    else in the text changes.

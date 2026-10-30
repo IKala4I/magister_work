@@ -640,6 +640,24 @@ never substituted. Command: runbook `docs/runbooks/oracle-vm.md` §7.
   20:00 — the OS log must show no re-add of `ritual:<day>` (day 2 could not: the count was
   already at the cap, notes item 62).
 
+## UI polish from the рис. 3.4 shots (added 2026-10-30)
+
+- ⬜ **NFR-A2 — the Today action row at 100 % and 200 %.** On both phones, a free block and a block
+  while another one runs a focus session. Expected: at 100 % one line when the buttons fit, else
+  two equal columns (never three plus "Move…" alone); at 200 % one button per line, no label
+  broken mid-word; no Start while another block's session runs. Why hardware: the row measures
+  its buttons with `onLayout`; jest has no layout engine, and the simulator checked one width at
+  100 % only.
+- ⬜ **Tab screens without the second bottom inset** (`Screen bottomInset={false}`). iPhone with a
+  home indicator and the Pixel with gesture and with three-button navigation: the last Today card,
+  the Insights notes and the Inbox list end at the tab bar — no blank band, nothing under the
+  bar. Why hardware: Android's navigation-bar insets differ by mode, and the simulator has one
+  iPhone.
+- ⬜ **FR-40 — the heatmap key above the map**, at 200 % on the Pixel: the two legend items wrap
+  under each other without clipping, and TalkBack skips the key (the outline's meaning reaches a
+  screen reader through the text view, «(з ваших днів)»; the grid's summary names only the best
+  and worst daypart).
+
 ## Pass status (2026-09-08 — iPhone day 2)
 
 **Day 2 on the same build and account** — evidence under `device-pass/ios-20260908-1215/`

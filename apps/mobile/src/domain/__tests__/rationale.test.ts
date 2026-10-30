@@ -5,7 +5,7 @@ describe('rationaleSentence (FR-21: key + params → one sentence, client-render
   it('renders every closed-vocabulary key', () => {
     expect(rationaleSentence('pinned', {})).toBe(en['rationale.pinned']);
     expect(rationaleSentence('experiment', { category: 'admin', daypart: 'AF' })).toBe(
-      'Experiment: trying Admin in the afternoon to learn what works for you.',
+      'Trying Admin in the afternoon to learn what works for you.',
     );
     expect(rationaleSentence('deadline_pressure', { hours_to_deadline: 3.4 })).toBe(
       'Due in about 3 h — placed early to protect the deadline.',

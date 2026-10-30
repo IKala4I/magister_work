@@ -44,8 +44,7 @@ export const en = {
   'daypart.NT': 'night',
 
   'rationale.pinned': 'Pinned by you.',
-  'rationale.experiment':
-    'Experiment: trying {category} in the {daypart} to learn what works for you.',
+  'rationale.experiment': 'Trying {category} in the {daypart} to learn what works for you.',
   'rationale.deadline_pressure': 'Due in about {hours} h — placed early to protect the deadline.',
   'rationale.deadline_pressure.generic': 'Placed early to protect the deadline.',
   'rationale.energy_peak': 'You finish {category} best in the {daypart}{percent}.',
@@ -104,17 +103,17 @@ export const en = {
   'diagnostic.notImportant.result': 'Archived. It is out of your way.',
   'insights.empty.title': 'Still learning',
   'insights.empty.body': 'Hourwell will show what it learns about your best hours here.',
-  'insights.title': 'Insights',
   'insights.refresh': 'Refresh',
   'insights.refreshing': 'Refreshing…',
   'insights.offline': 'Offline — showing what Hourwell knew {when}.',
   'insights.unavailable': 'The learning service is resting — showing what Hourwell knew {when}.',
   'insights.noSession': 'Sign in to see what Hourwell has learned.',
   'insights.error': 'Could not load insights right now.',
-  'insights.asOf': 'As of {when}',
+  'insights.asOf': 'Updated {when}',
   'insights.learningMode.title': 'Learning mode',
   'insights.learningMode.body':
-    'These hours come mostly from people with a similar chronotype. Every finished block makes them yours.',
+    'These hours draw on data from people with a similar chronotype. Every finished block makes them yours.',
+  'insights.personalMode.title': 'Your hours',
   'insights.personalMode.body': 'Most of these hours now come from your own days.',
   'insights.chronotype.body':
     'Your survey placed you as {label}; that is where the starting hours came from.',
@@ -130,6 +129,7 @@ export const en = {
   'heatmap.category.a11y': 'Show {category}',
   'heatmap.legend.low': 'lower',
   'heatmap.legend.high': 'higher',
+  'heatmap.legend.personal': 'outlined — from your own days',
   'heatmap.legend.solidity':
     'Solid cells have more evidence; faint cells are still mostly assumed.',
   'heatmap.legend.resolution':

@@ -4,7 +4,7 @@
 > Read this rather than the diff: the catalogs are one flat file each, but a reader
 > meets the strings a screen at a time. Edit the catalogs, then regenerate.
 
-465 strings plus 13 counted sentences.
+466 strings plus 13 counted sentences.
 
 ## Where the Ukrainian is not the literal English
 
@@ -235,25 +235,25 @@ Counted sentences:
 
 ## Today — why a block is here (FR-21)
 
-| key                                   | English                                                                     | Українська                                                             |
-| ------------------------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| `daypart.EM`                          | early morning                                                               | рано-вранці                                                            |
-| `daypart.MO`                          | morning                                                                     | вранці                                                                 |
-| `daypart.MD`                          | midday                                                                      | опівдні                                                                |
-| `daypart.AF`                          | afternoon                                                                   | по обіді                                                               |
-| `daypart.EV`                          | evening                                                                     | ввечері                                                                |
-| `daypart.NT`                          | night                                                                       | вночі                                                                  |
-| `rationale.pinned`                    | Pinned by you.                                                              | Ви це закріпили.                                                       |
-| `rationale.experiment`                | Experiment: trying {category} in the {daypart} to learn what works for you. | Експеримент: {category} {daypart} — щоб зрозуміти, як вам краще.       |
-| `rationale.deadline_pressure`         | Due in about {hours} h — placed early to protect the deadline.              | Дедлайн приблизно через {hours} год — поставили раніше, щоб устигнути. |
-| `rationale.deadline_pressure.generic` | Placed early to protect the deadline.                                       | Поставили раніше, щоб устигнути до дедлайну.                           |
-| `rationale.energy_peak`               | You finish {category} best in the {daypart}{percent}.                       | {category} — найкраще виходить {daypart}{percent}.                     |
-| `rationale.fresh_slot`                | A fresh {daypart} slot for {category}.                                      | {category} — {daypart} ще майже не пробували.                          |
-| `rationale.earliest_feasible`         | Earliest slot that fits {category}.                                         | {category} — найраніший вільний час.                                   |
-| `rationale.best_available`            | Best available {daypart} slot for {category}.                               | {category} — найкраще вільне вікно {daypart}.                          |
-| `rationale.generic`                   | Placed where it fits best.                                                  | Поставили там, де найкраще вміщається.                                 |
-| `rationale.category.generic`          | this task                                                                   | Це завдання                                                            |
-| `rationale.daypart.generic`           | day                                                                         | протягом дня                                                           |
+| key                                   | English                                                         | Українська                                                             |
+| ------------------------------------- | --------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `daypart.EM`                          | early morning                                                   | рано-вранці                                                            |
+| `daypart.MO`                          | morning                                                         | вранці                                                                 |
+| `daypart.MD`                          | midday                                                          | опівдні                                                                |
+| `daypart.AF`                          | afternoon                                                       | по обіді                                                               |
+| `daypart.EV`                          | evening                                                         | ввечері                                                                |
+| `daypart.NT`                          | night                                                           | вночі                                                                  |
+| `rationale.pinned`                    | Pinned by you.                                                  | Ви це закріпили.                                                       |
+| `rationale.experiment`                | Trying {category} in the {daypart} to learn what works for you. | {category} {daypart} — щоб зрозуміти, як вам краще.                    |
+| `rationale.deadline_pressure`         | Due in about {hours} h — placed early to protect the deadline.  | Дедлайн приблизно через {hours} год — поставили раніше, щоб устигнути. |
+| `rationale.deadline_pressure.generic` | Placed early to protect the deadline.                           | Поставили раніше, щоб устигнути до дедлайну.                           |
+| `rationale.energy_peak`               | You finish {category} best in the {daypart}{percent}.           | {category} — найкраще виходить {daypart}{percent}.                     |
+| `rationale.fresh_slot`                | A fresh {daypart} slot for {category}.                          | {category} — {daypart} ще майже не пробували.                          |
+| `rationale.earliest_feasible`         | Earliest slot that fits {category}.                             | {category} — найраніший вільний час.                                   |
+| `rationale.best_available`            | Best available {daypart} slot for {category}.                   | {category} — найкраще вільне вікно {daypart}.                          |
+| `rationale.generic`                   | Placed where it fits best.                                      | Поставили там, де найкраще вміщається.                                 |
+| `rationale.category.generic`          | this task                                                       | Це завдання                                                            |
+| `rationale.daypart.generic`           | day                                                             | протягом дня                                                           |
 
 ## Today — the trade-off sheet (FR-24)
 
@@ -384,6 +384,7 @@ Counted sentences:
 | `heatmap.category.a11y`     | Show {category}                                                                                                     | Показати: {category}                                                                              |
 | `heatmap.legend.low`        | lower                                                                                                               | нижче                                                                                             |
 | `heatmap.legend.high`       | higher                                                                                                              | вище                                                                                              |
+| `heatmap.legend.personal`   | outlined — from your own days                                                                                       | рамка — уже з ваших днів                                                                          |
 | `heatmap.legend.solidity`   | Solid cells have more evidence; faint cells are still mostly assumed.                                               | Насичені клітинки мають більше даних; бліді — це поки що припущення.                              |
 | `heatmap.legend.resolution` | The model learns by daypart and weekday-vs-weekend, so neighbouring hours share a colour.                           | Модель вчиться за частинами доби та буднями-вихідними, тому сусідні години мають однаковий колір. |
 | `heatmap.showText`          | Show as text                                                                                                        | Показати текстом                                                                                  |
@@ -439,44 +440,44 @@ Counted sentences:
 
 ## Insights — the weekly review (FR-33)
 
-| key                           | English                                                                                               | Українська                                                                                          |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| `insights.empty.title`        | Still learning                                                                                        | Ще вчимося                                                                                          |
-| `insights.empty.body`         | Hourwell will show what it learns about your best hours here.                                         | Тут з’явиться те, що Hourwell дізнається про ваші найкращі години.                                  |
-| `insights.title`              | Insights                                                                                              | Аналітика                                                                                           |
-| `insights.refresh`            | Refresh                                                                                               | Оновити                                                                                             |
-| `insights.refreshing`         | Refreshing…                                                                                           | Оновлюємо…                                                                                          |
-| `insights.offline`            | Offline — showing what Hourwell knew {when}.                                                          | Офлайн — показуємо те, що Hourwell знав {when}.                                                     |
-| `insights.unavailable`        | The learning service is resting — showing what Hourwell knew {when}.                                  | Сервіс навчання відпочиває — показуємо те, що Hourwell знав {when}.                                 |
-| `insights.noSession`          | Sign in to see what Hourwell has learned.                                                             | Увійдіть, щоб побачити, чого навчився Hourwell.                                                     |
-| `insights.error`              | Could not load insights right now.                                                                    | Не вдалося завантажити аналітику.                                                                   |
-| `insights.asOf`               | As of {when}                                                                                          | Станом на {when}                                                                                    |
-| `insights.learningMode.title` | Learning mode                                                                                         | Режим навчання                                                                                      |
-| `insights.learningMode.body`  | These hours come mostly from people with a similar chronotype. Every finished block makes them yours. | Ці години здебільшого взяті від людей зі схожим хронотипом. Кожен завершений блок робить їх вашими. |
-| `insights.personalMode.body`  | Most of these hours now come from your own days.                                                      | Більшість цих годин уже з ваших власних днів.                                                       |
-| `insights.chronotype.body`    | Your survey placed you as {label}; that is where the starting hours came from.                        | Опитувальник визначив вас як {label} — звідти й початкові години.                                   |
-| `insights.chronotype.skipped` | You skipped the survey, so the starting hours were neutral.                                           | Ви пропустили опитувальник, тому початкові години були нейтральні.                                  |
-| `insights.chronotype.DM`      | a definite morning type                                                                               | виражений ранковий тип                                                                              |
-| `insights.chronotype.MM`      | a moderate morning type                                                                               | помірно ранковий тип                                                                                |
-| `insights.chronotype.INT`     | an intermediate type                                                                                  | проміжний тип                                                                                       |
-| `insights.chronotype.ME`      | a moderate evening type                                                                               | помірно вечірній тип                                                                                |
-| `insights.chronotype.DE`      | a definite evening type                                                                               | виражений вечірній тип                                                                              |
-| `review.title`                | Weekly review                                                                                         | Підсумок тижня                                                                                      |
-| `review.subtitle`             | How the plan held up, and what Hourwell learned.                                                      | Як тримався план і чого навчився Hourwell.                                                          |
-| `review.adherence.title`      | Plan adherence                                                                                        | Дотримання плану                                                                                    |
-| `review.adherence.body`       | Blocks you started within 15 minutes of the plan and mostly finished.                                 | Блоки, які ви почали в межах 15 хвилин від плану й здебільшого завершили.                           |
-| `review.adherence.empty`      | No finished weeks yet.                                                                                | Завершених тижнів ще немає.                                                                         |
-| `review.trend.up`             | Up from the previous week with data.                                                                  | Більше, ніж попереднього тижня з даними.                                                            |
-| `review.trend.down`           | A dip from the previous week with data — no verdict, just data.                                       | Менше, ніж попереднього тижня з даними — це не вирок, а просто дані.                                |
-| `review.trend.flat`           | Steady against the previous week with data.                                                           | Так само, як попереднього тижня з даними.                                                           |
-| `review.learnings.title`      | This week Hourwell believes                                                                           | Цього тижня Hourwell вважає                                                                         |
-| `review.learnings.empty`      | No learnings yet — they appear after a few finished blocks.                                           | Висновків ще немає — вони з’являться після кількох завершених блоків.                               |
-| `review.tell.title`           | Tell Hourwell                                                                                         | Підкажіть Hourwell                                                                                  |
-| `review.tell.body`            | When do you actually do {category} best on weekdays?                                                  | {category} — коли це справді вдається вам найкраще в будні?                                         |
-| `review.tell.pick.a11y`       | My best time for {category} is the {daypart}                                                          | {category}: мій найкращий час — {daypart}                                                           |
-| `review.tell.done`            | Noted: {category} in the {daypart}. It counts as much as everything assumed so far.                   | Записали: {category} — {daypart}. Це важить стільки ж, скільки все припущене досі.                  |
-| `review.done`                 | Done reviewing                                                                                        | Готово                                                                                              |
-| `review.done.thanks`          | Review saved. See you next week.                                                                      | Підсумок збережено. До наступного тижня.                                                            |
+| key                           | English                                                                                                | Українська                                                                                       |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| `insights.empty.title`        | Still learning                                                                                         | Ще вчимося                                                                                       |
+| `insights.empty.body`         | Hourwell will show what it learns about your best hours here.                                          | Тут з’явиться те, що Hourwell дізнається про ваші найкращі години.                               |
+| `insights.refresh`            | Refresh                                                                                                | Оновити                                                                                          |
+| `insights.refreshing`         | Refreshing…                                                                                            | Оновлюємо…                                                                                       |
+| `insights.offline`            | Offline — showing what Hourwell knew {when}.                                                           | Офлайн — показуємо те, що Hourwell знав {when}.                                                  |
+| `insights.unavailable`        | The learning service is resting — showing what Hourwell knew {when}.                                   | Сервіс навчання відпочиває — показуємо те, що Hourwell знав {when}.                              |
+| `insights.noSession`          | Sign in to see what Hourwell has learned.                                                              | Увійдіть, щоб побачити, чого навчився Hourwell.                                                  |
+| `insights.error`              | Could not load insights right now.                                                                     | Не вдалося завантажити аналітику.                                                                |
+| `insights.asOf`               | Updated {when}                                                                                         | Оновлено {when}                                                                                  |
+| `insights.learningMode.title` | Learning mode                                                                                          | Режим навчання                                                                                   |
+| `insights.learningMode.body`  | These hours draw on data from people with a similar chronotype. Every finished block makes them yours. | Ці години спираються на дані людей зі схожим хронотипом. Кожен завершений блок робить їх вашими. |
+| `insights.personalMode.title` | Your hours                                                                                             | Ваші години                                                                                      |
+| `insights.personalMode.body`  | Most of these hours now come from your own days.                                                       | Більшість цих годин уже з ваших власних днів.                                                    |
+| `insights.chronotype.body`    | Your survey placed you as {label}; that is where the starting hours came from.                         | Опитувальник визначив вас як {label} — звідти й початкові години.                                |
+| `insights.chronotype.skipped` | You skipped the survey, so the starting hours were neutral.                                            | Ви пропустили опитувальник, тому початкові години були нейтральні.                               |
+| `insights.chronotype.DM`      | a definite morning type                                                                                | виражений ранковий тип                                                                           |
+| `insights.chronotype.MM`      | a moderate morning type                                                                                | помірно ранковий тип                                                                             |
+| `insights.chronotype.INT`     | an intermediate type                                                                                   | проміжний тип                                                                                    |
+| `insights.chronotype.ME`      | a moderate evening type                                                                                | помірно вечірній тип                                                                             |
+| `insights.chronotype.DE`      | a definite evening type                                                                                | виражений вечірній тип                                                                           |
+| `review.title`                | Weekly review                                                                                          | Підсумок тижня                                                                                   |
+| `review.subtitle`             | How the plan held up, and what Hourwell learned.                                                       | Як тримався план і чого навчився Hourwell.                                                       |
+| `review.adherence.title`      | Plan adherence                                                                                         | Дотримання плану                                                                                 |
+| `review.adherence.body`       | Blocks you started within 15 minutes of the plan and mostly finished.                                  | Блоки, які ви почали в межах 15 хвилин від плану й здебільшого завершили.                        |
+| `review.adherence.empty`      | No finished weeks yet.                                                                                 | Завершених тижнів ще немає.                                                                      |
+| `review.trend.up`             | Up from the previous week with data.                                                                   | Більше, ніж попереднього тижня з даними.                                                         |
+| `review.trend.down`           | A dip from the previous week with data — no verdict, just data.                                        | Менше, ніж попереднього тижня з даними — це не вирок, а просто дані.                             |
+| `review.trend.flat`           | Steady against the previous week with data.                                                            | Так само, як попереднього тижня з даними.                                                        |
+| `review.learnings.title`      | This week Hourwell believes                                                                            | Цього тижня Hourwell вважає                                                                      |
+| `review.learnings.empty`      | No learnings yet — they appear after a few finished blocks.                                            | Висновків ще немає — вони з’являться після кількох завершених блоків.                            |
+| `review.tell.title`           | Tell Hourwell                                                                                          | Підкажіть Hourwell                                                                               |
+| `review.tell.body`            | When do you actually do {category} best on weekdays?                                                   | {category} — коли це справді вдається вам найкраще в будні?                                      |
+| `review.tell.pick.a11y`       | My best time for {category} is the {daypart}                                                           | {category}: мій найкращий час — {daypart}                                                        |
+| `review.tell.done`            | Noted: {category} in the {daypart}. It counts as much as everything assumed so far.                    | Записали: {category} — {daypart}. Це важить стільки ж, скільки все припущене досі.               |
+| `review.done`                 | Done reviewing                                                                                         | Готово                                                                                           |
+| `review.done.thanks`          | Review saved. See you next week.                                                                       | Підсумок збережено. До наступного тижня.                                                         |
 
 Counted sentences:
 

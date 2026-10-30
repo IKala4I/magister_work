@@ -131,6 +131,44 @@ export function EnergyHeatmap({ cells, category, onCategoryChange }: EnergyHeatm
         })}
       </View>
 
+      {/* the key sits above the map, so it is read first and never scrolls away from it */}
+      {!asText ? (
+        <View
+          style={styles.legend}
+          importantForAccessibility="no-hide-descendants"
+          accessibilityElementsHidden
+          testID="heatmap-legend"
+        >
+          <View style={styles.legendItem}>
+            <ThemedText variant="caption" tone="secondary">
+              {t('heatmap.legend.low')}
+            </ThemedText>
+            {legend.map((color, i) => (
+              <View
+                key={i}
+                style={[
+                  styles.swatch,
+                  { backgroundColor: color, borderColor: theme.colors.primaryContainer },
+                ]}
+              />
+            ))}
+            <ThemedText variant="caption" tone="secondary">
+              {t('heatmap.legend.high')}
+            </ThemedText>
+          </View>
+          <View style={styles.legendItem}>
+            <View
+              style={[
+                styles.swatch,
+                { backgroundColor: legend[2], borderColor: theme.colors.textSecondary },
+              ]}
+            />
+            <ThemedText variant="caption" tone="secondary">
+              {t('heatmap.legend.personal')}
+            </ThemedText>
+          </View>
+        </View>
+      ) : null}
       {asText ? (
         <View style={styles.textView} accessibilityRole="list">
           {summary.map((s) => (
@@ -207,17 +245,6 @@ export function EnergyHeatmap({ cells, category, onCategoryChange }: EnergyHeatm
         </View>
       )}
 
-      <View style={styles.legend} importantForAccessibility="no-hide-descendants">
-        <ThemedText variant="caption" tone="secondary">
-          {t('heatmap.legend.low')}
-        </ThemedText>
-        {legend.map((color, i) => (
-          <View key={i} style={[styles.swatch, { backgroundColor: color }]} />
-        ))}
-        <ThemedText variant="caption" tone="secondary">
-          {t('heatmap.legend.high')}
-        </ThemedText>
-      </View>
       <ThemedText variant="caption" tone="secondary">
         {t('heatmap.legend.solidity')}
       </ThemedText>
@@ -248,8 +275,15 @@ const styles = StyleSheet.create({
   hourCell: { minWidth: 32, flexShrink: 0, textAlign: 'right', paddingRight: 4 },
   dayLabel: { flex: 1, textAlign: 'center' },
   cell: { flex: 1, minHeight: 16, borderRadius: 3, borderWidth: 1 },
-  legend: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
-  swatch: { width: 22, height: 12, borderRadius: 3 },
+  legend: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    columnGap: 16,
+    rowGap: 4,
+  },
+  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  swatch: { width: 22, height: 12, borderRadius: 3, borderWidth: 1 },
   textView: { gap: 12, marginTop: 4 },
   textBlock: { gap: 2 },
 });

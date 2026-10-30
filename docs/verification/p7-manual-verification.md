@@ -53,7 +53,9 @@
   not; third consecutive lapse/skip surfaces the diagnostic; no payload carries the title, no
   payload has a `reward` key; server patches mirror status/slots/features.
 - **UI** — `today.test.tsx`: action row, Start → Focus tab, Move picker with 15-min snap, lapsed
-  caption without Skip, completed/active captions with Start disabled elsewhere, diagnostic on
+  caption without Skip, completed/active captions with Start disabled elsewhere (since
+  2026-10-30: Start is not offered elsewhere — the card's screen-reader actions already left it
+  out; `blockActions.test.tsx`), diagnostic on
   the third skip and from the foreground scan (defer path); `focus.test.tsx`: running/paused
   states, progress bar role, Pause/Finish/Stop, inline rating with the empty state still visible,
   one tap counts, optional second tap, skippable, never re-shown for a rated session.

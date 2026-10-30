@@ -121,7 +121,7 @@ export default function FocusScreen() {
     const fraction = Math.min(focusedMs / plannedMs, 1);
     const running = session.state === 'running';
     return (
-      <Screen>
+      <Screen bottomInset={false}>
         <GlassPanel solidity={1} style={styles.panel}>
           <ThemedText variant="caption" tone="secondary">
             {running ? t('focus.running') : t('focus.paused')}
@@ -180,7 +180,7 @@ export default function FocusScreen() {
   }
 
   return (
-    <Screen>
+    <Screen bottomInset={false}>
       {offerRating ? (
         <GlassPanel solidity={1} style={styles.panel} accessibilityLabel={t('focus.rate.title')}>
           <ThemedText variant="caption" tone="secondary">

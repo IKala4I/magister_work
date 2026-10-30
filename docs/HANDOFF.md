@@ -2,7 +2,8 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-10-30 — **post-p12/skia-caption** (section right below): Skia out of the
+> Last update: 2026-10-30 — **post-p12/ui-polish-screens** (section right below): interface fixes from
+> the рис. 3.4 shots, re-shot. Before it, 2026-10-30 — **post-p12/skia-caption**: Skia out of the
 > thesis (sources 70), рис. 3.4 caption and Ukrainian screen names; body 72 pages. Before it,
 > 2026-10-30 — **ci/db-gate-registry**: the database gates pull from ghcr.io and run on PRs only
 > when they touch what the gates read. Before it, 2026-10-30 — **post-p12/thesis-screenshots**:
@@ -22,6 +23,18 @@
 > (PR #79), and the corrections rollup (2026-09-09), which is no longer an index: all 63 items carry
 > the Ukrainian sentences the draft should read, tagged Ф / П / С, every number with its measurement
 > condition. **The thesis text is assembled and green on every gate.**
+
+## Current state (2026-10-30) — post-p12/ui-polish-screens: дрібниці інтерфейсу, перезйомка
+
+The owner's eight interface points from the first shots are fixed in the app (CHANGELOG top
+section) and рис. 3.4 + the poster are re-shot with `make.sh`. 715 jest tests; thesis body 72 pages,
+рис. 3.4 on page 49. New device-checklist rows: the action row at 100/200 %, tab screens without
+the second bottom inset (Android nav modes), the heatmap key at 200 %.
+
+**Gotchas.** The heatmap key is hidden from the accessibility tree, so Maestro cannot assert it —
+`3-insights.yaml` asserts the note under the map. The first build-and-shoot run once landed on the
+simulator's home screen after the Today flow (SpringBoard connection reset, no crash report); a
+`--no-build` re-run was clean.
 
 ## Current state (2026-10-30) — post-p12/skia-caption: Skia, підпис рис. 3.4
 

@@ -71,6 +71,9 @@ done
 echo "== into place =="
 for flow in 1-today 2-focus 3-insights 4-quick-add; do cp "$RAW/$flow.png" "$DOCS/figures/3.4/$flow.png"; done
 cp "$RAW/1-today.png" "$DOCS/poster/screens/today.png"
-cp "$RAW/2-focus.png" "$DOCS/poster/screens/focus.png"
+# the poster's Focus panel is the card, not the empty screen under it; рис. 3.4 keeps the full
+# screen so its four shots stay the same size
+uv run --no-project --quiet --with pillow==13.0.0 python -I "$ROOT/docs/thesis/screenshots/crop_top.py" "$RAW/2-focus.png" \
+  "$DOCS/poster/screens/focus.png" || { echo "crop of the Focus shot failed"; exit 1; }
 cp "$RAW/3-insights.png" "$DOCS/poster/screens/insights.png"
 sips -g pixelWidth -g pixelHeight "$RAW"/*.png | paste - - - | awk '{print $1, $3 "×" $5}'

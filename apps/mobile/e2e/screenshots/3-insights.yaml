@@ -5,4 +5,14 @@ appId: com.hourwell.app
     visible: 'Режим навчання'
     timeout: 10000
 - assertNotVisible: 'Увійдіть, щоб побачити, чого навчився Hourwell.'
+# The shot is the energy map: a slow drag (no fling) brings its title to the top, so the key, all
+# eighteen hours and the notes under the map are in frame. The freshness row and the learning-mode
+# card above it are scrolled out of this shot.
+- swipe:
+    start: 50%, 75%
+    end: 50%, 52%
+    duration: 2500
 - waitForAnimationToEnd
+- assertVisible: 'Карта вашої енергії'
+# the key is hidden from the accessibility tree (by design), so check the note under the map
+- assertVisible: '.*Насичені клітинки.*'
