@@ -2,7 +2,8 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-10-30 — **post-p12/ui-polish-screens** (section right below): interface fixes from
+> Last update: 2026-11-02 — **post-p12/legend-wording** (section right below): heatmap key wording,
+> re-shot. Before it, 2026-10-30 — **post-p12/ui-polish-screens**: interface fixes from
 > the рис. 3.4 shots, re-shot. Before it, 2026-10-30 — **post-p12/skia-caption**: Skia out of the
 > thesis (sources 70), рис. 3.4 caption and Ukrainian screen names; body 72 pages. Before it,
 > 2026-10-30 — **ci/db-gate-registry**: the database gates pull from ghcr.io and run on PRs only
@@ -23,6 +24,12 @@
 > (PR #79), and the corrections rollup (2026-09-09), which is no longer an index: all 63 items carry
 > the Ukrainian sentences the draft should read, tagged Ф / П / С, every number with its measurement
 > condition. **The thesis text is assembled and green on every gate.**
+
+## Current state (2026-11-02) — post-p12/legend-wording: підпис легенди
+
+The heatmap key's outline item reads «рамка — переважають ваші дані»; рис. 3.4 and the poster are
+re-shot. «хронотоп» appears nowhere (the typo was in a session report only). The thesis text never
+described Start as dimmed during another session.
 
 ## Current state (2026-10-30) — post-p12/ui-polish-screens: дрібниці інтерфейсу, перезйомка
 

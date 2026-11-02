@@ -141,7 +141,7 @@ export const uk: Record<MessageKey, string> = {
   'heatmap.category.a11y': 'Показати: {category}',
   'heatmap.legend.low': 'нижче',
   'heatmap.legend.high': 'вище',
-  'heatmap.legend.personal': 'рамка — уже з ваших днів',
+  'heatmap.legend.personal': 'рамка — переважають ваші дані',
   'heatmap.legend.solidity': 'Насичені клітинки мають більше даних; бліді — це поки що припущення.',
   'heatmap.legend.resolution':
     'Модель вчиться за частинами доби та буднями-вихідними, тому сусідні години мають однаковий колір.',
