@@ -129,7 +129,7 @@ export const en = {
   'heatmap.category.a11y': 'Show {category}',
   'heatmap.legend.low': 'lower',
   'heatmap.legend.high': 'higher',
-  'heatmap.legend.personal': 'outlined — from your own days',
+  'heatmap.legend.personal': 'outlined — mostly your own data',
   'heatmap.legend.solidity':
     'Solid cells have more evidence; faint cells are still mostly assumed.',
   'heatmap.legend.resolution':

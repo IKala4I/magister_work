@@ -2,6 +2,13 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — heatmap key wording (2026-11-02, post-p12/legend-wording)
+
+- The outline's key reads «рамка — переважають ваші дані» (en «outlined — mostly your own data»):
+  `is_personal` means the cell's own evidence outweighs its prior, not that it comes only from the
+  user's days. Re-shot рис. 3.4 and the poster. A search for the typo «хронотоп» found nothing in
+  the repository or the thesis — it was only in the session's report; the app says «хронотипом».
+
 ## Post-P12 — interface fixes found on the рис. 3.4 shots, re-shot (2026-10-30, post-p12/ui-polish-screens)
 
 - **Insights:** the body no longer repeats the header title — one row «Оновлено {when}» + Refresh;
