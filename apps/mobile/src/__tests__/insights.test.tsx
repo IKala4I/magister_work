@@ -210,7 +210,7 @@ describe('InsightsScreen', () => {
     );
     await fireEvent.press(screen.getByText(en['heatmap.showText']));
     expect(screen.getByText(en['heatmap.text.weekday'])).toBeTruthy();
-    expect(screen.getByText('morning: 74 percent (from your days)')).toBeTruthy();
+    expect(screen.getByText('morning: 74 percent (mostly your own data)')).toBeTruthy();
     expect(screen.queryByTestId('heatmap-grid')).toBeNull();
     // the text view needs no colour key
     expect(screen.queryByTestId('heatmap-legend', { includeHiddenElements: true })).toBeNull();

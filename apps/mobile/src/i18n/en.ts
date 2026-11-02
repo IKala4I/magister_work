@@ -146,7 +146,7 @@ export const en = {
   'heatmap.text.weekday': 'Weekdays',
   'heatmap.text.weekend': 'Weekends',
   'heatmap.text.row': '{daypart}: {percent} percent',
-  'heatmap.text.row.personal': '{daypart}: {percent} percent (from your days)',
+  'heatmap.text.row.personal': '{daypart}: {percent} percent (mostly your own data)',
   'weekday.0': 'Mon',
   'weekday.1': 'Tue',
   'weekday.2': 'Wed',

@@ -2,7 +2,8 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-11-02 — **post-p12/legend-wording** (section right below): heatmap key wording,
+> Last update: 2026-11-02 — **post-p12/text-view-wording** (section right below): text view wording.
+> Before it, 2026-11-02 — **post-p12/legend-wording**: heatmap key wording,
 > re-shot. Before it, 2026-10-30 — **post-p12/ui-polish-screens**: interface fixes from
 > the рис. 3.4 shots, re-shot. Before it, 2026-10-30 — **post-p12/skia-caption**: Skia out of the
 > thesis (sources 70), рис. 3.4 caption and Ukrainian screen names; body 72 pages. Before it,
@@ -24,6 +25,11 @@
 > (PR #79), and the corrections rollup (2026-09-09), which is no longer an index: all 63 items carry
 > the Ukrainian sentences the draft should read, tagged Ф / П / С, every number with its measurement
 > condition. **The thesis text is assembled and green on every gate.**
+
+## Current state (2026-11-02) — post-p12/text-view-wording: текстовий вигляд карти
+
+The heatmap's text view says «(переважно ваші дані)», like the key. Not on any shot — no re-shoot.
+full.md line 924 is a row of табл. 4.6 (defect classes found by the hardware pass) and stays.
 
 ## Current state (2026-11-02) — post-p12/legend-wording: підпис легенди
 
