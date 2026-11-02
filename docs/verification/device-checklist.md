@@ -655,7 +655,7 @@ never substituted. Command: runbook `docs/runbooks/oracle-vm.md` §7.
   iPhone.
 - ⬜ **FR-40 — the heatmap key above the map**, at 200 % on the Pixel: the two legend items wrap
   under each other without clipping, and TalkBack skips the key (the outline's meaning reaches a
-  screen reader through the text view, «(з ваших днів)»; the grid's summary names only the best
+  screen reader through the text view, «(переважно ваші дані)»; the grid's summary names only the best
   and worst daypart).
 
 ## Pass status (2026-09-08 — iPhone day 2)

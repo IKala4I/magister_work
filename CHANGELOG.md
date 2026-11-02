@@ -2,6 +2,13 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — heatmap text view wording (2026-11-02, post-p12/text-view-wording)
+
+- The text view of the energy map marks personal hours «(переважно ваші дані)» (en «(mostly your
+  own data)»), matching the key. The text view is not on any shot, so nothing was re-shot.
+  full.md line 924 (табл. 4.6, «Що це виявило тут») reports the VoiceOver defect as a hardware-pass
+  finding and stays.
+
 ## Post-P12 — heatmap key wording (2026-11-02, post-p12/legend-wording)
 
 - The outline's key reads «рамка — переважають ваші дані» (en «outlined — mostly your own data»):

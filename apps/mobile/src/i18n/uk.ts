@@ -157,7 +157,7 @@ export const uk: Record<MessageKey, string> = {
   'heatmap.text.weekday': 'Будні',
   'heatmap.text.weekend': 'Вихідні',
   'heatmap.text.row': '{daypart}: {percent}%',
-  'heatmap.text.row.personal': '{daypart}: {percent}% (з ваших днів)',
+  'heatmap.text.row.personal': '{daypart}: {percent}% (переважно ваші дані)',
   'weekday.0': 'Пн',
   'weekday.1': 'Вт',
   'weekday.2': 'Ср',
