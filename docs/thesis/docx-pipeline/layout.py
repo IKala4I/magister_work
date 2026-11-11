@@ -280,6 +280,18 @@ def text_font_share(path):
     return tnr / max(1, tnr + other), tnr, other
 
 
+def images_outside(path):
+    """Зображення, що виходять за текстовий блок книжкової сторінки (поля 30 / 10 мм), > 0,5 пт."""
+    left, right, bad = 30 * PT_MM, (210 - 10) * PT_MM, []
+    with pdfplumber.open(path) as pdf:
+        for i, p in enumerate(pdf.pages):
+            if p.width > p.height: continue                      # альбомна — інші поля
+            for im in p.images:
+                if im['x0'] < left - 0.5 or im['x1'] > right + 0.5:
+                    bad.append((i + 1, round(im['x0'] - left, 1), round(im['x1'] - right, 1)))
+    return bad
+
+
 def typography(path):
     """Що типографіка дала на сторінках: рядки, які починаються з тире, що стояло між словами
     (« – »), — тире, перенесене на початок рядка; і шрифти, якими намальовано дефіси. Тире на початку
@@ -340,6 +352,8 @@ def main():
     if a.what == 'typography':
         spaced, ranges, fonts = typography(a.pdf)
         share, tnr, other = text_font_share(a.pdf)
+        outside = images_outside(a.pdf)
+        print(f'зображень за полями: {len(outside)}' + ''.join(f'\n   с. {pg}: ліворуч {l:+} пт, праворуч {r:+} пт' for pg, l, r in outside[:10]))
         print(f'текст Times New Roman: {share:.1%} ({tnr} літер і цифр; іншим шрифтом {other})'
               + ('' if share >= TEXT_FONT_MIN else f' — МЕНШЕ {TEXT_FONT_MIN:.0%}: PDF не Times New Roman'))
         odd = {f: n for f, n in fonts.items() if not re.match(r'(TimesNewRoman|LiberationSerif|LiberationMono|CourierNew)', f)}
@@ -348,7 +362,7 @@ def main():
         for pg, t in spaced[:10]: print(f'   с. {pg}: «{t}»')
         for pg, t in ranges[:10]: print(f'   (діапазон) с. {pg}: «{t}»')
         if odd: print(f'   ДЕФІСИ ЧУЖИМ ШРИФТОМ: {odd}')
-        return 1 if spaced or odd or share < TEXT_FONT_MIN else 0
+        return 1 if spaced or odd or share < TEXT_FONT_MIN or outside else 0
     if a.what == 'body':
         parts, total = body_pages(a.pdf)
         if a.total:
