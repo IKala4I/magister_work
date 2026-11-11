@@ -3,7 +3,8 @@
 """Що вийшло на сторінках: читає готовий PDF і каже конвеєру те, чого з .docx не видно.
 
     python3 layout.py pages   hourwell.pdf            # обсяг роботи: номер останньої сторінки
-    python3 layout.py referat referat.pdf             # сторінок у рефераті кожною мовою (≤ 3)
+    python3 layout.py referat hourwell.pdf --abstract referat.pdf
+                                                      # сторінок у рефераті кожною мовою (≤ 3)
     python3 layout.py tables  hourwell.pdf hourwell.docx --plan tables.json --out tables.next.json
                                                       # які рядки кожної таблиці на якій сторінці
     python3 layout.py typography hourwell.pdf         # тире на початку рядка, шрифт дефісів
@@ -36,7 +37,9 @@
 із запасом 15 мм над нижнім полем — див. table_plan (власник, 2026-10-26).
 
 Обсяг — номер останньої сторінки за нумерацією роботи (методичка, с. 10): титульний лист — 1,
-завдання — 2, зміст — 3. Картка, якщо вона стоїть у файлі першою, у відлік не входить.
+завдання — 2, реферат — 3 і далі без номера, зміст — перша нумерована сторінка, і її номер читається
+з PDF (методичка: «четверта, п'ята або шоста»; TOC_PAGES). Картка, якщо вона стоїть у файлі першою,
+у відлік не входить.
 """
 import argparse, json, os, re, sys
 
@@ -45,7 +48,9 @@ from docx import Document
 from docx.table import Table
 from docx.text.paragraph import Paragraph
 
-REFERAT_MAX = 3                           # методичка, с. 12: «Обсяг реферату до 3-х сторінок»
+REFERAT_MAX = 3                           # Положення 2026, п. 3.3.9; методичка, с. 12: «до 3-х сторінок»
+TOC_PAGES = (4, 6)                        # методичка, с. 10: зміст — «четверта, п'ята або шоста сторінка»
+RE_TOC = re.compile(r'^(\d+)\s+ЗМІСТ\b')
 BODY_RANGE = (60, 80)                     # основний текст, ВСТУП – ВИСНОВКИ включно (власник, 2026-10-26)
 
 
@@ -54,27 +59,36 @@ def page_texts(path):
         return [' '.join((p.extract_text() or '').split()) for p in pdf.pages]
 
 
-def thesis_pages(path):
-    """(обсяг, сторінок PDF, сторінок перед змістом). Зміст — перша сторінка, чий текст
-    починається з «3 ЗМІСТ»: номер сторінки вгорі, під ним заголовок."""
-    texts = page_texts(path)
-    toc = next((i for i, t in enumerate(texts) if re.match(r'^3\s+ЗМІСТ\b', t)), None)
+def toc_page(texts, path):
+    """(індекс сторінки змісту в PDF, її друкований номер). Зміст — перша сторінка, чий текст
+    починається з «N ЗМІСТ»: номер сторінки вгорі, під ним заголовок."""
+    toc = next((i for i, t in enumerate(texts) if RE_TOC.match(t)), None)
     if toc is None:
-        raise SystemExit(f'{path}: сторінки «3 ЗМІСТ» не знайдено — без неї обсяг не порахувати')
-    last = len(texts) - toc + 2
+        raise SystemExit(f'{path}: сторінки «N ЗМІСТ» не знайдено — без неї обсяг не порахувати')
+    return toc, int(RE_TOC.match(texts[toc]).group(1))
+
+
+def thesis_pages(path):
+    """(обсяг, сторінок PDF, сторінок перед змістом, номер сторінки змісту)."""
+    texts = page_texts(path)
+    toc, num = toc_page(texts, path)
+    last = len(texts) - toc + num - 1
     m = re.match(r'^(\d+)\b', texts[-1])
     if not m or int(m.group(1)) != last:
         raise SystemExit(f'{path}: остання сторінка має номер {m.group(1) if m else "?"}, а за підрахунком {last}')
-    return last, len(texts), toc
+    return last, len(texts), toc, num
 
 
-def referat_pages(path):
-    """Сторінок в українському рефераті й у рефераті іноземною мовою."""
-    texts = page_texts(path)
-    en = next((i for i, t in enumerate(texts) if t.startswith('ABSTRACT')), None)
-    if not texts or not texts[0].startswith('РЕФЕРАТ') or en is None:
-        raise SystemExit(f'{path}: не знайдено сторінок, що починаються з «РЕФЕРАТ» і «ABSTRACT»')
-    return en, len(texts) - en
+def referat_pages(work, abstract):
+    """Сторінок в українському рефераті (у роботі, від сторінки «РЕФЕРАТ» до змісту) і в рефераті
+    іноземною мовою (окремий файл)."""
+    texts = page_texts(work)
+    ua = next((i for i, t in enumerate(texts) if t.startswith('РЕФЕРАТ')), None)
+    toc, _ = toc_page(texts, work)
+    en = page_texts(abstract)
+    if ua is None or ua > toc or not en or not en[0].startswith('ABSTRACT'):
+        raise SystemExit(f'не знайдено реферату: «РЕФЕРАТ» перед змістом у {work}, «ABSTRACT» у {abstract}')
+    return toc - ua, len(en)
 
 
 def body_pages(path):
@@ -85,7 +99,8 @@ def body_pages(path):
     marks = []
     with pdfplumber.open(path) as pdf:
         texts = [(p.extract_text() or '').split('\n') for p in pdf.pages]
-    toc = next(i for i, t in enumerate(texts) if t and re.match(r'^3\s*$', t[0].strip()) and 'ЗМІСТ' in ' '.join(t[:3]))
+    toc = next(i for i, t in enumerate(texts) if t and re.match(r'^\d+\s*$', t[0].strip()) and 'ЗМІСТ' in ' '.join(t[:3]))
+    num = int(texts[toc][0].strip())
     for i, lines in enumerate(texts):
         for ln in (x.strip() for x in lines):
             if ln in ('ВСТУП', 'ВИСНОВКИ', 'СПИСОК ВИКОРИСТАНИХ ДЖЕРЕЛ') or re.fullmatch(r'РОЗДІЛ \d+', ln):
@@ -94,7 +109,7 @@ def body_pages(path):
     if 'ВСТУП' not in names or 'СПИСОК ВИКОРИСТАНИХ ДЖЕРЕЛ' not in names:
         raise SystemExit(f'{path}: не знайдено сторінок «ВСТУП» і «СПИСОК ВИКОРИСТАНИХ ДЖЕРЕЛ»')
     a, b = names.index('ВСТУП'), names.index('СПИСОК ВИКОРИСТАНИХ ДЖЕРЕЛ')
-    parts = [(n, i - toc + 3, nxt - i) for (n, i), (_, nxt) in zip(marks[a:b], marks[a + 1:b + 1])]
+    parts = [(n, i - toc + num, nxt - i) for (n, i), (_, nxt) in zip(marks[a:b], marks[a + 1:b + 1])]
     return parts, marks[b][1] - marks[a][1]
 
 
@@ -156,7 +171,7 @@ def table_plan(pdf, docx, prev):
     за SAFE_BOTTOM — за 15 мм до нижнього поля, а не там, де LibreOffice фізично переніс рядок: Word
     верстає рядки трохи інакше, і без запасу перша частина у Word переповзає на наступну сторінку,
     а жорсткий розрив перед «Продовження таблиці» лишає після неї майже порожню сторінку."""
-    _, _, front = thesis_pages(pdf)
+    _, _, front, _ = thesis_pages(pdf)
     parts, frags = docx_parts(docx), pdf_fragments(pdf, front)
     tables, height, k = {}, {}, 0                        # номер → [[фрагменти] на кожну частину .docx]
     for num, rows, cols in parts:
@@ -248,6 +263,7 @@ def main():
     ap.add_argument('--plan', help='tables: план поділу, з яким складено цей .docx (JSON; може не існувати)')
     ap.add_argument('--out', help='tables: куди записати наступний план (JSON)')
     ap.add_argument('--total', action='store_true', help='body: надрукувати лише загальний обсяг (для run_all.sh)')
+    ap.add_argument('--abstract', help='referat: PDF реферату іноземною мовою (окремий файл)')
     a = ap.parse_args()
     if a.what == 'tables':
         prev = json.load(open(a.plan, encoding='utf-8')) if a.plan and os.path.exists(a.plan) else {}
@@ -264,9 +280,12 @@ def main():
                       + (f'рядків тіла в частинах {v["parts"]}' if v['parts'] else ''))
         return 1 if changed or crossed else 0
     if a.what == 'pages':
-        last, total, front = thesis_pages(a.pdf)
+        last, total, front, num = thesis_pages(a.pdf)
         print(last)
-        print(f'обсяг {last} с.: у PDF {total} сторінок, перед змістом {front}', file=sys.stderr)
+        print(f'обсяг {last} с.: у PDF {total} сторінок, перед змістом {front}, зміст — с. {num}', file=sys.stderr)
+        lo, hi = TOC_PAGES
+        if not lo <= num <= hi:
+            print(f'ЗМІСТ НА С. {num}: методичка ставить його на с. {lo}–{hi}', file=sys.stderr); return 1
         return 0
     if a.what == 'typography':
         spaced, ranges, fonts = typography(a.pdf)
@@ -287,7 +306,8 @@ def main():
         for n, first, k in parts:
             print(f'   {n:12s} з с. {first:3d}: {k} с.')
         return 0
-    ua, en = referat_pages(a.pdf)
+    if not a.abstract: ap.error('referat: потрібен --abstract (PDF реферату іноземною мовою)')
+    ua, en = referat_pages(a.pdf, a.abstract)
     print(f'реферат: українською {ua} с., іноземною {en} с. (межа — {REFERAT_MAX})')
     return 0 if max(ua, en) <= REFERAT_MAX else 1
 

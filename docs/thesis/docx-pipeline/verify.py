@@ -500,19 +500,27 @@ def check_layout(doc, lines):
         if not tabs or any(len(t.columns) != 2 for t in tabs) or rows != want:
             bad.append(f'перелік умовних позначень: рядків у двох колонках {rows}, у джерелі {want}')
 
-    # номер сторінки: поле PAGE у верхньому колонтитулі праворуч
-    # номер сторінки: картка, титульний лист і завдання — без номера; зміст — сторінка 3,
-    # номер — поле PAGE у верхньому колонтитулі праворуч (методичка, с. 10 і 18)
+    # номер сторінки: картка, титульний лист, завдання й реферат — без номера; відлік наскрізний
+    # (картка — нуль, титульний лист — 1), тож зміст — номер своєї фізичної сторінки; номер — поле
+    # PAGE у верхньому колонтитулі праворуч (методичка, с. 10 і 18). На якій сторінці опинився
+    # зміст, видно лише в PDF — це перевіряє layout.py pages.
     if len(doc.sections) < 2:
         bad.append('немає окремого розділу документа для ненумерованих перших сторінок'); return bad
     if any(_has_field(p, 'PAGE') for p in doc.sections[0].header.paragraphs):
-        bad.append('титульний лист і завдання мають номер сторінки')
+        bad.append('титульний лист, завдання чи реферат мають номер сторінки')
     hp = doc.sections[1].header.paragraphs[0]
     if not _has_field(hp, 'PAGE') or _align(hp) != AL.RIGHT:
         bad.append('номер сторінки: немає поля PAGE вгорі праворуч')
     start = doc.sections[1]._sectPr.find(WNS + 'pgNumType')
-    if start is None or start.get(WNS + 'start') != '3':
-        bad.append('зміст не є сторінкою 3: нумерований розділ не починається з трьох')
+    if start is not None and start.get(WNS + 'start') is not None:
+        bad.append(f'нумерація не наскрізна: нумерований розділ починає відлік заново з {start.get(WNS + "start")}')
+    first = doc.sections[0]._sectPr.find(WNS + 'pgNumType')
+    first = first.get(WNS + 'start') if first is not None else None
+    if first not in (None, '0'):
+        bad.append(f'перші сторінки починають відлік із {first}: має бути 0 (картка) або 1')
+    unnumbered = [ws(x.text) for x in _body(doc)[:len(_body(doc)) - len(_section_start(doc, 1))] if _is_p(x)]
+    if 'РЕФЕРАТ' not in unnumbered:
+        bad.append('реферату немає на ненумерованих сторінках перед змістом (Положення 2026, п. 3.3.9)')
     first_numbered = next((ws(x.text) for x in _section_start(doc, 1) if _is_p(x) and x.text.strip()), '')
     if first_numbered != 'ЗМІСТ':
         bad.append(f'перша нумерована сторінка починається з «{first_numbered[:30]}», а не зі змісту')
@@ -635,9 +643,21 @@ def layout_mutations():
         ('звичайний пробіл перед тире', plain_space, 'пробіл перед тире'),
         ('звичайний дефіс замість нерозривного', plain_hyphen, 'дефіс у слові'),
         ('індекс набрано сирим «_»', raw_math, 'сира розмітка'),
-        ('зміст не на третій сторінці',
-         lambda d: d.sections[1]._sectPr.find(WNS + 'pgNumType').set(WNS + 'start', '2'), 'не є сторінкою 3'),
+        ('нумерація змісту починається заново',
+         lambda d: d.sections[1]._sectPr.append(parse_xml_t_pg('3')), 'нумерація не наскрізна'),
+        ('реферат не в роботі', drop_referat, 'реферату немає'),
     ]
+
+
+def parse_xml_t_pg(start):
+    from docx.oxml import parse_xml
+    from docx.oxml.ns import nsdecls
+    return parse_xml('<w:pgNumType %s w:start="%s"/>' % (nsdecls('w'), start))
+
+
+def drop_referat(d):
+    p = next(x for x in d.paragraphs if ws(x.text) == 'РЕФЕРАТ')
+    p._p.getparent().remove(p._p)
 
 
 def parse_xml_t(txt):
@@ -678,10 +698,11 @@ def main():
     if a.registry: build.bind_registry(a.registry)
     LINES = build.LINES
     body, nmath = docx_text(a.docx)
-    # реферат не вшивається в роботу (методичка, с. 11): його рядки мають бути в окремому файлі
+    # український реферат вшито в роботу перед змістом (Положення 2026, п. 3.3.9) і звіряється з
+    # нею, як решта тексту; реферат іноземною мовою — окремий файл: його рядки мають бути в ньому
     # і НЕ мають бути в роботі
     _, ua, en, _toc = build._front_lines()
-    referat_lines = set(range(ua[0], _toc))
+    referat_lines = set(range(en[0], _toc))
     referat_body = docx_text(a.referat)[0] if a.referat else None
     code, sections = code_lines(LINES), heading_numbers(LINES)
     filled = set(json.load(open(os.path.join(a.figures, 'manifest.json'), encoding='utf-8'))) if a.figures else set()

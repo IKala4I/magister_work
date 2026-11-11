@@ -58,12 +58,22 @@ for PASS in $(seq 1 $MAX_PASSES); do
   PAGES=$NEW; BODY=$NEWBODY; mv "$PLAN.next" "$PLAN"
 done
 echo; echo "== складання: звіт останнього проходу"; sed '$d' "$OUT/build.log" | sed '$d'
-echo; echo "== реферат";        "${PY[@]}" "$HERE/make_pdf.py" "$OUT/referat.docx" "$OUT/referat.pdf" --no-index
-                                "${PY[@]}" "$HERE/layout.py" referat "$OUT/referat.pdf"
+echo; echo "== реферат (український — у роботі перед змістом, ABSTRACT — окремим файлом)"
+                                "${PY[@]}" "$HERE/make_pdf.py" "$OUT/referat.docx" "$OUT/referat.pdf" --no-index
+                                "${PY[@]}" "$HERE/layout.py" referat "$OUT/hourwell.pdf" --abstract "$OUT/referat.pdf"
 echo; echo "== обсяг";          "${PY[@]}" "$HERE/layout.py" body "$OUT/hourwell.pdf"
 echo; echo "== типографіка в PDF"; "${PY[@]}" "$HERE/layout.py" typography "$OUT/hourwell.pdf"
 echo; echo "== звірка";         "${PY[@]}" "$HERE/verify.py" --src "$SRC" --brief "$BRIEF" --docx "$OUT/hourwell.docx" --referat "$OUT/referat.docx" --figures "$OUT/figures" --pages "$PAGES" --body-pages "$BODY" ${PRIVATE[@]+"${PRIVATE[@]}"}
 echo; echo "== самоперевірка оформлення"; "${PY[@]}" "$HERE/verify.py" --self-test --src "$SRC" --docx "$OUT/hourwell.docx"
 echo; echo "== легенди";        "${PY[@]}" "$HERE/check_legend_symbols.py" "$SRC"
 echo; echo "== аудит розмітки"; "${PY[@]}" "$HERE/audit_markdown.py" "$SRC" --out "$OUT/audit.md"
+# Методичка, с. 31: файл для перевірки й репозитарію — «МАГ-ДФН-ПЗІС-рік захисту-Прізвище І.Б.».
+# Ім'я береться з titulka.json («здобувач»), тож у репозиторії його немає.
+if [ -f "$PRIV" ]; then
+  NAME=$("${PY[@]}" -c 'import json, re, sys; v = json.load(open(sys.argv[1], encoding="utf-8")).get("здобувач", "").strip(); print(re.sub(r"(\w\.) (?=\w\.)", r"\1", v).rstrip("."))' "$PRIV")
+  if [ -n "$NAME" ]; then
+    cp "$OUT/hourwell.pdf" "$OUT/МАГ-ДФН-ПЗІС-2026-$NAME.pdf"
+    echo; echo "== файл для подання: $OUT/МАГ-ДФН-ПЗІС-2026-$NAME.pdf"
+  fi
+fi
 

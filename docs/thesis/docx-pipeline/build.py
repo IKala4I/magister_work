@@ -108,6 +108,8 @@ def _sub_private(line):
     # довші плейсхолдери першими: «[ПІБ здобувача]» є початком «[ПІБ здобувача для титулки]» лише
     # без дужки, але порядок не має залежати від такого збігу
     for ph in sorted(PRIVATE, key=len, reverse=True):
+        if PRIVATE[ph].endswith('.'):     # «Прізвище І. Б.» + «.» шаблону — одна крапка, не дві
+            line = line.replace(ph + '.', PRIVATE[ph])
         line = line.replace(ph, PRIVATE[ph])
     return line
 
@@ -441,9 +443,10 @@ def new_doc():
     return doc
 
 
-def numbered_section(doc, start):
-    """Розділ документа з номером сторінки вгорі праворуч, нумерація з `start`. Усе перед ним —
-    картка, титульний лист і завдання — номерів не має (методичка, с. 10)."""
+def numbered_section(doc, start=None):
+    """Розділ документа з номером сторінки вгорі праворуч; нумерація з `start` або, без нього,
+    наскрізна — продовжує відлік попередніх сторінок. Усе перед ним — картка, титульний лист,
+    завдання й реферат — номерів не має (методичка, с. 10)."""
     s = doc.add_section(WD_SECTION.NEW_PAGE)
     brk = doc.element.body.findall(qn('w:p'))[-1]              # порожній абзац із розривом — у попередній
     prev = brk.getprevious()
@@ -455,7 +458,8 @@ def numbered_section(doc, start):
     page_number(s.header.paragraphs[0])
     for pg in s._sectPr.findall(qn('w:pgNumType')):            # успадковане від перших сторінок («з нуля»)
         s._sectPr.remove(pg)
-    s._sectPr.append(parse_xml('<w:pgNumType %s w:start="%d"/>' % (nsdecls('w'), start)))
+    if start is not None:
+        s._sectPr.append(parse_xml('<w:pgNumType %s w:start="%d"/>' % (nsdecls('w'), start)))
     return s
 
 
@@ -1112,7 +1116,7 @@ TITLE_SHAPE = {2: 'ПОГОДЖЕНО', 5: 'ДОПУСКАЄТЬСЯ ДО ЗАХ
                16: 'Гарант освітньої програми', 19: 'Керівник магістерської кваліфікаційної роботи',
                22: 'Виконав'}
 SMALL = 9                                 # дрібні підрядкові підписи форми, пт
-DATE_BLANK = '«___» ___________ 20__ р.'
+DATE_BLANK = '«___» ___________ 2026 р.'   # рік захисту під підписами декана й завідувача (власник, 2026-11-11)
 
 
 def build_title(doc, lines):
@@ -1164,21 +1168,29 @@ def build_title(doc, lines):
 #   {"порожніх_рядків": 2}
 # «{ключ}» у тексті — значення з titulka.json; порожнє значення друкується прочерком для
 # заповнення від руки.
+#   {"текст": "…", "заголовок": true}               — рядок іде в зміст як структурний елемент
+#                                                     (стиль «Heading 1», без розриву сторінки)
+#   {"текст": "…", "відступ_мм": 10}                — відступ абзацу ліворуч (пункти бланка)
+# «{ключ}» шукається спершу в «поля» самого файлу (дати завдання — власник, 2026-11-11), потім у
+# titulka.json.
 ALIGN = {'ліворуч': LEFT, 'центр': C, 'праворуч': R, 'ширина': J}
 BLANK = '_' * 24
+FIELDS = {}                               # «поля» приватної частини, що складається зараз
 
 
 def _fill(text):
     def one(m):
+        if m.group(1) in FIELDS: return FIELDS[m.group(1)] or BLANK
         if m.group(1) not in DATA:
-            raise SystemExit(f'приватна частина: «{{{m.group(1)}}}» — такого ключа в titulka.json немає')
+            raise SystemExit(f'приватна частина: «{{{m.group(1)}}}» — такого ключа немає ні в «поля», '
+                             f'ні в titulka.json')
         return DATA[m.group(1)] or BLANK
     return re.sub(r'\{([^{}]+)\}', one, text)
 
 
 def _opts(e):
     unknown = set(e) - {'текст', 'вирівнювання', 'жирний', 'кегль', 'перед_пт', 'після_пт', 'розрядка',
-                        'ширина_мм', 'лінія', 'підкреслений'}
+                        'ширина_мм', 'лінія', 'підкреслений', 'заголовок', 'відступ_мм'}
     if unknown: raise SystemExit(f'приватна частина: невідомі ключі {sorted(unknown)} у записі {e}')
     return {'align': ALIGN[e.get('вирівнювання', 'ліворуч')], 'bold': bool(e.get('жирний')),
             'size': e.get('кегль'), 'before': e.get('перед_пт', 0), 'after': e.get('після_пт', 0),
@@ -1188,6 +1200,9 @@ def _opts(e):
 def _form_line(doc, e):
     o = _opts(e)
     p = para(doc, '', align=o['align'], indent=0, spacing=1, before=o['before'], after=o['after'])
+    if e.get('заголовок'):
+        p.style = doc.styles['Heading 1']; p.paragraph_format.page_break_before = False
+    if e.get('відступ_мм'): p.paragraph_format.left_indent = Mm(e['відступ_мм'])
     r = p.add_run(_fill(e.get('текст', ''))); r.bold = o['bold']; r.underline = o['underline']
     if o['size']: r.font.size = Pt(o['size'])
     if e.get('розрядка'):
@@ -1201,6 +1216,7 @@ def emit_private_part(doc, path, name):
                                       f'сторінку не вставлено')
         return False
     spec = json.load(open(path, encoding='utf-8'))
+    FIELDS.clear(); FIELDS.update({k: str(v).strip() for k, v in spec.get('поля', {}).items()})
     for e in spec['рядки']:
         if 'колонки' in e:
             cols = e['колонки']
@@ -1219,6 +1235,7 @@ def emit_private_part(doc, path, name):
             for _ in range(e['порожніх_рядків']): para(doc, '', indent=0, spacing=1)
         else:
             _form_line(doc, e)
+    FIELDS.clear()
     REPORT['notes'].append(f'{name}: сторінку складено з {os.path.basename(path)}')
     return True
 
@@ -1230,12 +1247,23 @@ def _front_lines():
     return title, (ua, en), (en, toc), toc
 
 
+def referat_block(doc, head, end, brk):
+    """Реферат однією мовою: заголовок і рядки full.md від `head` до `end`."""
+    p = para(doc, L(head).replace('**', ''), align=C, indent=0, bold=True, after=18, keep=True)
+    p.paragraph_format.page_break_before = brk
+    for n in range(head + 1, end):
+        if L(n).strip(): para(doc, L(n))
+
+
 def build_front(doc, parts=None):
-    """Те, що стоїть перед вступом, у порядку методички (с. 10): картка (у файлі для перевірки —
-    перша сторінка), титульний лист — сторінка 1, завдання — сторінка 2, зміст — сторінка 3, і
-    тільки він нумерується. Реферат сюди не входить: його вкладають у конверт (build_referat).
+    """Те, що стоїть перед вступом, у порядку Положення 2026 (п. 3.3.5) і методички (с. 10):
+    картка (у файлі для перевірки — перша сторінка, поза відліком), титульний лист — с. 1,
+    завдання — с. 2, реферат українською — с. 3 і далі, «перед змістом» (п. 3.3.9), зміст — перша
+    нумерована сторінка. Номери не друкуються до змісту, а відлік наскрізний: зміст отримує номер
+    своєї фізичної сторінки (з тристорінковим рефератом — 6). Реферат іноземною мовою вшивається
+    не в роботу, а окремим файлом (build_referat; власник, 2026-11-11).
     Повертає номер рядка, з якого продовжує build_body."""
-    title, _, _, toc = _front_lines()
+    title, ua, _, toc = _front_lines()
     card = emit_private_part(doc, parts and os.path.join(parts, 'kartka.json'), 'картка')
     if card: page_break(doc)
     build_title(doc, title)
@@ -1243,25 +1271,34 @@ def build_front(doc, parts=None):
     if not emit_private_part(doc, parts and os.path.join(parts, 'zavdannia.json'), 'завдання'):
         boxed(doc, '[МІСЦЕ ДЛЯ ЗАВДАННЯ: друга сторінка роботи — завдання до виконання магістерської '
                    'кваліфікаційної роботи з підписами; MagisterDocs/private/zavdannia.json]')
+    referat_block(doc, *ua, brk=True)
     if card:                               # картка стоїть перед сторінкою 1: відлік із нуля
         doc.sections[0]._sectPr.append(parse_xml('<w:pgNumType %s w:start="0"/>' % nsdecls('w')))
-    numbered_section(doc, 3)
+    numbered_section(doc)
     p = para(doc, L(toc).replace('**', ''), align=C, indent=0, bold=True, after=18, keep=True)
     toc_field(doc)
     return toc + 2
 
 
+DECLARATION = 'deklaratsiia.json'
+PARTS = [None]                            # тека приватних частин (--parts)
+
+
+def build_declaration(doc):
+    """Декларація академічної доброчесності та використання ШІ (Положення 2026, п. 3.3.5, додаток К):
+    окрема сторінка після списку джерел, перед додатками. Текст з ім'ям і позначками — приватна
+    частина MagisterDocs/private/deklaratsiia.json; її рядок-назва йде в зміст."""
+    page_break(doc)
+    if not emit_private_part(doc, PARTS[0] and os.path.join(PARTS[0], DECLARATION), 'декларація'):
+        boxed(doc, '[МІСЦЕ ДЛЯ ДЕКЛАРАЦІЇ академічної доброчесності та використання ШІ (додаток К '
+                   'Положення); MagisterDocs/private/deklaratsiia.json]')
+
+
 def build_referat(out, pages=None):
-    """Реферат — окремим файлом (методичка, с. 11: вкладається в конверт разом із рецензією).
-    Український і іноземною мовою, кожен з нової сторінки; текст — ті самі рядки full.md між
-    титулкою і змістом."""
-    _, ua, en, _ = _front_lines()
+    """Реферат іноземною мовою — окремим файлом (український вшито в роботу перед змістом)."""
+    _, _, en, _ = _front_lines()
     doc = new_doc()
-    for k, (head, end) in enumerate((ua, en)):
-        p = para(doc, L(head).replace('**', ''), align=C, indent=0, bold=True, after=18, keep=True)
-        p.paragraph_format.page_break_before = bool(k)
-        for n in range(head + 1, end):
-            if L(n).strip(): para(doc, L(n))
+    referat_block(doc, *en, brk=False)
     typeset_document(doc)
     os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
     doc.save(out)
@@ -1292,6 +1329,7 @@ def build_body(doc, lo, hi):
             in_legend = lvl == 1 and txt.startswith('ПЕРЕЛІК УМОВНИХ ПОЗНАЧЕНЬ')
             ap = RE_APPENDIX.match(txt) if lvl == 2 else None
             if lvl == 1:
+                if txt == 'ДОДАТКИ': build_declaration(doc)
                 struct_head(doc, txt)
             elif ap:
                 # кожен додаток — з нової сторінки; перший, що йде одразу за «ДОДАТКИ», лишається
@@ -1533,6 +1571,7 @@ def build(src, out, brief=None, registry=None, report=None, figures=None, privat
     if registry: bind_registry(registry)
     load_figures(figures)
     doc = new_doc()
+    PARTS[0] = parts
     start = build_front(doc, parts)
     build_body(doc, start, len(LINES) - 1)
     if not pages:
@@ -1570,8 +1609,8 @@ if __name__ == '__main__':
     ap.add_argument('--report', help='куди записати звіт складання (JSON)')
     ap.add_argument('--figures', help='тека рендерів із manifest.json (render_figures.py); без неї — плейсхолдери')
     ap.add_argument('--private', help='titulka.json — дані титулки й реферату (поза репозиторієм)')
-    ap.add_argument('--parts', help='тека з приватними частинами kartka.json і zavdannia.json (MagisterDocs/private)')
-    ap.add_argument('--referat', help='куди записати реферат окремим .docx')
+    ap.add_argument('--parts', help='тека з приватними частинами kartka.json, zavdannia.json і deklaratsiia.json (MagisterDocs/private)')
+    ap.add_argument('--referat', help='куди записати реферат іноземною мовою окремим .docx')
     ap.add_argument('--pages', type=int, help='кількість сторінок роботи з PDF попереднього проходу')
     ap.add_argument('--body-pages', type=int, help='обсяг основного тексту з PDF попереднього проходу (layout.py body --total)')
     ap.add_argument('--splits', help='план поділу таблиць за сторінками з PDF попереднього проходу (layout.py tables)')
