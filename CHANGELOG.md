@@ -5,7 +5,7 @@
 ## Post-P12 — front matter by the university's 2026 regulation (2026-11-11, post-p12/front-matter-2026)
 
 - **Реферат inside the thesis, before ЗМІСТ** (Положення 2026, п. 3.3.9): pp. 3–5 unnumbered, ЗМІСТ
-  on p. 6; numbering is continuous and `layout.py pages` fails the build unless ЗМІСТ lands on
+  on p. 6; numbering is continuous and `layout.py toc` fails the build unless ЗМІСТ lands on
   p. 4–6. ABSTRACT stays a separate file. Seven keywords (was 15); «розділів – 4» / «4 chapters».
 - **Declaration of academic integrity and AI use** (додаток К) after the sources, before ДОДАТКИ,
   with a contents entry; its text is a private part (`MagisterDocs/private/deklaratsiia.json`).

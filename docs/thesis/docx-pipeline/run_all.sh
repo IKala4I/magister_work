@@ -62,6 +62,7 @@ echo; echo "== реферат (український — у роботі пер
                                 "${PY[@]}" "$HERE/make_pdf.py" "$OUT/referat.docx" "$OUT/referat.pdf" --no-index
                                 "${PY[@]}" "$HERE/layout.py" referat "$OUT/hourwell.pdf" --abstract "$OUT/referat.pdf"
 echo; echo "== обсяг";          "${PY[@]}" "$HERE/layout.py" body "$OUT/hourwell.pdf"
+                                "${PY[@]}" "$HERE/layout.py" toc "$OUT/hourwell.pdf"
 echo; echo "== типографіка в PDF"; "${PY[@]}" "$HERE/layout.py" typography "$OUT/hourwell.pdf"
 echo; echo "== звірка";         "${PY[@]}" "$HERE/verify.py" --src "$SRC" --brief "$BRIEF" --docx "$OUT/hourwell.docx" --referat "$OUT/referat.docx" --figures "$OUT/figures" --pages "$PAGES" --body-pages "$BODY" ${PRIVATE[@]+"${PRIVATE[@]}"}
 echo; echo "== самоперевірка оформлення"; "${PY[@]}" "$HERE/verify.py" --self-test --src "$SRC" --docx "$OUT/hourwell.docx"

@@ -443,6 +443,18 @@ def new_doc():
     return doc
 
 
+def set_page_start(sect_pr, start):
+    """«Нумерувати з `start`» у розділі документа. Схема ставить <w:pgNumType> перед <w:cols>
+    (і рештою хвоста sectPr): у кінці, після <w:docGrid>, Word може його пропустити, і тоді
+    титульний лист став би с. 2. LibreOffice прощає обидва порядки, тож PDF цього не покаже."""
+    el = parse_xml('<w:pgNumType %s w:start="%d"/>' % (nsdecls('w'), start))
+    tail = [qn('w:' + t) for t in ('cols', 'formProt', 'vAlign', 'noEndnote', 'titlePg', 'textDirection',
+                                    'bidi', 'rtlGutter', 'docGrid', 'printerSettings', 'sectPrChange')]
+    nxt = next((c for c in sect_pr if c.tag in tail), None)
+    if nxt is None: sect_pr.append(el)
+    else: nxt.addprevious(el)
+
+
 def numbered_section(doc, start=None):
     """Розділ документа з номером сторінки вгорі праворуч; нумерація з `start` або, без нього,
     наскрізна — продовжує відлік попередніх сторінок. Усе перед ним — картка, титульний лист,
@@ -459,7 +471,7 @@ def numbered_section(doc, start=None):
     for pg in s._sectPr.findall(qn('w:pgNumType')):            # успадковане від перших сторінок («з нуля»)
         s._sectPr.remove(pg)
     if start is not None:
-        s._sectPr.append(parse_xml('<w:pgNumType %s w:start="%d"/>' % (nsdecls('w'), start)))
+        set_page_start(s._sectPr, start)
     return s
 
 
@@ -1273,7 +1285,7 @@ def build_front(doc, parts=None):
                    'кваліфікаційної роботи з підписами; MagisterDocs/private/zavdannia.json]')
     referat_block(doc, *ua, brk=True)
     if card:                               # картка стоїть перед сторінкою 1: відлік із нуля
-        doc.sections[0]._sectPr.append(parse_xml('<w:pgNumType %s w:start="0"/>' % nsdecls('w')))
+        set_page_start(doc.sections[0]._sectPr, 0)
     numbered_section(doc)
     p = para(doc, L(toc).replace('**', ''), align=C, indent=0, bold=True, after=18, keep=True)
     toc_field(doc)

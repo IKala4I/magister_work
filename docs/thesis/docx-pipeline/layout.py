@@ -3,6 +3,7 @@
 """Що вийшло на сторінках: читає готовий PDF і каже конвеєру те, чого з .docx не видно.
 
     python3 layout.py pages   hourwell.pdf            # обсяг роботи: номер останньої сторінки
+    python3 layout.py toc     hourwell.pdf            # зміст — на с. 4–6
     python3 layout.py referat hourwell.pdf --abstract referat.pdf
                                                       # сторінок у рефераті кожною мовою (≤ 3)
     python3 layout.py tables  hourwell.pdf hourwell.docx --plan tables.json --out tables.next.json
@@ -258,7 +259,7 @@ def typography(path):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument('what', choices=('pages', 'referat', 'tables', 'body', 'typography')); ap.add_argument('pdf')
+    ap.add_argument('what', choices=('pages', 'toc', 'referat', 'tables', 'body', 'typography')); ap.add_argument('pdf')
     ap.add_argument('docx', nargs='?', help='tables: .docx, з якого зроблено цей PDF')
     ap.add_argument('--plan', help='tables: план поділу, з яким складено цей .docx (JSON; може не існувати)')
     ap.add_argument('--out', help='tables: куди записати наступний план (JSON)')
@@ -283,10 +284,12 @@ def main():
         last, total, front, num = thesis_pages(a.pdf)
         print(last)
         print(f'обсяг {last} с.: у PDF {total} сторінок, перед змістом {front}, зміст — с. {num}', file=sys.stderr)
-        lo, hi = TOC_PAGES
-        if not lo <= num <= hi:
-            print(f'ЗМІСТ НА С. {num}: методичка ставить його на с. {lo}–{hi}', file=sys.stderr); return 1
         return 0
+    if a.what == 'toc':                   # після проходів: у першому реферат ще з плейсхолдером
+        _, _, _, num = thesis_pages(a.pdf)
+        lo, hi = TOC_PAGES
+        print(f'зміст — с. {num}' + ('' if lo <= num <= hi else f' — ПОЗА с. {lo}–{hi} (методичка, с. 10)'))
+        return 0 if lo <= num <= hi else 1
     if a.what == 'typography':
         spaced, ranges, fonts = typography(a.pdf)
         odd = {f: n for f, n in fonts.items() if not re.match(r'(TimesNewRoman|LiberationSerif|LiberationMono|CourierNew)', f)}

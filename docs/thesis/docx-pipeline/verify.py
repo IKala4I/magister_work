@@ -518,9 +518,20 @@ def check_layout(doc, lines):
     first = first.get(WNS + 'start') if first is not None else None
     if first not in (None, '0'):
         bad.append(f'перші сторінки починають відлік із {first}: має бути 0 (картка) або 1')
+    sp0 = doc.sections[0]._sectPr
+    tags = [c.tag for c in sp0]
+    if WNS + 'pgNumType' in tags and WNS + 'cols' in tags and tags.index(WNS + 'pgNumType') > tags.index(WNS + 'cols'):
+        bad.append('pgNumType стоїть після cols: Word може не почати відлік із нуля (схема OOXML)')
     unnumbered = [ws(x.text) for x in _body(doc)[:len(_body(doc)) - len(_section_start(doc, 1))] if _is_p(x)]
     if 'РЕФЕРАТ' not in unnumbered:
         bad.append('реферату немає на ненумерованих сторінках перед змістом (Положення 2026, п. 3.3.9)')
+    # декларація (Положення 2026, п. 3.3.5, додаток К): після списку джерел, перед «ДОДАТКИ», у змісті
+    h1 = [(i, ws(x.text)) for i, x in enumerate(els) if _is_p(x) and x.style.name == 'Heading 1']
+    pos = {t: i for i, t in h1}
+    decl = next((i for i, t in h1 if t.startswith('Декларація')), None)
+    src_i = next((i for i, t in h1 if t.startswith('СПИСОК ВИКОРИСТАНИХ ДЖЕРЕЛ')), None)
+    if decl is None or src_i is None or 'ДОДАТКИ' not in pos or not src_i < decl < pos['ДОДАТКИ']:
+        bad.append('декларації немає між списком джерел і «ДОДАТКИ» (Положення 2026, п. 3.3.5)')
     first_numbered = next((ws(x.text) for x in _section_start(doc, 1) if _is_p(x) and x.text.strip()), '')
     if first_numbered != 'ЗМІСТ':
         bad.append(f'перша нумерована сторінка починається з «{first_numbered[:30]}», а не зі змісту')
@@ -646,6 +657,10 @@ def layout_mutations():
         ('нумерація змісту починається заново',
          lambda d: d.sections[1]._sectPr.append(parse_xml_t_pg('3')), 'нумерація не наскрізна'),
         ('реферат не в роботі', drop_referat, 'реферату немає'),
+        ('перші сторінки з номером 2', lambda d: d.sections[0]._sectPr.find(WNS + 'pgNumType').set(WNS + 'start', '2'),
+         'починають відлік із 2'),
+        ('pgNumType після cols', pg_after_cols, 'стоїть після cols'),
+        ('декларації немає', drop_declaration, 'декларації немає'),
     ]
 
 
@@ -653,6 +668,15 @@ def parse_xml_t_pg(start):
     from docx.oxml import parse_xml
     from docx.oxml.ns import nsdecls
     return parse_xml('<w:pgNumType %s w:start="%s"/>' % (nsdecls('w'), start))
+
+
+def pg_after_cols(d):
+    sp = d.sections[0]._sectPr; pg = sp.find(WNS + 'pgNumType'); sp.remove(pg); sp.append(pg)
+
+
+def drop_declaration(d):
+    p = next(x for x in d.paragraphs if x.style.name == 'Heading 1' and x.text.startswith('Декларація'))
+    p._p.getparent().remove(p._p)
 
 
 def drop_referat(d):
