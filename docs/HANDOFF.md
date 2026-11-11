@@ -38,6 +38,9 @@ Sources compared: `MagisterDocs/polozhennya_МКР_на ВР6.10._2026 рік.do
 - Build: 119 pp., body 71, ВСТУП 3 pp., ЗМІСТ p. 6, every gate green;
   `build/МАГ-ДФН-ПЗІС-2026-<ім'я>.pdf` is the thesis without appendices (plagiarism check).
 - Open: the theses go into the sources once the collection is out.
+- ⛔ PR #104 is not merged: since 2026-11-11 every Actions job fails unstarted — «The job was not
+  started because your account is locked due to a billing issue». Owner: GitHub → Settings →
+  Billing; then re-run the PR's CI and merge. All gates ran green locally.
 - Remaining differences from the regulation are listed in the PR body.
 
 ## Current state (2026-11-02) — post-p12/text-view-wording: текстовий вигляд карти
