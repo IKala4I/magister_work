@@ -2,6 +2,15 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — reading fixes (2026-11-12, post-p12/reading-fixes)
+
+- Figures no longer overrun the right margin in the PDF: python-docx writes no `dist*` on inline
+  pictures, which LibreOffice reads as 0.32 cm; `zero_dist` sets them to 0, and `layout.py
+  typography` fails on any image outside the text block (old PDF: 6).
+- List of terms: «(далі в тексті: …)», rows kept on one page (cantSplit).
+- No italics in the реферат/ABSTRACT; «(скорочено)» dropped from table 3.1; the participant voucher
+  is no longer mentioned.
+
 ## Post-P12 — the PDF in Times New Roman, and the list of terms (2026-11-12, post-p12/pdf-fonts-legend)
 
 - The PDF was set in Liberation Serif: the pinned LibreOffice does not see the system Times New

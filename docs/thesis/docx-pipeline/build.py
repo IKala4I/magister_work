@@ -1462,6 +1462,8 @@ def emit_legend(doc, items):
         t.columns[j].width = Mm(w)
         for row in t.rows: row.cells[j].width = Mm(w)
     for row, (a, b) in zip(t.rows, pairs):
+        # термін із поясненням не рветься між сторінками (власник, 2026-11-12)
+        row._tr.get_or_add_trPr().append(parse_xml('<w:cantSplit %s/>' % nsdecls('w')))
         for c, txt in zip(row.cells, (a, '– ' + b)):
             c.text = ''
             p = c.paragraphs[0]; f = p.paragraph_format
@@ -1534,13 +1536,21 @@ def orientation_section(doc, landscape):
         s.left_margin, s.right_margin, s.top_margin, s.bottom_margin = Mm(30), Mm(10), Mm(20), Mm(20)
 
 
+def zero_dist(run):
+    """Нульові відступи довкола рисунка (distT/B/L/R). python-docx їх не пише; Word тоді бере 0,
+    а LibreOffice — свої 0,32 см, і рисунок на всю ширину поля виходив у PDF на ≈ 3 мм за праву
+    межу (помічено 2026-11-12)."""
+    for inl in run._r.iter(qn('wp:inline')):
+        for a in ('distT', 'distB', 'distL', 'distR'): inl.set(a, '0')
+
+
 def image_para(doc, path, width_mm):
     """Абзац з одним зображенням: по центру, одинарний інтервал (множник 1,5 додав би половину
     висоти зображення над ним), тримається з наступним — із підписом."""
     p = doc.add_paragraph(); f = p.paragraph_format
     f.first_line_indent = Cm(0); f.alignment = C; f.line_spacing_rule = WD_LINE_SPACING.SINGLE
     f.space_before = Pt(6); f.space_after = Pt(6); f.keep_with_next = True
-    p.add_run().add_picture(path, width=Mm(width_mm))
+    r = p.add_run(); r.add_picture(path, width=Mm(width_mm)); zero_dist(r)
     return p
 
 
@@ -1558,7 +1568,7 @@ def emit_image_grid(doc, num, fig):
         c = t.rows[i // per_row].cells[i % per_row]; p = c.paragraphs[0]; pf = p.paragraph_format
         pf.first_line_indent = Cm(0); pf.alignment = C; pf.line_spacing_rule = WD_LINE_SPACING.SINGLE
         pf.keep_with_next = True
-        p.add_run().add_picture(f, width=Mm(w))
+        r = p.add_run(); r.add_picture(f, width=Mm(w)); zero_dist(r)
     REPORT['figures'].append(f'рисунок {num}: знімків {len(files)}, у ряд до {per_row}')
 
 
