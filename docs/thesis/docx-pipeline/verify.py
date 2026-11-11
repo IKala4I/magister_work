@@ -493,7 +493,7 @@ def check_layout(doc, lines):
     if heads:
         a = next(i for i, s in enumerate(lines) if s.startswith('# ПЕРЕЛІК УМОВНИХ'))
         b = next(i for i in range(a + 1, len(lines)) if lines[i].startswith('# '))
-        want = sum(1 for s in lines[a + 1:b] if build.LEGEND_ITEM.match(s))
+        want = sum(1 for s in lines[a + 1:b] if build.legend_split(s))
         end = next(i for i in range(heads[0] + 1, len(els)) if _is_p(els[i]) and els[i].style.name == 'Heading 1')
         tabs = [x for x in els[heads[0]:end] if not _is_p(x)]
         rows = sum(len(t.rows) for t in tabs)

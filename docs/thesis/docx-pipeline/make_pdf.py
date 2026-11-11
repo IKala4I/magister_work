@@ -14,9 +14,17 @@ render/.tools (git-ignored, ≈ 800 МБ). Профіль — власний, re
 PDF. Python, що йде з LibreOffice, тут не годиться: на цій машині його процес убиває система
 (exit 137), а сам soffice працює.
 
+Шрифт. Сам LibreOffice системного Times New Roman не бачить і підставляє Liberation Serif (так
+PDF набирався до 2026-11-12). Тому ensure_fonts кладе чотири файли Times New Roman із
+/System/Library/Fonts/Supplemental у теку шрифтів власного профілю (лише локально, git-ignored)
+і без них зупиняється. У Times New Roman немає гліфа нерозривного дефіса (U+2011, яким LibreOffice
+читає <w:noBreakHyphen/>), і LibreOffice підставив би чужий шрифт (Linux Libertine). Тому PDF
+складається з копії .docx (pdf_copy), де кожен такий дефіс — окремий прогін Liberation Serif:
+метрики й форма ті самі, що в Times New Roman. Сам .docx не змінюється — у Word дефіс Times New Roman.
+
 Формули LibreOffice верстає тісніше за Word; остаточне слово щодо формул — за Word (README).
 """
-import argparse, hashlib, os, re, subprocess, sys, tempfile
+import argparse, copy, hashlib, os, re, shutil, subprocess, sys, tempfile, zipfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TOOLS = os.path.join(HERE, 'render', '.tools')
@@ -102,6 +110,73 @@ def ensure_libreoffice():
         os.remove(dmg)
 
 
+SYSTEM_TNR = '/System/Library/Fonts/Supplemental'
+TNR_FILES = tuple(f'{face}{style}.ttf' for face in ('Times New Roman', 'Courier New')   # Courier New — код
+                  for style in ('', ' Bold', ' Italic', ' Bold Italic'))
+
+
+def ensure_fonts():
+    """Times New Roman і Courier New у теці шрифтів профілю LibreOffice (user/fonts): без них PDF
+    набрався б Liberation Serif і Liberation Mono."""
+    dst = os.path.join(PROFILE, 'user', 'fonts')
+    os.makedirs(dst, exist_ok=True)
+    for f in TNR_FILES:
+        src = os.path.join(SYSTEM_TNR, f)
+        if not os.path.exists(src):
+            raise SystemExit(f'немає {src}: без нього PDF набрався б іншим шрифтом')
+        out = os.path.join(dst, f)
+        if not os.path.exists(out) or os.path.getsize(out) != os.path.getsize(src):
+            shutil.copyfile(src, out)
+
+
+W = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'
+HYPHEN_FONT = 'Liberation Serif'
+
+
+def pdf_copy(src, dst):
+    """Копія .docx для LibreOffice: кожен <w:noBreakHyphen/> — у власному прогоні шрифтом
+    Liberation Serif (див. docstring модуля). У заголовках — звичайний дефіс того самого гліфа:
+    рядок змісту LibreOffice складає із заголовка стилем змісту, без шрифту прогону, і нерозривний
+    дефіс там знову взяв би чужий шрифт. Повертає кількість нерозривних дефісів."""
+    from lxml import etree
+    n = 0
+    with zipfile.ZipFile(src) as zin, zipfile.ZipFile(dst, 'w', zipfile.ZIP_DEFLATED) as zout:
+        for item in zin.infolist():
+            data = zin.read(item.filename)
+            if item.filename == 'word/document.xml':
+                root = etree.fromstring(data)
+                for h in root.iter(W + 'pStyle'):
+                    if h.get(W + 'val', '').startswith('Heading'):
+                        for nb in list(h.getparent().getparent().iter(W + 'noBreakHyphen')):
+                            t = etree.Element(W + 't'); t.text = '-'; nb.getparent().replace(nb, t)
+                for r in list(root.iter(W + 'r')):
+                    kids = [k for k in r if k.tag != W + 'rPr']
+                    if not any(k.tag == W + 'noBreakHyphen' for k in kids): continue
+                    rpr = r.find(W + 'rPr')
+                    groups, cur = [], []
+                    for k in kids:
+                        if k.tag == W + 'noBreakHyphen':
+                            if cur: groups.append((False, cur)); cur = []
+                            groups.append((True, [k])); n += 1
+                        else: cur.append(k)
+                    if cur: groups.append((False, cur))
+                    parent, at = r.getparent(), r.getparent().index(r)
+                    for gi, (hyph, items) in enumerate(groups):
+                        nr = etree.Element(W + 'r')
+                        p2 = copy.deepcopy(rpr) if rpr is not None else etree.Element(W + 'rPr')
+                        if hyph:
+                            fonts = p2.find(W + 'rFonts')
+                            if fonts is None: fonts = etree.Element(W + 'rFonts'); p2.insert(0, fonts)
+                            for a in ('ascii', 'hAnsi', 'cs', 'eastAsia'): fonts.set(W + a, HYPHEN_FONT)
+                        if len(p2) or hyph: nr.append(p2)
+                        for k in items: nr.append(k)
+                        parent.insert(at + gi, nr)
+                    parent.remove(r)
+                data = etree.tostring(root, xml_declaration=True, encoding='UTF-8', standalone=True)
+            zout.writestr(item, data)
+    return n
+
+
 def soffice(*args):
     return subprocess.run([SOFFICE, '--headless', '--invisible', '--norestore',
                            f'-env:UserInstallation=file://{PROFILE}', *args],
@@ -115,20 +190,28 @@ def main():
                     help='документ без змісту (реферат): відсутність покажчика — не помилка')
     a = ap.parse_args()
     ensure_libreoffice()
+    ensure_fonts()
     std = os.path.join(PROFILE, 'user', 'basic', 'Standard')
     if not os.path.isdir(std):                                   # перший запуск — профіль створює сам soffice
         soffice('--terminate_after_init')
     open(os.path.join(std, 'Hourwell.xba'), 'w', encoding='utf-8').write(MACRO)
     open(os.path.join(std, 'script.xlb'), 'w', encoding='utf-8').write(LIBRARY)
-    src, dst = os.path.abspath(a.docx), os.path.abspath(a.pdf)
+    dst = os.path.abspath(a.pdf)
     for p in (dst, dst + '.log'):
         if os.path.exists(p): os.remove(p)
-    soffice(f'macro:///Standard.Hourwell.ExportPdf("{src}","{dst}")')
+    tmp = tempfile.mkdtemp()
+    src = os.path.join(tmp, os.path.basename(a.docx))
+    hyphens = pdf_copy(os.path.abspath(a.docx), src)
+    try:
+        soffice(f'macro:///Standard.Hourwell.ExportPdf("{src}","{dst}")')
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
     if not os.path.exists(dst + '.log'):
         raise SystemExit('PDF не зібрано: макрос LibreOffice не відпрацював')
     stats = open(dst + '.log', encoding='utf-8').read().strip(); os.remove(dst + '.log')
     pages = len(re.findall(rb'/Type\s*/Page(?![s\w])', open(dst, 'rb').read()))   # об'єкти сторінок PDF
-    print(f'   {a.pdf}: LibreOffice {LO_VERSION}, {stats}, сторінок {pages}, {os.path.getsize(dst) // 1024} КБ')
+    print(f'   {a.pdf}: LibreOffice {LO_VERSION}, {stats}, сторінок {pages}, {os.path.getsize(dst) // 1024} КБ, '
+          f'нерозривних дефісів {hyphens} (Liberation Serif)')
     if stats.startswith('ПОМИЛКА'):
         raise SystemExit(f'макрос LibreOffice: {stats}')
     if stats.startswith('покажчиків 0') and not a.no_index:

@@ -302,10 +302,15 @@ PlantUML обрізає зображення ширші за 4096 px, тому �
 - LibreOffice верстає рівняння тісніше за Word: вихід за поле, видимий у Word, у PDF з
   LibreOffice може не проявитися. Остаточне слово щодо формул — за Word.
 - Символ ◐ набрано шрифтом Segoe UI Symbol; на системі без нього Word підставить свій.
-- **PDF набрано Liberation Serif, а не Times New Roman.** Закріплений LibreOffice не бере системний
-  Times New Roman (і поза пісочницею) і підставляє Liberation Serif — шрифт з тими самими метриками,
-  тож переноси й сторінки ті самі. У .docx скрізь Times New Roman, і Word набере ним. Помічено
-  2026-10-26; раніше ніде не записано.
+- **PDF набрано Times New Roman** (з 2026-11-12; до того — Liberation Serif). Закріплений LibreOffice
+  системного Times New Roman не бачить, тож `make_pdf.py` кладе Times New Roman і Courier New із
+  `/System/Library/Fonts/Supplemental` у теку шрифтів власного профілю (лише локально). Нерозривний
+  дефіс (U+2011) у Times New Roman гліфа не має; у копії .docx для PDF він — прогін Liberation Serif
+  (ті самі метрики й форма), у заголовках — звичайний дефіс, бо рядок змісту бере шрифт стилю.
+  Змінні у формулах LibreOffice Math набирає своїм шрифтом (Word — Cambria Math). `layout.py
+typography` валить збирання, якщо Times New Roman менше 97 % літер і цифр тексту.
+- **Перелік умовних позначень** ділить рядок «X – Y» за першим тире поза дужками
+  (`legend_split`): у термін може входити уточнення з тире.
 - **Тире діапазону без пробілів** («P. 272–279») LibreOffice переносить на початок рядка; Word перед
   таким тире рядка не розриває. Знака, що заборонив би розрив і мав гліф (U+2060), немає ні в Times
   New Roman, ні в Liberation Serif, тож `layout.py typography` такі рядки лише рахує (зараз два, у

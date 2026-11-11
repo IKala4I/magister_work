@@ -2,6 +2,16 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — the PDF in Times New Roman, and the list of terms (2026-11-12, post-p12/pdf-fonts-legend)
+
+- The PDF was set in Liberation Serif: the pinned LibreOffice does not see the system Times New
+  Roman. `make_pdf.py` now puts Times New Roman and Courier New into its profile's font folder; the
+  non-breaking hyphen, which Times New Roman lacks, is a Liberation Serif run in the PDF copy (plain
+  hyphen in headings, as ЗМІСТ takes its style's font). `layout.py typography` fails below 97 % Times
+  New Roman text. The .docx is unchanged.
+- The list of terms split «Контекстний багаторукий бандит (далі в тексті – модель навчання) – …» at
+  the dash inside the brackets; `legend_split` takes the first dash outside brackets.
+
 ## Post-P12 — front matter by the university's 2026 regulation (2026-11-11, post-p12/front-matter-2026)
 
 - **Реферат inside the thesis, before ЗМІСТ** (Положення 2026, п. 3.3.9): pp. 3–5 unnumbered, ЗМІСТ
