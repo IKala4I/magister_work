@@ -38,9 +38,11 @@ Sources compared: `MagisterDocs/polozhennya_МКР_на ВР6.10._2026 рік.do
 - Build: 119 pp., body 71, ВСТУП 3 pp., ЗМІСТ p. 6, every gate green;
   `build/МАГ-ДФН-ПЗІС-2026-<ім'я>.pdf` is the thesis without appendices (plagiarism check).
 - Open: the theses go into the sources once the collection is out.
-- ⛔ PR #104 is not merged: since 2026-11-11 every Actions job fails unstarted — «The job was not
-  started because your account is locked due to a billing issue». Owner: GitHub → Settings →
-  Billing; then re-run the PR's CI and merge. All gates ran green locally.
+- PR #104 merged 2026-11-11 by the owner with an admin bypass (protection restored: enforce_admins
+  on, 6 required checks): every Actions job fails unstarted — «account is locked due to a billing
+  issue», «disabled because we have not been able to charge it», yet Payment history is empty.
+  All gates ran green locally. ⛔ Owner: GitHub Support → Billing; until then every PR needs the
+  same bypass, and main's CI has not run on #104.
 - Remaining differences from the regulation are listed in the PR body.
 
 ## Current state (2026-11-02) — post-p12/text-view-wording: текстовий вигляд карти

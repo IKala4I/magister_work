@@ -259,6 +259,27 @@ def table_plan(pdf, docx, prev):
 LEFT_EDGE = 30 * PT_MM + 5                # лівий край текстового блоку (поле 30 мм) із допуском, пт
 
 
+TEXT_FONT_MIN = 0.97                      # частка літер і цифр Times New Roman серед знаків з засічками
+
+
+def text_font_share(path):
+    """Частка літер і цифр, набраних Times New Roman, серед усіх, крім коду (Courier New) і
+    формул: формули LibreOffice Math набирає своїм шрифтом, а Word — Cambria Math. До 2026-11-12
+    увесь PDF ішов Liberation Serif, бо LibreOffice не бачив системного Times New Roman
+    (make_pdf.ensure_fonts)."""
+    tnr = other = 0
+    with pdfplumber.open(path) as pdf:
+        for p in pdf.pages:
+            for c in p.chars:
+                if not c['text'].isalnum(): continue
+                f = c['fontname'].split('+')[-1]
+                if f.startswith(('CourierNew', 'LiberationMono', 'OpenSymbol', 'DejaVuMath')) or f.endswith('Italic'):
+                    continue
+                if f.startswith('TimesNewRoman'): tnr += 1
+                else: other += 1
+    return tnr / max(1, tnr + other), tnr, other
+
+
 def typography(path):
     """Що типографіка дала на сторінках: рядки, які починаються з тире, що стояло між словами
     (« – »), — тире, перенесене на початок рядка; і шрифти, якими намальовано дефіси. Тире на початку
@@ -318,13 +339,16 @@ def main():
         return 0 if lo <= num <= hi else 1
     if a.what == 'typography':
         spaced, ranges, fonts = typography(a.pdf)
+        share, tnr, other = text_font_share(a.pdf)
+        print(f'текст Times New Roman: {share:.1%} ({tnr} літер і цифр; іншим шрифтом {other})'
+              + ('' if share >= TEXT_FONT_MIN else f' — МЕНШЕ {TEXT_FONT_MIN:.0%}: PDF не Times New Roman'))
         odd = {f: n for f, n in fonts.items() if not re.match(r'(TimesNewRoman|LiberationSerif|LiberationMono|CourierNew)', f)}
         print(f'рядків, що починаються з тире між словами: {len(spaced)}; з тире діапазону (лише LibreOffice): '
               f'{len(ranges)}; дефіси за шрифтами: {fonts}')
         for pg, t in spaced[:10]: print(f'   с. {pg}: «{t}»')
         for pg, t in ranges[:10]: print(f'   (діапазон) с. {pg}: «{t}»')
         if odd: print(f'   ДЕФІСИ ЧУЖИМ ШРИФТОМ: {odd}')
-        return 1 if spaced or odd else 0
+        return 1 if spaced or odd or share < TEXT_FONT_MIN else 0
     if a.what == 'body':
         parts, total = body_pages(a.pdf)
         if a.total:

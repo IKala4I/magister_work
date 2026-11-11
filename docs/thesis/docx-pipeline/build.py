@@ -1331,7 +1331,7 @@ def build_body(doc, lo, hi):
         pending, runin = runin, None          # заголовок пункту йде в підбір лише до звичайного абзацу
         was_formula, after_formula = after_formula, False
 
-        if legend and not (in_legend and LEGEND_ITEM.match(s)):
+        if legend and not (in_legend and legend_split(s)):
             emit_legend(doc, legend); legend = []     # група скінчилася: далі заголовок або проза
 
         m = RE_H.match(s)
@@ -1356,7 +1356,7 @@ def build_body(doc, lo, hi):
             n += 1; continue
         last_heading = ''
 
-        if in_legend and LEGEND_ITEM.match(s):
+        if in_legend and legend_split(s):
             legend.append(s); n += 1; continue
 
         if any(a <= n <= b for a, b in CODE_RANGES):
@@ -1435,14 +1435,25 @@ def build_body(doc, lo, hi):
     return doc
 
 
-LEGEND_ITEM = re.compile(r'^(\S.*?) – (\S.*)$')
+def legend_split(s):
+    """Рядок переліку «X – Y» → (X, Y) або None. Межа — перше « – » поза дужками: термін може мати
+    власне тире в уточненні, «Контекстний багаторукий бандит (далі в тексті – модель навчання) – …»
+    (до 2026-11-12 межа бралася за першим тире, і половина терміна з'їжджала в праву колонку)."""
+    if not s[:1].strip(): return None
+    depth = 0
+    for i, ch in enumerate(s):
+        if ch in '([': depth += 1
+        elif ch in ')]': depth -= 1
+        elif depth == 0 and s.startswith(' – ', i) and i > 0 and s[i + 3:i + 4].strip():
+            return s[:i], s[i + 3:]
+    return None
 
 
 def emit_legend(doc, items):
     """Перелік умовних позначень двома колонками (методичка, с. 12): зліва скорочення, справа —
     розшифровка. Таблиця без рамок; текст кожного рядка — дослівно з full.md, тире лишається
     на початку правої колонки."""
-    pairs = [LEGEND_ITEM.match(x).groups() for x in items]
+    pairs = [legend_split(x) for x in items]
     left = min(60, max(len(a) for a, _ in pairs) * 2.6 + 4)          # мм: найдовше скорочення в один рядок
     t = doc.add_table(rows=len(pairs), cols=2)
     t.alignment = WD_TABLE_ALIGNMENT.CENTER; t.autofit = False
