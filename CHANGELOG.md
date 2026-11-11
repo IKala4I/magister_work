@@ -10,14 +10,16 @@
 - **Declaration of academic integrity and AI use** (додаток К) after the sources, before ДОДАТКИ,
   with a contents entry; its text is a private part (`MagisterDocs/private/deklaratsiia.json`).
 - **Task form** per бланк Д («ЗДОБУВАЧУ», «прийняв»), dates as separate `"поля"` of the private
-  file; years «2026 р.» under the dean's and head's signatures; the PDF is also written as
-  «МАГ-ДФН-ПЗІС-2026-Прізвище І.Б.pdf» (методичка). No cipher: the regulation defines none.
+  file; years «2026 р.» under the dean's and head's signatures; the PDF without the appendices
+  is written as «МАГ-ДФН-ПЗІС-2026-Прізвище І.Б.pdf» for the plagiarism check (методичка, p. 31;
+  `layout.py cut`). No cipher: the regulation defines none.
 - **ВСТУП:** the approbation paragraph (п. 3.3.12; theses accepted, poster graded), the structure
   paragraph shortened and now giving tables and figures; актуальність in one paragraph.
   `verify-guideline.py` requires the approbation paragraph and checks the new counts. The heading
   of the list of terms adds «ОДИНИЦЬ» as п. 3.3.5 names it.
-- Total 120 pp. (was 116), body 72 pp.; ВСТУП is 4 pp. — the owner decides whether the headline-result
-  paragraph moves out to reach 3.
+- ВСТУП is 3 pp.: the headline-result paragraph (it repeated the реферат and the conclusions), the
+  replay-stand sentence and a repeat in the practical value went; no number changed (owner: «remove
+  the obvious filler»). Total 119 pp. (was 116), body 71 pp.
 
 ## Post-P12 — heatmap text view wording (2026-11-02, post-p12/text-view-wording)
 

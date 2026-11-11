@@ -4,6 +4,7 @@
 
     python3 layout.py pages   hourwell.pdf            # обсяг роботи: номер останньої сторінки
     python3 layout.py toc     hourwell.pdf            # зміст — на с. 4–6
+    python3 layout.py cut     hourwell.pdf out.pdf    # той самий PDF без додатків (на перевірку)
     python3 layout.py referat hourwell.pdf --abstract referat.pdf
                                                       # сторінок у рефераті кожною мовою (≤ 3)
     python3 layout.py tables  hourwell.pdf hourwell.docx --plan tables.json --out tables.next.json
@@ -90,6 +91,26 @@ def referat_pages(work, abstract):
     if ua is None or ua > toc or not en or not en[0].startswith('ABSTRACT'):
         raise SystemExit(f'не знайдено реферату: «РЕФЕРАТ» перед змістом у {work}, «ABSTRACT» у {abstract}')
     return toc - ua, len(en)
+
+
+def appendix_page(path):
+    """Індекс сторінки «ДОДАТКИ»: окремий рядок «ДОДАТКИ» без крапок (у змісті він з крапками)."""
+    with pdfplumber.open(path) as pdf:
+        for i, p in enumerate(pdf.pages):
+            if any(x.strip() == 'ДОДАТКИ' for x in (p.extract_text() or '').split('\n')): return i
+    raise SystemExit(f'{path}: сторінки «ДОДАТКИ» не знайдено')
+
+
+def cut_appendices(src, out):
+    """Методичка, с. 31: на перевірку й у репозитарій робота йде одним файлом «картка, титульна
+    сторінка, завдання, зміст і т. д., але без додатків». Сторінки ті самі, що в повному PDF,
+    до сторінки «ДОДАТКИ» (не включно) — нічого не перескладається, номери не зсуваються."""
+    import pypdfium2 as pdfium
+    k = appendix_page(src)
+    doc, new = pdfium.PdfDocument(src), pdfium.PdfDocument.new()
+    new.import_pages(doc, list(range(k)))
+    new.save(out)
+    return k, len(doc)
 
 
 def body_pages(path):
@@ -259,7 +280,7 @@ def typography(path):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument('what', choices=('pages', 'toc', 'referat', 'tables', 'body', 'typography')); ap.add_argument('pdf')
+    ap.add_argument('what', choices=('pages', 'toc', 'cut', 'referat', 'tables', 'body', 'typography')); ap.add_argument('pdf')
     ap.add_argument('docx', nargs='?', help='tables: .docx, з якого зроблено цей PDF')
     ap.add_argument('--plan', help='tables: план поділу, з яким складено цей .docx (JSON; може не існувати)')
     ap.add_argument('--out', help='tables: куди записати наступний план (JSON)')
@@ -284,6 +305,11 @@ def main():
         last, total, front, num = thesis_pages(a.pdf)
         print(last)
         print(f'обсяг {last} с.: у PDF {total} сторінок, перед змістом {front}, зміст — с. {num}', file=sys.stderr)
+        return 0
+    if a.what == 'cut':
+        if not a.docx: ap.error('cut: другим аргументом — куди записати PDF без додатків')
+        k, n = cut_appendices(a.pdf, a.docx)
+        print(f'без додатків: {k} із {n} аркушів PDF -> {a.docx}')
         return 0
     if a.what == 'toc':                   # після проходів: у першому реферат ще з плейсхолдером
         _, _, _, num = thesis_pages(a.pdf)

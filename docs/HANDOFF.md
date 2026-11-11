@@ -35,10 +35,9 @@ Sources compared: `MagisterDocs/polozhennya_МКР_на ВР6.10._2026 рік.do
 - Реферат (UA) is in the thesis on pp. 3–5, ЗМІСТ on p. 6, continuous numbering; ABSTRACT is
   `build/referat.docx`. Declaration (додаток К) before ДОДАТКИ from `private/deklaratsiia.json`.
 - Task dates live in `private/zavdannia.json` → `"поля"`; any private part can carry `"поля"`.
-- Build: 120 pp., body 72, ЗМІСТ p. 6, every gate green; `build/МАГ-ДФН-ПЗІС-2026-<ім'я>.pdf`.
-- **Open (owner):** ВСТУП is 4 pp. (3 pp. + 16 lines). Reaching 3 needs the «Головний результат
-  роботи» paragraph out (≈ 12 lines) or a cut in мета/завдання/новизна/практичне значення — a framing
-  decision, not taken by the session. Theses go into the sources once the collection is out.
+- Build: 119 pp., body 71, ВСТУП 3 pp., ЗМІСТ p. 6, every gate green;
+  `build/МАГ-ДФН-ПЗІС-2026-<ім'я>.pdf` is the thesis without appendices (plagiarism check).
+- Open: the theses go into the sources once the collection is out.
 - Remaining differences from the regulation are listed in the PR body.
 
 ## Current state (2026-11-02) — post-p12/text-view-wording: текстовий вигляд карти

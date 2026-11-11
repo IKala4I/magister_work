@@ -68,13 +68,14 @@ echo; echo "== звірка";         "${PY[@]}" "$HERE/verify.py" --src "$SRC" 
 echo; echo "== самоперевірка оформлення"; "${PY[@]}" "$HERE/verify.py" --self-test --src "$SRC" --docx "$OUT/hourwell.docx"
 echo; echo "== легенди";        "${PY[@]}" "$HERE/check_legend_symbols.py" "$SRC"
 echo; echo "== аудит розмітки"; "${PY[@]}" "$HERE/audit_markdown.py" "$SRC" --out "$OUT/audit.md"
-# Методичка, с. 31: файл для перевірки й репозитарію — «МАГ-ДФН-ПЗІС-рік захисту-Прізвище І.Б.».
+# Методичка, с. 31: файл для перевірки й репозитарію — «МАГ-ДФН-ПЗІС-рік захисту-Прізвище І.Б.»,
+# одним файлом без додатків; повна робота лишається в hourwell.pdf.
 # Ім'я береться з titulka.json («здобувач»), тож у репозиторії його немає.
 if [ -f "$PRIV" ]; then
   NAME=$("${PY[@]}" -c 'import json, re, sys; v = json.load(open(sys.argv[1], encoding="utf-8")).get("здобувач", "").strip(); print(re.sub(r"(\w\.) (?=\w\.)", r"\1", v).rstrip("."))' "$PRIV")
   if [ -n "$NAME" ]; then
-    cp "$OUT/hourwell.pdf" "$OUT/МАГ-ДФН-ПЗІС-2026-$NAME.pdf"
-    echo; echo "== файл для подання: $OUT/МАГ-ДФН-ПЗІС-2026-$NAME.pdf"
+    echo; echo "== файл на перевірку (без додатків, методичка, с. 31)"
+    "${PY[@]}" "$HERE/layout.py" cut "$OUT/hourwell.pdf" "$OUT/МАГ-ДФН-ПЗІС-2026-$NAME.pdf"
   fi
 fi
 
