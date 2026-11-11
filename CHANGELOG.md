@@ -2,6 +2,25 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — front matter by the university's 2026 regulation (2026-11-11, post-p12/front-matter-2026)
+
+- **Реферат inside the thesis, before ЗМІСТ** (Положення 2026, п. 3.3.9): pp. 3–5 unnumbered, ЗМІСТ
+  on p. 6; numbering is continuous and `layout.py toc` fails the build unless ЗМІСТ lands on
+  p. 4–6. ABSTRACT stays a separate file. Seven keywords (was 15); «розділів – 4» / «4 chapters».
+- **Declaration of academic integrity and AI use** (додаток К) after the sources, before ДОДАТКИ,
+  with a contents entry; its text is a private part (`MagisterDocs/private/deklaratsiia.json`).
+- **Task form** per бланк Д («ЗДОБУВАЧУ», «прийняв»), dates as separate `"поля"` of the private
+  file; years «2026 р.» under the dean's and head's signatures; the PDF without the appendices
+  is written as «МАГ-ДФН-ПЗІС-2026-Прізвище І.Б.pdf» for the plagiarism check (методичка, p. 31;
+  `layout.py cut`). No cipher: the regulation defines none.
+- **ВСТУП:** the approbation paragraph (п. 3.3.12; theses accepted, poster graded), the structure
+  paragraph shortened and now giving tables and figures; актуальність in one paragraph.
+  `verify-guideline.py` requires the approbation paragraph and checks the new counts. The heading
+  of the list of terms adds «ОДИНИЦЬ» as п. 3.3.5 names it.
+- ВСТУП is 3 pp.: the headline-result paragraph (it repeated the реферат and the conclusions), the
+  replay-stand sentence and a repeat in the practical value went; no number changed (owner: «remove
+  the obvious filler»). Total 119 pp. (was 116), body 71 pp.
+
 ## Post-P12 — heatmap text view wording (2026-11-02, post-p12/text-view-wording)
 
 - The text view of the energy map marks personal hours «(переважно ваші дані)» (en «(mostly your
