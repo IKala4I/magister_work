@@ -2,8 +2,9 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-11-02 — **post-p12/text-view-wording** (section right below): text view wording.
-> Before it, 2026-11-02 — **post-p12/legend-wording**: heatmap key wording,
+> Last update: 2026-11-11 — **post-p12/front-matter-2026** (section right below): front matter by
+> the university's 2026 regulation. Before it, 2026-11-02 — **post-p12/text-view-wording**: text view
+> wording. Before it, 2026-11-02 — **post-p12/legend-wording**: heatmap key wording,
 > re-shot. Before it, 2026-10-30 — **post-p12/ui-polish-screens**: interface fixes from
 > the рис. 3.4 shots, re-shot. Before it, 2026-10-30 — **post-p12/skia-caption**: Skia out of the
 > thesis (sources 70), рис. 3.4 caption and Ukrainian screen names; body 72 pages. Before it,
@@ -25,6 +26,20 @@
 > (PR #79), and the corrections rollup (2026-09-09), which is no longer an index: all 63 items carry
 > the Ukrainian sentences the draft should read, tagged Ф / П / С, every number with its measurement
 > condition. **The thesis text is assembled and green on every gate.**
+
+## Current state (2026-11-11) — post-p12/front-matter-2026: перші сторінки за Положенням 2026
+
+Sources compared: `MagisterDocs/polozhennya_МКР_на ВР6.10._2026 рік.docx` (п. 3.3.5–3.3.17, 3.4.2,
+додатки Б, В, Д, К, Л) and `MagisterDocs/титулки_1.docx`; both stay outside the repo.
+
+- Реферат (UA) is in the thesis on pp. 3–5, ЗМІСТ on p. 6, continuous numbering; ABSTRACT is
+  `build/referat.docx`. Declaration (додаток К) before ДОДАТКИ from `private/deklaratsiia.json`.
+- Task dates live in `private/zavdannia.json` → `"поля"`; any private part can carry `"поля"`.
+- Build: 120 pp., body 72, ЗМІСТ p. 6, every gate green; `build/МАГ-ДФН-ПЗІС-2026-<ім'я>.pdf`.
+- **Open (owner):** ВСТУП is 4 pp. (3 pp. + 16 lines). Reaching 3 needs the «Головний результат
+  роботи» paragraph out (≈ 12 lines) or a cut in мета/завдання/новизна/практичне значення — a framing
+  decision, not taken by the session. Theses go into the sources once the collection is out.
+- Remaining differences from the regulation are listed in the PR body.
 
 ## Current state (2026-11-02) — post-p12/text-view-wording: текстовий вигляд карти
 

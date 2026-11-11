@@ -23,9 +23,11 @@ are checked on `text/full.md`, the product, on every change:
   list of      the abbreviations and the terms of «ПЕРЕЛІК УМОВНИХ ПОЗНАЧЕНЬ…» each stand in
   terms        alphabetical order, Cyrillic before Latin                              (p. 12)
   counts       what ВСТУП («Структура та обсяг роботи») and the реферат say the thesis contains is
-               what it contains: ВСТУП – sources, appendices, chapters, total and body pages;
-               реферат – figures, tables, appendices, sources, pages; page counts stay
-               placeholders here, filled from the rendered PDF                        (p. 11, 15)
+               what it contains: ВСТУП – sources, appendices, chapters, tables, figures, total and
+               body pages; реферат – chapters, figures, tables, appendices, sources, pages; page
+               counts stay placeholders here, filled from the rendered PDF            (p. 11, 15)
+  approbation  ВСТУП has the paragraph «Апробація результатів дослідження.»
+                                                          (Положення 2026, п. 3.3.12)
 
 A check that has never failed has proved nothing, so `--self-test` breaks the text once per rule
 and requires the rule to notice; CI runs both.
@@ -202,13 +204,16 @@ def check(lines: list[str]) -> list[str]:
     stated = [
         ("ВСТУП", r"^Структура та обсяг роботи\.", [
             (r"із (\d+) найменуван", len(entries), "sources"), (r"і (\d+) додатк", len(apps), "appendices"),
+            (r"(\d+) таблиц", n_tables, "tables"), (r"(\d+) рисунк", n_figs, "figures"),
             (r"Загальний обсяг роботи – (\[кількість сторінок\]) с\.", None, "pages"),
             (r"основний текст – (\[обсяг основного тексту\]) с\.", None, "body pages")]),
         ("реферат", r"^Обсяг роботи: ", [
+            (r"розділів – (\d+)", chapters, "chapters"),
             (r"рисунків – (\d+)", n_figs, "figures"), (r"таблиць – (\d+)", n_tables, "tables"),
             (r"додатків – (\d+)", len(apps), "appendices"), (r"джерел – (\d+)", len(entries), "sources"),
             (r"сторінок – (\[кількість сторінок\])", None, "pages")]),
         ("abstract", r"^The thesis comprises ", [
+            (r"(\d+) chapters", chapters, "chapters"),
             (r"(\d+) figures", n_figs, "figures"), (r"(\d+) tables", n_tables, "tables"),
             (r"(\d+) appendices", len(apps), "appendices"), (r"(\d+) references", len(entries), "sources"),
             (r"(\[number of pages\]) pages", None, "pages")]),
@@ -228,6 +233,9 @@ def check(lines: list[str]) -> list[str]:
             m = re.search(r"(\w+) розділів", line)
             if not m or words.get(m.group(1)) != chapters:
                 bad.append(f"counts: ВСТУП says «{m.group(1) if m else '?'} розділів», the thesis has {chapters}")
+    # Положення 2026, п. 3.3.12: the introduction reports the approbation of the results
+    if not any(s.startswith("Апробація результатів дослідження. ") for n, s in prose):
+        bad.append("ВСТУП has no paragraph «Апробація результатів дослідження.» (Положення 2026, п. 3.3.12)")
     return bad
 
 
@@ -274,6 +282,13 @@ def mutations(text: str) -> list[tuple[str, str, str]]:
          text.replace("сторінок – [кількість сторінок]", "сторінок – 162", 1), "does not state the number of pages"),
         ("a body page count typed by hand in ВСТУП",
          text.replace("[обсяг основного тексту]", "62", 1), "does not state the number of body pages"),
+        ("ВСТУП with a figure count the thesis does not have",
+         re.sub(r"(містить \d+ таблиць і )\d+", r"\g<1>99", text, count=1),
+         "ВСТУП says 99 figures"),
+        ("a chapter count in the реферат that the thesis does not have",
+         text.replace("розділів – 4", "розділів – 6", 1), "реферат says 6 chapters"),
+        ("ВСТУП without the approbation paragraph",
+         text.replace("Апробація результатів дослідження. ", "Апробація. ", 1), "no paragraph «Апробація"),
         ("ВСТУП without the number of appendices",
          re.sub(r"і \d+ додатків", "і додатків", text, count=1), "ВСТУП does not state the number of appendices"),
         ("two consecutive formulas without a comma between them",
