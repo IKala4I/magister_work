@@ -12,10 +12,8 @@ sequenceDiagram
     participant WH as Edge Fn gcal-webhook
     participant PG as Supabase Postgres
     participant SR as Edge Fn sync-resolve
-    Note over K,App: Пристрій офлайн, операції чекають в outbox
-    par На пристрої
-        K->>App: фокус-сесія на блоці
-        App->>App: факти focus_start, focus_end; статус completed
+    par Пристрій офлайн
+        K->>App: фокус-сесія: focus_start, focus_end в outbox, статус completed
     and Тим часом на сервері
         GC->>WH: нова зустріч
         WH->>PG: блок перетнувся з нею: displaced_pending
@@ -24,10 +22,9 @@ sequenceDiagram
     App->>SR: push операцій (op_id, base_version)
     SR->>PG: конфлікт: displaced_pending проти факту виконання
     alt Факт виконання є — факти важливіші за план
-        SR->>PG: completed із conflict_flag; кортеж excluded = true
+        SR->>PG: completed із conflict_flag, кортеж excluded = true
         Note over SR,PG: Неоднозначну винагороду не вгадують — стан моделі не оновлюється
     else Фактів немає
-        SR->>PG: displaced, задача у Вхідні; зовнішнє витіснення кортежа не породжує
+        SR->>PG: displaced, задача у Вхідні, зовнішнє витіснення кортежа не породжує
     end
-    SR-->>App: pull змінених рядків
-    App-->>K: план перемальовано
+    SR-->>App: pull змінених рядків, план перемальовано

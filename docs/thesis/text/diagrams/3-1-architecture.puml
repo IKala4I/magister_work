@@ -25,21 +25,21 @@ skinparam ranksep 40
 top to bottom direction
 
 rectangle "(1) Мобільний клієнт — React Native + Expo" as L1 {
-  rectangle "TypeScript strict\nекрани «Сьогодні», «Вхідні»,\n«Фокус», «Аналітика»\nExpo SQLite + Drizzle — офлайн-джерело\nістини та outbox операцій\nchrono-node" as C
+  rectangle "TypeScript strict; екрани «Сьогодні»,\n«Вхідні», «Фокус», «Аналітика»;\nExpo SQLite + Drizzle — офлайн-\nджерело істини та outbox операцій" as C
 }
 
 rectangle "(2) Supabase — регіон ЄС (eu-west-1)" as L2 {
-  rectangle "Auth: JWT, OAuth,\nанонімні сесії" as S2
-  rectangle "Edge Functions (Deno/TS)\nplan-request, sync-resolve,\nattribute-rewards, gcal-webhook" as S3
+  rectangle "Auth:\nJWT, OAuth,\nанонімні\nсесії" as S2
+  rectangle "Edge Functions (Deno/TS):\nplan-request,\nsync-resolve,\nattribute-rewards,\ngcal-webhook" as S3
   rectangle "pg_cron" as S4
   database "Postgres із RLS\n(зокрема model_registry,\nапріорні таблиці)" as S1
-  rectangle "Storage (ЄС):\nартефакти моделей" as S5
+  rectangle "Storage (ЄС):\nартефакти\nмоделей" as S5
 }
 
 node "VM Oracle Cloud «Always Free»\nAmpere A1, 2 OCPU / 12 ГБ\nFrance South (eu-marseille-1)" as VM {
   rectangle "(3) Сервіс RecSys" as L3 {
-    rectangle "Caddy\n(автоматичний TLS)" as R0
-    rectangle "FastAPI (Python 3.12)\nу контейнері\n/plan · /feedback\n/insights · /parse-preview" as R1
+    rectangle "Caddy\n(авто-TLS)" as R0
+    rectangle "FastAPI\n(Python 3.12)\n/plan · /feedback\n/insights" as R1
   }
   rectangle "(4) Конвеєр навчання —\nнічний системний таймер" as L4 {
     rectangle "псевдонімізований\nекспорт" as T1
@@ -48,7 +48,7 @@ node "VM Oracle Cloud «Always Free»\nAmpere A1, 2 OCPU / 12 ГБ\nFrance South
   }
 }
 
-rectangle "Реєстр контейнерів GitHub" as GH
+rectangle "Реєстр\nконтейнерів\nGitHub" as GH
 
 C -down-> S2 : вхід, JWT
 C -down-> S3 : HTTPS, supabase-js
@@ -58,9 +58,12 @@ S3 -down-> R0 : /plan, /feedback
 R0 -right-> R1
 R1 -up-> S1 : стан моделей
 S1 -down-> T1 : вибірка
-T1 -right-> T2
-T2 -right-> T3
+' кроки конвеєра — вертикально: інакше рисунок ширший за сторінку з підписами ≥ 8 пт
+T1 -down-> T2
+T2 -down-> T3
 T3 -up-> S5 : артефакти
-T3 -up-> S1 : апріорні таблиці,\nmodel_registry
-GH .down.> L3 : розгортання: підтягування\nобразу, без вхідного SSH
+T3 -up-> S1 : апріорні\nтаблиці
+S1 -[hidden]right- S5
+S5 -[hidden]down- GH
+GH .down.> L3 : розгортання:\nпідтягування\nобразу
 @enduml

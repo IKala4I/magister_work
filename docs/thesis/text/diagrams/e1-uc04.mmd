@@ -13,18 +13,14 @@ sequenceDiagram
     participant PG as Supabase Postgres
     participant AR as Edge Fn attribute-rewards
     participant API as FastAPI RecSys
-    Note over K,App: Блок минув без фокус-сесії й без факту виконання
-    K->>App: відкриває застосунок
-    App->>App: лінивий сканер: статус lapsed, факт lapse_observed
-    App-->>K: «Не зроблено — повернулося у Вхідні», без інтерфейсу провини
+    K->>App: відкриває застосунок (блок минув без фокус-сесії й факту виконання)
+    App-->>K: лінивий сканер: lapsed, «Не зроблено — повернулося у Вхідні»
     App->>SR: push операцій (op_id, base_version)
     SR->>PG: факт пропуску в журнал подій
-    Note over PG,AR: 23:55 за місцевим часом користувача (pg_cron)
-    AR->>PG: кортеж r = 0, статус lapsed
+    AR->>PG: 23:55 за місцевим часом (pg_cron): кортеж r = 0, статус lapsed
     AR->>API: POST /feedback
-    API->>API: оновлення стану: Шерман–Моррісон, Beta-комірка, ваги змішування
-    Note over K,API: Наступного дня
-    App->>API: запит плану (через plan-request)
+    API->>PG: оновлений стан моделі (Шерман–Моррісон, Beta-комірка, ваги)
+    App->>API: наступного дня: запит плану (через plan-request)
     API-->>App: нижча оцінка для цього контексту, блок переставлено, пояснення
     opt «Уже зроблено» протягом 7 днів
         K->>App: корекція на картці

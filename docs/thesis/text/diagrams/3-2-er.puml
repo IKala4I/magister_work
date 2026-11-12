@@ -19,8 +19,8 @@ skinparam defaultFontSize 14
 skinparam defaultFontName Arial
 skinparam monochrome true
 skinparam shadowing false
-skinparam minClassWidth 150
-skinparam nodesep 26
+skinparam minClassWidth 118
+skinparam nodesep 18
 skinparam ranksep 60
 hide circle
 hide empty members
@@ -49,7 +49,7 @@ users ||...o{ calendar_events
 tasks ||...o{ recommendations
 recommendations ||...o{ feedback_rewards
 calendar_events -[hidden]--- model_registry
-note right of model_registry
+note bottom of model_registry
   recommendations.model_version —
   текстове поле, без зовнішнього ключа
 end note
