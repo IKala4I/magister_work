@@ -9,7 +9,7 @@ sequenceDiagram
     autonumber
     actor K as Користувач
     participant App as Застосунок (SQLite, outbox)
-    participant SR as Edge Fn sync-resolve
+    participant SR as Edge Functions (sync-resolve, plan-request)
     participant PG as Supabase Postgres
     participant AR as Edge Fn attribute-rewards
     participant API as FastAPI RecSys
@@ -20,8 +20,8 @@ sequenceDiagram
     AR->>PG: 23:55 за місцевим часом (pg_cron): кортеж r = 0, статус lapsed
     AR->>API: POST /feedback
     API->>PG: оновлений стан моделі (Шерман–Моррісон, Beta-комірка, ваги)
-    App->>API: наступного дня: запит плану (через plan-request)
-    API-->>App: нижча оцінка для цього контексту, блок переставлено, пояснення
+    App->>SR: наступного дня: запит плану
+    SR-->>App: план від /plan: нижча оцінка для цього контексту, блок переставлено
     opt «Уже зроблено» протягом 7 днів
         K->>App: корекція на картці
         App->>SR: факт lapse_corrected

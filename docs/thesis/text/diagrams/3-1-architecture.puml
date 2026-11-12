@@ -5,8 +5,9 @@
 ' стоїть у блоці Edge Functions, /plan — у блоці FastAPI. Рівні (3) і (4) — на одній ВМ, як і сказано в тексті,
 ' тому намальовані в одній рамці ВМ. PlantUML, а не Mermaid: розкладка Mermaid не дає вмістити
 ' рисунок на сторінку з підписами не менше 8 пт (стрілку «конвеєр → Storage» вона веде в обхід).
-' 2026-11-12 (зовнішня рецензія, звірено з кодом): клієнт звертається лише до Auth і Edge Functions
-' (supabase.auth.*, supabase.functions.invoke); до Postgres ідуть функції й сервіс рекомендацій
+' 2026-11-12 (зовнішня рецензія, звірено з кодом): клієнт звертається до Auth, Edge Functions
+' (supabase.functions.invoke) і читає Postgres напряму під RLS (sync/engine.ts: повторне читання
+' рядків tasks); до Postgres ідуть також функції й сервіс рекомендацій
 ' (стан моделей bandit_state / beta_cells / blend_state — у Postgres, repo.py); pg_cron запускає
 ' функції за розкладом (attribute-rewards о 23:55, календар кожні 5 хв); конвеєр читає експорт із
 ' Postgres, пише апріорні таблиці, кластери й рядок model_registry у Postgres, артефакти — у Storage.
@@ -30,7 +31,7 @@ rectangle "(1) Мобільний клієнт — React Native + Expo" as L1 {
 
 rectangle "(2) Supabase — регіон ЄС (eu-west-1)" as L2 {
   rectangle "Auth:\nJWT, OAuth,\nанонімні\nсесії" as S2
-  rectangle "Edge Functions (Deno/TS):\nplan-request,\nsync-resolve,\nattribute-rewards,\ngcal-webhook" as S3
+  rectangle "Edge Functions (Deno/TS):\nplan-request,\nsync-resolve,\nattribute-rewards,\ngcal-webhook та ін." as S3
   rectangle "pg_cron" as S4
   database "Postgres із RLS\n(зокрема model_registry,\nапріорні таблиці)" as S1
   rectangle "Storage (ЄС):\nартефакти\nмоделей" as S5
@@ -52,9 +53,10 @@ rectangle "Реєстр\nконтейнерів\nGitHub" as GH
 
 C -down-> S2 : вхід, JWT
 C -down-> S3 : HTTPS, supabase-js
-S4 -left-> S3 : за розкладом
+C -down-> S1 : читання з RLS
+S4 -up-> S3 : за розкладом
 S3 -down-> S1 : SQL з RLS
-S3 -down-> R0 : /plan, /feedback
+S3 -down-> R0 : /plan, /feedback,\n/insights
 R0 -right-> R1
 R1 -up-> S1 : стан моделей
 S1 -down-> T1 : вибірка

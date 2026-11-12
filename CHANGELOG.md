@@ -2,6 +2,18 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — cuts, figures per the review, symmetric dashes (2026-11-12, post-p12/cuts)
+
+- Dashes: non-breaking spaces on both sides (owner), checked by verify.py.
+- Figures 3.1-3.3 redrawn per external review, checked against the code and migrations (3.2:
+  one mark per line, 0..1 for profiles/blend_state, identifying solid vs dashed, caption «Схема
+  зв'язків…»; 3.1: every block connected as the code does it; 3.3: «Таймер» actor, extends, renamed
+  UCs); all labels ≥ 8 pt. Е.1/Ж.1 one sheet each.
+- Appendices И (colour tokens) and Л (predictions) removed; the grid is Додаток И (generator
+  retargeted); 7 appendices, 20 tables.
+- Condensed: 2.4, 2.5.2-2.5.4, 2.7, 3.4, 3.7, 4.2, 4.8, 4.9; 4.3.1 one sentence; two repeats out
+  of 4.10. No number changed. Body 71 → 66 pp. (owner's range 60-80), total 119 → 102.
+
 ## Post-P12 — reading fixes (2026-11-12, post-p12/reading-fixes)
 
 - Figures no longer overrun the right margin in the PDF: python-docx writes no `dist*` on inline
