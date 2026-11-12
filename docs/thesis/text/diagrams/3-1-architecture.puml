@@ -5,6 +5,14 @@
 ' стоїть у блоці Edge Functions, /plan — у блоці FastAPI. Рівні (3) і (4) — на одній ВМ, як і сказано в тексті,
 ' тому намальовані в одній рамці ВМ. PlantUML, а не Mermaid: розкладка Mermaid не дає вмістити
 ' рисунок на сторінку з підписами не менше 8 пт (стрілку «конвеєр → Storage» вона веде в обхід).
+' 2026-11-12 (зовнішня рецензія, звірено з кодом): клієнт звертається до Auth, Edge Functions
+' (supabase.functions.invoke) і читає Postgres напряму під RLS (sync/engine.ts: повторне читання
+' рядків tasks); до Postgres ідуть також функції й сервіс рекомендацій
+' (стан моделей bandit_state / beta_cells / blend_state — у Postgres, repo.py); pg_cron запускає
+' функції за розкладом (attribute-rewards о 23:55, календар кожні 5 хв); конвеєр читає експорт із
+' Postgres, пише апріорні таблиці, кластери й рядок model_registry у Postgres, артефакти — у Storage.
+' Сервіс зі Storage моделей не завантажує — такої стрілки немає. Стрілка — від того, хто ініціює.
+' Реєстр контейнерів — пунктир: розгортання, а не робота системи.
 !pragma layout smetana
 skinparam defaultFontSize 14
 skinparam defaultFontName Arial
@@ -13,27 +21,26 @@ skinparam shadowing false
 skinparam rectangle {
   RoundCorner 6
 }
-skinparam nodesep 18
-skinparam ranksep 34
+skinparam nodesep 22
+skinparam ranksep 40
 top to bottom direction
 
 rectangle "(1) Мобільний клієнт — React Native + Expo" as L1 {
-  rectangle "TypeScript strict\nекрани «Сьогодні», «Вхідні»,\n«Фокус», «Аналітика»\nExpo SQLite + Drizzle — офлайн-джерело\nістини та outbox операцій\nchrono-node" as C
+  rectangle "TypeScript strict; екрани «Сьогодні»,\n«Вхідні», «Фокус», «Аналітика»;\nExpo SQLite + Drizzle — офлайн-\nджерело істини та outbox операцій" as C
 }
 
 rectangle "(2) Supabase — регіон ЄС (eu-west-1)" as L2 {
-  rectangle "Postgres із RLS" as S1
-  rectangle "Auth: JWT, OAuth,\nанонімні сесії" as S2
-  rectangle "Edge Functions (Deno/TS)\nзокрема plan-request" as S3
+  rectangle "Auth:\nJWT, OAuth,\nанонімні\nсесії" as S2
+  rectangle "Edge Functions (Deno/TS):\nplan-request,\nsync-resolve,\nattribute-rewards,\ngcal-webhook та ін." as S3
   rectangle "pg_cron" as S4
-  rectangle "Storage (ЄС):\nреєстр моделей" as S5
-  database "model_registry" as S6
+  database "Postgres із RLS\n(зокрема model_registry,\nапріорні таблиці)" as S1
+  rectangle "Storage (ЄС):\nартефакти\nмоделей" as S5
 }
 
-node "ВМ Oracle Cloud «Always Free»\nAmpere A1, 2 OCPU / 12 ГБ\nFrance South (eu-marseille-1)" as VM {
+node "VM Oracle Cloud «Always Free»\nAmpere A1, 2 OCPU / 12 ГБ\nFrance South (eu-marseille-1)" as VM {
   rectangle "(3) Сервіс RecSys" as L3 {
-    rectangle "Caddy\n(автоматичний TLS)" as R0
-    rectangle "FastAPI (Python 3.12)\nу контейнері\n/plan · /feedback\n/insights · /parse-preview" as R1
+    rectangle "Caddy\n(авто-TLS)" as R0
+    rectangle "FastAPI\n(Python 3.12)\n/plan · /feedback\n/insights" as R1
   }
   rectangle "(4) Конвеєр навчання —\nнічний системний таймер" as L4 {
     rectangle "псевдонімізований\nекспорт" as T1
@@ -42,20 +49,23 @@ node "ВМ Oracle Cloud «Always Free»\nAmpere A1, 2 OCPU / 12 ГБ\nFrance Sou
   }
 }
 
-rectangle "Реєстр контейнерів GitHub" as GH
+rectangle "Реєстр\nконтейнерів\nGitHub" as GH
 
-C <-down-> L2 : HTTPS,\n@supabase/supabase-js
-S3 -down-> R0
+C -down-> S2 : вхід, JWT
+C -down-> S3 : HTTPS, supabase-js
+C -down-> S1 : читання з RLS
+S4 -up-> S3 : за розкладом
+S3 -down-> S1 : SQL з RLS
+S3 -down-> R0 : /plan, /feedback,\n/insights
 R0 -right-> R1
-T1 -right-> T2
-T2 -right-> T3
-T3 -up-> S5
-S5 -right-> S6
-' розкладка (лише невидимі зв'язки): Supabase у два ряди, RecSys над конвеєром навчання, ВМ під Supabase
-S1 -[hidden]down- S5
-S2 -[hidden]down- S4
-R0 -[hidden]down- T1
-S4 -[hidden]down- R1
-S4 -[hidden]right- GH
-GH .down.> L3 : підтягування образу,\nбез вхідного SSH із CI
+R1 -up-> S1 : стан моделей
+S1 -down-> T1 : вибірка
+' кроки конвеєра — вертикально: інакше рисунок ширший за сторінку з підписами ≥ 8 пт
+T1 -down-> T2
+T2 -down-> T3
+T3 -up-> S5 : артефакти
+T3 -up-> S1 : апріорні\nтаблиці
+S1 -[hidden]right- S5
+S5 -[hidden]down- GH
+GH .down.> L3 : розгортання:\nпідтягування\nобразу
 @enduml
