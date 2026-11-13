@@ -36,7 +36,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: python3 docs/thesis/verify-numbers.py
-      - name: Додаток К (the grid of worlds) matches the run it is generated from
+      - name: Додаток И (the grid of worlds) matches the run it is generated from
         run: python3 docs/thesis/gen-dodatok-k.py --check
       - name: The assembled thesis passes the needle list
         run: python3 docs/thesis/verify-docx.py docs/thesis/text/full.md
