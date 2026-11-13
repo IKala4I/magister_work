@@ -2,6 +2,14 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — the submission file: .docx with every appendix (2026-11-13, post-p12/submission-docx)
+
+- The thesis is submitted as .docx with all appendices, named from `_файл` in the private
+  titulka.json (owner: «МАГ_ДНФ_ПЗІС_2026_П_І_Б»). `layout.py toc-fill` writes the contents —
+  entries and pages as LibreOffice laid them out for the PDF — into the TOC field's result, so the
+  file opens with a filled contents without Word (not installed here); F9 still updates it. The
+  appendix-free PDF is no longer built.
+
 ## Post-P12 — cuts, figures per the review, symmetric dashes (2026-11-12, post-p12/cuts)
 
 - Dashes: non-breaking spaces on both sides (owner), checked by verify.py.

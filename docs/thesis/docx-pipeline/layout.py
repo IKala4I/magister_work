@@ -5,6 +5,8 @@
     python3 layout.py pages   hourwell.pdf            # обсяг роботи: номер останньої сторінки
     python3 layout.py toc     hourwell.pdf            # зміст — на с. 4–6
     python3 layout.py cut     hourwell.pdf out.pdf    # той самий PDF без додатків (на перевірку)
+    python3 layout.py toc-fill hourwell.pdf hourwell.docx --out out.docx
+                                                      # .docx із заповненим змістом (рядки й сторінки — з PDF)
     python3 layout.py referat hourwell.pdf --abstract referat.pdf
                                                       # сторінок у рефераті кожною мовою (≤ 3)
     python3 layout.py tables  hourwell.pdf hourwell.docx --plan tables.json --out tables.next.json
@@ -111,6 +113,75 @@ def cut_appendices(src, out):
     new.import_pages(doc, list(range(k)))
     new.save(out)
     return k, len(doc)
+
+
+RE_TOC_LINE = re.compile(r'^(.*?)\s*\.{2,}\s*(\d+)$')
+
+
+def toc_entries(path):
+    """Рядки змісту з PDF: [(рівень, текст, сторінка)]. Рядок, що не закінчується «…… N», —
+    початок запису, перенесеного на наступний рядок. Рівень — за відступом: 0 мм — розділ,
+    вступ, висновки; 5 мм (стиль «toc 2») — підрозділ, пункт, додаток."""
+    with pdfplumber.open(path) as pdf:
+        texts = [' '.join((p.extract_text() or '').split()) for p in pdf.pages]
+        toc, _ = toc_page(texts, path)
+        out, buf, x0 = [], '', None
+        for p in pdf.pages[toc:]:
+            lines = p.extract_text_lines()
+            if p is not pdf.pages[toc] and not any(RE_TOC_LINE.match(l['text'].strip()) for l in lines):
+                break                                     # сторінка вже не змісту
+            for l in lines:
+                t = l['text'].strip()
+                if re.fullmatch(r'\d+', t) or t == 'ЗМІСТ': continue   # номер сторінки, заголовок
+                if not buf: x0 = l['x0']
+                buf = (buf + ' ' + t).strip()
+                m = RE_TOC_LINE.match(buf)
+                if m:
+                    text = m.group(1).strip().replace('\u2011', '-')   # у Times New Roman гліфа U+2011 немає
+                    out.append((1 if x0 < 30 * PT_MM + 7 else 2, text, m.group(2))); buf = ''
+            if buf: raise SystemExit(f'{path}: незавершений рядок змісту «{buf[:60]}»')
+    return out
+
+
+def toc_fill(pdf, src, out):
+    """Результат поля TOC у .docx — рядки змісту, як їх зібрав LibreOffice для PDF. Поле лишається
+    полем: Word оновить його за F9, але й без F9 зміст уже заповнений (Word на цій машині
+    не встановлено, тож зібрати поле самим Word тут не можна; власник, 2026-11-13)."""
+    from copy import deepcopy
+    from docx.oxml import OxmlElement
+    from docx.oxml.ns import qn
+    entries = toc_entries(pdf)
+    doc = Document(src)
+    p0 = next(p for p in doc.paragraphs if any((t.text or '').startswith(' TOC ') for t in p._p.iter(qn('w:instrText'))))
+    runs = list(p0._p.iter(qn('w:r')))
+    end = next(r for r in runs if r.find(qn('w:fldChar')) is not None and r.find(qn('w:fldChar')).get(qn('w:fldCharType')) == 'end')
+    sep = next(r for r in runs if r.find(qn('w:fldChar')) is not None and r.find(qn('w:fldChar')).get(qn('w:fldCharType')) == 'separate')
+    for r in runs[runs.index(sep) + 1:]:               # підказка «натиснути F9» і кінець поля
+        r.getparent().remove(r)
+
+    def entry_runs(p_el, text, page):
+        for piece in (text, None, page):
+            r = OxmlElement('w:r')
+            if piece is None: r.append(OxmlElement('w:tab'))
+            else:
+                t = OxmlElement('w:t'); t.set(qn('xml:space'), 'preserve'); t.text = piece; r.append(t)
+            p_el.append(r)
+
+    def style(p_el, lvl):
+        ppr = p_el.find(qn('w:pPr'))
+        if ppr is None: ppr = OxmlElement('w:pPr'); p_el.insert(0, ppr)
+        for st in ppr.findall(qn('w:pStyle')): ppr.remove(st)
+        st = OxmlElement('w:pStyle'); st.set(qn('w:val'), doc.styles['toc %d' % lvl].style_id); ppr.insert(0, st)
+
+    lvl, text, page = entries[0]
+    style(p0._p, lvl); entry_runs(p0._p, text, page)
+    prev = p0._p
+    for lvl, text, page in entries[1:]:
+        p_el = OxmlElement('w:p'); style(p_el, lvl); entry_runs(p_el, text, page)
+        prev.addnext(p_el); prev = p_el
+    prev.append(end)
+    doc.save(out)
+    return len(entries)
 
 
 def body_pages(path):
@@ -313,7 +384,7 @@ def typography(path):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument('what', choices=('pages', 'toc', 'cut', 'referat', 'tables', 'body', 'typography')); ap.add_argument('pdf')
+    ap.add_argument('what', choices=('pages', 'toc', 'cut', 'toc-fill', 'referat', 'tables', 'body', 'typography')); ap.add_argument('pdf')
     ap.add_argument('docx', nargs='?', help='tables: .docx, з якого зроблено цей PDF')
     ap.add_argument('--plan', help='tables: план поділу, з яким складено цей .docx (JSON; може не існувати)')
     ap.add_argument('--out', help='tables: куди записати наступний план (JSON)')
@@ -338,6 +409,11 @@ def main():
         last, total, front, num = thesis_pages(a.pdf)
         print(last)
         print(f'обсяг {last} с.: у PDF {total} сторінок, перед змістом {front}, зміст — с. {num}', file=sys.stderr)
+        return 0
+    if a.what == 'toc-fill':
+        if not (a.docx and a.out): ap.error('toc-fill: потрібні .docx (другий аргумент) і --out')
+        n = toc_fill(a.pdf, a.docx, a.out)
+        print(f'зміст: {n} записів вписано в поле TOC -> {a.out}')
         return 0
     if a.what == 'cut':
         if not a.docx: ap.error('cut: другим аргументом — куди записати PDF без додатків')
