@@ -408,8 +408,9 @@ introduction's own paragraphs, so they cannot drift. `structure_paragraph` rewri
 обсяг роботи». `count_items` counts sources, tables, figures, formulas, appendices and chapters
 from the blocks; nothing is typed. The page count is the placeholder `[кількість сторінок]`
 (`[number of pages]` in the abstract): only the layout knows it, so the .docx pipeline fills it from
-the rendered PDF. The реферат stays in `full.md` between the title page and ЗМІСТ; the pipeline
-builds it as a separate file.
+the rendered PDF. The реферат and the ABSTRACT stay in `full.md` between the title page and ЗМІСТ;
+the pipeline builds both into the thesis before ЗМІСТ, each from a new page (since 2026-11-17,
+per normcontrol; before that the ABSTRACT was a separate file).
 
 **Checked by** `verify-guideline.py` (CI): the counts stated in ВСТУП and the реферат, appendix letters and order, a reference to every
 appendix, table and figure, a caption on every table, a citation of every source — each rule with a
