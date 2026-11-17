@@ -547,6 +547,7 @@ def check_layout(doc, lines):
 TY_ADDR = re.compile(r'\S*(?:https?://|www\.|@|\.md\b|\.py\b|\.json\b|\.sql\b|doi\.org)\S*')
 TY_BAD = (
     ('звичайний пробіл перед тире', re.compile(r'\S –(\s|$)')),
+    ('звичайний пробіл після тире між словами', re.compile(r'\S\u00a0– (?=\S)')),
     ('звичайний пробіл між числом і одиницею', re.compile(
         r'\d (%|в\.\s?п\.|с\.|мс|хв|год|ГБ|МБ|мм|пт|px|тис\.|млн|дол\.|євро)(?!\w)|\d с(?=[\s,;:)]|$)')),
     ('звичайний пробіл у «в. п.»', re.compile(r'\bв\. п\.')),
@@ -627,6 +628,9 @@ def layout_mutations():
     def plain_space(doc):
         t = next(t for t in doc.element.body.iter(WNS + 't') if '\u00a0–' in (t.text or ''))
         t.text = t.text.replace('\u00a0–', ' –', 1)
+    def plain_space_after(doc):
+        t = next(t for t in doc.element.body.iter(WNS + 't') if '\u00a0–\u00a0' in (t.text or ''))
+        t.text = t.text.replace('\u00a0–\u00a0', '\u00a0– ', 1)
     def plain_hyphen(doc):
         h = next(doc.element.body.iter(WNS + 'noBreakHyphen'))
         h.getparent().replace(h, parse_xml_t('-'))
@@ -652,6 +656,7 @@ def layout_mutations():
          'напис не праворуч'),
         ('частина таблиці з чужою головкою', spoil_head, 'головка частини не та'),
         ('звичайний пробіл перед тире', plain_space, 'пробіл перед тире'),
+        ('звичайний пробіл після тире', plain_space_after, 'пробіл після тире'),
         ('звичайний дефіс замість нерозривного', plain_hyphen, 'дефіс у слові'),
         ('індекс набрано сирим «_»', raw_math, 'сира розмітка'),
         ('нумерація змісту починається заново',

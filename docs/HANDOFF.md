@@ -2,7 +2,8 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-11-11 — **post-p12/front-matter-2026** (section right below): front matter by
+> Last update: 2026-11-12 — **post-p12/cuts** (section right below): cuts, figures per review,
+> symmetric dashes, PDF fonts. Before it, 2026-11-11 — **post-p12/front-matter-2026**: front matter by
 > the university's 2026 regulation. Before it, 2026-11-02 — **post-p12/text-view-wording**: text view
 > wording. Before it, 2026-11-02 — **post-p12/legend-wording**: heatmap key wording,
 > re-shot. Before it, 2026-10-30 — **post-p12/ui-polish-screens**: interface fixes from
@@ -26,6 +27,16 @@
 > (PR #79), and the corrections rollup (2026-09-09), which is no longer an index: all 63 items carry
 > the Ukrainian sentences the draft should read, tagged Ф / П / С, every number with its measurement
 > condition. **The thesis text is assembled and green on every gate.**
+
+## Current state (2026-11-12) — post-p12/cuts: скорочення, рисунки, тире
+
+- Owner's reading pass, all applied (explainer section «Скорочення, рисунки за рецензією…»): PDF in
+  Times New Roman (#105), figures inside the margin, terms list (#106, contained in this branch),
+  symmetric dashes, figures 3.1–3.3 per external review (checked against code and migrations),
+  appendices И/Л removed and К → И, chapters 2–4 condensed with every number and caveat kept.
+- Build: 102 pp., body 66 (owner's range 60–80 — owner said keep it), ВСТУП 3 pp., all gates green,
+  adversarial subagent pass done and its 11 findings fixed.
+- CI still blocked by the account billing lock: merge with the admin bypass as #104/#105.
 
 ## Current state (2026-11-11) — post-p12/front-matter-2026: перші сторінки за Положенням 2026
 

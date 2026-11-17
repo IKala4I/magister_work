@@ -2,6 +2,35 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — the submission file: .docx with every appendix (2026-11-13, post-p12/submission-docx)
+
+- The thesis is submitted as .docx with all appendices, named from `_файл` in the private
+  titulka.json (owner: «МАГ_ДНФ_ПЗІС_2026_П_І_Б»). `layout.py toc-fill` writes the contents —
+  entries and pages as LibreOffice laid them out for the PDF — into the TOC field's result, so the
+  file opens with a filled contents without Word (not installed here); F9 still updates it. The
+  appendix-free PDF is no longer built.
+
+## Post-P12 — cuts, figures per the review, symmetric dashes (2026-11-12, post-p12/cuts)
+
+- Dashes: non-breaking spaces on both sides (owner), checked by verify.py.
+- Figures 3.1-3.3 redrawn per external review, checked against the code and migrations (3.2:
+  one mark per line, 0..1 for profiles/blend_state, identifying solid vs dashed, caption «Схема
+  зв'язків…»; 3.1: every block connected as the code does it; 3.3: «Таймер» actor, extends, renamed
+  UCs); all labels ≥ 8 pt. Е.1/Ж.1 one sheet each.
+- Appendices И (colour tokens) and Л (predictions) removed; the grid is Додаток И (generator
+  retargeted); 7 appendices, 20 tables.
+- Condensed: 2.4, 2.5.2-2.5.4, 2.7, 3.4, 3.7, 4.2, 4.8, 4.9; 4.3.1 one sentence; two repeats out
+  of 4.10. No number changed. Body 71 → 66 pp. (owner's range 60-80), total 119 → 102.
+
+## Post-P12 — reading fixes (2026-11-12, post-p12/reading-fixes)
+
+- Figures no longer overrun the right margin in the PDF: python-docx writes no `dist*` on inline
+  pictures, which LibreOffice reads as 0.32 cm; `zero_dist` sets them to 0, and `layout.py
+  typography` fails on any image outside the text block (old PDF: 6).
+- List of terms: «(далі в тексті: …)», rows kept on one page (cantSplit).
+- No italics in the реферат/ABSTRACT; «(скорочено)» dropped from table 3.1; the participant voucher
+  is no longer mentioned.
+
 ## Post-P12 — the PDF in Times New Roman, and the list of terms (2026-11-12, post-p12/pdf-fonts-legend)
 
 - The PDF was set in Liberation Serif: the pinned LibreOffice does not see the system Times New

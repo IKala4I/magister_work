@@ -68,14 +68,13 @@ echo; echo "== звірка";         "${PY[@]}" "$HERE/verify.py" --src "$SRC" 
 echo; echo "== самоперевірка оформлення"; "${PY[@]}" "$HERE/verify.py" --self-test --src "$SRC" --docx "$OUT/hourwell.docx"
 echo; echo "== легенди";        "${PY[@]}" "$HERE/check_legend_symbols.py" "$SRC"
 echo; echo "== аудит розмітки"; "${PY[@]}" "$HERE/audit_markdown.py" "$SRC" --out "$OUT/audit.md"
-# Методичка, с. 31: файл для перевірки й репозитарію — «МАГ-ДФН-ПЗІС-рік захисту-Прізвище І.Б.»,
-# одним файлом без додатків; повна робота лишається в hourwell.pdf.
-# Ім'я береться з titulka.json («здобувач»), тож у репозиторії його немає.
+# Робота для подання — .docx з усіма додатками й уже заповненим змістом (власник, 2026-11-13):
+# поле TOC отримує рядки й сторінки з готового PDF (layout.py toc-fill), Word оновить його за F9.
+# Назву файлу («_файл» у titulka.json, напр. МАГ_ДНФ_ПЗІС_2026_П_І_Б) задає власник — у репозиторії її немає.
 if [ -f "$PRIV" ]; then
-  NAME=$("${PY[@]}" -c 'import json, re, sys; v = json.load(open(sys.argv[1], encoding="utf-8")).get("здобувач", "").strip(); print(re.sub(r"(\w\.) (?=\w\.)", r"\1", v).rstrip("."))' "$PRIV")
+  NAME=$("${PY[@]}" -c 'import json, sys; print(json.load(open(sys.argv[1], encoding="utf-8")).get("_файл", "").strip())' "$PRIV")
   if [ -n "$NAME" ]; then
-    echo; echo "== файл на перевірку (без додатків, методичка, с. 31)"
-    "${PY[@]}" "$HERE/layout.py" cut "$OUT/hourwell.pdf" "$OUT/МАГ-ДФН-ПЗІС-2026-$NAME.pdf"
+    echo; echo "== робота для подання (.docx, усі додатки, зміст заповнено)"
+    "${PY[@]}" "$HERE/layout.py" toc-fill "$OUT/hourwell.pdf" "$OUT/hourwell.docx" --out "$OUT/$NAME.docx"
   fi
 fi
-
