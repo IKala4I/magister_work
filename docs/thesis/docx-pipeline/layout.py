@@ -3,11 +3,11 @@
 """Що вийшло на сторінках: читає готовий PDF і каже конвеєру те, чого з .docx не видно.
 
     python3 layout.py pages   hourwell.pdf            # обсяг роботи: номер останньої сторінки
-    python3 layout.py toc     hourwell.pdf            # зміст — на с. 4–6
+    python3 layout.py toc     hourwell.pdf            # зміст — на с. 5–9
     python3 layout.py cut     hourwell.pdf out.pdf    # той самий PDF без додатків (на перевірку)
     python3 layout.py toc-fill hourwell.pdf hourwell.docx --out out.docx
                                                       # .docx із заповненим змістом (рядки й сторінки — з PDF)
-    python3 layout.py referat hourwell.pdf --abstract referat.pdf
+    python3 layout.py referat hourwell.pdf
                                                       # сторінок у рефераті кожною мовою (≤ 3)
     python3 layout.py tables  hourwell.pdf hourwell.docx --plan tables.json --out tables.next.json
                                                       # які рядки кожної таблиці на якій сторінці
@@ -41,9 +41,8 @@
 із запасом 15 мм над нижнім полем — див. table_plan (власник, 2026-10-26).
 
 Обсяг — номер останньої сторінки за нумерацією роботи (методичка, с. 10): титульний лист — 1,
-завдання — 2, реферат — 3 і далі без номера, зміст — перша нумерована сторінка, і її номер читається
-з PDF (методичка: «четверта, п'ята або шоста»; TOC_PAGES). Картка, якщо вона стоїть у файлі першою,
-у відлік не входить.
+завдання — 2, реферат — 3 і далі без номера, за ним ABSTRACT, зміст — перша нумерована сторінка, і її
+номер читається з PDF (TOC_PAGES). Картка, якщо вона стоїть у файлі першою, у відлік не входить.
 """
 import argparse, json, os, re, sys
 
@@ -53,7 +52,11 @@ from docx.table import Table
 from docx.text.paragraph import Paragraph
 
 REFERAT_MAX = 3                           # Положення 2026, п. 3.3.9; методичка, с. 12: «до 3-х сторінок»
-TOC_PAGES = (4, 6)                        # методичка, с. 10: зміст — «четверта, п'ята або шоста сторінка»
+# Методичка (с. 10) ставить зміст третьою сторінкою: реферат у неї лежить у конверті. Положення 2026
+# (п. 3.3.9) ставить реферат перед змістом, нормоконтроль (2026-11-17) — ще й ABSTRACT: титульний
+# лист 1, завдання 2, два реферати по 1–3 с. — зміст на с. 5–9. До 2026-11-17 тут стояло «4–6» з
+# цитатою, якої в методичці немає (виведено з одного реферату).
+TOC_PAGES = (2 + 2 * 1 + 1, 2 + 2 * REFERAT_MAX + 1)
 RE_TOC = re.compile(r'^(\d+)\s+ЗМІСТ\b')
 BODY_RANGE = (60, 80)                     # основний текст, ВСТУП – ВИСНОВКИ включно (власник, 2026-10-26)
 
@@ -83,16 +86,16 @@ def thesis_pages(path):
     return last, len(texts), toc, num
 
 
-def referat_pages(work, abstract):
-    """Сторінок в українському рефераті (у роботі, від сторінки «РЕФЕРАТ» до змісту) і в рефераті
-    іноземною мовою (окремий файл)."""
+def referat_pages(work):
+    """Сторінок в українському рефераті (від сторінки «РЕФЕРАТ» до сторінки «ABSTRACT») і в
+    англійському (від «ABSTRACT» до змісту). Обидва — у роботі, перед змістом, кожен з нової сторінки."""
     texts = page_texts(work)
     ua = next((i for i, t in enumerate(texts) if t.startswith('РЕФЕРАТ')), None)
+    en = next((i for i, t in enumerate(texts) if t.startswith('ABSTRACT')), None)
     toc, _ = toc_page(texts, work)
-    en = page_texts(abstract)
-    if ua is None or ua > toc or not en or not en[0].startswith('ABSTRACT'):
-        raise SystemExit(f'не знайдено реферату: «РЕФЕРАТ» перед змістом у {work}, «ABSTRACT» у {abstract}')
-    return toc - ua, len(en)
+    if ua is None or en is None or not ua < en < toc:
+        raise SystemExit(f'не знайдено реферату: «РЕФЕРАТ», за ним «ABSTRACT» з нової сторінки, обидва перед змістом у {work}')
+    return en - ua, toc - en
 
 
 def appendix_page(path):
@@ -389,7 +392,6 @@ def main():
     ap.add_argument('--plan', help='tables: план поділу, з яким складено цей .docx (JSON; може не існувати)')
     ap.add_argument('--out', help='tables: куди записати наступний план (JSON)')
     ap.add_argument('--total', action='store_true', help='body: надрукувати лише загальний обсяг (для run_all.sh)')
-    ap.add_argument('--abstract', help='referat: PDF реферату іноземною мовою (окремий файл)')
     a = ap.parse_args()
     if a.what == 'tables':
         prev = json.load(open(a.plan, encoding='utf-8')) if a.plan and os.path.exists(a.plan) else {}
@@ -423,7 +425,7 @@ def main():
     if a.what == 'toc':                   # після проходів: у першому реферат ще з плейсхолдером
         _, _, _, num = thesis_pages(a.pdf)
         lo, hi = TOC_PAGES
-        print(f'зміст — с. {num}' + ('' if lo <= num <= hi else f' — ПОЗА с. {lo}–{hi} (методичка, с. 10)'))
+        print(f'зміст — с. {num}' + ('' if lo <= num <= hi else f' — ПОЗА с. {lo}–{hi} (титульний лист, завдання, два реферати по 1–3 с.)'))
         return 0 if lo <= num <= hi else 1
     if a.what == 'typography':
         spaced, ranges, fonts = typography(a.pdf)
@@ -449,9 +451,8 @@ def main():
         for n, first, k in parts:
             print(f'   {n:12s} з с. {first:3d}: {k} с.')
         return 0
-    if not a.abstract: ap.error('referat: потрібен --abstract (PDF реферату іноземною мовою)')
-    ua, en = referat_pages(a.pdf, a.abstract)
-    print(f'реферат: українською {ua} с., іноземною {en} с. (межа — {REFERAT_MAX})')
+    ua, en = referat_pages(a.pdf)
+    print(f'реферат: українською {ua} с., англійською (ABSTRACT) {en} с. (межа — {REFERAT_MAX})')
     return 0 if max(ua, en) <= REFERAT_MAX else 1
 
 

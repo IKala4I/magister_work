@@ -1273,12 +1273,13 @@ def referat_block(doc, head, end, brk):
 def build_front(doc, parts=None):
     """Те, що стоїть перед вступом, у порядку Положення 2026 (п. 3.3.5) і методички (с. 10):
     картка (у файлі для перевірки — перша сторінка, поза відліком), титульний лист — с. 1,
-    завдання — с. 2, реферат українською — с. 3 і далі, «перед змістом» (п. 3.3.9), зміст — перша
-    нумерована сторінка. Номери не друкуються до змісту, а відлік наскрізний: зміст отримує номер
-    своєї фізичної сторінки (з тристорінковим рефератом — 6). Реферат іноземною мовою вшивається
-    не в роботу, а окремим файлом (build_referat; власник, 2026-11-11).
+    завдання — с. 2, реферат українською — с. 3 і далі, за ним з нової сторінки реферат
+    англійською (ABSTRACT), обидва «перед змістом» (п. 3.3.9; методичка, с. 12: «рекомендується
+    додатково виконання реферату на одній з іноземних мов»), зміст — перша нумерована сторінка.
+    Номери не друкуються до змісту, а відлік наскрізний: зміст отримує номер своєї фізичної
+    сторінки. До 2026-11-17 ABSTRACT ішов окремим файлом; нормоконтроль вимагає його в роботі.
     Повертає номер рядка, з якого продовжує build_body."""
-    title, ua, _, toc = _front_lines()
+    title, ua, en, toc = _front_lines()
     card = emit_private_part(doc, parts and os.path.join(parts, 'kartka.json'), 'картка')
     if card: page_break(doc)
     build_title(doc, title)
@@ -1287,6 +1288,7 @@ def build_front(doc, parts=None):
         boxed(doc, '[МІСЦЕ ДЛЯ ЗАВДАННЯ: друга сторінка роботи — завдання до виконання магістерської '
                    'кваліфікаційної роботи з підписами; MagisterDocs/private/zavdannia.json]')
     referat_block(doc, *ua, brk=True)
+    referat_block(doc, *en, brk=True)
     if card:                               # картка стоїть перед сторінкою 1: відлік із нуля
         set_page_start(doc.sections[0]._sectPr, 0)
     numbered_section(doc)
@@ -1307,16 +1309,6 @@ def build_declaration(doc):
     if not emit_private_part(doc, PARTS[0] and os.path.join(PARTS[0], DECLARATION), 'декларація'):
         boxed(doc, '[МІСЦЕ ДЛЯ ДЕКЛАРАЦІЇ академічної доброчесності та використання ШІ (додаток К '
                    'Положення); MagisterDocs/private/deklaratsiia.json]')
-
-
-def build_referat(out, pages=None):
-    """Реферат іноземною мовою — окремим файлом (український вшито в роботу перед змістом)."""
-    _, _, en, _ = _front_lines()
-    doc = new_doc()
-    referat_block(doc, *en, brk=False)
-    typeset_document(doc)
-    os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
-    doc.save(out)
 
 
 def build_body(doc, lo, hi):
@@ -1600,7 +1592,7 @@ def emit_pending_sheets(doc, num):
 
 
 def build(src, out, brief=None, registry=None, report=None, figures=None, private=None, parts=None,
-          referat=None, pages=None, splits=None, body_pages=None):
+          pages=None, splits=None, body_pages=None):
     load(src, brief)
     load_private(private, pages, body_pages)
     load_splits(splits)
@@ -1614,7 +1606,6 @@ def build(src, out, brief=None, registry=None, report=None, figures=None, privat
         REPORT['placeholders'].append('кількість сторінок: не задано (--pages) — у тексті лишився плейсхолдер')
     if not body_pages:
         REPORT['placeholders'].append('обсяг основного тексту: не задано (--body-pages) — у тексті лишився плейсхолдер')
-    if referat: build_referat(referat, pages)
     if PENDING:
         raise SystemExit(f'РИСУНОК БЕЗ ПІДПИСУ: аркуші {sorted(PENDING)} не мають підпису «Рис. N …» у full.md')
     for kind, items in NORMALIZED.items():
@@ -1646,12 +1637,11 @@ if __name__ == '__main__':
     ap.add_argument('--figures', help='тека рендерів із manifest.json (render_figures.py); без неї — плейсхолдери')
     ap.add_argument('--private', help='titulka.json — дані титулки й реферату (поза репозиторієм)')
     ap.add_argument('--parts', help='тека з приватними частинами kartka.json, zavdannia.json і deklaratsiia.json (MagisterDocs/private)')
-    ap.add_argument('--referat', help='куди записати реферат іноземною мовою окремим .docx')
     ap.add_argument('--pages', type=int, help='кількість сторінок роботи з PDF попереднього проходу')
     ap.add_argument('--body-pages', type=int, help='обсяг основного тексту з PDF попереднього проходу (layout.py body --total)')
     ap.add_argument('--splits', help='план поділу таблиць за сторінками з PDF попереднього проходу (layout.py tables)')
     a = ap.parse_args()
-    rep = build(a.src, a.out, a.brief, a.registry, a.report, a.figures, a.private, a.parts, a.referat, a.pages,
+    rep = build(a.src, a.out, a.brief, a.registry, a.report, a.figures, a.private, a.parts, a.pages,
                 a.splits, a.body_pages)
     for x in rep['notes']: print('•', x)
     for x in rep['figures']:

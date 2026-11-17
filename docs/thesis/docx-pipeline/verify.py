@@ -525,6 +525,14 @@ def check_layout(doc, lines):
     unnumbered = [ws(x.text) for x in _body(doc)[:len(_body(doc)) - len(_section_start(doc, 1))] if _is_p(x)]
     if 'РЕФЕРАТ' not in unnumbered:
         bad.append('реферату немає на ненумерованих сторінках перед змістом (Положення 2026, п. 3.3.9)')
+    # ABSTRACT — за українським рефератом, з нової сторінки, перед змістом (нормоконтроль, 2026-11-17)
+    heads = [x for x in _body(doc)[:len(_body(doc)) - len(_section_start(doc, 1))]
+             if _is_p(x) and ws(x.text) in ('РЕФЕРАТ', 'ABSTRACT')]
+    names = [ws(x.text) for x in heads]
+    if names != ['РЕФЕРАТ', 'ABSTRACT']:
+        bad.append('ABSTRACT немає за українським рефератом перед змістом (нормоконтроль, 2026-11-17)')
+    elif not heads[1].paragraph_format.page_break_before:
+        bad.append('ABSTRACT не починається з нової сторінки')
     # декларація (Положення 2026, п. 3.3.5, додаток К): після списку джерел, перед «ДОДАТКИ», у змісті
     h1 = [(i, ws(x.text)) for i, x in enumerate(els) if _is_p(x) and x.style.name == 'Heading 1']
     pos = {t: i for i, t in h1}
@@ -662,6 +670,7 @@ def layout_mutations():
         ('нумерація змісту починається заново',
          lambda d: d.sections[1]._sectPr.append(parse_xml_t_pg('3')), 'нумерація не наскрізна'),
         ('реферат не в роботі', drop_referat, 'реферату немає'),
+        ('ABSTRACT не в роботі', drop_abstract, 'ABSTRACT немає'),
         ('перші сторінки з номером 2', lambda d: d.sections[0]._sectPr.find(WNS + 'pgNumType').set(WNS + 'start', '2'),
          'починають відлік із 2'),
         ('pgNumType після cols', pg_after_cols, 'стоїть після cols'),
@@ -689,6 +698,11 @@ def drop_referat(d):
     p._p.getparent().remove(p._p)
 
 
+def drop_abstract(d):
+    p = next(x for x in d.paragraphs if ws(x.text) == 'ABSTRACT')
+    p._p.getparent().remove(p._p)
+
+
 def parse_xml_t(txt):
     from docx.oxml import parse_xml
     from docx.oxml.ns import nsdecls
@@ -703,7 +717,6 @@ def main():
     ap.add_argument('--brief'); ap.add_argument('--registry', default=os.path.join(HERE, 'registry.json'))
     ap.add_argument('--figures', help='тека рендерів із manifest.json: перевірка 7')
     ap.add_argument('--private', help='titulka.json: перевірка 8 (приватні імена лише в .docx)')
-    ap.add_argument('--referat', help='реферат окремим .docx: його рядки шукаються в ньому, а не в роботі')
     ap.add_argument('--pages', type=int, help='обсяг, з яким складено документ (build.py --pages)')
     ap.add_argument('--body-pages', type=int, help='обсяг основного тексту, з яким складено документ (build.py --body-pages)')
     a = ap.parse_args()
@@ -727,12 +740,8 @@ def main():
     if a.registry: build.bind_registry(a.registry)
     LINES = build.LINES
     body, nmath = docx_text(a.docx)
-    # український реферат вшито в роботу перед змістом (Положення 2026, п. 3.3.9) і звіряється з
-    # нею, як решта тексту; реферат іноземною мовою — окремий файл: його рядки мають бути в ньому
-    # і НЕ мають бути в роботі
-    _, ua, en, _toc = build._front_lines()
-    referat_lines = set(range(en[0], _toc))
-    referat_body = docx_text(a.referat)[0] if a.referat else None
+    # обидва реферати (український і ABSTRACT) — у роботі перед змістом (Положення 2026, п. 3.3.9)
+    # і звіряються з нею, як решта тексту
     code, sections = code_lines(LINES), heading_numbers(LINES)
     filled = set(json.load(open(os.path.join(a.figures, 'manifest.json'), encoding='utf-8'))) if a.figures else set()
     failed = False
@@ -765,14 +774,6 @@ def main():
             if len(t) >= 3 and t not in body: missing.append((n, t[:90]))
             continue
         t = strip_md(s)
-        if n in referat_lines:
-            if referat_body is None: continue
-            if len(t) >= 40 and (t in body or strip_md(curl(s)) in body):
-                missing.append((n, 'РЯДОК РЕФЕРАТУ ВШИТО В РОБОТУ: ' + t[:60]))
-            if len(t) < 3 or t in referat_body: continue
-            if strip_md(curl(s)) in referat_body: apostrophes += 1
-            else: missing.append((n, 'немає в рефераті: ' + t[:70]))
-            continue
         if len(t) < 3 or t in body: continue
         if strip_md(curl(s)) in body: apostrophes += 1
         else: missing.append((n, t[:90]))
@@ -814,7 +815,7 @@ def main():
         src_txt = fold(ws(strip_md('\n'.join(LINES))))
         kv = build.KEEP_VERBATIM
         absent_src = [k for k in kv if fold(strip_md(k)) not in src_txt]
-        printed = fold(body + ' ' + (referat_body or ''))     # робота і реферат: рядок має бути в одному з них
+        printed = fold(body)
         not_in_docx = [k for k in kv if k not in absent_src and fold(strip_md(k)) not in printed]
         exempt = [k for k in not_in_docx if k in DOCX_EXEMPT]
         bad = [k for k in not_in_docx if k not in DOCX_EXEMPT]
@@ -849,7 +850,7 @@ def main():
         for tok in sorted({t for t in surnames if t}):
             if re.search(rf'(?<![\w-]){re.escape(tok)}(?![\w-])', public, re.IGNORECASE):
                 priv_bad.append(f'ПРІЗВИЩЕ У full.md: «{tok}»')
-        both = body + ' ' + (referat_body or '')            # титулка — у роботі, реферат — окремим файлом
+        both = body                                          # титулка й обидва реферати — у роботі
         for _, ph, _ in build.PRIVATE_FIELDS:
             if ph not in public:
                 priv_bad.append(f'плейсхолдера «{ph}» у full.md немає')

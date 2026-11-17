@@ -1200,3 +1200,8 @@ Today/Inbox/Focus/Insights/Onboarding/task-sheet screen list.
     «… та трендом дотримання», which no shot shows. Chapter 3.7 and Додаток И quote none of the
     changed interface strings («Станом на …», «здебільшого взяті …», «Експеримент: …»); nothing
     else in the text changes.
+76. **2026-11-17 — ABSTRACT back inside the thesis (normcontrol).** Since 2026-11-11 the English
+    abstract was a separate file; normcontrol flagged «с. 6: відсутній реферат англійською
+    (ABSTRACT)». It now follows the реферат on pp. 6–8, ЗМІСТ moves to p. 9, the volume becomes
+    105 pp. in the реферат, ABSTRACT and ВСТУП. The ABSTRACT was re-synced with the реферат sentence
+    by sentence; no number or caveat changed.
