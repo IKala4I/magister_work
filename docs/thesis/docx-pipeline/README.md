@@ -19,7 +19,7 @@
 плейсхолдерами), приватні частини (`private/kartka.json`, `private/zavdannia.json`,
 `private/deklaratsiia.json`), знімки рисунка 3.4 (`figures/3.4/`), туди — результат (`build/`:
 `hourwell.docx` і `.pdf`, робота для подання — `.docx` з усіма додатками й заповненим змістом під назвою з `_файл` у `titulka.json` (`layout.py toc-fill`; з 2026-11-13, до того — PDF без додатків),
-`referat.docx` і `.pdf` — ABSTRACT, звіт, аудит, рендери). Там само `sources/draft.docx` (власна чернетка; з 2026-10-26 текст її не читає),
+звіт, аудит, рендери). Там само `sources/draft.docx` (власна чернетка; з 2026-10-26 текст її не читає),
 методичка кафедри й `golden/` (еталон регресій). Будь-що з цього в репозиторій не потрапляє;
 `verify.py` падає, якщо ім'я з `titulka.json` опинилося в `full.md`.
 
@@ -61,14 +61,14 @@
 
 ```bash
 uv run python render_figures.py --src ../text/full.md --out $DOCS/build/figures --docs $DOCS     # рисунки
-uv run python build.py  --src ../text/full.md --brief ../formatter-brief.md --out $DOCS/build/hourwell.docx --report $DOCS/build/report.json --figures $DOCS/build/figures --private $DOCS/private/titulka.json --parts $DOCS/private --referat $DOCS/build/referat.docx --pages 161
+uv run python build.py  --src ../text/full.md --brief ../formatter-brief.md --out $DOCS/build/hourwell.docx --report $DOCS/build/report.json --figures $DOCS/build/figures --private $DOCS/private/titulka.json --parts $DOCS/private --pages 161
 uv run python make_pdf.py $DOCS/build/hourwell.docx $DOCS/build/hourwell.pdf      # PDF, зі змістом
 uv run python layout.py pages $DOCS/build/hourwell.pdf                            # обсяг для --pages
-uv run python verify.py --src ../text/full.md --brief ../formatter-brief.md --docx $DOCS/build/hourwell.docx --referat $DOCS/build/referat.docx --figures $DOCS/build/figures --private $DOCS/private/titulka.json --pages 161
+uv run python verify.py --src ../text/full.md --brief ../formatter-brief.md --docx $DOCS/build/hourwell.docx --figures $DOCS/build/figures --private $DOCS/private/titulka.json --pages 161
 uv run python check_legend_symbols.py ../text/full.md
 uv run python audit_markdown.py ../text/full.md --out $DOCS/build/audit.md
 uv run python regress.py $DOCS/golden/hourwell.docx $DOCS/build/hourwell.docx   # після зміни конвеєра
-uv run python make_pdf.py $DOCS/build/referat.docx $DOCS/build/referat.pdf --no-index && uv run python layout.py referat $DOCS/build/hourwell.pdf --abstract $DOCS/build/referat.pdf
+uv run python layout.py referat $DOCS/build/hourwell.pdf                         # обидва реферати ≤ 3 с.
 ```
 
 `cmp` чи хеш усього .docx для порівняння не годяться: у zip записано час складання, тож
@@ -108,7 +108,7 @@ git-ignored.
 | `render_figures.py`, `figures.json`            | рендер рисунків із `../text/diagrams/` (номер рисунка → вихідний файл чи тека знімків), вимога ≥ 8 пт                                                                                                                                                        |
 | `render/`                                      | закріплений рендерер Mermaid (npm-проєкт) і його конфігурація `mermaid.json`                                                                                                                                                                                 |
 | `make_pdf.py`                                  | PDF закріпленим LibreOffice, зміст оновлюється макросом                                                                                                                                                                                                      |
-| `layout.py`                                    | читає готовий PDF: обсяг роботи (номер останньої сторінки), номер сторінки змісту (4–6), сторінок у рефераті кожною мовою (≤ 3), висоту й рядки таблиць на сторінках (план: малі цілі, великі з «Продовження таблиці N» і запасом), типографіку на сторінках |
+| `layout.py`                                    | читає готовий PDF: обсяг роботи (номер останньої сторінки), номер сторінки змісту (5–9), сторінок у рефераті кожною мовою (≤ 3), висоту й рядки таблиць на сторінках (план: малі цілі, великі з «Продовження таблиці N» і запасом), типографіку на сторінках |
 
 ## Рішення, закладені в код, і чому
 
@@ -137,21 +137,24 @@ git-ignored.
 - **Перелік умовних позначень** (с. 12): рядки «X – Y» з `full.md` — таблиця без рамок у дві
   колонки, окрема для скорочень і для термінів.
 - **Порядок частин** (Положення 2026, п. 3.3.5; методичка, с. 10): картка (у файлі — перша
-  сторінка, у відлік не входить), титульний лист — с. 1, завдання — с. 2, реферат — с. 3–5, усі
-  без номера; зміст — перша нумерована сторінка (6). Перші сторінки — окремий розділ документа без
-  колонтитула; відлік наскрізний (картка — 0), тож зміст отримує номер своєї фізичної сторінки, а
-  `layout.py toc` (після проходів) валить збирання, якщо це не с. 4–6 (методичка: «четверта, п'ята або шоста»).
+  сторінка, у відлік не входить), титульний лист — с. 1, завдання — с. 2, реферат — с. 3–5,
+  ABSTRACT — с. 6–8, усі без номера; зміст — перша нумерована сторінка (9). Перші сторінки — окремий
+  розділ документа без колонтитула; відлік наскрізний (картка — 0), тож зміст отримує номер своєї
+  фізичної сторінки, а `layout.py toc` (після проходів) валить збирання, якщо це не с. 5–9
+  (титульний лист, завдання, два реферати по 1–3 с.; методичка ставить зміст третім, бо реферат
+  у неї в конверті, — «четверта, п'ята або шоста», що стояло тут до 2026-11-17, у ній немає).
   Після списку джерел, перед «ДОДАТКИ» — декларація академічної доброчесності (додаток К
   Положення), окремою сторінкою, із записом у змісті.
 - **Титульний лист** — форма кафедри (Додаток В методички). Слова форми й дані стоять у `full.md`,
   по одному надрукованому фрагменту на рядок; `build_title` їх лише
   розкладає і додає службові позначки — місце підпису, «(підпис)», «(ПІБ)», дату.
-- **Реферат** (Положення 2026, п. 3.3.9: «розміщується перед змістом»; до 2026-11-11 —
-  окремим файлом у конверт за методичкою) — український вшито в роботу перед змістом; ABSTRACT —
-  окремим файлом `referat.docx` (власник, 2026-11-11). У `full.md` обидва стоять між титулкою і
-  змістом. `verify.py` звіряє український з роботою, а рядки ABSTRACT шукає в `referat.docx` і
-  валить звірку, якщо такий рядок опинився в роботі; `layout.py referat` перевіряє межу в три
-  сторінки для кожного.
+- **Реферат** (Положення 2026, п. 3.3.9: «розміщується перед змістом»; методичка, с. 12:
+  «рекомендується додатково виконання реферату на одній з іноземних мов») — обидва в роботі перед
+  змістом, кожен з нової сторінки й однаково оформлений: РЕФЕРАТ, за ним ABSTRACT. З 2026-11-11 до
+  2026-11-17 ABSTRACT ішов окремим файлом `referat.docx`; нормоконтроль (2026-11-17, «с. 6:
+  відсутній реферат англійською (ABSTRACT)») повернув його в роботу. У `full.md` обидва стоять між
+  титулкою і змістом; `verify.py` звіряє обидва з роботою і перевіряє, що ABSTRACT іде за
+  рефератом з нової сторінки; `layout.py referat` — межу в три сторінки для кожного.
 - **Записи `TC` мають рівень 2** і для додатків, і для пунктів: Word ставить запис на вказаний
   рівень, LibreOffice 26.8.0 — на один нижче («\l 3» у зміст PDF не потрапляє зовсім). Стилі
   «toc 2» і «toc 3» мають однаковий відступ, тому різниці не видно.

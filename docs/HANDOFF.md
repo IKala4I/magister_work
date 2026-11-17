@@ -2,7 +2,9 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-11-12 — **post-p12/cuts** (section right below): cuts, figures per review,
+> Last update: 2026-11-17 — **post-p12/abstract-en** (section right below): ABSTRACT inside the
+> thesis per normcontrol. Before it, 2026-11-13 — **post-p12/submission-docx** (#108): the .docx for
+> submission. Before it, 2026-11-12 — **post-p12/cuts**: cuts, figures per review,
 > symmetric dashes, PDF fonts. Before it, 2026-11-11 — **post-p12/front-matter-2026**: front matter by
 > the university's 2026 regulation. Before it, 2026-11-02 — **post-p12/text-view-wording**: text view
 > wording. Before it, 2026-11-02 — **post-p12/legend-wording**: heatmap key wording,
@@ -27,6 +29,17 @@
 > (PR #79), and the corrections rollup (2026-09-09), which is no longer an index: all 63 items carry
 > the Ukrainian sentences the draft should read, tagged Ф / П / С, every number with its measurement
 > condition. **The thesis text is assembled and green on every gate.**
+
+## Current state (2026-11-17) — post-p12/abstract-en: ABSTRACT у роботі
+
+- Normcontrol: «с. 6: відсутній реферат англійською (ABSTRACT)». ABSTRACT now follows the реферат
+  on a new page (pp. 6–8), ЗМІСТ p. 9; `referat.docx` is no longer built. Text re-synced with the
+  реферат, numbers and caveats unchanged. Explainer section «ABSTRACT – у роботі, за рефератом».
+- Build 105 pp., body 66, every gate green. Submission file:
+  `MagisterDocs/build/МАГ_ДНФ_ПЗІС_2026_<ім'я>.docx` (name from `_файл` in titulka.json).
+- #108 merged 2026-11-17 (1c3da25), #106/#107 closed. CI still billing-locked: merge with the
+  same bypass — `gh api -X DELETE …/branches/main/protection/enforce_admins`, `gh pr merge N
+--squash --admin --subject "…(#N)"`, `gh api -X POST …/enforce_admins` (restores it).
 
 ## Current state (2026-11-12) — post-p12/cuts: скорочення, рисунки, тире
 

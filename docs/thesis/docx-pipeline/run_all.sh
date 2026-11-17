@@ -41,7 +41,7 @@ echo; echo "== рисунки";        "${PY[@]}" "$HERE/render_figures.py" --sr
 # Проходи тривають, доки обсяг і план поділу не перестануть змінюватися. Руками нічого не набирається.
 PLAN="$OUT/tables.json"
 BUILD=("${PY[@]}" "$HERE/build.py" --src "$SRC" --brief "$BRIEF" --out "$OUT/hourwell.docx" --report "$OUT/report.json"
-       --figures "$OUT/figures" --parts "$DOCS/private" --referat "$OUT/referat.docx" --splits "$PLAN"
+       --figures "$OUT/figures" --parts "$DOCS/private" --splits "$PLAN"
        ${PRIVATE[@]+"${PRIVATE[@]}"})
 PAGES=""; BODY=""; MAX_PASSES=14
 rm -f "$PLAN" "$PLAN.next" "$OUT/splits.json" "$OUT/splits.next.json"
@@ -58,13 +58,12 @@ for PASS in $(seq 1 $MAX_PASSES); do
   PAGES=$NEW; BODY=$NEWBODY; mv "$PLAN.next" "$PLAN"
 done
 echo; echo "== складання: звіт останнього проходу"; sed '$d' "$OUT/build.log" | sed '$d'
-echo; echo "== реферат (український — у роботі перед змістом, ABSTRACT — окремим файлом)"
-                                "${PY[@]}" "$HERE/make_pdf.py" "$OUT/referat.docx" "$OUT/referat.pdf" --no-index
-                                "${PY[@]}" "$HERE/layout.py" referat "$OUT/hourwell.pdf" --abstract "$OUT/referat.pdf"
+echo; echo "== реферат (український, за ним ABSTRACT з нової сторінки — обидва в роботі перед змістом)"
+                                "${PY[@]}" "$HERE/layout.py" referat "$OUT/hourwell.pdf"
 echo; echo "== обсяг";          "${PY[@]}" "$HERE/layout.py" body "$OUT/hourwell.pdf"
                                 "${PY[@]}" "$HERE/layout.py" toc "$OUT/hourwell.pdf"
 echo; echo "== типографіка в PDF"; "${PY[@]}" "$HERE/layout.py" typography "$OUT/hourwell.pdf"
-echo; echo "== звірка";         "${PY[@]}" "$HERE/verify.py" --src "$SRC" --brief "$BRIEF" --docx "$OUT/hourwell.docx" --referat "$OUT/referat.docx" --figures "$OUT/figures" --pages "$PAGES" --body-pages "$BODY" ${PRIVATE[@]+"${PRIVATE[@]}"}
+echo; echo "== звірка";         "${PY[@]}" "$HERE/verify.py" --src "$SRC" --brief "$BRIEF" --docx "$OUT/hourwell.docx" --figures "$OUT/figures" --pages "$PAGES" --body-pages "$BODY" ${PRIVATE[@]+"${PRIVATE[@]}"}
 echo; echo "== самоперевірка оформлення"; "${PY[@]}" "$HERE/verify.py" --self-test --src "$SRC" --docx "$OUT/hourwell.docx"
 echo; echo "== легенди";        "${PY[@]}" "$HERE/check_legend_symbols.py" "$SRC"
 echo; echo "== аудит розмітки"; "${PY[@]}" "$HERE/audit_markdown.py" "$SRC" --out "$OUT/audit.md"

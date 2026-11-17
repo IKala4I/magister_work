@@ -2,6 +2,18 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — ABSTRACT inside the thesis (2026-11-17, post-p12/abstract-en)
+
+- Normcontrol: «p. 6: no abstract in English (ABSTRACT)». The ABSTRACT now follows the Ukrainian
+  реферат on a new page, before ЗМІСТ, formatted the same; the separate `referat.docx` is gone
+  (`build.py --referat`, `layout.py referat --abstract` removed). verify.py checks the ABSTRACT
+  lines against the thesis and its position; a new self-test spoil drops it.
+- ABSTRACT text synced sentence by sentence with the реферат: same order, «deployed in the EU
+  region» added, words with no Ukrainian counterpart removed; every number and caveat unchanged.
+- `layout.py` TOC page range 4–6 → 5–9: the «четверта, п'ята або шоста» it cited is not in the
+  guideline; the range is now derived from title, task and two реферати of 1–3 pp. each.
+- Build: 105 pp. (was 102), ЗМІСТ p. 9, body 66, each реферат 3 pp.
+
 ## Post-P12 — the submission file: .docx with every appendix (2026-11-13, post-p12/submission-docx)
 
 - The thesis is submitted as .docx with all appendices, named from `_файл` in the private
