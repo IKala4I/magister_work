@@ -2,7 +2,8 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-11-17 — **post-p12/abstract-en** (section right below): ABSTRACT inside the
+> Last update: 2026-11-23 — **post-p12/final-after-normcontrol** (section right below): final version
+> after normcontrol. Before it, 2026-11-17 — **post-p12/abstract-en**: ABSTRACT inside the
 > thesis per normcontrol. Before it, 2026-11-13 — **post-p12/submission-docx** (#108): the .docx for
 > submission. Before it, 2026-11-12 — **post-p12/cuts**: cuts, figures per review,
 > symmetric dashes, PDF fonts. Before it, 2026-11-11 — **post-p12/front-matter-2026**: front matter by
@@ -29,6 +30,25 @@
 > (PR #79), and the corrections rollup (2026-09-09), which is no longer an index: all 63 items carry
 > the Ukrainian sentences the draft should read, tagged Ф / П / С, every number with its measurement
 > condition. **The thesis text is assembled and green on every gate.**
+
+## Current state (2026-11-23) — post-p12/final-after-normcontrol: остаточна версія
+
+- Supervisor returned «остання версія після нормоконтролю»
+  (`MagisterDocs/Check_Result/…docx`): add the appendices back, fill the task sheet, send the
+  final version. Compared with our 17.11 submission file paragraph by paragraph, the text is
+  identical. The only differences are that the card and every appendix are gone, and the TOC was
+  rebuilt in Word. The file was re-saved through another editor and degraded: 612 table
+  paragraphs lost single spacing, ≈ and U+2011 ended up in Gungsuh, the declaration heading lost
+  its centring and bold, and 9 headings lost pageBreakBefore. So the work was rebuilt with the
+  pipeline instead of patched.
+- Card out of the file, as in the supervisor's version: `private/kartka.json` →
+  `kartka.vidkladeno-2026-11-23.json`. Task approval date «10» листопада 2025 року (= issue date;
+  assumption, not from a document) in `zavdannia.json`.
+- verify.py self-test crashed without a card (mutation assumed `pgNumType`); fixed via `first_pg`.
+- Build 105 pp., body 66, TOC p. 9, every gate green. Final file:
+  `MagisterDocs/build/МАГ_ДНФ_ПЗІС_2026_Першко_Владислав_Васильович.docx`. Sending it is the owner's.
+- Next dates (supervisor): pre-defence 30.11 / 01.12.2026 12:00–15:00; printed unbound copy signed
+  by student + supervisor, and the poster; signed copy back by 01.12; then КЕП and send.
 
 ## Current state (2026-11-17) — post-p12/abstract-en: ABSTRACT у роботі
 
