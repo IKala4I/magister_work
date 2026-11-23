@@ -36,15 +36,19 @@
 - Supervisor returned «остання версія після нормоконтролю»
   (`MagisterDocs/Check_Result/…docx`): add the appendices back, fill the task sheet, send the
   final version. Compared with our 17.11 submission file paragraph by paragraph, the text is
-  identical. The only differences are that the card and every appendix are gone, and the TOC was
-  rebuilt in Word. The file was re-saved through another editor and degraded: 612 table
-  paragraphs lost single spacing, ≈ and U+2011 ended up in Gungsuh, the declaration heading lost
-  its centring and bold, and 9 headings lost pageBreakBefore. So the work was rebuilt with the
-  pipeline instead of patched.
+  identical (tables included). The card, every appendix and the TOC line for the declaration
+  are gone. The file was re-saved through another editor: 655 table paragraphs went to 1.5 line
+  spacing (tables longer, TOC pages +1–4) and 837 runs in 69 paragraphs, ordinary Cyrillic
+  included, are set in Gungsuh. Lost direct indents/page breaks are covered by its styles and
+  render the same. So the work was rebuilt with the pipeline instead of patched. Our TOC keeps the
+  declaration line (Положення п. 3.3.5).
 - Card out of the file, as in the supervisor's version: `private/kartka.json` →
   `kartka.vidkladeno-2026-11-23.json`. Task approval date «10» листопада 2025 року (= issue date;
   assumption, not from a document) in `zavdannia.json`.
 - verify.py self-test crashed without a card (mutation assumed `pgNumType`); fixed via `first_pg`.
+  The page-start rule now allows start 0 only with a card (`_has_card`). Adversarial pass done:
+  no blocker; its explainer corrections applied. Known, pre-existing: 14 filled TOC lines use plain
+  hyphens/spaces where the body has non-breaking ones (Word's F9 rebuilds the TOC).
 - Build 105 pp., body 66, TOC p. 9, every gate green. Final file:
   `MagisterDocs/build/МАГ_ДНФ_ПЗІС_2026_Першко_Владислав_Васильович.docx`. Sending it is the owner's.
 - Next dates (supervisor): pre-defence 30.11 / 01.12.2026 12:00–15:00; printed unbound copy signed
