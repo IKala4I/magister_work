@@ -14,7 +14,8 @@
 - The supervisor's file after normcontrol has the same text as the 17.11 submission file, without
   the card and the appendices, and was re-saved through another editor with degraded formatting.
   The work is rebuilt with the pipeline: appendices back, no card (as in that file), task approval
-  date filled (private data).
+  date filled (private data): «07» листопада 2025, the date of the order approving the topic, per
+  the supervisor (first build guessed the issue date, 10.11).
 - `verify.py` self-test: two spoils no longer assume the first section's `pgNumType`, which exists
   only with a card (22/22 noticed).
 
