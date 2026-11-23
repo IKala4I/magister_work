@@ -43,8 +43,8 @@
   render the same. So the work was rebuilt with the pipeline instead of patched. Our TOC keeps the
   declaration line (Положення п. 3.3.5).
 - Card out of the file, as in the supervisor's version: `private/kartka.json` →
-  `kartka.vidkladeno-2026-11-23.json`. Task approval date «10» листопада 2025 року (= issue date;
-  assumption, not from a document) in `zavdannia.json`.
+  `kartka.vidkladeno-2026-11-23.json`. Task approval date «07» листопада 2025 року in `zavdannia.json`
+  (date of order № 2721 «С»; supervisor's instruction, 2026-11-23).
 - verify.py self-test crashed without a card (mutation assumed `pgNumType`); fixed via `first_pg`.
   The page-start rule now allows start 0 only with a card (`_has_card`). Adversarial pass done:
   no blocker; its explainer corrections applied. Known, pre-existing: 14 filled TOC lines use plain
