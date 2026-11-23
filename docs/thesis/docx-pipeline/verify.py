@@ -362,6 +362,14 @@ def _body(doc):
 
 
 def _is_p(x): return x.__class__.__name__ == 'Paragraph'
+
+
+def _has_card(doc):
+    """Картка — рамка (таблиця) перед титульним листом, тобто перед першим «НАЦІОНАЛЬНИЙ …»."""
+    for x in _body(doc):
+        if _is_p(x) and ws(x.text).startswith('НАЦІОНАЛЬНИЙ'): return False
+        if not _is_p(x): return True
+    return False
 def _align(p): return p.alignment if p.alignment is not None else p.style.paragraph_format.alignment
 def _mm(length): return None if length is None else length / 36000
 def _has_field(p, name): return any((t.text or '').strip().startswith(name) for t in p._p.iter(WNS + 'instrText'))
@@ -516,8 +524,9 @@ def check_layout(doc, lines):
         bad.append(f'нумерація не наскрізна: нумерований розділ починає відлік заново з {start.get(WNS + "start")}')
     first = doc.sections[0]._sectPr.find(WNS + 'pgNumType')
     first = first.get(WNS + 'start') if first is not None else None
-    if first not in (None, '0'):
-        bad.append(f'перші сторінки починають відлік із {first}: має бути 0 (картка) або 1')
+    if first not in ((None, '0') if _has_card(doc) else (None, '1')):
+        bad.append(f'перші сторінки починають відлік із {first}: має бути 0 з карткою, без неї — 1 '
+                   '(інакше зміст на с. 9 надрукує 8)')
     sp0 = doc.sections[0]._sectPr
     tags = [c.tag for c in sp0]
     if WNS + 'pgNumType' in tags and WNS + 'cols' in tags and tags.index(WNS + 'pgNumType') > tags.index(WNS + 'cols'):
@@ -674,7 +683,7 @@ def layout_mutations():
         ('ABSTRACT не з нової сторінки',
          lambda d: setattr(next(x for x in d.paragraphs if ws(x.text) == 'ABSTRACT').paragraph_format,
                            'page_break_before', False), 'не починається з нової сторінки'),
-        ('перші сторінки з номером 2', lambda d: d.sections[0]._sectPr.find(WNS + 'pgNumType').set(WNS + 'start', '2'),
+        ('перші сторінки з номером 2', lambda d: first_pg(d).set(WNS + 'start', '2'),
          'починають відлік із 2'),
         ('pgNumType після cols', pg_after_cols, 'стоїть після cols'),
         ('декларації немає', drop_declaration, 'декларації немає'),
@@ -687,8 +696,22 @@ def parse_xml_t_pg(start):
     return parse_xml('<w:pgNumType %s w:start="%s"/>' % (nsdecls('w'), start))
 
 
+def first_pg(d):
+    """<w:pgNumType> перших сторінок. Без картки у файлі його немає (відлік і так з 1) —
+    тоді контроль ставить власний, на місце за схемою (перед <w:cols>), з start = 0."""
+    sp = d.sections[0]._sectPr; pg = sp.find(WNS + 'pgNumType')
+    if pg is None:
+        pg = parse_xml_t_pg('0')
+        tail = [WNS + t for t in ('cols', 'formProt', 'vAlign', 'noEndnote', 'titlePg', 'textDirection',
+                                  'bidi', 'rtlGutter', 'docGrid', 'printerSettings', 'sectPrChange')]
+        nxt = next((c for c in sp if c.tag in tail), None)
+        if nxt is None: sp.append(pg)
+        else: nxt.addprevious(pg)
+    return pg
+
+
 def pg_after_cols(d):
-    sp = d.sections[0]._sectPr; pg = sp.find(WNS + 'pgNumType'); sp.remove(pg); sp.append(pg)
+    sp = d.sections[0]._sectPr; pg = first_pg(d); sp.remove(pg); sp.append(pg)
 
 
 def drop_declaration(d):
