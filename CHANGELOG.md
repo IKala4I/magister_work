@@ -2,6 +2,15 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — final version after normcontrol (2026-11-23, post-p12/final-after-normcontrol)
+
+- The supervisor's file after normcontrol has the same text as the 17.11 submission file, without
+  the card and the appendices, and was re-saved through another editor with degraded formatting.
+  The work is rebuilt with the pipeline: appendices back, no card (as in that file), task approval
+  date filled (private data).
+- `verify.py` self-test: two spoils no longer assume the first section's `pgNumType`, which exists
+  only with a card (22/22 noticed).
+
 ## Post-P12 — nine Expo SDK 57 patch releases (2026-11-23, build/expo-patch-2026-11-23)
 
 - `npx expo install --fix`: expo 57.0.33, expo-router 57.0.31, expo-notifications 57.0.25,
