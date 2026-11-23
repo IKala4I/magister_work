@@ -2,6 +2,14 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — nine Expo SDK 57 patch releases (2026-11-23, build/expo-patch-2026-11-23)
+
+- `npx expo install --fix`: expo 57.0.33, expo-router 57.0.31, expo-notifications 57.0.25,
+  expo-sharing 57.0.26, expo-constants 57.0.24, expo-linking 57.0.14, expo-splash-screen 57.0.11,
+  expo-sqlite 57.0.5, @expo/metro-runtime 57.0.18. React Native 0.86.3 and React 19.2.3 unchanged.
+  expo-doctor turned red on upstream publications alone, on the docs-only thesis PR (#110); a
+  separate bump before the merge, as in #82, #84, #89, #92.
+
 ## Post-P12 — ABSTRACT inside the thesis (2026-11-17, post-p12/abstract-en)
 
 - Normcontrol: «p. 6: no abstract in English (ABSTRACT)». The ABSTRACT now follows the Ukrainian
