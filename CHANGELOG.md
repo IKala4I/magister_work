@@ -2,6 +2,13 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — seven more Expo SDK 57 patch releases (2026-11-23, build/expo-patch-2026-11-23b)
+
+- `npx expo install --fix` again the same day: @expo/metro-runtime 57.0.19, expo-constants 57.0.25,
+  expo-notifications 57.0.26, expo-router 57.0.32, expo-sharing 57.0.27, expo-splash-screen
+  57.0.12, expo-sqlite 57.0.7. React Native and React unchanged. expo-doctor turned red on the
+  docs-only PR #112.
+
 ## Post-P12 — final version after normcontrol (2026-11-23, post-p12/final-after-normcontrol)
 
 - The supervisor's file after normcontrol has the same text as the 17.11 submission file, without
