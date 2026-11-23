@@ -674,7 +674,7 @@ def layout_mutations():
         ('ABSTRACT не з нової сторінки',
          lambda d: setattr(next(x for x in d.paragraphs if ws(x.text) == 'ABSTRACT').paragraph_format,
                            'page_break_before', False), 'не починається з нової сторінки'),
-        ('перші сторінки з номером 2', lambda d: d.sections[0]._sectPr.find(WNS + 'pgNumType').set(WNS + 'start', '2'),
+        ('перші сторінки з номером 2', lambda d: first_pg(d).set(WNS + 'start', '2'),
          'починають відлік із 2'),
         ('pgNumType після cols', pg_after_cols, 'стоїть після cols'),
         ('декларації немає', drop_declaration, 'декларації немає'),
@@ -687,8 +687,19 @@ def parse_xml_t_pg(start):
     return parse_xml('<w:pgNumType %s w:start="%s"/>' % (nsdecls('w'), start))
 
 
+def first_pg(d):
+    """<w:pgNumType> перших сторінок. Без картки у файлі його немає (відлік і так з 1) —
+    тоді контроль ставить власний, на місце за схемою (перед <w:cols>), з start = 0."""
+    sp = d.sections[0]._sectPr; pg = sp.find(WNS + 'pgNumType')
+    if pg is None:
+        pg = parse_xml_t_pg('0'); cols = sp.find(WNS + 'cols')
+        if cols is None: sp.append(pg)
+        else: cols.addprevious(pg)
+    return pg
+
+
 def pg_after_cols(d):
-    sp = d.sections[0]._sectPr; pg = sp.find(WNS + 'pgNumType'); sp.remove(pg); sp.append(pg)
+    sp = d.sections[0]._sectPr; pg = first_pg(d); sp.remove(pg); sp.append(pg)
 
 
 def drop_declaration(d):
