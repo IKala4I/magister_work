@@ -2,7 +2,8 @@
 
 > Refresh at every phase boundary (and on mid-phase context pressure). Resume line:
 > **"Read CLAUDE.md, PLAN.md and docs/HANDOFF.md, then continue."**
-> Last update: 2026-11-23 — **post-p12/final-after-normcontrol** (section right below): final version
+> Last update: 2026-11-24 — **post-p12/proceedings-citation** (section right below): theses from
+> the proceedings in the sources. Before it, 2026-11-23 — **post-p12/final-after-normcontrol**: final version
 > after normcontrol. Before it, 2026-11-17 — **post-p12/abstract-en**: ABSTRACT inside the
 > thesis per normcontrol. Before it, 2026-11-13 — **post-p12/submission-docx** (#108): the .docx for
 > submission. Before it, 2026-11-12 — **post-p12/cuts**: cuts, figures per review,
@@ -30,6 +31,15 @@
 > (PR #79), and the corrections rollup (2026-09-09), which is no longer an index: all 63 items carry
 > the Ukrainian sentences the draft should read, tagged Ф / П / С, every number with its measurement
 > condition. **The thesis text is assembled and green on every gate.**
+
+## Current state (2026-11-24) — post-p12/proceedings-citation: тези в джерелах
+
+- Proceedings out (owner's Telegram Desktop downloads; stays outside the repo). Theses printed
+  pp. 244–246 (PDF pp. 245–247). Added as source 8 with `[ПІБ здобувача]`; citations ≥ 8 shifted
+  +1 (all 116 checked against the old mapping); «Апробація» cites [8] with pages; counts 71.
+- AI declaration verified: own page before ДОДАТКИ, top-level TOC line (p. 90), not an appendix.
+- Build 106 pp., body 66, ВСТУП 3 pp., TOC p. 9, every gate green. Final file rebuilt in
+  `MagisterDocs/build/`; sending it is the owner's. `MagisterDocs/conference/aprobatsiia.md` updated.
 
 ## Current state (2026-11-23) — post-p12/final-after-normcontrol: остаточна версія
 
