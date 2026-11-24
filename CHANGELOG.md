@@ -2,6 +2,17 @@
 
 ## v0.1.0 rollup — release-notes substrate (P12, 2026-08-31)
 
+## Post-P12 — the conference theses in the sources (2026-11-24, post-p12/proceedings-citation)
+
+- The proceedings of the XVII ІТЕТО conference are out; the theses are source 8 (pp. 244–246),
+  alphabetical between «Міхав» and «Про захист…». Every citation from [8] on shifts by one; a
+  script checked all 116 cited numbers against the entry they named before. The author's name
+  stays the `[ПІБ здобувача]` placeholder in `full.md`.
+- «Апробація» now says the theses are published in the proceedings, pp. 244–246 [8], with the
+  conference's name as the proceedings print it. Source count 71 in the реферат, ABSTRACT, ВСТУП.
+- The AI-use declaration was checked and needs no change: its own page before ДОДАТКИ, a
+  top-level TOC line, not counted among the appendices. Build 106 pp., body 66.
+
 ## Post-P12 — seven more Expo SDK 57 patch releases (2026-11-23, build/expo-patch-2026-11-23b)
 
 - `npx expo install --fix` again the same day: @expo/metro-runtime 57.0.19, expo-constants 57.0.25,
